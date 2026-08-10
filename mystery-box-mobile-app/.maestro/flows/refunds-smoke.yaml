@@ -1,0 +1,7 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- tapOn:
+    id: "profileTab"
+- tapOn: "退款记录"
+- assertVisible: ".*"

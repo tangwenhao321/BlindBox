@@ -1,0 +1,7 @@
+{
+  "analyticsQueue": {
+    "message": "Analytics sync failed — {{count}} event(s) pending (will retry when online)",
+    "dismiss": "Dismiss",
+    "dismissA11y": "Dismiss analytics sync notice"
+  }
+}

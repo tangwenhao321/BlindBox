@@ -1,0 +1,10 @@
+{
+  "orderUtils": {
+    "phoneUnbound": "No phone linked",
+    "boxOrderFallback": "Blind box · {{id}}",
+    "boxOrderDefault": "Blind box order",
+    "timeUnknown": "Time unknown",
+    "couponFallback": "Coupon",
+    "couponWithAmount": "{{name}} (-{{amount}})"
+  }
+}

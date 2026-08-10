@@ -1,0 +1,15 @@
+{
+  "paymentReturn": {
+    "title": "Kết quả thanh toán",
+    "orderId": "Mã đơn {{id}}",
+    "confirming": "Đang xác nhận thanh toán…",
+    "loadFailed": "Không tải được đơn hàng",
+    "successTitle": "Thanh toán thành công",
+    "successAmount": "Đã thanh toán {{amount}}",
+    "viewOrder": "Xem đơn hàng",
+    "failTitle": "Thanh toán chưa hoàn tất",
+    "failHint": "Nếu đã bị trừ tiền, hãy làm mới trang đơn sau hoặc thanh toán lại.",
+    "retryPay": "Thanh toán lại",
+    "backHome": "Về trang chủ"
+  }
+}

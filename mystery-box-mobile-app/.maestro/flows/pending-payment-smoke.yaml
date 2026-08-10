@@ -1,0 +1,36 @@
+appId: mystery-box-mobile-app
+---
+# Create order then leave mock payment -> home pending banner.
+- runFlow: checkout-smoke.yaml
+- runFlow:
+    when:
+      visible:
+        id: "ageGateConfirmButton"
+    commands:
+      - tapOn:
+          id: "ageGateConfirmButton"
+- tapOn:
+    id: "confirmPayButton"
+- extendedWaitUntil:
+    visible: "微信支付"
+    timeout: 25000
+- tapOn:
+    id: "mockPayCancelButton"
+- extendedWaitUntil:
+    visible: "放弃支付"
+    timeout: 8000
+- tapOn:
+    id: "mockPayLeaveButton"
+- runFlow:
+    when:
+      visible:
+        id: "orderResultCloseButton"
+    commands:
+      - tapOn:
+          id: "orderResultCloseButton"
+- tapOn:
+    id: "homeTab"
+- extendedWaitUntil:
+    visible:
+      id: "pendingPaymentBanner"
+    timeout: 20000

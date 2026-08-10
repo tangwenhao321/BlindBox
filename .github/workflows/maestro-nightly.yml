@@ -1,0 +1,34 @@
+name: maestro-nightly
+
+# Full Maestro suite stub — wire to a device farm or self-hosted emulator before enabling.
+# Documented in mystery-box-mobile-app/.maestro/README.md
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  maestro-e2e:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mystery-box-mobile-app
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Maestro nightly (full suite when device farm configured)
+        env:
+          MAESTRO_RUN_DEVICE: ${{ vars.MAESTRO_RUN_DEVICE || '0' }}
+          MAESTRO_TEST_PHONE: ${{ vars.MAESTRO_TEST_PHONE || '13800138000' }}
+          MAESTRO_TEST_PASSWORD: ${{ vars.MAESTRO_TEST_PASSWORD || 'Admin@123456' }}
+        run: |
+          if [ "$MAESTRO_RUN_DEVICE" = "1" ]; then
+            curl -Ls "https://get.maestro.mobile.dev" | bash
+            export PATH="$HOME/.maestro/bin:$PATH"
+            cd mystery-box-mobile-app
+            maestro test --config .maestro/config.yaml
+          else
+            bash ../scripts/maestro-ci-smoke.sh
+            echo "Set repo variable MAESTRO_RUN_DEVICE=1 when emulator/farm is wired for full nightly runs."
+          fi

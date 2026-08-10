@@ -1,0 +1,13 @@
+{
+  "validation": {
+    "phone": "Nhập số di động 10 chữ số, bắt đầu bằng 0",
+    "passwordMin": "Mật khẩu tối thiểu 6 ký tự",
+    "recipientRequired": "Nhập tên người nhận",
+    "recipientMin": "Tên người nhận tối thiểu 2 ký tự",
+    "regionRequired": "Chọn tỉnh / thành phố",
+    "districtRequired": "Nhập quận / huyện",
+    "wardRequired": "Nhập phường / xã",
+    "detailsRequired": "Nhập địa chỉ chi tiết",
+    "houseNumberRequired": "Nhập số nhà / căn hộ"
+  }
+}

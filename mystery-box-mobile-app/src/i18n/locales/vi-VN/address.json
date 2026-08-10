@@ -1,0 +1,36 @@
+{
+  "address": {
+    "editTitle": "Sửa địa chỉ",
+    "addTitle": "Thêm địa chỉ",
+    "recipient": "Người nhận",
+    "recipientPlaceholder": "Họ và tên",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "10 chữ số, bắt đầu bằng 0",
+    "region": "Tỉnh / thành phố",
+    "selectRegion": "Chọn tỉnh / thành phố",
+    "district": "Quận / huyện",
+    "districtPlaceholder": "Quận hoặc huyện",
+    "ward": "Phường / xã",
+    "wardPlaceholder": "Phường hoặc xã",
+    "details": "Địa chỉ",
+    "detailsPlaceholder": "Phường, đường, tòa nhà…",
+    "houseNumber": "Số nhà / căn hộ",
+    "houseNumberPlaceholder": "Số nhà, căn hộ, tầng",
+    "isDefault": "Địa chỉ mặc định",
+    "saving": "Đang lưu…",
+    "save": "Lưu địa chỉ",
+    "modalSubtitle": "Nhập đầy đủ thông tin giao hàng",
+    "bannerText": "Thêm địa chỉ giao hàng trước khi thanh toán",
+    "bannerAdd": "Thêm địa chỉ",
+    "bannerAddA11y": "Thêm địa chỉ giao hàng",
+    "bannerDismissA11y": "Ẩn thông báo",
+    "regionSearchPlaceholder": "Tìm tỉnh / thành phố",
+    "regionSearchA11y": "Tìm tỉnh thành",
+    "regionEmpty": "Không có kết quả",
+    "regionCloseA11y": "Đóng chọn vùng",
+    "regionSheetA11y": "Chọn tỉnh / thành phố"
+  },
+  "region": {
+    "selectPlaceholder": "Chạm để chọn tỉnh / thành phố"
+  }
+}

@@ -1,0 +1,135 @@
+# Prometheus alert rules for mystery-box backend (Micrometer / Spring Actuator).
+# Import into Prometheus or Prometheus Operator Rule CRD.
+# Metric names use underscores (dots → underscores) with _total suffix for counters.
+# Scrape: /actuator/prometheus on the API service.
+
+groups:
+  - name: mystery_box_payment
+    rules:
+      - alert: MysteryBoxPaymentFailureSpike
+        expr: |
+          (
+            sum(rate(mystery_box_payment_failure_total[5m]))
+            /
+            clamp_min(sum(rate(mystery_box_orders_created_total[5m])), 0.001)
+          ) > 0.15
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Payment failure rate above 15% of order creation
+          description: >
+            Investigate prepay gateway (WeChat / VNPay), merchant config, and recent deploys.
+            See docs/OPS_RUNBOOK.md payment fault tree.
+
+      - alert: MysteryBoxPaymentSuccessStalled
+        expr: |
+          sum(rate(mystery_box_payment_success_total[15m])) == 0
+          and sum(rate(mystery_box_orders_created_total[15m])) > 0
+        for: 15m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Orders created but no payment successes
+          description: >
+            Often IPN/notify URL or signature regression. VN: check VNPAY_IPN_URL and hash secret.
+            WeChat: notify URL reachability.
+
+      - alert: MysteryBoxPaymentNotifyRejected
+        expr: sum(rate(mystery_box_payment_notify_rejected_total[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Payment notify callbacks rejected (signature / parse)
+          description: >
+            Counter mystery_box.payment.notify.rejected. VNPay: TMN code, hash-secret, IPN whitelist.
+            Review payment_notify_log and gateway logs.
+
+  - name: mystery_box_warehouse
+    rules:
+      - alert: MysteryBoxWarehouseListSqlFallback
+        expr: sum(rate(mystery_box_warehouse_list_sql_fallback_total[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Warehouse list queries using SQL fallback path
+          description: >
+            Check DB health and Flyway V20260551_02 indexes. Users may see approximate warehouse counts.
+
+      - alert: MysteryBoxWarehouseCountSqlFallback
+        expr: sum(rate(mystery_box_warehouse_count_sql_fallback_total[5m])) > 0
+        for: 10m
+        labels:
+          severity: info
+          team: backend
+        annotations:
+          summary: Warehouse count queries using SQL fallback
+          description: Badge may show approximate prefix in mobile app.
+
+  - name: mystery_box_draw_integrity
+    rules:
+      # Option A: Loki / log-based (enable if Promtail ships backend logs)
+      - alert: MysteryBoxDrawIntegrityMismatch
+        expr: |
+          sum(count_over_time({job=~"mystery-box.*"} |~ "draw integrity mismatch" [15m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Draw integrity reconciliation found mismatches
+          description: >
+            OrderDrawIntegrityReconciliationJob logged failures. Check audit ORDER_DRAW_INTEGRITY_RECONCILE
+            and GET /front/mystery-box-order/{id}/draw-integrity. See docs/REVEAL_AND_OPS.md.
+
+      # Option B: job_run_audit FAILED for reconciliation job (wire sql_exporter or custom metric)
+      - alert: MysteryBoxDrawIntegrityJobFailed
+        expr: |
+          increase(mystery_box_job_run_failed_total{job_name="OrderDrawIntegrityReconciliationJob"}[1h]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Draw integrity scheduled job failed
+          description: >
+            Requires exporting job_run_audit.status=FAILED to Prometheus. Until wired, rely on log alert above
+            or Admin job run audit UI.
+
+  - name: mystery_box_push
+    rules:
+      - alert: MysteryBoxPushExpoFailed
+        expr: |
+          (
+            sum(rate(mystery_box_push_expo_failed_total[5m]))
+            /
+            clamp_min(
+              sum(rate(mystery_box_push_expo_sent_total[5m]))
+              + sum(rate(mystery_box_push_expo_failed_total[5m])),
+              0.001
+            )
+          ) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Expo push failure rate above 10%
+          description: >
+            Invalid tokens, Expo outage, or payload errors. See docs/OPS_RUNBOOK.md push fault tree.
+
+      - alert: MysteryBoxPushExpoFailedBurst
+        expr: sum(increase(mystery_box_push_expo_failed_total[5m])) > 50
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Large burst of failed Expo push deliveries
+          description: Check notification service logs and Expo status page.

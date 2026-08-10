@@ -1,0 +1,9 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: login-smoke.yaml
+- tapOn:
+    id: "warehouseTab"
+- extendedWaitUntil:
+    visible: "仓库"
+    timeout: 15000
+- assertVisible: ".*"

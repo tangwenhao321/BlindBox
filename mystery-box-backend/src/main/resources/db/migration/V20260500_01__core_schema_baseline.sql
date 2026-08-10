@@ -1,0 +1,90 @@
+-- Core commerce tables for fresh installs (existing DBs: IF NOT EXISTS only).
+CREATE TABLE IF NOT EXISTS user (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    phone VARCHAR(32) NULL,
+    password VARCHAR(255) NULL,
+    nickname VARCHAR(64) NULL,
+    avatar VARCHAR(512) NULL,
+    balance DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)
+);
+
+CREATE TABLE IF NOT EXISTS mystery_box_category (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    name VARCHAR(128) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    creator_id VARCHAR(32) NULL,
+    editor_id VARCHAR(32) NULL
+);
+
+CREATE TABLE IF NOT EXISTS product_category (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    name VARCHAR(128) NOT NULL,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    creator_id VARCHAR(32) NULL,
+    editor_id VARCHAR(32) NULL
+);
+
+CREATE TABLE IF NOT EXISTS product (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    price DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    cover VARCHAR(512) NULL,
+    brand VARCHAR(128) NULL,
+    category_id VARCHAR(32) NULL,
+    description TEXT NULL,
+    tags JSON NULL,
+    specifications JSON NULL,
+    quality_type VARCHAR(32) NOT NULL DEFAULT 'GENERAL',
+    attributes JSON NULL,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    creator_id VARCHAR(32) NULL,
+    editor_id VARCHAR(32) NULL
+);
+
+CREATE TABLE IF NOT EXISTS mystery_box (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    details TEXT NULL,
+    tips VARCHAR(512) NULL,
+    price DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    legendary_rate INT NOT NULL DEFAULT 100,
+    hidden_rate INT NOT NULL DEFAULT 500,
+    general_rate INT NOT NULL DEFAULT 9400,
+    cover VARCHAR(512) NULL,
+    category_id VARCHAR(32) NULL,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    creator_id VARCHAR(32) NULL,
+    editor_id VARCHAR(32) NULL
+);
+
+CREATE TABLE IF NOT EXISTS mystery_box_product_rel (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    mystery_box_id VARCHAR(32) NOT NULL,
+    product_id VARCHAR(32) NOT NULL,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    creator_id VARCHAR(32) NULL,
+    editor_id VARCHAR(32) NULL,
+    UNIQUE KEY uk_box_product (mystery_box_id, product_id)
+);
+
+CREATE TABLE IF NOT EXISTS mystery_box_order (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    user_id VARCHAR(32) NOT NULL,
+    mystery_box_id VARCHAR(32) NOT NULL,
+    status VARCHAR(32) NOT NULL,
+    pay_amount DECIMAL(12, 2) NOT NULL DEFAULT 0,
+    draw_count INT NOT NULL DEFAULT 1,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+    edited_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+    creator_id VARCHAR(32) NULL,
+    editor_id VARCHAR(32) NULL,
+    INDEX idx_order_user (user_id, created_time DESC)
+);

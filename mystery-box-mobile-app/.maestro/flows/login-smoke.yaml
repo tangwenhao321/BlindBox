@@ -1,0 +1,16 @@
+appId: mystery-box-mobile-app
+---
+# Requires MAESTRO_TEST_PHONE / MAESTRO_TEST_PASSWORD env (see .env.example)
+- tapOn:
+    id: "loginPhoneInput"
+- eraseText
+- inputText: ${MAESTRO_TEST_PHONE}
+- tapOn:
+    id: "loginPasswordInput"
+- eraseText
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- tapOn:
+    id: "loginSubmitButton"
+- extendedWaitUntil:
+    notVisible: "登录"
+    timeout: 20000

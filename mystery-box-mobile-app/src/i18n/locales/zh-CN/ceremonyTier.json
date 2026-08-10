@@ -1,0 +1,9 @@
+{
+  "ceremonyTier": {
+    "TREASURE_LEGEND": "珍品传说",
+    "PEERLESS": "无双",
+    "TREASURE_PEERLESS": "珍品无双",
+    "GENERAL": "普通",
+    "HIDDEN": "隐藏"
+  }
+}

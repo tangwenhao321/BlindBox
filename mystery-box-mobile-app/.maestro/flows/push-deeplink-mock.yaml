@@ -1,0 +1,15 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: smoke.yaml
+- openLink: mysterybox://refunds
+- extendedWaitUntil:
+    visible: "退款记录"
+    timeout: 15000
+- openLink: mysterybox://community
+- extendedWaitUntil:
+    visible: "晒单墙"
+    timeout: 15000
+- openLink: mysterybox://marketplace
+- extendedWaitUntil:
+    visible: "集市"
+    timeout: 15000

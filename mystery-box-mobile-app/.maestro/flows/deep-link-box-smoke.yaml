@@ -1,0 +1,7 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- openLink: mysterybox://box/test-box-id
+- extendedWaitUntil:
+    visible: ".*盲盒.*|.*Box.*|.*Hộp.*|.*详情.*|.*Details.*"
+    timeout: 15000

@@ -1,0 +1,25 @@
+{
+  "warehouseShip": {
+    "successTitle": "发货申请已提交",
+    "successSub": "仓库将尽快处理，可在「发货申请」中查看进度",
+    "viewRequests": "查看发货申请",
+    "done": "完成",
+    "title": "批量申请发货",
+    "selectedCount": "已选 {{count}} 件赏品",
+    "noItemsWarn": "未选中可发货的商品，请返回重新勾选",
+    "addressLabel": "收货地址",
+    "manageAddress": "管理地址",
+    "addAddressFirst": "请先添加收货地址",
+    "selectAddressHint": "请点击上方地址卡片选择收货地址",
+    "quoteRow": "盲盒待发货 {{order}} 件 · 集市 {{market}} 件",
+    "deliveryFee": "运费 {{amount}}",
+    "payAmount": "应付 {{amount}}",
+    "quotingWaiting": "运费试算中…",
+    "quotingNeedAddress": "选择地址后将自动试算运费",
+    "selectAddressError": "请选择收货地址",
+    "waitQuoteError": "请等待运费试算完成",
+    "retrySubmit": "重试提交",
+    "submitting": "提交中...",
+    "submit": "确认提交发货申请"
+  }
+}

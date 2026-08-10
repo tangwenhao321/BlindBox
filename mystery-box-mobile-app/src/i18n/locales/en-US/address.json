@@ -1,0 +1,33 @@
+{
+  "address": {
+    "editTitle": "Edit address",
+    "addTitle": "New address",
+    "recipient": "Recipient",
+    "recipientPlaceholder": "Full name",
+    "phone": "Phone",
+    "phonePlaceholder": "Mobile number",
+    "region": "Region",
+    "selectRegion": "Select region",
+    "details": "Address",
+    "detailsPlaceholder": "Street, community, building, etc.",
+    "houseNumber": "Unit / room",
+    "houseNumberPlaceholder": "Building, unit, room number",
+    "isDefault": "Default address",
+    "saving": "Saving…",
+    "save": "Save address",
+    "modalSubtitle": "Enter complete shipping details for delivery",
+    "bannerText": "Add a shipping address before payment",
+    "bannerAdd": "Add address",
+    "bannerAddA11y": "Add shipping address",
+    "bannerDismissA11y": "Dismiss notice",
+    "regionSearchPlaceholder": "Search province / city / district",
+    "regionSearchA11y": "Search region",
+    "regionEmpty": "No matching region",
+    "regionCloseA11y": "Close region picker",
+    "regionSheetA11y": "Select region",
+    "district": "District",
+    "districtPlaceholder": "e.g. District 1",
+    "ward": "Ward",
+    "wardPlaceholder": "e.g. Ward name"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "drawPackMath": {
+    "teaser": "{{count}}连省{{saved}} · 低至{{perDraw}}/抽",
+    "progressHint": "再抽 {{need}} 次可享 {{count}} 连，预计省 {{saved}}"
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "common": {
+    "back": "返回",
+    "submit": "提交",
+    "confirm": "确认",
+    "cancel": "取消",
+    "loading": "加载中…",
+    "retry": "重试",
+    "loadMore": "加载更多…",
+    "retryLoadA11y": "重试加载",
+    "sectionHotSale": "热卖盲盒",
+    "sectionFeedback": "反馈",
+    "sectionHistory": "历史",
+    "sectionCoupons": "优惠券",
+    "sectionSystem": "系统",
+    "sectionOrders": "订单",
+    "sectionPrizes": "奖品",
+    "amountAtLeast": "≥{{amount}}",
+    "gotIt": "知道了",
+    "contactSupport": "联系客服"
+  }
+}

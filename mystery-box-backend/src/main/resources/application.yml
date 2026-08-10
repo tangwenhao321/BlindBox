@@ -1,0 +1,157 @@
+spring:
+  application:
+    name: mystery-box
+  profiles:
+    active: dev,private
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  web:
+    resources:
+      static-locations: classpath:/dist
+server:
+  port: 9912
+  tomcat:
+    max-http-form-post-size: 20MB
+sa-token:
+  # token名称 (同时也是cookie名称)
+  token-name: token
+  # token有效期，单位s 默认30天, -1代表永不过期
+  timeout: 2592000
+  # token临时有效期 (指定时间内无操作就视为token过期) 单位: 秒
+  active-timeout: -1
+  # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
+  is-concurrent: true
+  # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  is-share: true
+  # token风格
+  token-style: uuid
+  # 是否输出操作日志
+  is-log: true
+  # 自动续签
+  auto-renew: true
+security:
+  enabled: true
+  admin-action-otp: CHANGE_ME_IN_PRIVATE_YML
+  analytics:
+    enabled: true
+    retention-days: 30
+    retention-enabled: true
+    retention-cron: "0 15 3 * * ?"
+  compliance:
+    spend-limit:
+      enabled: true
+      daily: 5000
+      monthly: 20000
+      cooling-off-hours: 24
+  rate-limit:
+    enabled: true
+    per-minute: 120
+    analytics-per-minute: 60
+    distributed: false
+    trusted-proxy: false
+    login-per-minute: 20
+    order-create-per-minute: 30
+    prepay-per-minute: 20
+    draw-queue-per-minute: 40
+    spectator-get-per-minute: 60
+  idempotency:
+    enabled: true
+    ttl-ms: 300000
+    distributed: true
+    required: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    tags:
+      application: ${spring.application.name}
+jimmer:
+  dialect: org.babyfish.jimmer.sql.dialect.MySqlDialect
+  show-sql: true
+  pretty-sql: true
+  client:
+    ts:
+      path: /ts.zip
+    openapi:
+      path: /openapi
+      ui-path: /openapi-ui
+  trigger-type: transaction_only
+wx:
+  # 微信开放平台配置（保留 miniapp 键以兼容现有 SDK）
+  miniapp:
+    appid: xxxx
+    secret: xxxx
+    config-storage:
+      http-client-type: HttpClient
+      type: redistemplate
+  # 微信支付配置
+  pay:
+    app-id: xxxx
+    mch-id: xxxx
+    apiv3-key: xxxx
+    cert-serial-no: xxxx
+    privateKeyPath: classpath:wechat/apiclient_key.pem
+    privateCertPath: classpath:wechat/apiclient_cert.pem
+sms:
+  # 修改provider
+  provider: none
+  # 阿里云短信配置
+  ali-yun:
+    access-key-id: xxx
+    access-key-secret: xxx
+    sign-name: xxx
+    template-code: xxx
+oss:
+  provider: ali_yun
+  # 阿里云oss配置
+  ali-yun:
+    access-key-id: xxx
+    access-key-secret: xxx
+    endpoint: xxx
+    bucket-name: xxx
+tenant:
+  map:
+    key: xxx
+app:
+  mobile-update:
+    android-version-code: ${APP_ANDROID_VERSION_CODE:0}
+    android-version-name: ${APP_ANDROID_VERSION_NAME:}
+    android-download-url: ${APP_ANDROID_DOWNLOAD_URL:}
+    android-force-update: ${APP_ANDROID_FORCE_UPDATE:false}
+    android-release-notes: ${APP_ANDROID_RELEASE_NOTES:}
+    # Clients below this build are forced to update; 0 disables the floor.
+    android-min-supported-version-code: ${APP_ANDROID_MIN_SUPPORTED_VERSION_CODE:0}
+    # Fan-out of APP_UPDATE pushes when a release is published from the admin panel.
+    push-enabled: ${APP_UPDATE_PUSH_ENABLED:true}
+  cors:
+    allowed-origin-patterns: "*"
+  support:
+    hotline: ${APP_SUPPORT_HOTLINE:400-000-0000}
+    enterprise-wechat: ${APP_SUPPORT_WECHAT:}
+  privacy:
+    mask-nickname-suffix: 4
+  cache:
+    home-summary-ttl-seconds: 60
+  pool:
+    reconcile:
+      auto-fix: false
+  queue:
+    head-timeout-sec: ${QUEUE_HEAD_TIMEOUT_SEC:120}
+    ttl-hours: ${QUEUE_TTL_HOURS:2}
+    lock-ttl-sec: 120
+  sse:
+    scheduler:
+      pool-size: 8
+  jobs:
+    payment-reconcile:
+      cron: "0 */5 * * * ?"
+      min-age-minutes: 10
+      batch-size: 50
+    pool-slot-expire-ms: 60000

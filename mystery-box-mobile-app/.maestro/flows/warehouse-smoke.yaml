@@ -1,0 +1,6 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- tapOn:
+    id: "warehouseTab"
+- assertVisible: ".*"

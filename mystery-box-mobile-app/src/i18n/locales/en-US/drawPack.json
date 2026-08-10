@@ -1,0 +1,20 @@
+{
+  "drawPack": {
+    "closeA11y": "Close draw pack modal",
+    "sheetA11y": "Draw pack offers",
+    "title": "Draw pack deals",
+    "close": "Close",
+    "poolRemaining": "Pool {{remaining}}/{{total}} left",
+    "wholeBox": "Full box {{count}} draws · {{price}}",
+    "wholeBoxEstimate": "~{{count}} draws per box (stock dependent)",
+    "optionA11y": "{{label}}, {{price}}{{best}}",
+    "bestValue": ", best value",
+    "bestTag": "Best value",
+    "addressRequired": "Add a shipping address before payment",
+    "addressRequiredA11y": "Add shipping address before payment",
+    "confirmA11y": "Confirm draw",
+    "confirmingA11y": "Creating order",
+    "confirm": "Confirm draw",
+    "confirming": "Creating order…"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "api": {
+    "requestFailed": "Request failed",
+    "requestRetry": "Request failed — try again later",
+    "cannotConnect": "Cannot reach {{url}} — check the server and EXPO_PUBLIC_API_BASE_URL",
+    "apiNotConfigured": "EXPO_PUBLIC_API_BASE_URL not set — configure in .env",
+    "traceIdSuffix": " (traceId: {{traceId}})",
+    "errors": {
+      "sessionExpired": "Session expired — please sign in again",
+      "unauthorized": "Unauthorized — please sign in again",
+      "tokenInvalid": "Invalid login token — please sign in again",
+      "orderNotFound": "Order not found",
+      "boxNotFound": "Mystery box not found",
+      "userNotFound": "User not found",
+      "couponInvalid": "Coupon is not available",
+      "verifyCodeInvalid": "Invalid verification code",
+      "authFailed": "Invalid account or password",
+      "rateLimited": "Too many attempts — try again later",
+      "forbidden": "You are not allowed to perform this action",
+      "orderStatusInvalid": "Order status does not allow this action",
+      "notFound": "Data not found",
+      "outOfStock": "Out of stock",
+      "accountBanned": "Account has been suspended",
+      "systemError": "Service is busy — please try again later",
+      "paramInvalid": "Invalid request parameters"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "buyout": {
+    "lockActive": "Buyout lock · {{seconds}}s left",
+    "lockExpired": "Buyout lock expired",
+    "poolRemaining": "Will buy all {{count}} remaining draws",
+    "lockActiveA11y": "Buyout lock, {{seconds}} seconds left, {{remaining}} draws remaining",
+    "lockExpiredA11y": "Buyout lock expired, {{remaining}} draws remaining",
+    "lockProgressA11y": "Buyout lock progress {{percent}} percent"
+  }
+}

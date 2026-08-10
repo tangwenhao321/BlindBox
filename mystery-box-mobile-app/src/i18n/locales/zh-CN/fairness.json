@@ -1,0 +1,17 @@
+{
+  "fairness": {
+    "title": "开奖公平验证",
+    "copyResult": "复制验真结果",
+    "shareResult": "分享验真结果",
+    "copied": "验真结果已复制",
+    "emptyTitle": "暂无验签记录",
+    "emptyDesc": "该订单可能尚未开奖或记录尚未生成",
+    "missingOrderTitle": "无法加载验真",
+    "missingOrderDesc": "订单信息已失效，请从开奖结果页重新进入验真",
+    "hint": "服务端为每次开奖生成 seed 与 hash，可用相同算法复核结果未被篡改。",
+    "quality": "品级 {{type}}",
+    "verifiedOk": "验签通过",
+    "verifiedBad": "验签异常",
+    "verifyHeader": "订单 {{orderId}} 公平验证"
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "featureDisabled": "This feature is not available yet",
+  "momo": {
+    "title": "MoMo checkout",
+    "orderId": "Order {{id}}",
+    "stubHint": "MoMo payment is not fully wired yet. This stub confirms the selected payment method.",
+    "continueHint": "Continue opens MoMo to pay. Return to the app and refresh payment status.",
+    "continue": "Open MoMo",
+    "methodLabel": "MoMo",
+    "noPrepay": "MoMo payment link unavailable. Please retry.",
+    "openFailed": "Could not open MoMo. Check that the app is installed.",
+    "checkStatus": "I paid — refresh status",
+    "retry": "Retry payment link"
+  },
+  "checkout": {
+    "legalPrivacy": "Privacy policy",
+    "legalTerms": "Terms of service",
+    "legalMinor": "Minor declaration",
+    "paymentMethod": "Payment method"
+  },
+  "leaderboard": {
+    "myRank": "My rank",
+    "notRanked": "Not ranked yet"
+  },
+  "messages": {
+    "filterRestock": "Restock",
+    "filterPity": "Pity"
+  },
+  "promotion": {
+    "milestonesTitle": "Referral milestones"
+  },
+  "legal": {
+    "termsTitle": "Terms of service",
+    "termsP1": "By using this app you agree to platform rules on random draws, shipping, and refunds.",
+    "termsP2": "Purchases are limited to users aged 18+. Contact support for account or order disputes.",
+    "minorTitle": "Minor declaration",
+    "minorP1": "Mystery box products involve random outcomes and are not suitable for minors.",
+    "minorP2": "Parents or guardians must not permit under-18 users to place orders on this platform."
+  },
+  "currency": {
+    "ledgerTitle": "Recent activity",
+    "ledgerEmpty": "No lucky coin history yet"
+  },
+  "community": {
+    "shareZalo": "Share on Zalo"
+  }
+}

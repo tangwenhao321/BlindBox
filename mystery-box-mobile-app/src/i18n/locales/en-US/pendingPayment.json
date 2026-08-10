@@ -1,0 +1,13 @@
+{
+  "pendingPayment": {
+    "single": "You have an unpaid order",
+    "multiple": "{{count}} unpaid orders",
+    "orderFallback": "Mystery box order",
+    "remaining": "Time left",
+    "payNow": "Pay now",
+    "viewAll": "View all unpaid ›",
+    "a11ySingle": "Unpaid order — pay now",
+    "a11yMultiple": "{{count}} unpaid orders — pay now",
+    "a11yViewAll": "View all unpaid orders"
+  }
+}

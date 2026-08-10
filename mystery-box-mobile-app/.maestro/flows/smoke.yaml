@@ -1,0 +1,14 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- assertVisible: ".*"
+- runFlow:
+    when:
+      visible:
+        id: "loginPhoneInput"
+    file: login-smoke.yaml
+- runFlow:
+    when:
+      visible: "登录"
+    commands:
+      - tapOn: "登录"

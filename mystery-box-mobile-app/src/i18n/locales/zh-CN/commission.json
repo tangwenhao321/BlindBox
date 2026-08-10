@@ -1,0 +1,12 @@
+{
+  "commission": {
+    "title": "佣金明细",
+    "totalLabel": "累计佣金",
+    "sectionTitle": "佣金明细",
+    "sectionHint": "(仅保留半年记录)",
+    "defaultRemark": "佣金",
+    "emptyTitle": "暂无佣金记录",
+    "emptyDesc": "邀请好友消费后可获得佣金",
+    "goPromotion": "去推广"
+  }
+}

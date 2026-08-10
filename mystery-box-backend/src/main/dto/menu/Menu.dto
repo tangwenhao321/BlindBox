@@ -1,0 +1,18 @@
+export io.github.qifan777.server.menu.entity.Menu
+input MenuInput {
+    #allScalars(Menu)
+    id?
+    id(parent)
+}
+
+specification MenuSpec {
+    #allScalars
+    like/i(name)
+    like/i(path)
+    like/i(id)
+    ge(createdTime)
+    le(createdTime)
+    ge(editedTime)
+    le(editedTime)
+    id(parent)
+}

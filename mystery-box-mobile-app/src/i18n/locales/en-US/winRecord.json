@@ -1,0 +1,13 @@
+{
+  "winRecord": {
+    "title": "Live feed",
+    "closeA11y": "Close feed",
+    "banner": "Real draw records (nicknames masked)",
+    "fallbackName": "Pool item",
+    "line": "{{displayName}} got {{productName}}{{lastOne}}",
+    "lastOne": " · Last one",
+    "empty": "No records yet — draws appear here",
+    "emptyFilter": "No records for this tier — try another filter",
+    "loadMore": "Loading more…"
+  }
+}

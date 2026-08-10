@@ -1,0 +1,11 @@
+{
+  "qualityTier": {
+    "LEGENDARY": "传说",
+    "LEGEND": "传说",
+    "EPIC": "史诗",
+    "RARE": "稀有",
+    "ADVANCED": "高级",
+    "HIDDEN": "隐藏",
+    "GENERAL": "普通"
+  }
+}

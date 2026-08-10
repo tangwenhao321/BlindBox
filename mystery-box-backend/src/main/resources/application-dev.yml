@@ -1,0 +1,113 @@
+spring:
+  flyway:
+    baseline-on-migrate: true
+    out-of-order: true
+  data:
+    redis:
+      database: 0
+      timeout: 10s
+      # 与 vipDistributionMall/server 一致：整串 REDIS_URL（redis://[:密码@]主机:端口/库）
+      # 未设置环境变量时默认本机 6380、库 0；可在运行配置或 shell 中 export/set REDIS_URL 与 Mall 项目共用同一值
+      url: "${REDIS_URL:redis://127.0.0.1:6380/0}"
+      lettuce:
+        pool:
+          # 连接池最大连接数
+          max-active: 200
+          # 连接池最大阻塞等待时间（使用负值表示没有限制）
+          max-wait: -1ms
+          # 连接池中的最大空闲连接
+          max-idle: 10
+          # 连接池中的最小空闲连接
+          min-idle: 0
+      repositories:
+        enabled: false
+  datasource:
+    url: jdbc:mysql://localhost:3306/mystery_box
+    username: ${DEV_DB_USERNAME:root}
+    password: ${DEV_DB_PASSWORD:CHANGE_ME_DEV_DB}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+# 微信支付回调
+wx:
+  pay:
+    notify-url: https://www.jarcheng.top/test-api
+payment:
+  mock-enabled: ${PAYMENT_MOCK_ENABLED:true}
+push:
+  expo:
+    enabled: ${PUSH_EXPO_ENABLED:true}
+app:
+  auth:
+    allow-mock-otp: true
+    seed-dev-mobile-user: true
+    dev-mobile-phone: 13800138000
+    dev-mobile-password: Admin@123456
+  jobs:
+    draw-integrity:
+      enabled: true
+      cron: "0 30 4 * * ?"
+      lookback-hours: 24
+      batch-size: 200
+  reveal:
+    e2e-fixture:
+      enabled: false
+    particle-scale: 1.0
+    confetti-scale: 1.0
+    delay-ms-override: 0
+    inter-draw-delay-ms: 450
+    finale-pause-ms: 600
+    finale-hold-ms-extra: 300
+    finale-teaser-enabled: true
+    silence-before-finale-ms: 220
+    summary-hero-ms: 1800
+  marketplace:
+    fee-rate: ${MARKETPLACE_FEE_RATE:0.05}
+  community:
+    auto-approve: ${COMMUNITY_AUTO_APPROVE:true}
+  redeem:
+    balance-rate: ${REDEEM_BALANCE_RATE:0.35}
+    min-amount: ${REDEEM_MIN_AMOUNT:1}
+  support:
+    hotline: ${APP_SUPPORT_HOTLINE:400-000-0000}
+    enterprise-wechat-id: ${APP_ENTERPRISE_WECHAT_ID:}
+logistics:
+  kuaidi100:
+    enabled: ${LOGISTICS_KUAIDI100_ENABLED:false}
+    customer: ${LOGISTICS_KUAIDI100_CUSTOMER:}
+    key: ${LOGISTICS_KUAIDI100_KEY:}
+ops:
+  low-stock:
+    threshold: ${OPS_LOW_STOCK_THRESHOLD:5}
+    webhook-url: ${OPS_LOW_STOCK_WEBHOOK_URL:}
+security:
+  admin-action-otp: ${ADMIN_ACTION_OTP:CHANGE_ME_DEV_OTP}
+  compliance:
+    spend-limit:
+      daily: 2000000
+      monthly: 10000000
+  default-admin:
+    enabled: true
+    account: admin
+    password: ${DEFAULT_ADMIN_PASSWORD:Admin@123456}
+  feature-flags:
+    mobile-home-enhanced: ${FLAG_MOBILE_HOME_ENHANCED:true}
+    mobile-detail-rarity-ui: ${FLAG_MOBILE_DETAIL_RARITY_UI:true}
+    mobile-analytics-upload: ${FLAG_MOBILE_ANALYTICS_UPLOAD:true}
+    admin-ops-analytics-dashboard: ${FLAG_ADMIN_OPS_ANALYTICS_DASHBOARD:true}
+    backend-community-persistence: ${FLAG_BACKEND_COMMUNITY_PERSISTENCE:true}
+  analytics:
+    enabled: ${ANALYTICS_ENABLED:true}
+    retention-days: ${ANALYTICS_RETENTION_DAYS:30}
+  audit:
+    enabled: ${AUDIT_ENABLED:true}
+  rate-limit:
+    distributed: ${RATE_LIMIT_DISTRIBUTED:true}
+  risk-control:
+    enabled: ${RISK_CONTROL_ENABLED:true}
+    confirm-threshold: ${RISK_CONTROL_CONFIRM_THRESHOLD:80}
+
+# 本地开发：健康检查展开组件，便于确认 Redis 等是否就绪（勿用于生产对外暴露）
+management:
+  endpoint:
+    health:
+      show-details: always
+      show-components: always

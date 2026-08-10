@@ -1,0 +1,16 @@
+{
+  "spectator": {
+    "title": "Spectator reveal",
+    "expired": "This watch link has expired",
+    "phaseUnknown": "Waiting",
+    "phaseGap": "Next draw…",
+    "phasePlaying": "Live reveal",
+    "progress": "{{current}} / {{total}}",
+    "waitingHost": "Waiting for host…",
+    "roomSynced": "Live room synced",
+    "roomPolling": "Syncing via polling",
+    "readOnlyHint": "Read-only view — results only",
+    "loadError": "Could not load this watch link",
+    "retry": "Try again"
+  }
+}

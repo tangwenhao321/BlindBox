@@ -1,0 +1,11 @@
+{
+  "contact": {
+    "noPhone": "暂未配置客服电话，请稍后再试",
+    "callHint": "请拨打：{{phone}}",
+    "noWecom": "暂未配置企业微信，请联系平台客服",
+    "wecomShare": "请添加企业微信：{{id}}",
+    "wecomId": "微信号：{{id}}",
+    "noZalo": "暂未配置 Zalo 官方账号，请稍后再试",
+    "zaloHint": "请打开 Zalo 搜索官方账号：{{id}}"
+  }
+}

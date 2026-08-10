@@ -1,0 +1,189 @@
+name: ci
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: mystery_box
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    defaults:
+      run:
+        working-directory: mystery-box-backend
+    env:
+      DEV_DB_PASSWORD: test
+      REDIS_URL: redis://127.0.0.1:6379/0
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Build and test backend
+        run: mvn test
+
+  admin:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: mystery_box
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    defaults:
+      run:
+        working-directory: mystery-box-admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mystery-box-admin/package-lock.json
+      - name: Start backend for admin E2E
+        working-directory: mystery-box-backend
+        env:
+          DEV_DB_PASSWORD: test
+          REDIS_URL: redis://127.0.0.1:6379/0
+          ADMIN_ACTION_OTP: ci-test-otp
+        run: |
+          mvn -q -DskipTests package
+          nohup mvn -q spring-boot:run -Dspring-boot.run.profiles=dev > /tmp/backend.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:9912/actuator/health >/dev/null; then
+              echo "Backend ready"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Backend failed to start"
+          tail -n 80 /tmp/backend.log
+          exit 1
+      - run: npm ci
+      - run: npm run lint
+      - run: VITE_API_PREFIX=/api npm run build
+      - name: Install Playwright browser
+        run: npx playwright install chromium
+      - name: Admin E2E smoke + critical path
+        env:
+          E2E_USE_BACKEND: "1"
+          E2E_API_BASE_URL: http://127.0.0.1:9912
+          E2E_ADMIN_PHONE: admin
+          E2E_ADMIN_PASSWORD: Admin@123456
+          E2E_ADMIN_OTP: ci-test-otp
+        run: |
+          npx vite preview --host 127.0.0.1 --port 5177 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:5177 >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          npm run e2e:smoke
+
+  admin-api-contract:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mystery-box-admin
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: test
+          MYSQL_DATABASE: mystery_box
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -uroot -ptest"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mystery-box-admin/package-lock.json
+      - name: Start backend for OpenAPI export
+        working-directory: mystery-box-backend
+        env:
+          DEV_DB_PASSWORD: test
+          REDIS_URL: redis://127.0.0.1:6379/0
+          ADMIN_ACTION_OTP: ci-test-otp
+        run: |
+          mvn -q -DskipTests package
+          nohup mvn -q spring-boot:run -Dspring-boot.run.profiles=dev > /tmp/backend.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:9912/actuator/health >/dev/null; then
+              echo "Backend ready"
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Backend failed to start"
+          tail -n 80 /tmp/backend.log
+          exit 1
+      - name: Regenerate admin API types
+        run: npm ci && npm run api-admin
+      - name: Assert generated types are committed
+        run: git diff --exit-code src/apis/__generated
+
+  mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mystery-box-mobile-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: mystery-box-mobile-app/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - name: Validate Maestro PR smoke flows
+        run: bash ../scripts/maestro-ci-smoke.sh

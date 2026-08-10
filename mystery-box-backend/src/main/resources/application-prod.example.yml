@@ -1,0 +1,84 @@
+# Production profile template — copy values into your secret store / application-private.yml
+spring:
+  datasource:
+    url: jdbc:mysql://mysql-host:3306/mystery_box
+    username: mystery_box
+    password: "CHANGE_ME"
+
+  data:
+    redis:
+      url: redis://:CHANGE_ME@redis-host:6379/0
+
+oss:
+  provider: ali_yun
+  ali-yun:
+    access-key-id: CHANGE_ME
+    access-key-secret: CHANGE_ME
+    endpoint: https://oss-cn-hangzhou.aliyuncs.com
+    bucket-name: your-bucket
+  # If using local disk behind CDN, set public-base-url to CDN origin path
+
+wx:
+  miniapp:
+    appid: CHANGE_ME
+    secret: CHANGE_ME
+  pay:
+    app-id: CHANGE_ME
+    mch-id: CHANGE_ME
+    apiv3-key: CHANGE_ME
+    cert-serial-no: CHANGE_ME
+    notify-url: https://api.example.com/front/mystery-box-order/notify/pay/wechat
+
+payment:
+  mock-enabled: false
+
+sms:
+  provider: ali_yun
+
+security:
+  admin-action-otp: "CHANGE_ME_STRONG_OTP"
+  default-admin:
+    enabled: false
+  rate-limit:
+    distributed: true
+    trusted-proxy: true
+
+app:
+  auth:
+    allow-mock-otp: false
+  cors:
+    allowed-origin-patterns: https://admin.example.com,https://h5.example.com
+  queue:
+    head-timeout-sec: 120
+    ttl-hours: 2
+    lock-ttl-sec: 120
+  pool:
+    reconcile:
+      auto-fix: false
+  sse:
+    scheduler:
+      pool-size: 8
+  jobs:
+    draw-integrity:
+      enabled: true
+      cron: "0 30 4 * * ?"
+      lookback-hours: 24
+      batch-size: 200
+  reveal:
+    particle-scale: 1.0
+    confetti-scale: 1.0
+    delay-ms-override: 0
+  support:
+    hotline: "400-000-0000"
+    enterprise-wechat: ""
+  cache:
+    home-summary-ttl-seconds: 60
+
+jimmer:
+  show-sql: false
+  pretty-sql: false
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized

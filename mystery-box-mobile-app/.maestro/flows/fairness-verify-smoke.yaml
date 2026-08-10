@@ -1,0 +1,12 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: smoke.yaml
+- openLink: mysterybox://order/e2e-smoke-order
+- extendedWaitUntil:
+    visible: ".*"
+    timeout: 15000
+- tapOn: "验签开奖记录"
+- extendedWaitUntil:
+    visible: "开奖公平验证"
+    timeout: 15000
+- assertVisible: ".*"

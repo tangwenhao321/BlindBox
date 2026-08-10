@@ -1,0 +1,12 @@
+{
+  "commission": {
+    "title": "Commission",
+    "totalLabel": "Total commission",
+    "sectionTitle": "Commission history",
+    "sectionHint": "(6 months retained)",
+    "defaultRemark": "Commission",
+    "emptyTitle": "No commission records",
+    "emptyDesc": "Earn commission when invitees purchase",
+    "goPromotion": "Go to referrals"
+  }
+}

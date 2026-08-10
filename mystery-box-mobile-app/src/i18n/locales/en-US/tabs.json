@@ -1,0 +1,10 @@
+{
+  "tabs": {
+    "home": "Home",
+    "mall": "Mall",
+    "warehouse": "Warehouse",
+    "profile": "Profile",
+    "badgeUnread": "{{label}}, {{count}} unread",
+    "badgeApproximate": "{{label}}, about {{count}} pending"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "coupons": {
+    "title": "My coupons",
+    "emptyTitle": "No coupons",
+    "emptyDesc": "Earn coupons from events or orders",
+    "goWelfare": "Welfare center",
+    "fallbackName": "Coupon",
+    "statusAvailable": "Available",
+    "amountFallback": "Coupon",
+    "a11y": "{{name}} {{status}}",
+    "expiringSoon": "Expires in {{days}} days",
+    "useNow": "Use now",
+    "useNowA11y": "Use coupon in mall"
+  }
+}

@@ -1,0 +1,482 @@
+<script lang="ts" setup>
+import { onMounted, reactive, ref } from 'vue'
+import { request } from '@/utils/request'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { api } from '@/utils/api-instance'
+
+type WinRule = {
+  id: string
+  userId: string
+  mysteryBoxId: string
+  productId: string
+  remainingCount: number
+  enabled: boolean
+  approved: boolean
+  remark: string
+  createdTime?: string
+}
+
+const loading = ref(false)
+const logLoading = ref(false)
+const submitting = ref(false)
+const rules = ref<WinRule[]>([])
+const hitLogs = ref<any[]>([])
+const opLogs = ref<any[]>([])
+const metrics = ref<Record<string, number>>({})
+const logQuery = reactive({
+  userId: '',
+  mysteryBoxOrderId: '',
+  startTime: '',
+  endTime: ''
+})
+
+const formatDateTime = (value: string) => {
+  if (!value) return ''
+  // Element Plus outputs "YYYY-MM-DD HH:mm:ss", backend expects ISO_LOCAL_DATE_TIME.
+  return value.replace(' ', 'T')
+}
+const userOptions = ref<Array<{ id: string; label: string }>>([])
+const boxOptions = ref<Array<{ id: string; label: string }>>([])
+const productOptions = ref<Array<{ id: string; label: string }>>([])
+
+const form = reactive({
+  userId: '',
+  mysteryBoxId: '',
+  productId: '',
+  remainingCount: 1,
+  remark: ''
+})
+const adminOtp = ref('')
+
+const securedHeaders = () => ({
+  'x-admin-action-otp': adminOtp.value
+})
+
+const resetForm = () => {
+  form.userId = ''
+  form.mysteryBoxId = ''
+  form.productId = ''
+  form.remainingCount = 1
+  form.remark = ''
+  productOptions.value = []
+}
+
+const searchUsers = async (keyword: string) => {
+  const res = await api.userForAdminController.query({
+    body: {
+      pageNum: 1,
+      pageSize: 20,
+      query: {
+        phone: keyword || undefined,
+        nickname: keyword || undefined
+      }
+    }
+  })
+  userOptions.value = (res.content || []).map((it: any) => ({
+    id: it.id,
+    label: `${it.nickname || '-'} (${it.phone || '-'})`
+  }))
+}
+
+const searchBoxes = async (keyword: string) => {
+  const res = await api.mysteryBoxForAdminController.query({
+    body: {
+      pageNum: 1,
+      pageSize: 20,
+      query: {
+        name: keyword || undefined
+      }
+    }
+  })
+  boxOptions.value = (res.content || []).map((it: any) => ({
+    id: it.id,
+    label: `${it.name || '-'} (${it.id})`
+  }))
+}
+
+const onBoxChange = async (boxId: string) => {
+  form.productId = ''
+  if (!boxId) {
+    productOptions.value = []
+    return
+  }
+  const detail = await api.mysteryBoxForAdminController.findById({ id: boxId })
+  const products = (detail as any).products || []
+  productOptions.value = products.map((it: any) => ({
+    id: it.id,
+    label: `${it.name || '-'} (${it.id})`
+  }))
+}
+
+const searchProducts = async (keyword: string) => {
+  if (!form.mysteryBoxId) {
+    const res = await api.productForAdminController.query({
+      body: {
+        pageNum: 1,
+        pageSize: 20,
+        query: {
+          name: keyword || undefined
+        }
+      }
+    })
+    productOptions.value = (res.content || []).map((it: any) => ({
+      id: it.id,
+      label: `${it.name || '-'} (${it.id})`
+    }))
+    return
+  }
+  const key = (keyword || '').trim().toLowerCase()
+  if (!key) {
+    await onBoxChange(form.mysteryBoxId)
+    return
+  }
+  productOptions.value = productOptions.value.filter((it) => it.label.toLowerCase().includes(key))
+}
+
+const loadRules = async () => {
+  loading.value = true
+  try {
+    const res = await request({
+      url: '/admin/mystery-box-win-rule/query',
+      method: 'get'
+    })
+    rules.value = Array.isArray(res) ? res : []
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadHitLogs = async () => {
+  logLoading.value = true
+  try {
+    const params = new URLSearchParams()
+    params.set('limit', '100')
+    if (logQuery.userId) params.set('userId', logQuery.userId)
+    if (logQuery.mysteryBoxOrderId) params.set('mysteryBoxOrderId', logQuery.mysteryBoxOrderId)
+    if (logQuery.startTime) params.set('createdTimeStart', formatDateTime(logQuery.startTime))
+    if (logQuery.endTime) params.set('createdTimeEnd', formatDateTime(logQuery.endTime))
+    const res = await request({
+      url: `/admin/mystery-box-win-rule/hit-log?${params.toString()}`,
+      method: 'get'
+    })
+    hitLogs.value = Array.isArray(res) ? res : []
+  } finally {
+    logLoading.value = false
+  }
+}
+
+const loadOpLogs = async () => {
+  const res = await request({
+    url: '/admin/mystery-box-win-rule/op-log?limit=100',
+    method: 'get'
+  })
+  opLogs.value = Array.isArray(res) ? res : []
+}
+
+const loadMetrics = async () => {
+  const res = await request({
+    url: '/admin/mystery-box-win-rule/metrics',
+    method: 'get'
+  })
+  metrics.value = (res as unknown as Record<string, number>) || {}
+}
+
+const resetLogQuery = async () => {
+  logQuery.userId = ''
+  logQuery.mysteryBoxOrderId = ''
+  logQuery.startTime = ''
+  logQuery.endTime = ''
+  await loadHitLogs()
+}
+
+const createRule = async () => {
+  if (!form.userId || !form.mysteryBoxId || !form.productId || form.remainingCount <= 0) {
+    ElMessage.warning('请完整填写 userId / mysteryBoxId / productId 且次数大于 0')
+    return
+  }
+  const userLabel = userOptions.value.find((it) => it.id === form.userId)?.label || form.userId
+  const boxLabel =
+    boxOptions.value.find((it) => it.id === form.mysteryBoxId)?.label || form.mysteryBoxId
+  const productLabel =
+    productOptions.value.find((it) => it.id === form.productId)?.label || form.productId
+  await ElMessageBox.confirm(
+    `请确认创建指定中奖规则：\n\n用户：${userLabel}\n盲盒：${boxLabel}\n商品：${productLabel}\n生效次数：${form.remainingCount}\n\n命中后将替换订单项中奖结果中的第一个商品。`,
+    '确认创建规则',
+    { type: 'warning', confirmButtonText: '确认创建', cancelButtonText: '取消' }
+  )
+  submitting.value = true
+  try {
+    await request({
+      url: '/admin/mystery-box-win-rule/create',
+      method: 'post',
+      headers: securedHeaders(),
+      data: {
+        userId: form.userId,
+        mysteryBoxId: form.mysteryBoxId,
+        productId: form.productId,
+        remainingCount: form.remainingCount,
+        remark: form.remark
+      }
+    })
+    ElMessage.success('规则创建成功')
+    resetForm()
+    await loadRules()
+  } finally {
+    submitting.value = false
+  }
+}
+
+const toggleEnabled = async (row: WinRule) => {
+  await request({
+    url: `/admin/mystery-box-win-rule/${row.id}/enable?enabled=${!row.enabled}`,
+    method: 'post',
+    headers: securedHeaders()
+  })
+  ElMessage.success('状态更新成功')
+  await loadRules()
+}
+
+const approveRule = async (row: WinRule) => {
+  await request({
+    url: `/admin/mystery-box-win-rule/${row.id}/approve`,
+    method: 'post',
+    headers: securedHeaders()
+  })
+  ElMessage.success('规则已审批')
+  await loadRules()
+}
+
+const deleteRule = async (row: WinRule) => {
+  await ElMessageBox.confirm('删除后不可恢复，确认继续？', '提示', { type: 'warning' })
+  await request({
+    url: `/admin/mystery-box-win-rule/${row.id}`,
+    method: 'delete',
+    headers: securedHeaders()
+  })
+  ElMessage.success('删除成功')
+  await loadRules()
+}
+
+onMounted(async () => {
+  try {
+    await Promise.all([searchUsers(''), searchBoxes('')])
+    await Promise.all([loadRules(), loadHitLogs(), loadOpLogs(), loadMetrics()])
+  } catch {
+    /* 规则面板加载失败不影响订单列表 */
+  }
+})
+</script>
+
+<template>
+  <div class="win-rule-panel">
+    <div class="panel-title">指定中奖规则</div>
+    <el-form :inline="true" class="rule-form">
+      <el-form-item label="用户">
+        <el-select
+          v-model="form.userId"
+          filterable
+          remote
+          clearable
+          placeholder="搜索手机号/昵称"
+          :remote-method="searchUsers"
+          style="width: 260px"
+        >
+          <el-option
+            v-for="item in userOptions"
+            :key="item.id"
+            :label="item.label"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="盲盒">
+        <el-select
+          v-model="form.mysteryBoxId"
+          filterable
+          remote
+          clearable
+          placeholder="搜索盲盒名称"
+          :remote-method="searchBoxes"
+          style="width: 260px"
+          @change="onBoxChange"
+        >
+          <el-option
+            v-for="item in boxOptions"
+            :key="item.id"
+            :label="item.label"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="商品">
+        <el-select
+          v-model="form.productId"
+          filterable
+          remote
+          clearable
+          placeholder="先选盲盒再选商品"
+          :remote-method="searchProducts"
+          style="width: 280px"
+        >
+          <el-option
+            v-for="item in productOptions"
+            :key="item.id"
+            :label="item.label"
+            :value="item.id"
+          />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="次数">
+        <el-input-number v-model="form.remainingCount" :min="1" :max="9999" />
+      </el-form-item>
+      <el-form-item label="备注">
+        <el-input v-model="form.remark" placeholder="可选" clearable />
+      </el-form-item>
+      <el-form-item label="管理口令">
+        <el-input
+          v-model="adminOtp"
+          placeholder="高危操作口令"
+          show-password
+          clearable
+          style="width: 180px"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" :loading="submitting" @click="createRule">新增规则</el-button>
+        <el-button @click="loadRules">刷新</el-button>
+        <el-button @click="loadHitLogs">刷新命中记录</el-button>
+        <el-button @click="loadOpLogs">刷新操作日志</el-button>
+        <el-button @click="loadMetrics">刷新指标</el-button>
+      </el-form-item>
+    </el-form>
+    <el-alert
+      title="提示：规则命中后会替换中奖结果中的第一个商品，请谨慎配置。"
+      type="warning"
+      show-icon
+      :closable="false"
+      style="margin-bottom: 12px"
+    />
+
+    <el-table v-loading="loading" :data="rules" border>
+      <el-table-column prop="id" label="规则ID" min-width="220" />
+      <el-table-column prop="userId" label="用户ID" min-width="180" />
+      <el-table-column prop="mysteryBoxId" label="盲盒ID" min-width="180" />
+      <el-table-column prop="productId" label="商品ID" min-width="180" />
+      <el-table-column prop="remainingCount" label="剩余次数" width="100" />
+      <el-table-column label="状态" width="100">
+        <template #default="{ row }">
+          <el-tag :type="row.enabled ? 'success' : 'info'">
+            {{ row.enabled ? '启用' : '停用' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="审批" width="110">
+        <template #default="{ row }">
+          <el-tag :type="row.approved ? 'success' : 'warning'">
+            {{ row.approved ? '已审批' : '待审批' }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="remark" label="备注" min-width="140" />
+      <el-table-column label="操作" width="250" fixed="right">
+        <template #default="{ row }">
+          <el-button v-if="!row.approved" link type="success" @click="approveRule(row)"
+            >审批</el-button
+          >
+          <el-button link type="primary" @click="toggleEnabled(row)">
+            {{ row.enabled ? '停用' : '启用' }}
+          </el-button>
+          <el-button link type="danger" @click="deleteRule(row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+
+    <div class="panel-title" style="margin-top: 18px">运营指标</div>
+    <el-descriptions :column="4" border>
+      <el-descriptions-item v-for="(value, key) in metrics" :key="key" :label="key">
+        {{ value }}
+      </el-descriptions-item>
+    </el-descriptions>
+
+    <div class="panel-title" style="margin-top: 18px">命中记录（最近 100 条）</div>
+    <el-form :inline="true" class="rule-form">
+      <el-form-item label="用户ID">
+        <el-input
+          v-model="logQuery.userId"
+          clearable
+          placeholder="按用户ID筛选"
+          style="width: 180px"
+        />
+      </el-form-item>
+      <el-form-item label="订单ID">
+        <el-input
+          v-model="logQuery.mysteryBoxOrderId"
+          clearable
+          placeholder="按订单ID筛选"
+          style="width: 200px"
+        />
+      </el-form-item>
+      <el-form-item label="开始时间">
+        <el-date-picker
+          v-model="logQuery.startTime"
+          type="datetime"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          placeholder="开始时间"
+          clearable
+          style="width: 220px"
+        />
+      </el-form-item>
+      <el-form-item label="结束时间">
+        <el-date-picker
+          v-model="logQuery.endTime"
+          type="datetime"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          placeholder="结束时间"
+          clearable
+          style="width: 220px"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="loadHitLogs">查询</el-button>
+        <el-button @click="resetLogQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table v-loading="logLoading" :data="hitLogs" border>
+      <el-table-column prop="createdTime" label="命中时间" min-width="170" />
+      <el-table-column prop="ruleId" label="规则ID" min-width="180" />
+      <el-table-column prop="userId" label="用户ID" min-width="160" />
+      <el-table-column prop="mysteryBoxOrderId" label="订单ID" min-width="180" />
+      <el-table-column prop="mysteryBoxId" label="盲盒ID" min-width="160" />
+      <el-table-column prop="originalProductId" label="原商品ID" min-width="160" />
+      <el-table-column prop="designatedProductId" label="指定商品ID" min-width="160" />
+      <el-table-column prop="remark" label="备注" min-width="120" />
+    </el-table>
+    <div class="panel-title" style="margin-top: 18px">规则操作日志（最近 100 条）</div>
+    <el-table :data="opLogs" border>
+      <el-table-column prop="createdTime" label="时间" min-width="170" />
+      <el-table-column prop="ruleId" label="规则ID" min-width="180" />
+      <el-table-column prop="action" label="动作" min-width="120" />
+      <el-table-column prop="operatorId" label="操作人" min-width="160" />
+      <el-table-column prop="detail" label="详情" min-width="180" />
+    </el-table>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.win-rule-panel {
+  margin-top: 20px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 16px;
+}
+
+.panel-title {
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.rule-form {
+  margin-bottom: 12px;
+}
+</style>

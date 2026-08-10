@@ -1,0 +1,11 @@
+{
+  "favorites": {
+    "title": "Favorites",
+    "loadFailed": "Failed to load favorite ({{id}}…)",
+    "emptyTitle": "No favorites",
+    "emptyDesc": "Add favorites from box details",
+    "goBrowse": "Browse",
+    "unfavoriteA11y": "Remove favorite",
+    "remove": "Remove"
+  }
+}

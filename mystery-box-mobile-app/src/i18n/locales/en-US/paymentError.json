@@ -1,0 +1,13 @@
+{
+  "paymentError": {
+    "title": "Payment setup failed",
+    "orderId": "Order {{id}}",
+    "orderCopied": "Order ID copied",
+    "retry": "Retry payment",
+    "copyOrder": "Copy order ID",
+    "close": "Close",
+    "channelWechat": "WeChat Pay prepay could not be loaded.",
+    "channelVnpay": "VNPay prepay could not be loaded.",
+    "channelMomo": "MoMo prepay could not be loaded."
+  }
+}

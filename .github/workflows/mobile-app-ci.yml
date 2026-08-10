@@ -1,0 +1,90 @@
+name: Mobile App CI
+
+on:
+  push:
+    paths:
+      - "mystery-box-mobile-app/**"
+      - ".github/workflows/mobile-app-ci.yml"
+  pull_request:
+    paths:
+      - "mystery-box-mobile-app/**"
+      - ".github/workflows/mobile-app-ci.yml"
+
+jobs:
+  test-and-typecheck:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mystery-box-mobile-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mystery-box-mobile-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check and tests
+        run: npm run check
+
+      - name: Run test coverage
+        run: npm run test:coverage
+
+      - name: Expo doctor
+        run: npm run doctor
+
+      - name: Prebuild Android project
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Maestro flow syntax (optional)
+        continue-on-error: true
+        env:
+          MAESTRO_TEST_PHONE: ${{ vars.MAESTRO_TEST_PHONE || '13800138000' }}
+          MAESTRO_TEST_PASSWORD: ${{ vars.MAESTRO_TEST_PASSWORD || 'Admin@123456' }}
+        run: |
+          if command -v maestro >/dev/null 2>&1; then
+            # mock-pay-smoke chains checkout-smoke and order-result-smoke (order result modal assertions)
+            maestro test .maestro/flows/smoke.yaml .maestro/flows/checkout-smoke.yaml .maestro/flows/mock-pay-smoke.yaml
+          else
+            echo "Maestro CLI not installed; skipping E2E smoke"
+          fi
+
+  android-compile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mystery-box-mobile-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mystery-box-mobile-app/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prebuild and compile debug APK
+        run: |
+          npx expo prebuild --platform android --no-install
+          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+

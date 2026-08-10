@@ -1,0 +1,20 @@
+{
+  "appUpdate": {
+    "title": "Đã có bản cập nhật",
+    "versionLine": "Hiện tại {{current}} · Mới nhất {{latest}}",
+    "releaseNotes": "Nội dung cập nhật",
+    "downloadAndInstall": "Cập nhật ngay",
+    "downloading": "Đang tải bản cập nhật…",
+    "downloadProgress": "Đang tải {{percent}}",
+    "installing": "Tải xong — đang mở trình cài đặt…",
+    "installHint": "Vui lòng làm theo hướng dẫn của hệ thống để hoàn tất cài đặt. Nếu bị chặn, hãy cho phép cài ứng dụng từ nguồn này trong Cài đặt.",
+    "later": "Để sau",
+    "alreadyLatest": "Bạn đang dùng phiên bản mới nhất",
+    "updateAvailable": "Đã có phiên bản mới",
+    "downloadFailed": "Tải thất bại — vui lòng thử lại",
+    "storageUnavailable": "Không đủ bộ nhớ — không thể tải bản cập nhật",
+    "platformUnsupported": "Môi trường hiện tại không hỗ trợ cập nhật trong ứng dụng",
+    "checkUpdate": "Kiểm tra cập nhật",
+    "currentVersion": "Phiên bản {{version}}"
+  }
+}

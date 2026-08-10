@@ -1,0 +1,6 @@
+{
+  "upload": {
+    "permissionRequired": "Photo library permission required",
+    "failed": "Image upload failed"
+  }
+}

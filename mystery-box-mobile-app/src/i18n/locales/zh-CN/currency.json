@@ -1,0 +1,9 @@
+{
+  "currency": {
+    "luckyCoinsDesc": "每日签到可获得幸运币，后续可用于兑换平台福利与活动权益。",
+    "starStonesDesc": "星石为平台成长积分，邀请好友、参与活动可获得，具体规则以运营公告为准。",
+    "currentLabel": "当前{{name}}",
+    "goCheckIn": "去签到",
+    "goWelfare": "去福利中心"
+  }
+}

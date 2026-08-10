@@ -1,0 +1,38 @@
+# 复制为 application-private-test.yml（gitignore 建议加入）
+# 与四方系统 / 本地 dev 的 application-private.yml 完全分离
+
+spring:
+  datasource:
+    username: root
+    password: "MysteryBoxTest@2026"
+
+wx:
+  miniapp:
+    appid: test-appid
+    secret: test-secret
+  pay:
+    app-id: test-app-id
+    mch-id: test-mch-id
+    apiv3-key: test-apiv3-key
+    cert-serial-no: test-cert-serial
+    notify-url: http://127.0.0.1:9913/front/mystery-box-order/notify/pay/wechat
+
+oss:
+  provider: local
+  local:
+    base-dir: ${UPLOAD_DIR:/opt/mystery-box-test/data/uploads-test}
+    public-base-url: /uploads
+
+sms:
+  provider: none
+
+tenant:
+  map:
+    key: test-tenant-map-key
+
+security:
+  admin-action-otp: "TestEnvOtp2026!"
+  default-admin:
+    enabled: true
+    account: admin_test
+    password: "Admin@Test2026"

@@ -1,0 +1,8 @@
+{
+  "catalog": {
+    "mallLoadFailed": "Mall load failed: {{message}}",
+    "homeLoadFailed": "Home load failed: {{message}}",
+    "noNewcomerBox": "No newcomer box available — try again later",
+    "noBoxes": "No boxes available — try again later"
+  }
+}

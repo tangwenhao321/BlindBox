@@ -1,0 +1,26 @@
+spring:
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    out-of-order: true
+  data:
+    redis:
+      repositories:
+        enabled: false
+payment:
+  mock-enabled: true
+security:
+  rate-limit:
+    distributed: false
+leaderboard:
+  warmup:
+    delay-ms: 86400000
+oss:
+  provider: local
+  local:
+    base-dir: ./target/test-uploads
+    public-base-url: /uploads
+app:
+  reveal:
+    e2e-fixture:
+      enabled: true

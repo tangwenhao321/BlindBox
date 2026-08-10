@@ -1,0 +1,47 @@
+{
+  "featureDisabled": "Tính năng này chưa được bật",
+  "momo": {
+    "title": "Thanh toán MoMo",
+    "orderId": "Mã đơn {{id}}",
+    "stubHint": "Thanh toán MoMo chưa kết nối đầy đủ. Đây là bước xác nhận phương thức thanh toán.",
+    "continueHint": "Nhấn tiếp tục để mở MoMo thanh toán. Quay lại App và kiểm tra trạng thái.",
+    "continue": "Mở MoMo",
+    "methodLabel": "MoMo",
+    "noPrepay": "Không lấy được liên kết MoMo. Vui lòng thử lại.",
+    "openFailed": "Không mở được MoMo. Kiểm tra ứng dụng đã cài chưa.",
+    "checkStatus": "Đã thanh toán — làm mới",
+    "retry": "Lấy lại liên kết"
+  },
+  "checkout": {
+    "legalPrivacy": "Chính sách quyền riêng tư",
+    "legalTerms": "Điều khoản dịch vụ",
+    "legalMinor": "Tuyên bố vị thành niên",
+    "paymentMethod": "Phương thức thanh toán"
+  },
+  "leaderboard": {
+    "myRank": "Hạng của tôi",
+    "notRanked": "Chưa có hạng"
+  },
+  "messages": {
+    "filterRestock": "Nhập hàng",
+    "filterPity": "Pity"
+  },
+  "promotion": {
+    "milestonesTitle": "Mốc giới thiệu"
+  },
+  "legal": {
+    "termsTitle": "Điều khoản dịch vụ",
+    "termsP1": "Khi sử dụng ứng dụng, bạn đồng ý với quy tắc rút thăm ngẫu nhiên, vận chuyển và hoàn tiền của nền tảng.",
+    "termsP2": "Chỉ người từ 18 tuổi trở lên được đặt hàng. Liên hệ hỗ trợ khi có tranh chấp đơn hàng hoặc tài khoản.",
+    "minorTitle": "Tuyên bố vị thành niên",
+    "minorP1": "Sản phẩm hộp mù có kết quả ngẫu nhiên và không phù hợp với trẻ vị thành niên.",
+    "minorP2": "Phụ huynh hoặc người giám hộ không được cho người dưới 18 tuổi đặt hàng trên nền tảng."
+  },
+  "currency": {
+    "ledgerTitle": "Hoạt động gần đây",
+    "ledgerEmpty": "Chưa có lịch sử xu may mắn"
+  },
+  "community": {
+    "shareZalo": "Chia sẻ Zalo"
+  }
+}

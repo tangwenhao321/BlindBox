@@ -1,0 +1,13 @@
+{
+  "leaderboard": {
+    "title": "Lucky board",
+    "tabWeek": "This week",
+    "tabMonth": "This month",
+    "emptyTitle": "No high-tier records",
+    "emptyDesc": "Pull legendary or hidden to rank",
+    "highCount": "{{count}} high-tier",
+    "myRank": "My rank",
+    "notRanked": "Not ranked yet",
+    "rankNo": "No. {{rank}}"
+  }
+}

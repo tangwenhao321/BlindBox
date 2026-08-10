@@ -1,0 +1,10 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- tapOn:
+    id: "profileTab"
+- tapOn: "我的收藏"
+- assertVisible: "暂无收藏"
+- tapOn: "去逛逛"
+- assertVisible:
+    id: "homeTab"

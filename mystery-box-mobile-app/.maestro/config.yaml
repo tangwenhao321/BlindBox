@@ -1,0 +1,3 @@
+appId: mystery-box-mobile-app
+flows:
+  - flows/**

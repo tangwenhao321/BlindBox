@@ -1,0 +1,11 @@
+{
+  "activity": {
+    "ended": "已结束",
+    "countdown": "距结束 {{time}}",
+    "poolTitle": "活动奖池",
+    "boxFallback": "盲盒 {{id}}…",
+    "openBox": "去开盒 ›",
+    "emptyBoxes": "暂无关联盲盒",
+    "countdownParts": "{{hours}}时{{minutes}}分{{seconds}}秒"
+  }
+}

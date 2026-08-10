@@ -1,0 +1,33 @@
+{
+  "sharePoster": {
+    "a11y": "Chia sẻ thành tích",
+    "title": "Chia sẻ thành tích",
+    "posterA11y": "Poster thành tích {{boxName}}",
+    "brand": "Hộp Bí ẩn · Thành tích",
+    "topPrize": "Cao nhất: {{name}}",
+    "meta": "{{count}} lần rút · đơn {{orderId}}",
+    "qrInvite": "Quét để xem thành tích / mời bạn bè",
+    "qrSpectator": "Quét để xem trực tiếp lần mở hộp này",
+    "qrApp": "Quét để mở App (cấu hình EXPO_PUBLIC_INVITE_BASE_URL để tạo liên kết H5)",
+    "shareImage": "Chia sẻ poster ảnh",
+    "shareImageA11y": "Chia sẻ poster ảnh",
+    "shareText": "Chỉ chia sẻ văn bản",
+    "shareTextA11y": "Chỉ chia sẻ văn bản",
+    "copyText": "Sao chép nội dung chia sẻ",
+    "copyTextA11y": "Sao chép nội dung chia sẻ vào bộ nhớ tạm",
+    "copyDone": "Đã sao chép nội dung chia sẻ",
+    "cancel": "Hủy",
+    "cancelA11y": "Hủy",
+    "dialogTitle": "Chia sẻ poster thành tích",
+    "message": "Tôi đã mở {{count}} lần rút tại「{{boxName}}」{{prize}}! Mã đơn {{orderId}}…{{extra}}{{spectator}}",
+    "messagePrize": ", cao nhất nhận được {{name}}",
+    "spectatorLink": "\nXem trực tiếp: {{url}}",
+    "communityDraft": "Khoe hàng | {{boxName}} x{{count}}{{prize}}",
+    "communityDraftPrize": " — trúng「{{name}}」!",
+    "feedExtra": "\nTin mới nhất: {{name}} mở được {{product}}",
+    "templateStandard": "Poster ngang",
+    "templateTikTok": "Poster dọc TikTok",
+    "shareZalo": "Chia sẻ qua Zalo",
+    "shareZaloA11y": "Chia sẻ qua Zalo"
+  }
+}

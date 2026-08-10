@@ -1,0 +1,2414 @@
+[
+  {
+    "ns": "activity",
+    "p": "ended",
+    "en": "Ended",
+    "zh": "已结束"
+  },
+  {
+    "ns": "activity",
+    "p": "countdown",
+    "en": "Ends in {{time}}",
+    "zh": "距结束 {{time}}"
+  },
+  {
+    "ns": "activity",
+    "p": "poolTitle",
+    "en": "Event pool",
+    "zh": "活动奖池"
+  },
+  {
+    "ns": "activity",
+    "p": "boxFallback",
+    "en": "Box {{id}}…",
+    "zh": "盲盒 {{id}}…"
+  },
+  {
+    "ns": "activity",
+    "p": "openBox",
+    "en": "Open ›",
+    "zh": "去开盒 ›"
+  },
+  {
+    "ns": "activity",
+    "p": "emptyBoxes",
+    "en": "No linked boxes",
+    "zh": "暂无关联盲盒"
+  },
+  {
+    "ns": "activity",
+    "p": "countdownParts",
+    "en": "{{hours}}h {{minutes}}m {{seconds}}s",
+    "zh": "{{hours}}时{{minutes}}分{{seconds}}秒"
+  },
+  {
+    "ns": "ageGate",
+    "p": "title",
+    "en": "Age confirmation",
+    "zh": "年龄确认"
+  },
+  {
+    "ns": "ageGate",
+    "p": "body",
+    "en": "Blind box items are random. Confirm you are 18+ and accept the platform terms before ordering.",
+    "zh": "盲盒商品具有随机性。下单前请确认您已年满 18 周岁，并同意平台相关协议。"
+  },
+  {
+    "ns": "ageGate",
+    "p": "confirm",
+    "en": "I am 18 or older",
+    "zh": "我已满 18 周岁"
+  },
+  {
+    "ns": "ageGate",
+    "p": "decline",
+    "en": "Not now",
+    "zh": "暂不下单"
+  },
+  {
+    "ns": "analyticsQueue",
+    "p": "message",
+    "en": "Analytics sync failed — {{count}} event(s) pending (will retry when online)",
+    "zh": "埋点同步失败，{{count}} 条待上传（联网后将自动重试）"
+  },
+  {
+    "ns": "analyticsQueue",
+    "p": "dismiss",
+    "en": "Dismiss",
+    "zh": "关闭"
+  },
+  {
+    "ns": "analyticsQueue",
+    "p": "dismissA11y",
+    "en": "Dismiss analytics sync notice",
+    "zh": "关闭埋点同步提示"
+  },
+  {
+    "ns": "api",
+    "p": "requestFailed",
+    "en": "Request failed",
+    "zh": "请求失败"
+  },
+  {
+    "ns": "api",
+    "p": "requestRetry",
+    "en": "Request failed — try again later",
+    "zh": "请求失败，请稍后重试"
+  },
+  {
+    "ns": "api",
+    "p": "cannotConnect",
+    "en": "Cannot reach {{url}} — check the server and EXPO_PUBLIC_API_BASE_URL",
+    "zh": "无法连接后端 {{url}}，请确认服务已启动且 EXPO_PUBLIC_API_BASE_URL 与设备网络一致"
+  },
+  {
+    "ns": "api",
+    "p": "apiNotConfigured",
+    "en": "EXPO_PUBLIC_API_BASE_URL not set — configure in .env",
+    "zh": "未配置 EXPO_PUBLIC_API_BASE_URL，请在 .env 中设置后端地址"
+  },
+  {
+    "ns": "api",
+    "p": "traceIdSuffix",
+    "en": " (traceId: {{traceId}})",
+    "zh": "（traceId: {{traceId}}）"
+  },
+  {
+    "ns": "api",
+    "p": "errors.sessionExpired",
+    "en": "Session expired — please sign in again",
+    "zh": "登录已失效，请重新登录"
+  },
+  {
+    "ns": "api",
+    "p": "errors.unauthorized",
+    "en": "Unauthorized — please sign in again",
+    "zh": "未授权，请重新登录"
+  },
+  {
+    "ns": "api",
+    "p": "errors.tokenInvalid",
+    "en": "Invalid login token — please sign in again",
+    "zh": "登录凭证无效，请重新登录"
+  },
+  {
+    "ns": "api",
+    "p": "errors.orderNotFound",
+    "en": "Order not found",
+    "zh": "订单不存在"
+  },
+  {
+    "ns": "api",
+    "p": "errors.boxNotFound",
+    "en": "Mystery box not found",
+    "zh": "盲盒不存在"
+  },
+  {
+    "ns": "api",
+    "p": "errors.userNotFound",
+    "en": "User not found",
+    "zh": "用户不存在"
+  },
+  {
+    "ns": "api",
+    "p": "errors.couponInvalid",
+    "en": "Coupon is not available",
+    "zh": "优惠券不可用"
+  },
+  {
+    "ns": "api",
+    "p": "errors.verifyCodeInvalid",
+    "en": "Invalid verification code",
+    "zh": "验证码错误"
+  },
+  {
+    "ns": "api",
+    "p": "errors.authFailed",
+    "en": "Invalid account or password",
+    "zh": "账号或密码错误"
+  },
+  {
+    "ns": "api",
+    "p": "errors.rateLimited",
+    "en": "Too many attempts — try again later",
+    "zh": "操作过于频繁，请稍后再试"
+  },
+  {
+    "ns": "api",
+    "p": "errors.forbidden",
+    "en": "You are not allowed to perform this action",
+    "zh": "无权执行此操作"
+  },
+  {
+    "ns": "api",
+    "p": "errors.orderStatusInvalid",
+    "en": "Order status does not allow this action",
+    "zh": "订单状态不允许此操作"
+  },
+  {
+    "ns": "api",
+    "p": "errors.notFound",
+    "en": "Data not found",
+    "zh": "数据不存在"
+  },
+  {
+    "ns": "api",
+    "p": "errors.outOfStock",
+    "en": "Out of stock",
+    "zh": "库存不足"
+  },
+  {
+    "ns": "api",
+    "p": "errors.accountBanned",
+    "en": "Account has been suspended",
+    "zh": "账号已被封禁"
+  },
+  {
+    "ns": "appLoading",
+    "p": "a11y",
+    "en": "Loading app",
+    "zh": "应用加载中"
+  },
+  {
+    "ns": "appLoading",
+    "p": "title",
+    "en": "Mystery Box Mall",
+    "zh": "盲盒商城"
+  },
+  {
+    "ns": "appLoading",
+    "p": "subtitle",
+    "en": "Loading your unboxing world…",
+    "zh": "正在加载你的开盒世界…"
+  },
+  {
+    "ns": "appLoading",
+    "p": "badge",
+    "en": "盒",
+    "zh": "盲"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "quoting",
+    "en": "Calculating total…",
+    "zh": "正在计算应付金额…"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "quoteFailed",
+    "en": "Quote failed: {{error}}",
+    "zh": "估价失败：{{error}}"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "payAmount",
+    "en": "Pay {{amount}} (incl. shipping/discounts)",
+    "zh": "应付 {{amount}}（含运费/优惠）"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "referencePrice",
+    "en": "Est. {{amount}} ({{drawCount}} draws)",
+    "zh": "参考 {{amount}}（{{drawCount}} 抽）"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "purchaseLimitFailed",
+    "en": "Purchase limit load failed: {{message}}",
+    "zh": "限购信息加载失败：{{message}}"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "favoriteLoadFailed",
+    "en": "Favorite status load failed: {{message}}",
+    "zh": "收藏状态加载失败：{{message}}"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "favoriteAdded",
+    "en": "Added to favorites",
+    "zh": "已加入收藏"
+  },
+  {
+    "ns": "boxDetailsData",
+    "p": "favoriteRemoved",
+    "en": "Removed from favorites",
+    "zh": "已取消收藏"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "poolSold",
+    "en": "{{count}} sold",
+    "zh": "已售 {{count}} 张"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "promoNewcomer",
+    "en": "Newcomer · first draw deal",
+    "zh": "新人专享 · 首抽特惠"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "promoLowStock",
+    "en": "Only {{count}} left",
+    "zh": "仅剩 {{count}} 张 · 抢尾刀"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "promoHot",
+    "en": "{{count}} sold · hot",
+    "zh": "已售 {{count}} 张 · 热卖中"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "promoPity",
+    "en": "Pity series · odds disclosed",
+    "zh": "保底系列 · 概率公示"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "promoPriceSurprise",
+    "en": "{{price}} surprise draw",
+    "zh": "{{price}}元开启惊喜"
+  },
+  {
+    "ns": "boxDisplay",
+    "p": "promoDefault",
+    "en": "High odds · authentic",
+    "zh": "高爆率 · 正品保障"
+  },
+  {
+    "ns": "boxList",
+    "p": "defaultHint",
+    "en": "Tap for details and checkout",
+    "zh": "点击查看详情并下单开盒"
+  },
+  {
+    "ns": "boxList",
+    "p": "openNow",
+    "en": "Open now →",
+    "zh": "立即开盒 →"
+  },
+  {
+    "ns": "boxList",
+    "p": "a11y",
+    "en": "{{name}}, {{price}}",
+    "zh": "{{name}}，价格{{price}}元"
+  },
+  {
+    "ns": "buyout",
+    "p": "lockActive",
+    "en": "Buyout lock · {{seconds}}s left",
+    "zh": "全收锁 · 剩余 {{seconds}}s"
+  },
+  {
+    "ns": "buyout",
+    "p": "lockExpired",
+    "en": "Buyout lock expired",
+    "zh": "全收锁已失效"
+  },
+  {
+    "ns": "buyout",
+    "p": "poolRemaining",
+    "en": "Will buy all {{count}} remaining draws",
+    "zh": "将购买池内剩余 {{count}} 抽"
+  },
+  {
+    "ns": "buyout",
+    "p": "lockActiveA11y",
+    "en": "Buyout lock, {{seconds}} seconds left, {{remaining}} draws remaining",
+    "zh": "全收锁剩余 {{seconds}} 秒，池内剩余 {{remaining}} 抽"
+  },
+  {
+    "ns": "buyout",
+    "p": "lockExpiredA11y",
+    "en": "Buyout lock expired, {{remaining}} draws remaining",
+    "zh": "全收锁已失效，池内剩余 {{remaining}} 抽"
+  },
+  {
+    "ns": "buyout",
+    "p": "lockProgressA11y",
+    "en": "Buyout lock progress {{percent}} percent",
+    "zh": "全收锁进度 {{percent}}%"
+  },
+  {
+    "ns": "cabinet",
+    "p": "title",
+    "en": "Pick a slot",
+    "zh": "柜面选盒"
+  },
+  {
+    "ns": "cabinet",
+    "p": "hint",
+    "en": "Tap a number to reserve (~60s), then pay to open",
+    "zh": "点击编号锁定柜位（约 60 秒），支付后开盒"
+  },
+  {
+    "ns": "cabinet",
+    "p": "loading",
+    "en": "Loading slots…",
+    "zh": "加载柜位…"
+  },
+  {
+    "ns": "cabinet",
+    "p": "statusAvailable",
+    "en": "available",
+    "zh": "可选"
+  },
+  {
+    "ns": "cabinet",
+    "p": "statusReserved",
+    "en": "reserved",
+    "zh": "已锁定"
+  },
+  {
+    "ns": "cabinet",
+    "p": "statusSold",
+    "en": "sold",
+    "zh": "已售"
+  },
+  {
+    "ns": "cabinet",
+    "p": "slotA11y",
+    "en": "Slot {{no}}, {{status}}",
+    "zh": "柜位 {{no}}，{{status}}"
+  },
+  {
+    "ns": "cabinet",
+    "p": "hintTitle",
+    "en": "Hint card",
+    "zh": "提示卡"
+  },
+  {
+    "ns": "cabinet",
+    "p": "hintUse",
+    "en": "Use hint",
+    "zh": "使用提示卡"
+  },
+  {
+    "ns": "cabinet",
+    "p": "hintRemaining",
+    "en": "{{count}} hints left today · {{cards}} cards",
+    "zh": "今日剩余 {{count}} 次 · 余额 {{cards}} 张"
+  },
+  {
+    "ns": "cabinet",
+    "p": "hintExcluded",
+    "en": "Excluded: {{quality}}",
+    "zh": "已排除：{{quality}}"
+  },
+  {
+    "ns": "cabinet",
+    "p": "hintFailed",
+    "en": "Hint failed: {{message}}",
+    "zh": "提示失败：{{message}}"
+  },
+  {
+    "ns": "cabinet",
+    "p": "reserveCountdown",
+    "en": "Reserve expires in {{seconds}}s",
+    "zh": "锁位剩余 {{seconds}}s"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeOpen",
+    "en": "Shake hint",
+    "zh": "摇盒提示"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeOpenA11y",
+    "en": "Open shake hint",
+    "zh": "打开摇盒提示"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeTitle",
+    "en": "Shake for hint",
+    "zh": "摇一摇提示"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeSubtitle",
+    "en": "Shake to exclude one quality tier (uses hint card)",
+    "zh": "摇一摇排除一种品质（消耗提示卡）"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeCta",
+    "en": "Shake",
+    "zh": "摇一摇"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeCtaA11y",
+    "en": "Shake for hint",
+    "zh": "摇一摇获取提示"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeLoading",
+    "en": "Hinting…",
+    "zh": "提示中…"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeClose",
+    "en": "Close",
+    "zh": "关闭"
+  },
+  {
+    "ns": "cabinet",
+    "p": "shakeCloseA11y",
+    "en": "Close shake hint",
+    "zh": "关闭摇盒提示"
+  },
+  {
+    "ns": "catalog",
+    "p": "mallLoadFailed",
+    "en": "Mall load failed: {{message}}",
+    "zh": "商城加载失败：{{message}}"
+  },
+  {
+    "ns": "catalog",
+    "p": "homeLoadFailed",
+    "en": "Home load failed: {{message}}",
+    "zh": "首页加载失败：{{message}}"
+  },
+  {
+    "ns": "catalog",
+    "p": "noNewcomerBox",
+    "en": "No newcomer box available — try again later",
+    "zh": "暂无新人专享盲盒，请稍后重试"
+  },
+  {
+    "ns": "catalog",
+    "p": "noBoxes",
+    "en": "No boxes available — try again later",
+    "zh": "暂无盲盒，请稍后再试"
+  },
+  {
+    "ns": "ceremonyTier",
+    "p": "TREASURE_LEGEND",
+    "en": "Treasure Legend",
+    "zh": "珍品传说"
+  },
+  {
+    "ns": "ceremonyTier",
+    "p": "PEERLESS",
+    "en": "Peerless",
+    "zh": "无双"
+  },
+  {
+    "ns": "ceremonyTier",
+    "p": "TREASURE_PEERLESS",
+    "en": "Treasure Peerless",
+    "zh": "珍品无双"
+  },
+  {
+    "ns": "ceremonyTier",
+    "p": "GENERAL",
+    "en": "Common",
+    "zh": "普通"
+  },
+  {
+    "ns": "ceremonyTier",
+    "p": "HIDDEN",
+    "en": "Hidden",
+    "zh": "隐藏"
+  },
+  {
+    "ns": "commission",
+    "p": "title",
+    "en": "Commission",
+    "zh": "佣金明细"
+  },
+  {
+    "ns": "commission",
+    "p": "totalLabel",
+    "en": "Total commission",
+    "zh": "累计佣金"
+  },
+  {
+    "ns": "commission",
+    "p": "sectionTitle",
+    "en": "Commission history",
+    "zh": "佣金明细"
+  },
+  {
+    "ns": "commission",
+    "p": "sectionHint",
+    "en": "(6 months retained)",
+    "zh": "(仅保留半年记录)"
+  },
+  {
+    "ns": "commission",
+    "p": "defaultRemark",
+    "en": "Commission",
+    "zh": "佣金"
+  },
+  {
+    "ns": "commission",
+    "p": "emptyTitle",
+    "en": "No commission records",
+    "zh": "暂无佣金记录"
+  },
+  {
+    "ns": "commission",
+    "p": "emptyDesc",
+    "en": "Earn commission when invitees purchase",
+    "zh": "邀请好友消费后可获得佣金"
+  },
+  {
+    "ns": "commission",
+    "p": "goPromotion",
+    "en": "Go to referrals",
+    "zh": "去推广"
+  },
+  {
+    "ns": "communityTopics",
+    "p": "shareDraft",
+    "en": "#{{tag}} I pulled {{tier}}{{productName}} from 「{{boxName}}」!\norderId={{orderId}}\nproductId={{productId}}",
+    "zh": "#{{tag}} 我在「{{boxName}}」开出了{{tier}}{{productName}}！\norderId={{orderId}}\nproductId={{productId}}"
+  },
+  {
+    "ns": "communityTopics",
+    "p": "tags.晒单",
+    "en": "Show off",
+    "zh": "晒单"
+  },
+  {
+    "ns": "communityTopics",
+    "p": "tags.传说",
+    "en": "Legendary",
+    "zh": "传说"
+  },
+  {
+    "ns": "communityTopics",
+    "p": "tags.隐藏",
+    "en": "Hidden",
+    "zh": "隐藏"
+  },
+  {
+    "ns": "communityTopics",
+    "p": "tags.整盒",
+    "en": "Full box",
+    "zh": "整盒"
+  },
+  {
+    "ns": "communityTopics",
+    "p": "tags.回血",
+    "en": "Cash out",
+    "zh": "回血"
+  },
+  {
+    "ns": "confirmDialog",
+    "p": "closeA11y",
+    "en": "Close confirmation dialog",
+    "zh": "关闭确认对话框"
+  },
+  {
+    "ns": "currency",
+    "p": "luckyCoinsDesc",
+    "en": "Earn lucky coins from daily check-in — redeem for perks and events.",
+    "zh": "每日签到可获得幸运币，后续可用于兑换平台福利与活动权益。"
+  },
+  {
+    "ns": "currency",
+    "p": "starStonesDesc",
+    "en": "Star stones are growth points from invites and events — see ops announcements.",
+    "zh": "星石为平台成长积分，邀请好友、参与活动可获得，具体规则以运营公告为准。"
+  },
+  {
+    "ns": "currency",
+    "p": "currentLabel",
+    "en": "Current {{name}}",
+    "zh": "当前{{name}}"
+  },
+  {
+    "ns": "currency",
+    "p": "goCheckIn",
+    "en": "Check in",
+    "zh": "去签到"
+  },
+  {
+    "ns": "currency",
+    "p": "goWelfare",
+    "en": "Welfare center",
+    "zh": "去福利中心"
+  },
+  {
+    "ns": "dataSync",
+    "p": "addressError",
+    "en": "Addresses: {{message}}",
+    "zh": "地址：{{message}}"
+  },
+  {
+    "ns": "dataSync",
+    "p": "orderError",
+    "en": "Orders: {{message}}",
+    "zh": "订单：{{message}}"
+  },
+  {
+    "ns": "dataSync",
+    "p": "mallError",
+    "en": "Mall: {{message}}",
+    "zh": "商城：{{message}}"
+  },
+  {
+    "ns": "dataSync",
+    "p": "balanceError",
+    "en": "Balance: {{message}}",
+    "zh": "余额：{{message}}"
+  },
+  {
+    "ns": "dataSync",
+    "p": "balanceLogsError",
+    "en": "Balance logs: {{message}}",
+    "zh": "余额流水：{{message}}"
+  },
+  {
+    "ns": "drawPack",
+    "p": "closeA11y",
+    "en": "Close draw pack modal",
+    "zh": "关闭拆盒弹窗"
+  },
+  {
+    "ns": "drawPack",
+    "p": "sheetA11y",
+    "en": "Draw pack offers",
+    "zh": "拆盒抽好礼"
+  },
+  {
+    "ns": "drawPack",
+    "p": "title",
+    "en": "Draw pack deals",
+    "zh": "拆盒抽好礼"
+  },
+  {
+    "ns": "drawPack",
+    "p": "close",
+    "en": "Close",
+    "zh": "关闭"
+  },
+  {
+    "ns": "drawPack",
+    "p": "poolRemaining",
+    "en": "Pool {{remaining}}/{{total}} left",
+    "zh": "奖池余量 {{remaining}}/{{total}}"
+  },
+  {
+    "ns": "drawPack",
+    "p": "wholeBox",
+    "en": "Full box {{count}} draws · {{price}}",
+    "zh": "整盒 {{count}} 抽 · {{price}}"
+  },
+  {
+    "ns": "drawPack",
+    "p": "wholeBoxEstimate",
+    "en": "~{{count}} draws per box (stock dependent)",
+    "zh": "整盒约 {{count}} 抽（以当前库存为准）"
+  },
+  {
+    "ns": "drawPack",
+    "p": "optionA11y",
+    "en": "{{label}}, {{price}}{{best}}",
+    "zh": "{{label}}，{{price}}元{{best}}"
+  },
+  {
+    "ns": "drawPack",
+    "p": "bestValue",
+    "en": ", best value",
+    "zh": "，最划算"
+  },
+  {
+    "ns": "drawPack",
+    "p": "bestTag",
+    "en": "Best value",
+    "zh": "最划算"
+  },
+  {
+    "ns": "drawPack",
+    "p": "addressRequired",
+    "en": "Add a shipping address before payment",
+    "zh": "支付前需填写收货地址"
+  },
+  {
+    "ns": "drawPack",
+    "p": "addressRequiredA11y",
+    "en": "Add shipping address before payment",
+    "zh": "支付前需填写收货地址"
+  },
+  {
+    "ns": "drawPack",
+    "p": "confirmA11y",
+    "en": "Confirm draw",
+    "zh": "确认开盒"
+  },
+  {
+    "ns": "drawPack",
+    "p": "confirmingA11y",
+    "en": "Creating order",
+    "zh": "创建订单中"
+  },
+  {
+    "ns": "drawPack",
+    "p": "confirm",
+    "en": "Confirm draw",
+    "zh": "确认开盒"
+  },
+  {
+    "ns": "drawPack",
+    "p": "confirming",
+    "en": "Creating order…",
+    "zh": "创建订单中..."
+  },
+  {
+    "ns": "drawPackMath",
+    "p": "teaser",
+    "en": "{{count}}-pack saves {{saved}} · from {{perDraw}}/draw",
+    "zh": "{{count}}连省{{saved}} · 低至{{perDraw}}/抽"
+  },
+  {
+    "ns": "drawPackMath",
+    "p": "progressHint",
+    "en": "{{need}} more for {{count}}-pack — save ~{{saved}}",
+    "zh": "再抽 {{need}} 次可享 {{count}} 连，预计省 {{saved}}"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "yourTurn",
+    "en": "Your turn! Pay and open now",
+    "zh": "轮到您了！请尽快支付开盒"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "yourTurnToast",
+    "en": "It's your turn — open the box soon",
+    "zh": "排队轮到您了，请尽快开盒"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "waiting",
+    "en": "In queue: {{position}} / {{total}}",
+    "zh": "排队中：第 {{position}} / {{total}} 人"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "joining",
+    "en": "Joining queue…",
+    "zh": "正在加入队列…"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "panelA11y",
+    "en": "Queue status",
+    "zh": "排队状态"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "expiringSoon",
+    "en": "Queue expiring in ~{{seconds}}s — act now",
+    "zh": "队列即将过期（约 {{seconds}}s），请尽快操作"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "validMinutes",
+    "en": "Queue valid for {{minutes}} min",
+    "zh": "队列 {{minutes}} 分钟内有效"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "queueMeta",
+    "en": "{{size}} in queue · est. wait {{wait}}",
+    "zh": "当前 {{size}} 人排队 · 预计等待 {{wait}}"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "waitUnknown",
+    "en": "calculating",
+    "zh": "计算中"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "viewRoom",
+    "en": "View queue room",
+    "zh": "查看排队房间"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "viewRoomA11y",
+    "en": "Open queue room",
+    "zh": "打开排队房间"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "roomTitle",
+    "en": "Queue room",
+    "zh": "排队房间"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "roomCloseA11y",
+    "en": "Close queue room",
+    "zh": "关闭排队房间"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "feedTitle",
+    "en": "Live reveals",
+    "zh": "实时开赏"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "feedEmpty",
+    "en": "No reveals yet",
+    "zh": "暂无战报"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "feedTicker",
+    "en": "{{name}} got {{product}}{{lastOne}}",
+    "zh": "{{name}} 开出 {{product}}{{lastOne}}"
+  },
+  {
+    "ns": "drawQueue",
+    "p": "feedLastOne",
+    "en": " (last one)",
+    "zh": "（终赏）"
+  },
+  {
+    "ns": "effectProfile",
+    "p": "GENERAL.title",
+    "en": "Reveal complete",
+    "zh": "开奖完成"
+  },
+  {
+    "ns": "effectProfile",
+    "p": "GENERAL.tierLabel",
+    "en": "Standard",
+    "zh": "普通款"
+  },
+  {
+    "ns": "effectProfile",
+    "p": "HIDDEN.title",
+    "en": "Hidden tier!",
+    "zh": "隐藏款现身！"
+  },
+  {
+    "ns": "effectProfile",
+    "p": "HIDDEN.tierLabel",
+    "en": "Hidden",
+    "zh": "隐藏款"
+  },
+  {
+    "ns": "effectProfile",
+    "p": "LEGENDARY.title",
+    "en": "Legendary burst!",
+    "zh": "传说级爆闪！"
+  },
+  {
+    "ns": "effectProfile",
+    "p": "LEGENDARY.tierLabel",
+    "en": "Legendary",
+    "zh": "传说款"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "title",
+    "en": "Something went wrong",
+    "zh": "页面出现问题"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "description",
+    "en": "Please try again, or go home and re-enter.",
+    "zh": "请稍后重试，或返回首页重新进入"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "unknown",
+    "en": "Unknown error",
+    "zh": "未知错误"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "retryA11y",
+    "en": "Retry loading page",
+    "zh": "重试加载页面"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "homeA11y",
+    "en": "Go home and retry",
+    "zh": "返回首页并重试"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "home",
+    "en": "Go home",
+    "zh": "返回首页"
+  },
+  {
+    "ns": "errorBoundary",
+    "p": "retry",
+    "en": "Retry",
+    "zh": "重试"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "title",
+    "en": "Fragment shop",
+    "zh": "碎片商城"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "titleAdvanced",
+    "en": "Advanced exchange",
+    "zh": "进阶兑换商城"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "balanceSummary",
+    "en": "Fragments: {{balance}} · {{affordable}}/{{total}} redeemable",
+    "zh": "我的碎片：{{balance}} · 可兑换 {{affordable}}/{{total}}"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "exchangeSuccess",
+    "en": "Redeemed successfully",
+    "zh": "兑换成功"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "emptyTitle",
+    "en": "Nothing to redeem",
+    "zh": "暂无可兑换商品"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "emptyDesc",
+    "en": "Decompose warehouse prizes to earn fragments",
+    "zh": "分解仓库赏品可获得碎片"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "goWarehouse",
+    "en": "Warehouse",
+    "zh": "去仓库"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "skuMeta",
+    "en": "Cost {{cost}} · Stock {{stock}} · {{percent}}%",
+    "zh": "消耗 {{cost}} 碎片 · 库存 {{stock}} · 进度 {{percent}}%"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "exchangeA11y",
+    "en": "Redeem {{name}}",
+    "zh": "兑换 {{name}}"
+  },
+  {
+    "ns": "exchangeMall",
+    "p": "exchangeNow",
+    "en": "Redeem now",
+    "zh": "立即兑换"
+  },
+  {
+    "ns": "fairness",
+    "p": "title",
+    "en": "Draw fairness verification",
+    "zh": "开奖公平验证"
+  },
+  {
+    "ns": "fairness",
+    "p": "copyResult",
+    "en": "Copy verification",
+    "zh": "复制验真结果"
+  },
+  {
+    "ns": "fairness",
+    "p": "shareResult",
+    "en": "Share verification",
+    "zh": "分享验真结果"
+  },
+  {
+    "ns": "fairness",
+    "p": "copied",
+    "en": "Verification copied",
+    "zh": "验真结果已复制"
+  },
+  {
+    "ns": "fairness",
+    "p": "emptyTitle",
+    "en": "No verification records",
+    "zh": "暂无验签记录"
+  },
+  {
+    "ns": "fairness",
+    "p": "emptyDesc",
+    "en": "Order may not be revealed yet or records are pending",
+    "zh": "该订单可能尚未开奖或记录尚未生成"
+  },
+  {
+    "ns": "fairness",
+    "p": "hint",
+    "en": "Each draw gets a server seed and hash you can verify independently.",
+    "zh": "服务端为每次开奖生成 seed 与 hash，可用相同算法复核结果未被篡改。"
+  },
+  {
+    "ns": "fairness",
+    "p": "quality",
+    "en": "Tier {{type}}",
+    "zh": "品级 {{type}}"
+  },
+  {
+    "ns": "fairness",
+    "p": "verifiedOk",
+    "en": "Verified",
+    "zh": "验签通过"
+  },
+  {
+    "ns": "fairness",
+    "p": "verifiedBad",
+    "en": "Verification failed",
+    "zh": "验签异常"
+  },
+  {
+    "ns": "fairness",
+    "p": "verifyHeader",
+    "en": "Order {{orderId}} fairness verification",
+    "zh": "订单 {{orderId}} 公平验证"
+  },
+  {
+    "ns": "favorites",
+    "p": "title",
+    "en": "Favorites",
+    "zh": "我的收藏"
+  },
+  {
+    "ns": "favorites",
+    "p": "loadFailed",
+    "en": "Failed to load favorite ({{id}}…)",
+    "zh": "收藏商品加载失败（{{id}}…）"
+  },
+  {
+    "ns": "favorites",
+    "p": "emptyTitle",
+    "en": "No favorites",
+    "zh": "暂无收藏"
+  },
+  {
+    "ns": "favorites",
+    "p": "emptyDesc",
+    "en": "Add favorites from box details",
+    "zh": "在盲盒详情页可添加收藏"
+  },
+  {
+    "ns": "favorites",
+    "p": "goBrowse",
+    "en": "Browse",
+    "zh": "去逛逛"
+  },
+  {
+    "ns": "favorites",
+    "p": "unfavoriteA11y",
+    "en": "Remove favorite",
+    "zh": "取消收藏"
+  },
+  {
+    "ns": "favorites",
+    "p": "remove",
+    "en": "Remove",
+    "zh": "取消"
+  },
+  {
+    "ns": "feedback",
+    "p": "title",
+    "en": "Feedback",
+    "zh": "意见反馈"
+  },
+  {
+    "ns": "feedback",
+    "p": "sectionContent",
+    "en": "Your feedback",
+    "zh": "反馈内容"
+  },
+  {
+    "ns": "feedback",
+    "p": "sectionHistory",
+    "en": "History",
+    "zh": "历史反馈"
+  },
+  {
+    "ns": "feedback",
+    "p": "contentPlaceholder",
+    "en": "Describe your issue or suggestion…",
+    "zh": "请描述你遇到的问题或建议..."
+  },
+  {
+    "ns": "feedback",
+    "p": "photoPlaceholder",
+    "en": "Image URLs (comma-separated, optional)",
+    "zh": "图片链接（多个用逗号分隔，可选）"
+  },
+  {
+    "ns": "feedback",
+    "p": "photoA11y",
+    "en": "Feedback image URLs",
+    "zh": "反馈图片链接"
+  },
+  {
+    "ns": "feedback",
+    "p": "uploadPhoto",
+    "en": "Upload from gallery",
+    "zh": "从相册上传图片"
+  },
+  {
+    "ns": "feedback",
+    "p": "submit",
+    "en": "Submit",
+    "zh": "提交反馈"
+  },
+  {
+    "ns": "feedback",
+    "p": "submitting",
+    "en": "Submitting…",
+    "zh": "提交中..."
+  },
+  {
+    "ns": "feedback",
+    "p": "submitSuccess",
+    "en": "Thanks — feedback received",
+    "zh": "反馈已提交，感谢你的建议"
+  },
+  {
+    "ns": "feedback",
+    "p": "submitFailed",
+    "en": "Submit failed — try again",
+    "zh": "提交失败，请稍后重试"
+  },
+  {
+    "ns": "feedback",
+    "p": "emptyHistory",
+    "en": "No history yet",
+    "zh": "暂无历史记录"
+  },
+  {
+    "ns": "homeBanner",
+    "p": "opsRecommend",
+    "en": "Featured · {{count}} slide(s)",
+    "zh": "运营推荐 · 共 {{count}} 条"
+  },
+  {
+    "ns": "infoPage",
+    "p": "subtitle",
+    "en": "Info",
+    "zh": "说明"
+  },
+  {
+    "ns": "invite",
+    "p": "title",
+    "en": "Invite center",
+    "zh": "邀请中心"
+  },
+  {
+    "ns": "invite",
+    "p": "tabPromotion",
+    "en": "My referrals",
+    "zh": "我的推广"
+  },
+  {
+    "ns": "invite",
+    "p": "tabTeam",
+    "en": "Team",
+    "zh": "团队管理"
+  },
+  {
+    "ns": "invite",
+    "p": "tabCommission",
+    "en": "Commission",
+    "zh": "佣金明细"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "title",
+    "en": "IP gallery",
+    "zh": "IP 专题馆"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "hint",
+    "en": "Browse hot IP boxes by category — limited pools and new drops appear here",
+    "zh": "按分类浏览热门 IP 盲盒，限时池与新品将在此聚合展示"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "emptyTitle",
+    "en": "No themes yet",
+    "zh": "暂无专题"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "emptyDesc",
+    "en": "Boxes with categories will appear here when listed",
+    "zh": "上架盲盒并配置分类后，将自动出现在此"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "goHome",
+    "en": "Browse home",
+    "zh": "回首页看看"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "hotIp",
+    "en": "Hot IP",
+    "zh": "热门 IP"
+  },
+  {
+    "ns": "ipTheme",
+    "p": "sectionCount",
+    "en": "{{count}} sets",
+    "zh": "{{count}} 套"
+  },
+  {
+    "ns": "leaderboard",
+    "p": "title",
+    "en": "Lucky board",
+    "zh": "欧皇榜"
+  },
+  {
+    "ns": "leaderboard",
+    "p": "tabWeek",
+    "en": "This week",
+    "zh": "本周"
+  },
+  {
+    "ns": "leaderboard",
+    "p": "tabMonth",
+    "en": "This month",
+    "zh": "本月"
+  },
+  {
+    "ns": "leaderboard",
+    "p": "emptyTitle",
+    "en": "No high-tier records",
+    "zh": "暂无高档记录"
+  },
+  {
+    "ns": "leaderboard",
+    "p": "emptyDesc",
+    "en": "Pull legendary or hidden to rank",
+    "zh": "开出传说/隐藏款即可上榜"
+  },
+  {
+    "ns": "leaderboard",
+    "p": "highCount",
+    "en": "{{count}} high-tier",
+    "zh": "{{count}} 次高档"
+  },
+  {
+    "ns": "mall",
+    "p": "title",
+    "en": "Mall",
+    "zh": "商城"
+  },
+  {
+    "ns": "mall",
+    "p": "tags",
+    "en": "Authentic  |  Curated  |  Fast ship",
+    "zh": "全新正品  |  精选好物  |  急速发货"
+  },
+  {
+    "ns": "mall",
+    "p": "searchA11y",
+    "en": "Search mall products",
+    "zh": "搜索商城商品"
+  },
+  {
+    "ns": "mall",
+    "p": "searchPlaceholder",
+    "en": "Search products",
+    "zh": "请输入搜索的产品"
+  },
+  {
+    "ns": "mall",
+    "p": "searchBtn",
+    "en": "Search",
+    "zh": "搜索"
+  },
+  {
+    "ns": "mall",
+    "p": "searchClear",
+    "en": "Clear search",
+    "zh": "清除搜索"
+  },
+  {
+    "ns": "mall",
+    "p": "searchResultHint",
+    "en": "Results for “{{keyword}}”",
+    "zh": "搜索「{{keyword}}」的结果"
+  },
+  {
+    "ns": "mall",
+    "p": "emptySearch",
+    "en": "No products found for “{{keyword}}”. Try another keyword.",
+    "zh": "未找到「{{keyword}}」相关商品，换个关键词试试"
+  },
+  {
+    "ns": "mall",
+    "p": "categoryAll",
+    "en": "All",
+    "zh": "全部"
+  },
+  {
+    "ns": "mall",
+    "p": "currentCategory",
+    "en": "Category: {{name}}",
+    "zh": "当前分类：{{name}}"
+  },
+  {
+    "ns": "mall",
+    "p": "fallbackNew",
+    "en": "New arrivals",
+    "zh": "每月上新"
+  },
+  {
+    "ns": "mall",
+    "p": "fallbackDigital",
+    "en": "Digital",
+    "zh": "数码3C"
+  },
+  {
+    "ns": "mall",
+    "p": "fallbackApple",
+    "en": "Apple zone",
+    "zh": "苹果专区"
+  },
+  {
+    "ns": "mall",
+    "p": "fallbackLife",
+    "en": "Lifestyle",
+    "zh": "品质生活"
+  },
+  {
+    "ns": "mall",
+    "p": "fallbackHot",
+    "en": "Best sellers",
+    "zh": "热销爆款"
+  },
+  {
+    "ns": "mall",
+    "p": "boxNewcomer",
+    "en": "New",
+    "zh": "新人"
+  },
+  {
+    "ns": "mall",
+    "p": "boxA11y",
+    "en": "{{name}}, {{price}}",
+    "zh": "{{name}}，价格{{price}}元"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.0",
+    "en": "Rookie",
+    "zh": "萌新玩家"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.1",
+    "en": "Bronze",
+    "zh": "青铜会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.2",
+    "en": "Silver",
+    "zh": "白银会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.3",
+    "en": "Gold",
+    "zh": "黄金会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.4",
+    "en": "Platinum",
+    "zh": "铂金会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.5",
+    "en": "Diamond",
+    "zh": "钻石会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.6",
+    "en": "Master",
+    "zh": "大师会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.7",
+    "en": "Grandmaster",
+    "zh": "宗师会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.8",
+    "en": "Legend",
+    "zh": "传说会员"
+  },
+  {
+    "ns": "memberLevel",
+    "p": "titles.9",
+    "en": "Supreme",
+    "zh": "至尊会员"
+  },
+  {
+    "ns": "order",
+    "p": "status.unknown",
+    "en": "Unknown",
+    "zh": "未知"
+  },
+  {
+    "ns": "order",
+    "p": "status.TO_BE_PAID",
+    "en": "Unpaid",
+    "zh": "待支付"
+  },
+  {
+    "ns": "order",
+    "p": "status.TO_BE_DELIVERED",
+    "en": "To ship",
+    "zh": "待发货"
+  },
+  {
+    "ns": "order",
+    "p": "status.TO_BE_RECEIVED",
+    "en": "To receive",
+    "zh": "待收货"
+  },
+  {
+    "ns": "order",
+    "p": "status.FINISHED",
+    "en": "Completed",
+    "zh": "已完成"
+  },
+  {
+    "ns": "order",
+    "p": "status.COMPLETED",
+    "en": "Completed",
+    "zh": "已完成"
+  },
+  {
+    "ns": "order",
+    "p": "status.CLOSED",
+    "en": "Closed",
+    "zh": "已关闭"
+  },
+  {
+    "ns": "order",
+    "p": "status.REFUNDED",
+    "en": "Refunded",
+    "zh": "已退款"
+  },
+  {
+    "ns": "orderActions",
+    "p": "paySuccessRevealed",
+    "en": "Payment successful — prizes revealed",
+    "zh": "支付成功，已开奖"
+  },
+  {
+    "ns": "orderActions",
+    "p": "autoRefreshFailed",
+    "en": "Order auto-refresh failed: {{message}}",
+    "zh": "订单自动刷新失败：{{message}}"
+  },
+  {
+    "ns": "orderActions",
+    "p": "pendingPayment",
+    "en": "Pending payment {{orderId}}… — pay from home",
+    "zh": "您有待支付订单 {{orderId}}…，可在首页继续支付"
+  },
+  {
+    "ns": "orderUtils",
+    "p": "phoneUnbound",
+    "en": "No phone linked",
+    "zh": "未绑定手机号"
+  },
+  {
+    "ns": "orderUtils",
+    "p": "boxOrderFallback",
+    "en": "Blind box · {{id}}",
+    "zh": "盲盒 · {{id}}"
+  },
+  {
+    "ns": "orderUtils",
+    "p": "boxOrderDefault",
+    "en": "Blind box order",
+    "zh": "盲盒订单"
+  },
+  {
+    "ns": "orderUtils",
+    "p": "timeUnknown",
+    "en": "Time unknown",
+    "zh": "时间未知"
+  },
+  {
+    "ns": "orderUtils",
+    "p": "couponFallback",
+    "en": "Coupon",
+    "zh": "优惠券"
+  },
+  {
+    "ns": "orderUtils",
+    "p": "couponWithAmount",
+    "en": "{{name}} (-{{amount}})",
+    "zh": "{{name}} (-{{amount}})"
+  },
+  {
+    "ns": "oss",
+    "p": "noUrl",
+    "en": "Upload succeeded but no file URL returned",
+    "zh": "上传成功但未返回文件地址"
+  },
+  {
+    "ns": "paymentError",
+    "p": "title",
+    "en": "Payment setup failed",
+    "zh": "支付发起失败"
+  },
+  {
+    "ns": "paymentError",
+    "p": "orderId",
+    "en": "Order {{id}}",
+    "zh": "订单号 {{id}}"
+  },
+  {
+    "ns": "paymentError",
+    "p": "orderCopied",
+    "en": "Order ID copied",
+    "zh": "订单号已复制"
+  },
+  {
+    "ns": "paymentError",
+    "p": "retry",
+    "en": "Retry payment",
+    "zh": "重试支付"
+  },
+  {
+    "ns": "paymentError",
+    "p": "copyOrder",
+    "en": "Copy order ID",
+    "zh": "复制订单号"
+  },
+  {
+    "ns": "paymentError",
+    "p": "close",
+    "en": "Close",
+    "zh": "关闭"
+  },
+  {
+    "ns": "paymentError",
+    "p": "channelWechat",
+    "en": "WeChat Pay prepay could not be loaded.",
+    "zh": "微信支付预下单失败，请重试或联系客服。"
+  },
+  {
+    "ns": "paymentError",
+    "p": "channelVnpay",
+    "en": "VNPay prepay could not be loaded.",
+    "zh": "VNPay 预下单失败，请重试或联系客服。"
+  },
+  {
+    "ns": "playGuide",
+    "p": "title",
+    "en": "How to play",
+    "zh": "玩法介绍"
+  },
+  {
+    "ns": "playGuide",
+    "p": "p1",
+    "en": "Pick a mystery box series and open its details to view the prize pool and published odds.",
+    "zh": "选择心仪的盲盒系列，进入详情页查看奖池与概率说明。"
+  },
+  {
+    "ns": "playGuide",
+    "p": "p2",
+    "en": "Choose draw count and shipping address, then pay — prizes reveal automatically after payment.",
+    "zh": "确认抽数与收货地址后下单支付，支付成功即自动开奖。"
+  },
+  {
+    "ns": "playGuide",
+    "p": "p3",
+    "en": "Wins go to your warehouse; you can ship, redeem for balance, or list on the marketplace.",
+    "zh": "开出的赏品进入仓库，可选择发货、兑换余额或挂牌到赏品集市。"
+  },
+  {
+    "ns": "playGuide",
+    "p": "p4",
+    "en": "New-user sets and limited events appear on the home carousel and activity section.",
+    "zh": "新人专享套系与限时活动可在首页轮播与活动区查看。"
+  },
+  {
+    "ns": "priceInput",
+    "p": "placeholder",
+    "en": "Enter price",
+    "zh": "请输入价格"
+  },
+  {
+    "ns": "privacyPage",
+    "p": "p1",
+    "en": "We collect and use account, order, and device data only as needed to provide the service.",
+    "zh": "我们仅在提供服务所必需的范围内收集和使用你的账号、订单与设备信息。"
+  },
+  {
+    "ns": "privacyPage",
+    "p": "p2",
+    "en": "You can sign out anytime in Settings; contact support to delete your account.",
+    "zh": "你可随时在设置中退出登录；注销账号请联系平台客服处理。"
+  },
+  {
+    "ns": "privacyPage",
+    "p": "p3",
+    "en": "Continued use means you agree to the terms of service and privacy policy.",
+    "zh": "继续使用本应用即表示你同意相关服务条款与隐私政策。"
+  },
+  {
+    "ns": "prizeEffect",
+    "p": "meta",
+    "en": "Prize tier and effect intensity matched automatically",
+    "zh": "奖品品质与特效强度已自动匹配"
+  },
+  {
+    "ns": "probability",
+    "p": "title",
+    "en": "Probability disclosure",
+    "zh": "概率公示"
+  },
+  {
+    "ns": "probability",
+    "p": "noConfig",
+    "en": "No probability config",
+    "zh": "暂无概率配置"
+  },
+  {
+    "ns": "probability",
+    "p": "legendary",
+    "en": "Legendary: {{rate}}",
+    "zh": "传说款：{{rate}}"
+  },
+  {
+    "ns": "probability",
+    "p": "hidden",
+    "en": "Hidden: {{rate}}",
+    "zh": "隐藏款：{{rate}}"
+  },
+  {
+    "ns": "probability",
+    "p": "general",
+    "en": "Common: {{rate}}",
+    "zh": "普通款：{{rate}}"
+  },
+  {
+    "ns": "probability",
+    "p": "updatedAt",
+    "en": "Updated: {{time}}",
+    "zh": "配置更新时间：{{time}}"
+  },
+  {
+    "ns": "probability",
+    "p": "historyTitle",
+    "en": "Change history",
+    "zh": "变更记录"
+  },
+  {
+    "ns": "probability",
+    "p": "historyRow",
+    "en": "{{time}} · Legendary {{legendary}} / Hidden {{hidden}} / Common {{general}}",
+    "zh": "{{time}} · 传说 {{legendary}} / 隐藏 {{hidden}} / 普通 {{general}}"
+  },
+  {
+    "ns": "probability",
+    "p": "disclaimer",
+    "en": "Rates are box-level (basis points shown as percent). Actual draws follow server inventory and rules. Changes are logged. After payment, verify draws in order details via seed/hash check. Users under 18 cannot purchase. Spend responsibly. Confirm draw count and amount before paying; random virtual goods are non-refundable except for quality issues. Questions: submit feedback under Profile — reply within 3 business days.",
+    "zh": "以上概率为盒级配置（万分比换算为百分比），实际开奖由服务端按库存与规则执行。概率调整将留存历史记录供查阅。支付成功后的订单可在「订单详情」使用「验签开奖记录」，校验服务端 seed 与哈希是否一致。禁止未满 18 周岁购买；请理性消费。单次支付前请确认抽数与应付金额，虚拟商品随机抽取后非质量问题不支持退款。如对概率或规则有疑问，可在「我的-反馈」提交工单，平台将在 3 个工作日内回复。"
+  },
+  {
+    "ns": "profileActions",
+    "p": "nicknameUpdated",
+    "en": "Nickname updated",
+    "zh": "昵称已更新"
+  },
+  {
+    "ns": "profileActions",
+    "p": "avatarUpdated",
+    "en": "Avatar updated",
+    "zh": "头像已更新"
+  },
+  {
+    "ns": "profileActions",
+    "p": "addressLoadFailed",
+    "en": "Failed to load addresses: {{message}}",
+    "zh": "地址加载失败：{{message}}"
+  },
+  {
+    "ns": "promotion",
+    "p": "title",
+    "en": "My referrals",
+    "zh": "我的推广"
+  },
+  {
+    "ns": "promotion",
+    "p": "invitees",
+    "en": "Invitees",
+    "zh": "我的下级 (人)"
+  },
+  {
+    "ns": "promotion",
+    "p": "inviteCode",
+    "en": "Code {{code}}",
+    "zh": "邀请码 {{code}}"
+  },
+  {
+    "ns": "promotion",
+    "p": "shareInvite",
+    "en": "Share invite",
+    "zh": "分享邀请"
+  },
+  {
+    "ns": "promotion",
+    "p": "shareDialogTitle",
+    "en": "Invite friends",
+    "zh": "邀请好友"
+  },
+  {
+    "ns": "promotion",
+    "p": "shareMessage",
+    "en": "Join me on Mystery Box! My invite code: {{code}}\n{{link}}{{extra}}",
+    "zh": "我在盲盒 App 等你一起开赏！我的邀请码：{{code}}\n{{link}}{{extra}}"
+  },
+  {
+    "ns": "promotion",
+    "p": "sharePoster",
+    "en": "Share poster",
+    "zh": "分享海报"
+  },
+  {
+    "ns": "promotion",
+    "p": "reached",
+    "en": "Reached",
+    "zh": "已达成"
+  },
+  {
+    "ns": "promotion",
+    "p": "progress",
+    "en": "{{current}}/{{target}}",
+    "zh": "{{current}}/{{target}}"
+  },
+  {
+    "ns": "promotion",
+    "p": "colSource",
+    "en": "Source",
+    "zh": "来源"
+  },
+  {
+    "ns": "promotion",
+    "p": "colCommission",
+    "en": "Commission",
+    "zh": "佣金"
+  },
+  {
+    "ns": "promotion",
+    "p": "colTime",
+    "en": "Time",
+    "zh": "时间"
+  },
+  {
+    "ns": "promotion",
+    "p": "emptyTitle",
+    "en": "No referral records",
+    "zh": "暂无推广记录"
+  },
+  {
+    "ns": "promotion",
+    "p": "emptyDesc",
+    "en": "Invite friends to earn commission here",
+    "zh": "邀请好友后可在此查看佣金"
+  },
+  {
+    "ns": "promotion",
+    "p": "posterBoxName",
+    "en": "Invite friends",
+    "zh": "邀请好友一起玩"
+  },
+  {
+    "ns": "promotion",
+    "p": "feedSnippet",
+    "en": "{{name}} unboxed {{product}}",
+    "zh": "{{name}} 开出 {{product}}"
+  },
+  {
+    "ns": "promotion",
+    "p": "extrasMilestone",
+    "en": "Milestones: {{message}}",
+    "zh": "里程碑：{{message}}"
+  },
+  {
+    "ns": "promotion",
+    "p": "extrasFeed",
+    "en": "Feed: {{message}}",
+    "zh": "战报：{{message}}"
+  },
+  {
+    "ns": "qualityFilter",
+    "p": "all",
+    "en": "All",
+    "zh": "全部"
+  },
+  {
+    "ns": "qualityFilter",
+    "p": "general",
+    "en": "General",
+    "zh": "普通"
+  },
+  {
+    "ns": "qualityFilter",
+    "p": "hidden",
+    "en": "Hidden",
+    "zh": "隐藏"
+  },
+  {
+    "ns": "qualityFilter",
+    "p": "advanced",
+    "en": "Advanced",
+    "zh": "高级"
+  },
+  {
+    "ns": "qualityFilter",
+    "p": "legendary",
+    "en": "Legendary",
+    "zh": "传说"
+  },
+  {
+    "ns": "qualityFilter",
+    "p": "filterA11y",
+    "en": "Filter {{label}}",
+    "zh": "筛选{{label}}"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "LEGENDARY",
+    "en": "Legendary",
+    "zh": "传说"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "LEGEND",
+    "en": "Legendary",
+    "zh": "传说"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "EPIC",
+    "en": "Epic",
+    "zh": "史诗"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "RARE",
+    "en": "Rare",
+    "zh": "稀有"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "ADVANCED",
+    "en": "Advanced",
+    "zh": "高级"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "HIDDEN",
+    "en": "Hidden",
+    "zh": "隐藏"
+  },
+  {
+    "ns": "qualityTier",
+    "p": "GENERAL",
+    "en": "Standard",
+    "zh": "普通"
+  },
+  {
+    "ns": "revealA11y",
+    "p": "gotPrize",
+    "en": "You got {{tier}}: {{name}}",
+    "zh": "获得{{tier}}：{{name}}"
+  },
+  {
+    "ns": "revealA11y",
+    "p": "gotPrizeNoName",
+    "en": "You got a {{tier}} prize",
+    "zh": "获得{{tier}}奖品"
+  },
+  {
+    "ns": "revealShare",
+    "p": "brand",
+    "en": "Unbox report",
+    "zh": "盲盒战报"
+  },
+  {
+    "ns": "revealShare",
+    "p": "burstStamp",
+    "en": "LEGEND DROP",
+    "zh": "传说爆闪"
+  },
+  {
+    "ns": "revealShare",
+    "p": "footer",
+    "en": "Mock env · share image for display only",
+    "zh": "模拟环境 · 分享图仅供展示"
+  },
+  {
+    "ns": "seriesStats",
+    "p": "title",
+    "en": "Series draw stats",
+    "zh": "系列出货统计"
+  },
+  {
+    "ns": "seriesStats",
+    "p": "empty",
+    "en": "No historical draw data",
+    "zh": "暂无历史开奖数据"
+  },
+  {
+    "ns": "seriesStats",
+    "p": "meta",
+    "en": "{{name}} · {{count}} draws total",
+    "zh": "{{name}} · 累计 {{count}} 次开奖"
+  },
+  {
+    "ns": "seriesStats",
+    "p": "metaNoName",
+    "en": "{{count}} draws total",
+    "zh": "累计 {{count}} 次开奖"
+  },
+  {
+    "ns": "seriesStats",
+    "p": "configured",
+    "en": "Disclosed rates (basis pts): Legendary {{legendary}} / Hidden {{hidden}} / Common {{general}}",
+    "zh": "公示概率（万分比）：传说 {{legendary}} / 隐藏 {{hidden}} / 普通 {{general}}"
+  },
+  {
+    "ns": "seriesStats",
+    "p": "tierRow",
+    "en": "{{count}} · actual {{percent}}%",
+    "zh": "{{count}} 次 · 实际 {{percent}}%"
+  },
+  {
+    "ns": "team",
+    "p": "title",
+    "en": "My team",
+    "zh": "我的团队"
+  },
+  {
+    "ns": "team",
+    "p": "inviteFriend",
+    "en": "Invite friends",
+    "zh": "邀请好友"
+  },
+  {
+    "ns": "team",
+    "p": "memberCount",
+    "en": "Team members: {{count}}",
+    "zh": "团队成员：{{count}} 人"
+  },
+  {
+    "ns": "team",
+    "p": "inviteCode",
+    "en": "Invite code: {{code}}",
+    "zh": "邀请码：{{code}}"
+  },
+  {
+    "ns": "team",
+    "p": "level1",
+    "en": "Level 1",
+    "zh": "一级成员"
+  },
+  {
+    "ns": "team",
+    "p": "level2",
+    "en": "Level 2",
+    "zh": "二级成员"
+  },
+  {
+    "ns": "team",
+    "p": "emptyTitle",
+    "en": "No team members",
+    "zh": "暂无团队成员"
+  },
+  {
+    "ns": "team",
+    "p": "emptyDesc",
+    "en": "Invite friends to see them here",
+    "zh": "邀请好友加入后可在此查看"
+  },
+  {
+    "ns": "trust",
+    "p": "viewDisclosure",
+    "en": "View full probability disclosure →",
+    "zh": "查看完整概率公示 →"
+  },
+  {
+    "ns": "upload",
+    "p": "permissionRequired",
+    "en": "Photo library permission required",
+    "zh": "需要相册权限才能选择图片"
+  },
+  {
+    "ns": "upload",
+    "p": "failed",
+    "en": "Image upload failed",
+    "zh": "图片上传失败"
+  },
+  {
+    "ns": "vip",
+    "p": "title",
+    "en": "VIP benefits",
+    "zh": "会员权益"
+  },
+  {
+    "ns": "vip",
+    "p": "vipActive",
+    "en": "VIP active",
+    "zh": "VIP 生效中"
+  },
+  {
+    "ns": "vip",
+    "p": "regularUser",
+    "en": "Standard user",
+    "zh": "普通用户"
+  },
+  {
+    "ns": "vip",
+    "p": "levelTitle",
+    "en": "Lv.{{level}} {{title}}",
+    "zh": "Lv.{{level}} {{title}}"
+  },
+  {
+    "ns": "vip",
+    "p": "upgradeHint",
+    "en": "{{count}} more lucky coins to level up",
+    "zh": "再积 {{count}} 幸运币升级"
+  },
+  {
+    "ns": "vip",
+    "p": "maxLevel",
+    "en": "Max level reached",
+    "zh": "已达最高等级"
+  },
+  {
+    "ns": "vip",
+    "p": "checkedTodaySuffix",
+    "en": " · Checked in today",
+    "zh": " · 今日已签到"
+  },
+  {
+    "ns": "vip",
+    "p": "checkInPendingSuffix",
+    "en": " · Not checked in — visit Welfare",
+    "zh": " · 今日未签到，去福利中心签到"
+  },
+  {
+    "ns": "vip",
+    "p": "vipUntil",
+    "en": "VIP until {{time}}",
+    "zh": "VIP 有效期至 {{time}}"
+  },
+  {
+    "ns": "vip",
+    "p": "noVip",
+    "en": "No active VIP — standard pricing at checkout",
+    "zh": "暂无有效 VIP 记录，结算时将按普通用户计价"
+  },
+  {
+    "ns": "vip",
+    "p": "benefitsTitle",
+    "en": "Benefits",
+    "zh": "权益说明"
+  },
+  {
+    "ns": "vip",
+    "p": "benefit1",
+    "en": "VIP checkout discounts (see settlement)",
+    "zh": "下单享 VIP 专属抵扣（以结算页为准）"
+  },
+  {
+    "ns": "vip",
+    "p": "benefit2",
+    "en": "Early access to limited pools and drops",
+    "zh": "高等级用户优先参与限时池与新品发售"
+  },
+  {
+    "ns": "vip",
+    "p": "benefit3",
+    "en": "Priority support and shipping SLA",
+    "zh": "专属客服通道与发货时效说明"
+  },
+  {
+    "ns": "vip",
+    "p": "benefit4",
+    "en": "Level packs stack with check-in rewards",
+    "zh": "等级礼包与签到奖励可叠加领取"
+  },
+  {
+    "ns": "vip",
+    "p": "legal",
+    "en": "Levels and rewards are configured by ops — see activity and checkout pages. Spend responsibly on random draws.",
+    "zh": "会员等级、成长值与礼包内容由运营在后台配置，请以活动页与订单结算页展示为准。概率类商品请理性消费。"
+  },
+  {
+    "ns": "vnpay",
+    "p": "title",
+    "en": "VNPay checkout",
+    "zh": "VNPay 收银"
+  },
+  {
+    "ns": "vnpay",
+    "p": "orderId",
+    "en": "Order {{id}}",
+    "zh": "订单 {{id}}"
+  },
+  {
+    "ns": "vnpay",
+    "p": "statusReady",
+    "en": "Payment link ready",
+    "zh": "支付链接已就绪"
+  },
+  {
+    "ns": "vnpay",
+    "p": "statusMissing",
+    "en": "Could not load payment link",
+    "zh": "无法加载支付链接"
+  },
+  {
+    "ns": "vnpay",
+    "p": "tip",
+    "en": "Tap Open VNPay to complete payment in your browser, then return to the app.",
+    "zh": "点击打开 VNPay 在浏览器完成支付，完成后返回 App。"
+  },
+  {
+    "ns": "vnpay",
+    "p": "noPrepay",
+    "en": "Prepay failed — retry or contact support.",
+    "zh": "预支付失败，请重试或联系客服。"
+  },
+  {
+    "ns": "vnpay",
+    "p": "sandbox",
+    "en": "Sandbox mode",
+    "zh": "沙箱模式"
+  },
+  {
+    "ns": "vnpay",
+    "p": "open",
+    "en": "Open VNPay",
+    "zh": "打开 VNPay"
+  },
+  {
+    "ns": "vnpay",
+    "p": "openFailed",
+    "en": "Could not open VNPay",
+    "zh": "无法打开 VNPay"
+  },
+  {
+    "ns": "vnpay",
+    "p": "refreshStatus",
+    "en": "I have paid — refresh status",
+    "zh": "我已支付，刷新状态"
+  },
+  {
+    "ns": "vnpay",
+    "p": "copyOrder",
+    "en": "Copy order number",
+    "zh": "复制订单号"
+  },
+  {
+    "ns": "vnpay",
+    "p": "orderCopied",
+    "en": "Order number copied",
+    "zh": "订单号已复制"
+  },
+  {
+    "ns": "vnpay",
+    "p": "contactSupport",
+    "en": "Contact support",
+    "zh": "联系客服"
+  },
+  {
+    "ns": "vnpay",
+    "p": "retryPrepay",
+    "en": "Retry prepay",
+    "zh": "重试预支付"
+  },
+  {
+    "ns": "vnpay",
+    "p": "mockPay",
+    "en": "Use mock payment (dev)",
+    "zh": "使用模拟支付（开发）"
+  },
+  {
+    "ns": "vnpay",
+    "p": "close",
+    "en": "Close",
+    "zh": "关闭"
+  },
+  {
+    "ns": "welfare",
+    "p": "checkInToday",
+    "en": "Check in",
+    "zh": "立即签到"
+  },
+  {
+    "ns": "welfare",
+    "p": "checkInDone",
+    "en": "Checked in today",
+    "zh": "今日已签到"
+  },
+  {
+    "ns": "welfare",
+    "p": "openCoupons",
+    "en": "View my coupons",
+    "zh": "查看我的优惠券"
+  },
+  {
+    "ns": "welfare",
+    "p": "heroTitle",
+    "en": "Daily rewards",
+    "zh": "每日福利"
+  },
+  {
+    "ns": "welfare",
+    "p": "dailyCheckIn",
+    "en": "Daily check-in",
+    "zh": "每日签到"
+  },
+  {
+    "ns": "welfare",
+    "p": "streakMeta",
+    "en": "{{days}}-day streak · +{{coins}} lucky coins",
+    "zh": "连续 {{days}} 天 · 签到可得 {{coins}} 幸运币"
+  },
+  {
+    "ns": "welfare",
+    "p": "checkInSuccess",
+    "en": "Checked in · +{{coins}} lucky coins",
+    "zh": "签到成功，+{{coins}} 幸运币"
+  },
+  {
+    "ns": "welfare",
+    "p": "pageTitle",
+    "en": "Welfare hub",
+    "zh": "福利中心"
+  },
+  {
+    "ns": "winRecord",
+    "p": "title",
+    "en": "Live feed",
+    "zh": "实时战报"
+  },
+  {
+    "ns": "winRecord",
+    "p": "closeA11y",
+    "en": "Close feed",
+    "zh": "关闭战报"
+  },
+  {
+    "ns": "winRecord",
+    "p": "banner",
+    "en": "Real draw records (nicknames masked)",
+    "zh": "以下为真实开奖记录（昵称已脱敏）"
+  },
+  {
+    "ns": "winRecord",
+    "p": "fallbackName",
+    "en": "Pool item",
+    "zh": "奖池商品"
+  },
+  {
+    "ns": "winRecord",
+    "p": "line",
+    "en": "{{displayName}} got {{productName}}{{lastOne}}",
+    "zh": "{{displayName}} 获得 {{productName}}{{lastOne}}"
+  },
+  {
+    "ns": "winRecord",
+    "p": "lastOne",
+    "en": " · Last one",
+    "zh": " · 终赏"
+  },
+  {
+    "ns": "winRecord",
+    "p": "empty",
+    "en": "No records yet — draws appear here",
+    "zh": "暂无战报，开盒后将会展示"
+  },
+  {
+    "ns": "winRecord",
+    "p": "emptyFilter",
+    "en": "No records for this tier — try another filter",
+    "zh": "该品质暂无战报，试试切换筛选"
+  },
+  {
+    "ns": "winRecord",
+    "p": "loadMore",
+    "en": "Loading more…",
+    "zh": "加载更多战报…"
+  }
+]

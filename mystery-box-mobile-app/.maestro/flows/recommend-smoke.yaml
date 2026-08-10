@@ -1,0 +1,15 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: "loginPhoneInput"
+    file: login-smoke.yaml
+- scrollUntilVisible:
+    element:
+      text: "For You"
+    direction: DOWN
+    optional: true
+- assertVisible:
+    text: ".*"

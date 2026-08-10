@@ -1,0 +1,8 @@
+{
+  "ageGate": {
+    "title": "Age confirmation",
+    "body": "Blind box items are random. Confirm you are 18+ and accept the platform terms before ordering.",
+    "confirm": "I am 18 or older",
+    "decline": "Not now"
+  }
+}

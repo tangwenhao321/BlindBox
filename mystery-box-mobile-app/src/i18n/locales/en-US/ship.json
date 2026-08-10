@@ -1,0 +1,24 @@
+{
+  "ship": {
+    "title": "Ship request",
+    "statusPending": "Pending warehouse",
+    "statusShipped": "Shipped",
+    "statusCancelled": "Cancelled",
+    "statusRejected": "Rejected",
+    "cardTitle": "{{count}} items · shipping {{amount}}",
+    "rejectReason": "Reason: {{reason}}",
+    "trackingNumber": "Tracking {{number}}",
+    "collapseTracking": "Hide tracking ▴",
+    "expandTracking": "View tracking ▾",
+    "noTrackingNodes": "No tracking events yet — try again later",
+    "cancelTitle": "Cancel request",
+    "cancelMessage": "Shipping fee will be refunded to balance. Continue?",
+    "cancelConfirm": "Cancel request",
+    "cancelKeep": "Keep",
+    "cancelSuccess": "Cancelled — fee refunded",
+    "cancelBtn": "Cancel request",
+    "emptyTitle": "No ship requests",
+    "emptyDesc": "Select prizes in warehouse to request shipping",
+    "goWarehouse": "Warehouse"
+  }
+}

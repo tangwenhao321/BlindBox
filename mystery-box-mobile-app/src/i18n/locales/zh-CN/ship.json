@@ -1,0 +1,24 @@
+{
+  "ship": {
+    "title": "发货申请",
+    "statusPending": "待仓库处理",
+    "statusShipped": "已发货",
+    "statusCancelled": "已取消",
+    "statusRejected": "已驳回",
+    "cardTitle": "{{count}} 件 · 运费 {{amount}}",
+    "rejectReason": "驳回原因：{{reason}}",
+    "trackingNumber": "物流单号 {{number}}",
+    "collapseTracking": "收起物流 ▴",
+    "expandTracking": "查看物流 ▾",
+    "noTrackingNodes": "暂无轨迹节点，请稍后再试",
+    "cancelTitle": "取消申请",
+    "cancelMessage": "取消后运费将退回余额，是否继续？",
+    "cancelConfirm": "取消申请",
+    "cancelKeep": "保留",
+    "cancelSuccess": "已取消，运费已退回",
+    "cancelBtn": "取消申请",
+    "emptyTitle": "暂无发货申请",
+    "emptyDesc": "在仓库批量选择赏品后可提交发货",
+    "goWarehouse": "去仓库"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "spectator": {
+    "title": "Xem mở hộp",
+    "expired": "Liên kết xem đã hết hạn",
+    "phaseUnknown": "Đang chờ",
+    "phaseGap": "Lượt rút tiếp theo…",
+    "phasePlaying": "Đang mở hộp trực tiếp",
+    "progress": "{{current}} / {{total}}",
+    "waitingHost": "Đang chờ chủ phòng…",
+    "roomSynced": "Đã đồng bộ phòng trực tiếp",
+    "roomPolling": "Đang đồng bộ qua polling",
+    "readOnlyHint": "Chế độ chỉ xem — chỉ hiển thị kết quả",
+    "loadError": "Không thể tải liên kết xem trực tiếp",
+    "retry": "Thử lại"
+  }
+}

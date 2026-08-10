@@ -1,0 +1,17 @@
+{
+  "fairness": {
+    "title": "Draw fairness verification",
+    "copyResult": "Copy verification",
+    "shareResult": "Share verification",
+    "copied": "Verification copied",
+    "emptyTitle": "No verification records",
+    "emptyDesc": "Order may not be revealed yet or records are pending",
+    "missingOrderTitle": "Cannot load verification",
+    "missingOrderDesc": "Order context was lost. Open fairness verify again from the reveal result.",
+    "hint": "Each draw gets a server seed and hash you can verify independently.",
+    "quality": "Tier {{type}}",
+    "verifiedOk": "Verified",
+    "verifiedBad": "Verification failed",
+    "verifyHeader": "Order {{orderId}} fairness verification"
+  }
+}

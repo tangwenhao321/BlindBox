@@ -1,0 +1,189 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [
+    {
+      "title": "METRICS_ALERTS.md",
+      "type": "link",
+      "url": "https://github.com/YOUR_ORG/mystery-box/blob/main/docs/METRICS_ALERTS.md"
+    }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "id": 1,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum(rate(mystery_box_orders_created_total[5m]))",
+          "legendFormat": "orders.created"
+        },
+        {
+          "expr": "sum(rate(mystery_box_payment_success_total[5m]))",
+          "legendFormat": "payment.success"
+        },
+        {
+          "expr": "sum(rate(mystery_box_payment_failure_total[5m]))",
+          "legendFormat": "payment.failure"
+        },
+        {
+          "expr": "sum(rate(mystery_box_payment_notify_rejected_total[5m]))",
+          "legendFormat": "payment.notify.rejected"
+        }
+      ],
+      "title": "Payment lifecycle (rate)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "max": 1,
+          "min": 0,
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red", "value": 0.15 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "id": 2,
+      "targets": [
+        {
+          "expr": "sum(rate(mystery_box_payment_failure_total[5m])) / clamp_min(sum(rate(mystery_box_orders_created_total[5m])), 0.001)",
+          "legendFormat": "failure / created"
+        }
+      ],
+      "title": "Payment failure ratio",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "id": 3,
+      "targets": [
+        {
+          "expr": "sum(rate(mystery_box_warehouse_list_sql_fallback_total[5m]))",
+          "legendFormat": "warehouse.list_sql_fallback"
+        },
+        {
+          "expr": "sum(rate(mystery_box_warehouse_count_sql_fallback_total[5m]))",
+          "legendFormat": "warehouse.count_sql_fallback"
+        }
+      ],
+      "title": "Warehouse SQL fallback (rate)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "id": 4,
+      "targets": [
+        {
+          "expr": "sum(increase(mystery_box_warehouse_list_sql_fallback_total[1h]))",
+          "legendFormat": "list fallback 1h"
+        },
+        {
+          "expr": "sum(increase(mystery_box_warehouse_count_sql_fallback_total[1h]))",
+          "legendFormat": "count fallback 1h"
+        }
+      ],
+      "title": "Warehouse fallback (1h increase)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": { "defaults": { "unit": "ops" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "id": 5,
+      "targets": [
+        {
+          "expr": "sum(rate(mystery_box_push_expo_sent_total[5m]))",
+          "legendFormat": "push.expo.sent"
+        },
+        {
+          "expr": "sum(rate(mystery_box_push_expo_failed_total[5m]))",
+          "legendFormat": "push.expo.failed"
+        }
+      ],
+      "title": "Expo push (rate)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "fieldConfig": {
+        "defaults": {
+          "max": 1,
+          "min": 0,
+          "unit": "percentunit",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.05 },
+              { "color": "red", "value": 0.1 }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "id": 6,
+      "targets": [
+        {
+          "expr": "sum(rate(mystery_box_push_expo_failed_total[5m])) / clamp_min(sum(rate(mystery_box_push_expo_sent_total[5m])) + sum(rate(mystery_box_push_expo_failed_total[5m])), 0.001)",
+          "legendFormat": "push fail ratio"
+        }
+      ],
+      "title": "Push failure ratio",
+      "type": "gauge"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["mystery-box", "ops", "payment", "warehouse", "push"],
+  "templating": {
+    "list": [
+      {
+        "current": {},
+        "hide": 0,
+        "label": "Prometheus",
+        "name": "DS_PROMETHEUS",
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": { "from": "now-6h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Mystery Box — Ops",
+  "uid": "mystery-box-ops",
+  "version": 1
+}

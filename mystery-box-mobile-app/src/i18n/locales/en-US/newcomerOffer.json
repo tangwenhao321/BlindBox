@@ -1,0 +1,25 @@
+{
+  "newcomerOffer": {
+    "tag": "One chance only",
+    "titleNewcomer": "New user",
+    "titleBox": "{{price}} box",
+    "subtitlePrefix": "{{boxName}} · ",
+    "subtitleBody": "Win up to {{maxPrice}} premium prize",
+    "badge": "New user pick",
+    "pill": "First draw {{price}}",
+    "guaranteeDefault": "Epic or better guaranteed",
+    "emptyOffer": "No newcomer offer available",
+    "ctaA11y": "New user exclusive buy now",
+    "ctaLoading": "Preparing…",
+    "ctaBuy": "Buy now",
+    "ctaUnavailable": "Unavailable",
+    "closeA11y": "Close",
+    "missionsTitle": "7-day missions ({{done}}/{{total}})",
+    "missionsDay": "Day {{day}}",
+    "missionsClaim": "Claim",
+    "missionsClaimed": "Reward claimed",
+    "missionsClaimedBadge": "Claimed",
+    "missionsLocked": "Locked",
+    "missionsInProgress": "In progress"
+  }
+}

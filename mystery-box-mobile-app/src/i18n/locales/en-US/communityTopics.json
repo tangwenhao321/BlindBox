@@ -1,0 +1,12 @@
+{
+  "communityTopics": {
+    "shareDraft": "#{{tag}} I pulled {{tier}}{{productName}} from 「{{boxName}}」!\norderId={{orderId}}\nproductId={{productId}}",
+    "tags": {
+      "晒单": "Show off",
+      "传说": "Legendary",
+      "隐藏": "Hidden",
+      "整盒": "Full box",
+      "回血": "Cash out"
+    }
+  }
+}

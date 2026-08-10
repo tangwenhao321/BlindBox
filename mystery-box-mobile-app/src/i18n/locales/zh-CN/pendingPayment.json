@@ -1,0 +1,13 @@
+{
+  "pendingPayment": {
+    "single": "您有一笔待支付订单",
+    "multiple": "您有 {{count}} 笔待支付订单",
+    "orderFallback": "盲盒订单",
+    "remaining": "剩余",
+    "payNow": "去支付",
+    "viewAll": "查看全部待支付 ›",
+    "a11ySingle": "您有一笔待支付订单，去支付",
+    "a11yMultiple": "您有 {{count}} 笔待支付订单，去支付",
+    "a11yViewAll": "查看全部待支付订单"
+  }
+}

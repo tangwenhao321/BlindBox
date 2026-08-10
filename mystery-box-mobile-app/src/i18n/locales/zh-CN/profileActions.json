@@ -1,0 +1,7 @@
+{
+  "profileActions": {
+    "nicknameUpdated": "昵称已更新",
+    "avatarUpdated": "头像已更新",
+    "addressLoadFailed": "地址加载失败：{{message}}"
+  }
+}

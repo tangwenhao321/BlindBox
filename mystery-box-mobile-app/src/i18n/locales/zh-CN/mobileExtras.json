@@ -1,0 +1,47 @@
+{
+  "featureDisabled": "该功能暂未开放",
+  "momo": {
+    "title": "MoMo 收银",
+    "orderId": "订单号 {{id}}",
+    "stubHint": "MoMo 支付尚未完全对接，此入口用于确认所选支付方式。",
+    "continueHint": "点击继续将打开 MoMo 完成支付，返回 App 后请确认支付状态。",
+    "continue": "打开 MoMo 支付",
+    "methodLabel": "MoMo",
+    "noPrepay": "未获取到 MoMo 支付链接，请重试",
+    "openFailed": "无法打开 MoMo，请检查是否已安装应用",
+    "checkStatus": "我已支付，刷新状态",
+    "retry": "重新获取支付链接"
+  },
+  "checkout": {
+    "legalPrivacy": "隐私政策",
+    "legalTerms": "用户协议",
+    "legalMinor": "未成年人声明",
+    "paymentMethod": "支付方式"
+  },
+  "leaderboard": {
+    "myRank": "我的排名",
+    "notRanked": "暂未上榜"
+  },
+  "messages": {
+    "filterRestock": "补货",
+    "filterPity": "保底"
+  },
+  "promotion": {
+    "milestonesTitle": "邀请里程碑"
+  },
+  "legal": {
+    "termsTitle": "用户协议",
+    "termsP1": "使用本 App 即表示您同意平台关于随机抽取、发货与退款的规则。",
+    "termsP2": "仅限年满 18 周岁用户购买；如有账号或订单争议请联系客服。",
+    "minorTitle": "未成年人声明",
+    "minorP1": "盲盒类商品具有随机性，不适合未成年人参与。",
+    "minorP2": "家长或监护人不得允许未满 18 周岁用户在本平台下单。"
+  },
+  "currency": {
+    "ledgerTitle": "最近记录",
+    "ledgerEmpty": "暂无幸运币流水"
+  },
+  "community": {
+    "shareZalo": "分享到 Zalo"
+  }
+}

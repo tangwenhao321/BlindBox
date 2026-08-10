@@ -1,0 +1,41 @@
+{
+  "vnpay": {
+    "title": "Thanh toán VNPay",
+    "orderId": "Đơn {{id}}",
+    "statusReady": "Liên kết thanh toán sẵn sàng",
+    "statusMissing": "Không tải được liên kết thanh toán",
+    "tip": "Chạm Mở VNPay để thanh toán trên trình duyệt, rồi quay lại app.",
+    "noPrepay": "Prepay thất bại — thử lại hoặc liên hệ hỗ trợ.",
+    "sandbox": "Chế độ sandbox",
+    "open": "Mở VNPay",
+    "openFailed": "Không mở được VNPay",
+    "refreshStatus": "Tôi đã thanh toán — làm mới trạng thái",
+    "copyOrder": "Sao chép mã đơn",
+    "orderCopied": "Đã sao chép mã đơn",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "retryPrepay": "Thử lại prepay",
+    "mockPay": "Dùng thanh toán mô phỏng (dev)",
+    "close": "Đóng"
+  },
+  "payment": {
+    "methodVnpay": "VNPay",
+    "methodHintVnpay": "Mở thưởng sau khi VNPay xác nhận thanh toán. Bạn sẽ tự quay lại app.",
+    "vnpayPay": "VNPay",
+    "vnpayIcon": "V",
+    "pendingCountdownPrefix": "Thanh toán trong",
+    "pendingCountdownExpired": "Hết hạn thanh toán — vui lòng đặt đơn mới"
+  },
+  "paymentError": {
+    "title": "Thiết lập thanh toán thất bại",
+    "orderId": "Đơn {{id}}",
+    "orderCopied": "Đã sao chép mã đơn",
+    "retry": "Thử thanh toán lại",
+    "copyOrder": "Sao chép mã đơn",
+    "close": "Đóng",
+    "channelWechat": "Không tải được prepay WeChat Pay.",
+    "channelVnpay": "Không tải được prepay VNPay."
+  },
+  "actions": {
+    "offlineVnpayPay": "Đang ngoại tuyến — kết nối lại trước khi thanh toán VNPay"
+  }
+}

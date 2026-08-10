@@ -1,0 +1,8 @@
+{
+  "wallet": {
+    "balanceRefreshed": "Balance refreshed: {{amount}}",
+    "updatedAt": "Updated {{time}}",
+    "notSynced": "Not synced",
+    "balanceText": "Balance {{amount}}"
+  }
+}

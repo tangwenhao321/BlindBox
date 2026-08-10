@@ -1,0 +1,14 @@
+{
+  "addressManage": {
+    "title": "地址管理",
+    "emptyTitle": "暂无地址",
+    "emptyDesc": "添加地址后即可下单开盒",
+    "addAddress": "新增地址",
+    "defaultTag": "（默认）",
+    "currentOrder": "当前下单使用",
+    "edit": "编辑",
+    "setDefault": "设为默认",
+    "delete": "删除",
+    "addNewButton": "+ 新增地址"
+  }
+}

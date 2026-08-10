@@ -1,0 +1,11 @@
+{
+  "ipTheme": {
+    "title": "IP gallery",
+    "hint": "Browse hot IP boxes by category — limited pools and new drops appear here",
+    "emptyTitle": "No themes yet",
+    "emptyDesc": "Boxes with categories will appear here when listed",
+    "goHome": "Browse home",
+    "hotIp": "Hot IP",
+    "sectionCount": "{{count}} sets"
+  }
+}

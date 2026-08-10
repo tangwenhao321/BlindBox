@@ -1,0 +1,28 @@
+{
+  "orders": {
+    "title": "我的订单",
+    "tabAll": "全部",
+    "tabUnpaid": "待支付",
+    "tabToShip": "发货申请",
+    "tabToReceive": "待收货",
+    "tabFinished": "已完成",
+    "searchPlaceholder": "搜索订单号或赏品名",
+    "prizeLine": "抽中赏品",
+    "loadFailed": "订单加载失败：{{message}}",
+    "redeemItemSuccess": "已兑换 {{amount}} 到余额",
+    "decomposeSuccess": "已分解为碎片",
+    "emptyTitle": "暂无订单",
+    "emptyDesc": "去首页挑选心仪的盲盒吧",
+    "goShopping": "去逛逛",
+    "loadingMore": "加载更多...",
+    "pullLoadMore": "上拉加载更多",
+    "cardA11y": "订单 {{name}}，{{status}}",
+    "qty": "数量 {{count}}",
+    "tracking": "物流 {{number}}",
+    "payCountdownPrefix": "支付剩余",
+    "paySoon": "请尽快完成支付",
+    "payNow": "去支付",
+    "details": "详情",
+    "cancel": "取消"
+  }
+}

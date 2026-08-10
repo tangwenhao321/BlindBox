@@ -1,0 +1,17 @@
+[Unit]
+Description=Mystery Box Test Backend
+After=network.target docker.service
+
+[Service]
+Type=simple
+User=mysterybox
+WorkingDirectory=/opt/mystery-box-test
+EnvironmentFile=/opt/mystery-box-test/.env
+ExecStart=/usr/bin/java -Xms512m -Xmx1024m -jar /opt/mystery-box-test/releases/mystery-box-backend.jar --server.port=9913
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/opt/mystery-box-test/logs/backend.log
+StandardError=append:/opt/mystery-box-test/logs/backend.err.log
+
+[Install]
+WantedBy=multi-user.target

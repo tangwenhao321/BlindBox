@@ -1,0 +1,11 @@
+{
+  "favorites": {
+    "title": "我的收藏",
+    "loadFailed": "收藏商品加载失败（{{id}}…）",
+    "emptyTitle": "暂无收藏",
+    "emptyDesc": "在盲盒详情页可添加收藏",
+    "goBrowse": "去逛逛",
+    "unfavoriteA11y": "取消收藏",
+    "remove": "取消"
+  }
+}

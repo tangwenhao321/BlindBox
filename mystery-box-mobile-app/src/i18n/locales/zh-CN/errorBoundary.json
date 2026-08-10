@@ -1,0 +1,11 @@
+{
+  "errorBoundary": {
+    "title": "页面出现问题",
+    "description": "请稍后重试，或返回首页重新进入",
+    "unknown": "未知错误",
+    "retryA11y": "重试加载页面",
+    "homeA11y": "返回首页并重试",
+    "home": "返回首页",
+    "retry": "重试"
+  }
+}

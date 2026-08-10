@@ -1,0 +1,63 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+jimmer:
+  show-sql: false
+  pretty-sql: false
+
+management:
+  endpoint:
+    health:
+      show-details: when_authorized
+
+app:
+  auth:
+    allow-mock-otp: false
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ORIGINS:https://admin.example.com,https://h5.example.com}
+  queue:
+    head-timeout-sec: ${QUEUE_HEAD_TIMEOUT_SEC:120}
+    ttl-hours: ${QUEUE_TTL_HOURS:2}
+    lock-ttl-sec: ${QUEUE_LOCK_TTL_SEC:120}
+  pool:
+    reconcile:
+      auto-fix: ${APP_POOL_RECONCILE_AUTO_FIX:false}
+  sse:
+    scheduler:
+      pool-size: ${APP_SSE_SCHEDULER_POOL_SIZE:8}
+  jobs:
+    draw-integrity:
+      enabled: ${APP_DRAW_INTEGRITY_JOB_ENABLED:true}
+      cron: "${APP_DRAW_INTEGRITY_CRON:0 30 4 * * ?}"
+      lookback-hours: ${APP_DRAW_INTEGRITY_LOOKBACK_HOURS:24}
+      batch-size: ${APP_DRAW_INTEGRITY_BATCH_SIZE:200}
+  reveal:
+    particle-scale: ${APP_REVEAL_PARTICLE_SCALE:1.0}
+    confetti-scale: ${APP_REVEAL_CONFETTI_SCALE:1.0}
+    delay-ms-override: ${APP_REVEAL_DELAY_MS_OVERRIDE:0}
+  support:
+    hotline: ${APP_SUPPORT_HOTLINE:400-000-0000}
+    enterprise-wechat-id: ${APP_ENTERPRISE_WECHAT_ID:}
+
+payment:
+  mock-enabled: false
+
+sms:
+  provider: ${SMS_PROVIDER:ali_yun}
+
+security:
+  default-admin:
+    enabled: false
+  rate-limit:
+    distributed: true
+    trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
+  analytics:
+    enabled: ${ANALYTICS_ENABLED:true}
+    retention-days: ${ANALYTICS_RETENTION_DAYS:90}
+    retention-enabled: true
+
+push:
+  expo:
+    enabled: ${PUSH_EXPO_ENABLED:true}

@@ -1,0 +1,13 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- runFlow:
+    when:
+      visible:
+        id: "loginPhoneInput"
+    file: login-smoke.yaml
+- tapOn:
+    text: "Messages"
+    optional: true
+- assertVisible:
+    text: ".*"

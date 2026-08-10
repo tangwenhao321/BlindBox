@@ -1,0 +1,11 @@
+{
+  "onboarding": {
+    "title": "Quick tour",
+    "step1": "① Choose draw count or buyout",
+    "step2": "② Confirm address and pay",
+    "step3": "③ View or redeem prizes in warehouse",
+    "skip": "Skip",
+    "next": "Next",
+    "done": "Done"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "contact": {
+    "noPhone": "Chưa cấu hình hotline — thử lại sau",
+    "callHint": "Gọi: {{phone}}",
+    "noWecom": "WeCom không khả dụng — liên hệ qua Zalo hoặc hotline",
+    "wecomShare": "Thêm WeCom: {{id}}",
+    "wecomId": "WeChat ID: {{id}}",
+    "noZalo": "Chưa cấu hình Zalo OA — thử lại sau",
+    "zaloHint": "Mở Zalo và tìm OA: {{id}}"
+  }
+}

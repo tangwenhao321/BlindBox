@@ -1,0 +1,11 @@
+{
+  "contact": {
+    "noPhone": "Support phone not configured — try again later",
+    "callHint": "Call: {{phone}}",
+    "noWecom": "WeCom not configured — contact platform support",
+    "wecomShare": "Add WeCom: {{id}}",
+    "wecomId": "WeChat ID: {{id}}",
+    "noZalo": "Zalo OA not configured — try again later",
+    "zaloHint": "Open Zalo and find OA: {{id}}"
+  }
+}

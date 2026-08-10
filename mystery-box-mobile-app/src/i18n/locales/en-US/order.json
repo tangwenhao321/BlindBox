@@ -1,0 +1,14 @@
+{
+  "order": {
+    "status": {
+      "unknown": "Unknown",
+      "TO_BE_PAID": "Unpaid",
+      "TO_BE_DELIVERED": "To ship",
+      "TO_BE_RECEIVED": "To receive",
+      "FINISHED": "Completed",
+      "COMPLETED": "Completed",
+      "CLOSED": "Closed",
+      "REFUNDED": "Refunded"
+    }
+  }
+}

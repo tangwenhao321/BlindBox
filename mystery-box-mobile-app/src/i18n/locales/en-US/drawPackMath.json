@@ -1,0 +1,6 @@
+{
+  "drawPackMath": {
+    "teaser": "{{count}}-pack saves {{saved}} · from {{perDraw}}/draw",
+    "progressHint": "{{need}} more for {{count}}-pack — save ~{{saved}}"
+  }
+}

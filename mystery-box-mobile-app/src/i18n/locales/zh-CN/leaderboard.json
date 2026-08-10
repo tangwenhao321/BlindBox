@@ -1,0 +1,13 @@
+{
+  "leaderboard": {
+    "title": "欧皇榜",
+    "tabWeek": "本周",
+    "tabMonth": "本月",
+    "emptyTitle": "暂无高档记录",
+    "emptyDesc": "开出传说/隐藏款即可上榜",
+    "highCount": "{{count}} 次高档",
+    "myRank": "我的排名",
+    "notRanked": "暂未上榜",
+    "rankNo": "第{{rank}}名"
+  }
+}

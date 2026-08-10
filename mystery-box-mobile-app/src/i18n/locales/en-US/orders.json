@@ -1,0 +1,27 @@
+{
+  "orders": {
+    "title": "My orders",
+    "tabAll": "All",
+    "tabUnpaid": "Unpaid",
+    "tabToShip": "To ship",
+    "tabToReceive": "To receive",
+    "tabFinished": "Completed",
+    "searchPlaceholder": "Search order ID or box name",
+    "loadFailed": "Failed to load orders: {{message}}",
+    "redeemItemSuccess": "Redeemed {{amount}} to balance",
+    "decomposeSuccess": "Decomposed into fragments",
+    "emptyTitle": "No orders yet",
+    "emptyDesc": "Browse boxes on the home tab",
+    "goShopping": "Browse",
+    "loadingMore": "Loading more…",
+    "pullLoadMore": "Pull up to load more",
+    "cardA11y": "Order {{name}}, {{status}}",
+    "qty": "Qty {{count}}",
+    "tracking": "Tracking {{number}}",
+    "payCountdownPrefix": "Pay within",
+    "paySoon": "Complete payment soon",
+    "payNow": "Pay now",
+    "details": "Details",
+    "cancel": "Cancel"
+  }
+}

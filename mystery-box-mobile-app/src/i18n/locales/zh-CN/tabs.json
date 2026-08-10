@@ -1,0 +1,10 @@
+{
+  "tabs": {
+    "home": "首页",
+    "mall": "商城",
+    "warehouse": "仓库",
+    "profile": "我的",
+    "badgeUnread": "{{label}}，{{count}}条未读",
+    "badgeApproximate": "{{label}}，约{{count}}条待处理"
+  }
+}

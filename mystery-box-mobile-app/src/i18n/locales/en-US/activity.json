@@ -1,0 +1,11 @@
+{
+  "activity": {
+    "ended": "Ended",
+    "countdown": "Ends in {{time}}",
+    "poolTitle": "Event pool",
+    "boxFallback": "Box {{id}}…",
+    "openBox": "Open ›",
+    "emptyBoxes": "No linked boxes",
+    "countdownParts": "{{hours}}h {{minutes}}m {{seconds}}s"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "revealPrompt": {
+    "title": "Reveal animations",
+    "body": "Keep box-opening animations? You can turn them off anytime in Settings.",
+    "keep": "Keep animations",
+    "textOnly": "Text only"
+  }
+}

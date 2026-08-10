@@ -1,0 +1,24 @@
+appId: mystery-box-mobile-app
+---
+# Requires EXPO_PUBLIC_PAYMENT_MODE=vnpay (see eas.json production-vn / .env.vn.example).
+- runFlow: checkout-smoke.yaml
+- runFlow:
+    when:
+      visible:
+        id: "ageGateConfirmButton"
+    commands:
+      - tapOn:
+          id: "ageGateConfirmButton"
+- assertVisible: "VNPay"
+- tapOn:
+    id: "confirmPayButton"
+- extendedWaitUntil:
+    visible: "VNPay checkout"
+    timeout: 25000
+- assertVisible: "Open VNPay"
+# Deep-link payment return screen (sandbox cancel code 24).
+- openLink: "mysterybox://payment-return?orderId=maestro-vnpay-order&vnp_ResponseCode=24"
+- extendedWaitUntil:
+    visible: "Kết quả thanh toán|Payment result"
+    timeout: 15000
+- assertVisible: "Mã đơn|Order"

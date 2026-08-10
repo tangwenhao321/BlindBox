@@ -1,0 +1,12 @@
+{
+  "welfare": {
+    "checkInToday": "立即签到",
+    "checkInDone": "今日已签到",
+    "openCoupons": "查看我的优惠券",
+    "heroTitle": "每日福利",
+    "dailyCheckIn": "每日签到",
+    "streakMeta": "连续 {{days}} 天 · 签到可得 {{coins}} 幸运币",
+    "checkInSuccess": "签到成功，+{{coins}} 幸运币",
+    "pageTitle": "福利中心"
+  }
+}

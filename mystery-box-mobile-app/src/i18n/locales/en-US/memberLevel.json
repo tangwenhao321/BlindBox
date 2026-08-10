@@ -1,0 +1,16 @@
+{
+  "memberLevel": {
+    "titles": {
+      "0": "Rookie",
+      "1": "Bronze",
+      "2": "Silver",
+      "3": "Gold",
+      "4": "Platinum",
+      "5": "Diamond",
+      "6": "Master",
+      "7": "Grandmaster",
+      "8": "Legend",
+      "9": "Supreme"
+    }
+  }
+}

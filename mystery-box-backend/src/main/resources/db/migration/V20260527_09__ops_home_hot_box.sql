@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS ops_home_hot_box (
+    id VARCHAR(32) NOT NULL PRIMARY KEY,
+    mystery_box_id VARCHAR(32) NOT NULL,
+    sort_order INT NOT NULL DEFAULT 0,
+    enabled TINYINT(1) NOT NULL DEFAULT 1,
+    created_time DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+);

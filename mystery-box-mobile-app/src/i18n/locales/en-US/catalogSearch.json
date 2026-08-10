@@ -1,0 +1,26 @@
+{
+  "catalogSearch": {
+    "title": "Search",
+    "placeholder": "Product name or keyword",
+    "searchBtn": "Search",
+    "keywordRequired": "Enter a search keyword",
+    "emptyTitle": "No matches",
+    "emptyDesc": "Try another keyword or browse the mall",
+    "hintMall": "Results open in the mall tab",
+    "titleHome": "Search boxes",
+    "titleMall": "Search products",
+    "placeholderHome": "Box name, series, or keyword",
+    "placeholderMall": "Product name",
+    "goHome": "Back to home",
+    "hint": "Enter a keyword and search",
+    "historyTitle": "Recent",
+    "clearHistory": "Clear",
+    "hotTitle": "Trending",
+    "hot1": "New user offer",
+    "hot2": "Epic pity",
+    "hot3": "IP collab",
+    "hot4": "Limited deal",
+    "resultCount": "{{count}} results for \"{{keyword}}\"",
+    "openInMall": "Open in mall"
+  }
+}

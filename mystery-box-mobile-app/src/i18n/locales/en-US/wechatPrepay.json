@@ -1,0 +1,16 @@
+{
+  "wechatPrepay": {
+    "title": "WeChat prepay",
+    "orderId": "Order {{id}}",
+    "tip": "Prepay params received. Production needs WeChat SDK; staging preview only.",
+    "noPrepay": "No prepay params — check backend payment config",
+    "pay": "Pay",
+    "retryPrepay": "Retry prepay",
+    "mockPay": "Dev: complete with mock pay",
+    "close": "Close",
+    "statusReady": "Ready to pay",
+    "statusMissing": "Prepay params not available",
+    "statusHint": "Secure payment via WeChat Pay",
+    "devParamsTitle": "Prepay params (dev)"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "drawQueue": {
+    "yourTurn": "轮到您了！请尽快支付开盒",
+    "yourTurnToast": "排队轮到您了，请尽快开盒",
+    "waiting": "排队中：第 {{position}} / {{total}} 人",
+    "joining": "正在加入队列…",
+    "panelA11y": "排队状态",
+    "expiringSoon": "队列即将过期（约 {{seconds}}s），请尽快操作",
+    "validMinutes": "队列 {{minutes}} 分钟内有效",
+    "queueMeta": "当前 {{size}} 人排队 · 预计等待 {{wait}}",
+    "waitUnknown": "计算中",
+    "viewRoom": "查看排队房间",
+    "viewRoomA11y": "打开排队房间",
+    "roomTitle": "排队房间",
+    "roomCloseA11y": "关闭排队房间",
+    "feedTitle": "实时开赏",
+    "feedEmpty": "暂无战报",
+    "feedTicker": "{{name}} 开出 {{product}}{{lastOne}}",
+    "feedLastOne": "（终赏）"
+  }
+}

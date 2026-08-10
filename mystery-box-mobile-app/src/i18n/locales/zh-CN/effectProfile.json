@@ -1,0 +1,16 @@
+{
+  "effectProfile": {
+    "GENERAL": {
+      "title": "开奖完成",
+      "tierLabel": "普通款"
+    },
+    "HIDDEN": {
+      "title": "隐藏款现身！",
+      "tierLabel": "隐藏款"
+    },
+    "LEGENDARY": {
+      "title": "传说级爆闪！",
+      "tierLabel": "传说款"
+    }
+  }
+}

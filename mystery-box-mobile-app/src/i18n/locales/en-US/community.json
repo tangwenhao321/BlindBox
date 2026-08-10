@@ -1,0 +1,26 @@
+{
+  "community": {
+    "title": "Community",
+    "composePlaceholder": "Share your unboxing story…",
+    "submitPost": "Post",
+    "addPhoto": "Add photo",
+    "photoUploading": "Uploading…",
+    "photoAdded": "{{count}} photo(s) attached",
+    "commentPlaceholder": "Write a comment…",
+    "submitComment": "Send",
+    "postSuccess": "Posted",
+    "commentSuccess": "Comment posted",
+    "filterAll": "All",
+    "emptyTitle": "No posts yet",
+    "emptyTopicTitle": "No posts in this topic",
+    "emptyDesc": "Be the first to share",
+    "goHome": "Open boxes on home",
+    "like": "Like",
+    "unlike": "Unlike",
+    "comment": "Comment",
+    "topicLabel": "Topic {{tag}}",
+    "filterTopic": "Filter {{tag}}",
+    "maxPhotos": "You can add up to {{max}} photos",
+    "removePhoto": "Remove photo"
+  }
+}

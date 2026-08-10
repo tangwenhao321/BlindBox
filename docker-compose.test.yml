@@ -1,0 +1,60 @@
+# 盲盒商城 — 测试环境专用（与本地 dev / 四方系统 隔离）
+# 用法: docker compose -f docker-compose.test.yml up -d
+#
+# 隔离要点:
+#   - 独立容器名、数据卷、Docker 网络
+#   - MySQL 3307 / Redis 6381（不占用 dev 的 3306/6379）
+#   - 数据库名 mystery_box_test（与 mystery_box 分离）
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mystery-box-test-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${TEST_DB_PASSWORD:-MysteryBoxTest@2026}"
+      MYSQL_DATABASE: mystery_box_test
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_test_data:/var/lib/mysql
+    networks:
+      - mystery-box-test
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${TEST_DB_PASSWORD:-MysteryBoxTest@2026}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: mystery-box-test-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass "${TEST_REDIS_PASSWORD:-MysteryBoxRedisTest2026}"
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_test_data:/data
+    networks:
+      - mystery-box-test
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${TEST_REDIS_PASSWORD:-MysteryBoxRedisTest2026}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+networks:
+  mystery-box-test:
+    name: mystery-box-test-net
+    driver: bridge
+
+volumes:
+  mysql_test_data:
+    name: mystery-box-test-mysql-data
+  redis_test_data:
+    name: mystery-box-test-redis-data

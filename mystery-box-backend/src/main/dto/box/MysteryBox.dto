@@ -1,0 +1,23 @@
+export io.github.qifan777.server.box.root.entity.MysteryBox
+
+input MysteryBoxInput {
+    #allScalars(MysteryBox)
+    id
+    productIds: Array<String>
+    id(category)
+}
+//MystryBoxView {
+//    #allScalars
+//    products{
+//        #allScalars
+//    }
+//}
+specification MysteryBoxSpec {
+    #allScalars
+    eq(newcomerExclusive)
+    like/i(name)
+    like/i(details)
+    like/i(tips)
+    id(creator)
+    id(category)
+}

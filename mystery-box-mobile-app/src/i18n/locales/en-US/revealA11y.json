@@ -1,0 +1,6 @@
+{
+  "revealA11y": {
+    "gotPrize": "You got {{tier}}: {{name}}",
+    "gotPrizeNoName": "You got a {{tier}} prize"
+  }
+}

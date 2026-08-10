@@ -1,0 +1,24 @@
+appId: mystery-box-mobile-app
+---
+# Logged-in flow: open first box card -> confirm sheet (does not complete payment).
+- runFlow: login-smoke.yaml
+- tapOn:
+    id: "boxCard-.*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "openBoxButton"
+    timeout: 15000
+- tapOn:
+    id: "openBoxButton"
+- extendedWaitUntil:
+    visible:
+      id: "drawPackConfirmButton"
+    timeout: 8000
+- tapOn:
+    id: "drawPackConfirmButton"
+- extendedWaitUntil:
+    visible: "确认订单"
+    timeout: 10000
+- assertVisible:
+    id: "confirmPayButton"

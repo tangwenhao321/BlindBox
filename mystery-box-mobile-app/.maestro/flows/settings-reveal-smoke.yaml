@@ -1,0 +1,17 @@
+appId: mystery-box-mobile-app
+---
+# 设置页：开箱动画 / 纯文字揭晓开关（需已登录进入「我的」→ 设置）
+- runFlow:
+    when:
+      visible: "设置"
+    commands:
+      - tapOn: "设置"
+- extendedWaitUntil:
+    visible: "开箱动画"
+    timeout: 15000
+- assertVisible: "纯文字揭晓"
+- tapOn:
+    text: "纯文字揭晓"
+- tapOn:
+    point: "88%,48%"
+- assertVisible: "开箱动画"

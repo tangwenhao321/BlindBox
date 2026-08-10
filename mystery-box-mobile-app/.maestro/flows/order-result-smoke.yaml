@@ -1,0 +1,17 @@
+appId: mystery-box-mobile-app
+---
+# Asserts order result modal after mock pay (run after mock-pay-smoke or standalone via runFlow).
+- runFlow:
+    when:
+      visible:
+        id: "orderResultSkipRevealButton"
+    commands:
+      - tapOn:
+          id: "orderResultSkipRevealButton"
+- extendedWaitUntil:
+    visible:
+      id: "orderResultTitle"
+    timeout: 45000
+- assertVisible: "开盒成功"
+- tapOn:
+    id: "orderResultCloseButton"

@@ -1,0 +1,34 @@
+# Local dependencies for mystery-box (MySQL + Redis)
+# Usage: docker compose up -d
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mystery-box-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: Admin123#
+      MYSQL_DATABASE: mystery_box
+    ports:
+      - "3306:3306"
+    volumes:
+      - mystery_box_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pAdmin123#"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mystery-box-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mystery_box_mysql_data:

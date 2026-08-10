@@ -1,0 +1,7 @@
+{
+  "crashMonitoring": {
+    "ready": "已启用（Sentry）",
+    "dsnMissingSdk": "已配置 DSN，需安装 @sentry/react-native",
+    "notConfigured": "未配置（可选）"
+  }
+}

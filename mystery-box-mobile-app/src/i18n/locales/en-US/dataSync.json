@@ -1,0 +1,10 @@
+{
+  "dataSync": {
+    "addressError": "Addresses: {{message}}",
+    "orderError": "Orders: {{message}}",
+    "mallError": "Mall: {{message}}",
+    "balanceError": "Balance: {{message}}",
+    "balanceLogsError": "Balance logs: {{message}}",
+    "partialSyncFailed": "Some data did not sync: {{message}}"
+  }
+}

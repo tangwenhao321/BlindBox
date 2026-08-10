@@ -1,0 +1,7 @@
+{
+  "profileActions": {
+    "nicknameUpdated": "Nickname updated",
+    "avatarUpdated": "Avatar updated",
+    "addressLoadFailed": "Failed to load addresses: {{message}}"
+  }
+}

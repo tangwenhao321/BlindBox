@@ -1,0 +1,10 @@
+{
+  "mainTabs": {
+    "loadError": "加载异常：{{message}}",
+    "retry": "重试",
+    "retryA11y": "重试加载",
+    "dismiss": "关闭",
+    "dismissA11y": "关闭错误提示",
+    "mallBannerSub": "按后台分类浏览盲盒"
+  }
+}

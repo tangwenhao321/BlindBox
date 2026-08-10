@@ -1,0 +1,13 @@
+{
+  "winRecord": {
+    "title": "实时战报",
+    "closeA11y": "关闭战报",
+    "banner": "以下为真实开奖记录（昵称已脱敏）",
+    "fallbackName": "奖池商品",
+    "line": "{{displayName}} 获得 {{productName}}{{lastOne}}",
+    "lastOne": " · 终赏",
+    "empty": "暂无战报，开盒后将会展示",
+    "emptyFilter": "该品质暂无战报，试试切换筛选",
+    "loadMore": "加载更多战报…"
+  }
+}

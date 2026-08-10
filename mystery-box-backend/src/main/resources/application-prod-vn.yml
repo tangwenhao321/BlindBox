@@ -1,0 +1,38 @@
+app:
+  market:
+    payment-provider: vnpay
+    currency: VND
+    logistics-mode: local-only
+  default-locale: vi-VN
+  support:
+    zalo-oa-id: ${APP_SUPPORT_ZALO_OA_ID:}
+
+security:
+  compliance:
+    spend-limit:
+      daily: 2000000
+      monthly: 10000000
+
+payment:
+  mock-enabled: false
+
+vnpay:
+  tmn-code: ${VNPAY_TMN_CODE:}
+  hash-secret: ${VNPAY_HASH_SECRET:}
+  return-url: ${VNPAY_RETURN_URL:mysterybox://payment-return}
+  ipn-url: ${VNPAY_IPN_URL:}
+  sandbox: ${VNPAY_SANDBOX:false}
+  pay-url: ${VNPAY_PAY_URL:https://pay.vnpay.vn/paymentv2/vpcpay.html}
+  query-url: ${VNPAY_QUERY_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
+  refund-url: ${VNPAY_REFUND_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
+
+# MoMo wallet stub — enable when partner credentials are ready
+momo:
+  enabled: ${MOMO_ENABLED:false}
+  partner-code: ${MOMO_PARTNER_CODE:}
+  access-key: ${MOMO_ACCESS_KEY:}
+  secret-key: ${MOMO_SECRET_KEY:}
+  return-url: ${MOMO_RETURN_URL:mysterybox://payment-return}
+
+sms:
+  provider: ${SMS_PROVIDER:ali_yun}

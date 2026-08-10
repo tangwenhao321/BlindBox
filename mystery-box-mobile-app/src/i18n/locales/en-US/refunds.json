@@ -1,0 +1,16 @@
+{
+  "refunds": {
+    "title": "Refund history",
+    "emptyTitle": "No refund requests",
+    "emptyDesc": "You can request a refund from order details",
+    "goOrders": "View orders",
+    "statusSuccess": "Approved",
+    "statusFailed": "Declined",
+    "statusPending": "Under review",
+    "orderLabel": "Order {{id}}…",
+    "collapseTimeline": "Hide progress",
+    "expandTimeline": "View progress",
+    "viewOrder": "View order ›",
+    "defaultReason": "Customer refund request"
+  }
+}

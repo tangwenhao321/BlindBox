@@ -1,0 +1,20 @@
+{
+  "vnpay": {
+    "title": "VNPay 收银",
+    "orderId": "订单 {{id}}",
+    "statusReady": "支付链接已就绪",
+    "statusMissing": "无法加载支付链接",
+    "tip": "点击打开 VNPay 在浏览器完成支付，完成后返回 App。",
+    "noPrepay": "预支付失败，请重试或联系客服。",
+    "sandbox": "沙箱模式",
+    "open": "打开 VNPay",
+    "openFailed": "无法打开 VNPay",
+    "refreshStatus": "我已支付，刷新状态",
+    "copyOrder": "复制订单号",
+    "orderCopied": "订单号已复制",
+    "contactSupport": "联系客服",
+    "retryPrepay": "重试预支付",
+    "mockPay": "使用模拟支付（开发）",
+    "close": "关闭"
+  }
+}

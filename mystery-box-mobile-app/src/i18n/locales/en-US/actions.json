@@ -1,0 +1,27 @@
+{
+  "actions": {
+    "addressSaved": "Address saved",
+    "addressRequired": "Add and select a shipping address first",
+    "ageRequired": "Confirm you are 18+ before ordering",
+    "orderConfirmTitle": "Confirm order",
+    "orderConfirmMessage": "Box: {{boxName}}\nDraws: {{drawCount}}\nPay: {{payAmount}}{{couponLine}}\nCreate order?",
+    "orderConfirmCouponLine": "\nCoupon: -{{amount}}",
+    "orderConfirmBtn": "Place order",
+    "securityTitle": "Security check",
+    "securityContinueOrder": "{{message}}\nContinue creating order?",
+    "securityContinuePay": "{{message}}\nContinue payment?",
+    "continue": "Continue",
+    "orderCreated": "Order created: {{orderId}}",
+    "orderCancelled": "Unpaid order cancelled",
+    "offlineWechatPay": "You're offline — reconnect before WeChat Pay",
+    "offlineVnpayPay": "You're offline — reconnect before VNPay",
+    "paymentCancelled": "Payment cancelled",
+    "receiveConfirmed": "Receipt confirmed",
+    "redeemWithBalance": "Redeemed {{amount}} — balance {{balance}}",
+    "redeemToBalance": "Redeemed to balance: {{amount}}",
+    "resumeUnpaidTitle": "Unpaid order exists",
+    "resumeUnpaidMessage": "You have an unpaid order for «{{boxName}}» ({{orderId}}). Pay that order instead?",
+    "resumeUnpaidPay": "Pay existing order",
+    "resumeUnpaidNew": "Create new order"
+  }
+}

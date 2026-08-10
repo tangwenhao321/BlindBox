@@ -1,0 +1,11 @@
+appId: mystery-box-mobile-app
+---
+# Switch UI to Vietnamese and assert localized settings chrome.
+- runFlow: smoke.yaml
+- tapOn:
+    id: "profileTab"
+- tapOn:
+    id: "profileSettingsButton"
+- tapOn: "Tiếng Việt"
+- assertVisible: "Cài đặt"
+- assertVisible: "Ngôn ngữ giao diện"

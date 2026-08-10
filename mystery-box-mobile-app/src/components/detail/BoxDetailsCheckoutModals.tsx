@@ -1,0 +1,274 @@
+import { useState, useEffect, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { ConfirmOrderModal } from "../ConfirmOrderModal";
+import { AddressRequiredBanner } from "../ui/AddressRequiredBanner";
+import { estimatePayDeadlineFromNow } from "../../utils/payDeadlineEstimate";
+import { DrawPackModal, type DrawPackOption } from "../DrawPackModal";
+import { AgeGateModal, useAgeGate } from "../AgeGateModal";
+import { trackEvent } from "../../utils/analytics";
+import { setPendingPaymentWallet } from "../../payment/paymentWalletPreference";
+import { fetchSpendLimit, type SpendLimitView } from "../../services/complianceService";
+import { formatCurrency, formatCurrencyOptional } from "../../utils/formatCurrency";
+import type { Address, MysteryBox } from "../../types";
+import type { QueueStatus } from "../../services/drawQueueService";
+
+import type { DrawMode } from "../../services/orderService";
+
+type Props = {
+  activeBox: MysteryBox;
+  authToken: string;
+  drawCount: number;
+  drawMode: DrawMode;
+  selectedSlotNo?: number | null;
+  drawOptions: DrawPackOption[];
+  displayPayAmount: number;
+  quotedProduct: number;
+  batchDiscount: number;
+  quoteDeliveryFee: number;
+  quoteCouponAmount: number;
+  quoteRetentionDiscount: number;
+  quoteSavingsAmount?: number;
+  suggestedCouponApplied?: boolean;
+  quotingPrice?: boolean;
+  quoteError?: string | null;
+  creatingOrder: boolean;
+  canSubmit: boolean;
+  priceHint: string;
+  hasAddress: boolean;
+  addresses: Address[];
+  selectedAddressId: string;
+  isLoggedIn: boolean;
+  queueBlocked: boolean;
+  buyoutBlocked: boolean;
+  queueStatus: QueueStatus | null;
+  offline?: boolean;
+  poolTotal?: number;
+  poolRemaining?: number;
+  wholeBoxDrawCount?: number;
+  onChangeDrawCount: (count: number) => void;
+  onCreateOrder: (drawMode: DrawMode, slotNo?: number) => void;
+  onRequireLogin?: () => void;
+  onOpenAddressModal: () => void;
+  onOpenAddressFormPage?: (address?: import("../../types").Address, resumeCheckout?: boolean) => void;
+  drawModalVisible: boolean;
+  onDrawModalVisibleChange: (visible: boolean) => void;
+  confirmVisible: boolean;
+  onConfirmVisibleChange: (visible: boolean) => void;
+  spendLimitRefreshKey?: number;
+};
+
+export function BoxDetailsCheckoutModals(props: Props) {
+  const {
+    activeBox,
+    authToken,
+    drawCount,
+    drawMode,
+    selectedSlotNo,
+    drawOptions,
+    displayPayAmount,
+    quotedProduct,
+    batchDiscount,
+    quoteDeliveryFee,
+    quoteCouponAmount,
+    quoteRetentionDiscount,
+    quoteSavingsAmount = 0,
+    suggestedCouponApplied = false,
+    quotingPrice,
+    quoteError,
+    creatingOrder,
+    canSubmit,
+    priceHint,
+    hasAddress,
+    addresses,
+    selectedAddressId,
+    isLoggedIn,
+    queueBlocked,
+    buyoutBlocked,
+    queueStatus,
+    offline = false,
+    poolTotal,
+    poolRemaining,
+    wholeBoxDrawCount,
+    onChangeDrawCount,
+    onCreateOrder,
+    onRequireLogin,
+    onOpenAddressModal,
+    onOpenAddressFormPage,
+    drawModalVisible,
+    onDrawModalVisibleChange,
+    confirmVisible,
+    onConfirmVisibleChange,
+    spendLimitRefreshKey = 0,
+  } = props;
+
+  const { t } = useTranslation();
+  const [agreedPay, setAgreedPay] = useState(true);
+  const [addressHintVisible, setAddressHintVisible] = useState(false);
+  const ageGate = useAgeGate(authToken);
+  const [ageGateVisible, setAgeGateVisible] = useState(false);
+  const [spendLimit, setSpendLimit] = useState<SpendLimitView | null>(null);
+  const estimatedPayDeadline = estimatePayDeadlineFromNow();
+
+  useEffect(() => {
+    if (!confirmVisible || !authToken) {
+      setSpendLimit(null);
+      return;
+    }
+    void fetchSpendLimit(authToken)
+      .then(setSpendLimit)
+      .catch(() => setSpendLimit(null));
+  }, [confirmVisible, authToken, spendLimitRefreshKey]);
+
+  const spendLimitMeta = useMemo(() => {
+    if (!spendLimit?.enabled) {
+      return { warning: null as string | null, blocked: false };
+    }
+    if (!spendLimit.withinLimits) {
+      return { warning: t("checkout.spendLimitBlocked"), blocked: true };
+    }
+    const dailyRemaining = spendLimit.dailyRemaining;
+    if (dailyRemaining != null && displayPayAmount > dailyRemaining + 0.009) {
+      return {
+        warning: t("checkout.spendLimitDailyWarning", {
+          amount: formatCurrency(displayPayAmount),
+          remaining: formatCurrencyOptional(dailyRemaining),
+        }),
+        blocked: false,
+      };
+    }
+    return { warning: null, blocked: false };
+  }, [spendLimit, displayPayAmount, t]);
+
+  const submitOrder = () => {
+    trackEvent("start_checkout", { boxId: activeBox.id, drawCount });
+    onConfirmVisibleChange(false);
+    onCreateOrder(drawMode, drawMode === "cabinet" ? selectedSlotNo ?? undefined : undefined);
+  };
+
+  const goFillAddress = () => {
+    setAddressHintVisible(false);
+    onConfirmVisibleChange(false);
+    if (onOpenAddressFormPage) {
+      onOpenAddressFormPage(undefined, true);
+    } else {
+      onOpenAddressModal();
+    }
+  };
+
+  return (
+    <>
+      <AddressRequiredBanner
+        visible={addressHintVisible}
+        onAdd={goFillAddress}
+        onDismiss={() => setAddressHintVisible(false)}
+      />
+      <DrawPackModal
+        visible={drawModalVisible}
+        boxName={activeBox.name}
+        unitPrice={activeBox.price}
+        options={drawOptions}
+        selectedCount={drawCount}
+        onSelectCount={(count) => {
+          trackEvent("box_draw_count_change", { boxId: activeBox.id, drawCount: count });
+          onChangeDrawCount(count);
+        }}
+        onClose={() => onDrawModalVisibleChange(false)}
+        onConfirm={() => {
+          onDrawModalVisibleChange(false);
+          onConfirmVisibleChange(true);
+        }}
+        confirming={false}
+        canSubmit={hasAddress}
+        priceHint={priceHint}
+        hasAddress={hasAddress}
+        requireAddress
+        onAddAddress={() => {
+          onDrawModalVisibleChange(false);
+          if (onOpenAddressFormPage) {
+            onOpenAddressFormPage(undefined, true);
+          } else {
+            onOpenAddressModal();
+          }
+        }}
+        poolTotal={poolTotal}
+        poolRemaining={poolRemaining}
+        wholeBoxDrawCount={wholeBoxDrawCount}
+      />
+
+      <ConfirmOrderModal
+        visible={confirmVisible}
+        box={activeBox}
+        drawCount={drawCount}
+        unitPrice={activeBox.price}
+        productAmount={quotedProduct}
+        batchDiscount={batchDiscount}
+        deliveryFee={0}
+        hideShippingDetails
+        couponAmount={Math.max(0, quoteCouponAmount - quoteRetentionDiscount)}
+        retentionDiscountAmount={quoteRetentionDiscount}
+        payAmount={displayPayAmount}
+        quoting={quotingPrice}
+        quoteError={quoteError}
+        paying={creatingOrder}
+        payBlocked={!canSubmit || !hasAddress}
+        payBlockedHint={
+          !hasAddress
+            ? t("drawPack.addressRequired")
+            : offline
+              ? t("offline.noNetworkPay")
+              : queueBlocked
+                ? t("boxDetails.checkoutQueueBlocked", { position: queueStatus?.position ?? "?" })
+                : buyoutBlocked
+                  ? t("boxDetails.buyoutLockLostRetry")
+                  : drawMode === "cabinet"
+                    ? t("boxDetails.cabinetCheckoutBlocked")
+                    : undefined
+        }
+        suggestedCouponSavings={quoteSavingsAmount}
+        suggestedCouponApplied={suggestedCouponApplied}
+        spendLimitWarning={spendLimitMeta.warning}
+        spendLimitBlocked={spendLimitMeta.blocked}
+        payDeadlineIso={estimatedPayDeadline}
+        addressSummary={null}
+        onEditAddress={undefined}
+        agreed={agreedPay}
+        onToggleAgreed={() => setAgreedPay((v) => !v)}
+        onClose={() => onConfirmVisibleChange(false)}
+        deferPayLabel={queueStatus?.canDraw ? t("boxDetails.deferPayLater") : undefined}
+        onDeferPay={queueStatus?.canDraw ? () => onConfirmVisibleChange(false) : undefined}
+        onPay={(wallet) => {
+          trackEvent("confirm_pay_click", { boxId: activeBox.id, drawCount });
+          if (!isLoggedIn) {
+            onRequireLogin?.();
+            return;
+          }
+          if (!hasAddress) {
+            setAddressHintVisible(true);
+            return;
+          }
+          setAddressHintVisible(false);
+          if (!canSubmit) return;
+          if (ageGate.needsGate) {
+            setAgeGateVisible(true);
+            return;
+          }
+          setPendingPaymentWallet(wallet ?? "default");
+          submitOrder();
+        }}
+      />
+
+      <AgeGateModal
+        visible={ageGateVisible}
+        authToken={authToken}
+        onConfirmed={() => {
+          ageGate.setConfirmed(true);
+          setAgeGateVisible(false);
+          trackEvent("box_create_order_click", { boxId: activeBox.id, drawCount });
+          onConfirmVisibleChange(false);
+          onCreateOrder(drawMode, drawMode === "cabinet" ? selectedSlotNo ?? undefined : undefined);
+        }}
+        onDecline={() => setAgeGateVisible(false)}
+      />
+    </>
+  );
+}

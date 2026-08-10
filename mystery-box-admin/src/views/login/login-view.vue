@@ -1,0 +1,158 @@
+<script lang="ts" setup>
+import {
+  ElAvatar,
+  ElButton,
+  ElCard,
+  ElCol,
+  ElForm,
+  ElFormItem,
+  ElInput,
+  ElRow,
+  type FormInstance,
+  type FormRules
+} from 'element-plus'
+import { onMounted, reactive, ref, Transition } from 'vue'
+import logo from '@/assets/logo.jpg'
+import router from '@/router'
+import background from '@/assets/background.jpg'
+import { request } from '@/utils/request'
+import { useHomeStore } from '@/stores/home-store'
+import type { UserLoginInput } from '@/apis/__generated/model/static'
+
+const loginForm = reactive<UserLoginInput>({ phone: '', password: '' })
+const ruleFormRef = ref<FormInstance>()
+const rules = reactive<FormRules<typeof loginForm>>({
+  phone: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { max: 16, min: 6, message: '密码长度介于6，16' }
+  ]
+})
+const showPanel = ref(false)
+onMounted(() => {
+  setTimeout(() => {
+    showPanel.value = true
+  }, 1000)
+})
+const handleLogin = () => {
+  ruleFormRef.value?.validate((valid) => {
+    if (!valid) {
+      return
+    }
+    request({ url: '/admin/auth/login', method: 'post', data: loginForm }).then(
+      async (res: any) => {
+        const homeStore = useHomeStore()
+        homeStore.logout()
+        await homeStore.init()
+        localStorage.setItem('token', res.tokenValue)
+        router.replace({ path: '/' })
+      }
+    )
+  })
+}
+</script>
+<template>
+  <div>
+    <img alt="背景图片" class="background" :src="background" />
+    <el-row class="panel-wrapper" justify="center" align="middle">
+      <el-col :xs="18" :sm="16" :md="14" :lg="10" :xl="10">
+        <transition name="el-zoom-in-top">
+          <el-card class="panel" v-if="showPanel">
+            <div class="content">
+              <div class="panel-left">
+                <el-avatar alt="logo" :size="30" shape="square" :src="logo"></el-avatar>
+                <div class="title">盲盒后台管理</div>
+                <div class="description">优惠券,VIP等营销功能</div>
+              </div>
+              <div class="panel-right">
+                <div class="title">快速开始</div>
+                <div class="description">登录你的账号</div>
+                <el-form
+                  ref="ruleFormRef"
+                  :model="loginForm"
+                  :rules="rules"
+                  class="form"
+                  label-position="top"
+                  label-width="100px"
+                >
+                  <el-form-item label="账号" prop="phone">
+                    <el-input v-model="loginForm.phone"></el-input>
+                  </el-form-item>
+                  <el-form-item label="密码" prop="password">
+                    <el-input v-model="loginForm.password" type="password"></el-input>
+                  </el-form-item>
+                </el-form>
+                <div class="button-wrapper">
+                  <el-button class="login" type="primary" @click="handleLogin"> 登录 </el-button>
+                </div>
+              </div>
+            </div>
+          </el-card>
+        </transition>
+      </el-col>
+    </el-row>
+  </div>
+</template>
+<style lang="scss" scoped>
+.background {
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  object-fit: cover;
+  z-index: -10;
+}
+
+.panel-wrapper {
+  height: 100vh;
+
+  .panel {
+    .content {
+      display: flex;
+      align-items: stretch;
+      min-height: 420px;
+
+      .title {
+        font-size: var(--el-font-size-extra-large);
+        margin-top: 16px;
+        font-weight: bold;
+      }
+
+      .description {
+        margin-top: 20px;
+        font-size: var(--el-font-size-base);
+        color: var(--el-text-col);
+      }
+
+      .panel-left {
+        box-sizing: border-box;
+        padding: 30px;
+        background-color: rgb(243, 245, 249);
+        width: 50%;
+        border-radius: 5px;
+      }
+
+      .panel-right {
+        padding: 30px;
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+
+        .form {
+          margin-top: 20px;
+          margin-bottom: 12px;
+        }
+
+        .button-wrapper {
+          margin-top: 0;
+          display: flex;
+          justify-content: flex-start;
+
+          .login {
+            width: 120px;
+          }
+        }
+      }
+    }
+  }
+}
+</style>

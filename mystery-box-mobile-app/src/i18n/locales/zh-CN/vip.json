@@ -1,0 +1,20 @@
+{
+  "vip": {
+    "title": "会员权益",
+    "vipActive": "VIP 生效中",
+    "regularUser": "普通用户",
+    "levelTitle": "Lv.{{level}} {{title}}",
+    "upgradeHint": "再积 {{count}} 幸运币升级",
+    "maxLevel": "已达最高等级",
+    "checkedTodaySuffix": " · 今日已签到",
+    "checkInPendingSuffix": " · 今日未签到，去福利中心签到",
+    "vipUntil": "VIP 有效期至 {{time}}",
+    "noVip": "暂无有效 VIP 记录，结算时将按普通用户计价",
+    "benefitsTitle": "权益说明",
+    "benefit1": "下单享 VIP 专属抵扣（以结算页为准）",
+    "benefit2": "高等级用户优先参与限时池与新品发售",
+    "benefit3": "专属客服通道与发货时效说明",
+    "benefit4": "等级礼包与签到奖励可叠加领取",
+    "legal": "会员等级、成长值与礼包内容由运营在后台配置，请以活动页与订单结算页展示为准。概率类商品请理性消费。"
+  }
+}

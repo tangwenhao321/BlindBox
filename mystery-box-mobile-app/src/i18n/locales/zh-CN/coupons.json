@@ -1,0 +1,15 @@
+{
+  "coupons": {
+    "title": "我的优惠券",
+    "emptyTitle": "暂无可用优惠券",
+    "emptyDesc": "参与活动或下单后可获得优惠券",
+    "goWelfare": "去福利中心",
+    "fallbackName": "优惠券",
+    "statusAvailable": "可用",
+    "amountFallback": "券",
+    "a11y": "{{name}} {{status}}",
+    "expiringSoon": "{{days}} 天内过期",
+    "useNow": "去使用",
+    "useNowA11y": "去商城使用优惠券"
+  }
+}

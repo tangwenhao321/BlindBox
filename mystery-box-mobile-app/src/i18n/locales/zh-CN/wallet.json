@@ -1,0 +1,8 @@
+{
+  "wallet": {
+    "balanceRefreshed": "余额已刷新：{{amount}}",
+    "updatedAt": "更新于 {{time}}",
+    "notSynced": "未同步",
+    "balanceText": "余额 {{amount}}"
+  }
+}

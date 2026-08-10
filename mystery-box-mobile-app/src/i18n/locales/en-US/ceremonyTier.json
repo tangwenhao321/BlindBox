@@ -1,0 +1,9 @@
+{
+  "ceremonyTier": {
+    "TREASURE_LEGEND": "Treasure Legend",
+    "PEERLESS": "Peerless",
+    "TREASURE_PEERLESS": "Treasure Peerless",
+    "GENERAL": "Common",
+    "HIDDEN": "Hidden"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "community": {
+    "title": "晒单墙",
+    "composePlaceholder": "分享你的开盒战报…",
+    "submitPost": "发帖",
+    "addPhoto": "添加图片",
+    "photoUploading": "上传中…",
+    "photoAdded": "已添加 {{count}} 张图片",
+    "commentPlaceholder": "写下评论…",
+    "submitComment": "发送",
+    "postSuccess": "发布成功",
+    "commentSuccess": "评论已发布",
+    "filterAll": "全部",
+    "emptyTitle": "暂无晒单",
+    "emptyTopicTitle": "该话题暂无晒单",
+    "emptyDesc": "成为第一个分享战报的人",
+    "goHome": "去首页开盒",
+    "like": "点赞",
+    "unlike": "取消点赞",
+    "comment": "评论",
+    "topicLabel": "发帖话题 {{tag}}",
+    "filterTopic": "筛选话题 {{tag}}",
+    "maxPhotos": "最多添加 {{max}} 张图片",
+    "removePhoto": "移除图片"
+  }
+}

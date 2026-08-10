@@ -1,0 +1,7 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- openLink: mysterybox://orders
+- extendedWaitUntil:
+    visible: ".*订单.*|.*Orders.*|.*Đơn hàng.*"
+    timeout: 15000

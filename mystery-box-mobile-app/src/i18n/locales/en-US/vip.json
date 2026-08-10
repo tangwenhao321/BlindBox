@@ -1,0 +1,20 @@
+{
+  "vip": {
+    "title": "VIP benefits",
+    "vipActive": "VIP active",
+    "regularUser": "Standard user",
+    "levelTitle": "Lv.{{level}} {{title}}",
+    "upgradeHint": "{{count}} more lucky coins to level up",
+    "maxLevel": "Max level reached",
+    "checkedTodaySuffix": " · Checked in today",
+    "checkInPendingSuffix": " · Not checked in — visit Welfare",
+    "vipUntil": "VIP until {{time}}",
+    "noVip": "No active VIP — standard pricing at checkout",
+    "benefitsTitle": "Benefits",
+    "benefit1": "VIP checkout discounts (see settlement)",
+    "benefit2": "Early access to limited pools and drops",
+    "benefit3": "Priority support and shipping SLA",
+    "benefit4": "Level packs stack with check-in rewards",
+    "legal": "Levels and rewards are configured by ops — see activity and checkout pages. Spend responsibly on random draws."
+  }
+}

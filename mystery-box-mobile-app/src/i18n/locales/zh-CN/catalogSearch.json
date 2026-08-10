@@ -1,0 +1,26 @@
+{
+  "catalogSearch": {
+    "title": "搜索商品",
+    "placeholder": "请输入产品名称",
+    "searchBtn": "搜索",
+    "keywordRequired": "请输入搜索关键词",
+    "emptyTitle": "未找到相关商品",
+    "emptyDesc": "换个关键词试试，或浏览商城推荐",
+    "hintMall": "搜索后将跳转到商城查看结果",
+    "titleHome": "搜索盲盒",
+    "titleMall": "搜索商品",
+    "placeholderHome": "盲盒名称、系列或关键词",
+    "placeholderMall": "请输入产品名称",
+    "goHome": "回首页看看",
+    "hint": "输入关键词后点搜索",
+    "historyTitle": "最近搜索",
+    "clearHistory": "清空",
+    "hotTitle": "热门搜索",
+    "hot1": "新人专享",
+    "hot2": "史诗保底",
+    "hot3": "IP联名",
+    "hot4": "限时特惠",
+    "resultCount": "「{{keyword}}」相关 {{count}} 条",
+    "openInMall": "在商城中查看"
+  }
+}

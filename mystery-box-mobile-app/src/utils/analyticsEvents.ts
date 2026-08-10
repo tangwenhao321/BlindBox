@@ -1,0 +1,85 @@
+export const ANALYTICS_EVENTS = {
+  APP_OPEN: "app_open",
+  APP_ERROR: "app_error",
+  PRODUCTION_ENV_WARNING: "production_env_warning",
+  ANALYTICS_HYDRATE_FAIL: "analytics_hydrate_fail",
+  ANALYTICS_UPLOAD_ERROR: "analytics_upload_error",
+  SEARCH_SUBMIT: "search_submit",
+  SEARCH_RESULT: "search_result",
+  SEARCH_HISTORY_CLICK: "search_history_click",
+  HOME_BOX_CLICK: "home_box_click",
+  MALL_BOX_CLICK: "mall_box_click",
+  RECOMMEND_IMPRESSION: "recommend_impression",
+  RECOMMEND_CLICK: "recommend_click",
+  CABINET_RESERVE: "cabinet_reserve",
+  CABINET_RELEASE: "cabinet_release",
+  HINT_USE: "hint_use",
+  BOX_DETAIL_VIEW: "box_detail_view",
+  FAVORITE_TOGGLE: "favorite_toggle",
+  START_CHECKOUT: "start_checkout",
+  BOX_DRAW_COUNT_CHANGE: "box_draw_count_change",
+  CONFIRM_PAY_CLICK: "confirm_pay_click",
+  BOX_CREATE_ORDER_CLICK: "box_create_order_click",
+  ORDER_CREATED: "order_created",
+  COUPON_APPLY: "coupon_apply",
+  PAYMENT_START: "payment_start",
+  PAYMENT_SUCCESS: "payment_success",
+  PAYMENT_FAIL: "payment_fail",
+  PAYMENT_CANCEL: "payment_cancel",
+  PAYMENT_STALE: "payment_stale",
+  PAYMENT_MOCK_REQUESTED: "payment_mock_requested",
+  PAYMENT_WECHAT_REQUESTED: "payment_wechat_requested",
+  PAYMENT_VNPAY_REQUESTED: "payment_vnpay_requested",
+  PAYMENT_MOMO_REQUESTED: "payment_momo_requested",
+  PAYMENT_MOMO_OPEN: "payment_momo_open",
+  CONFIRM_RECEIVE: "confirm_receive",
+  REFUND_APPLY: "refund_apply",
+  LOGIN_SUCCESS: "login_success",
+  REGISTER_SUCCESS: "register_success",
+  INVITE_CODE_USED: "invite_code_used",
+  CHECK_IN: "check_in",
+  NEWCOMER_MISSION_CLAIM: "newcomer_mission_claim",
+  WAREHOUSE_SHIP_SUBMIT: "warehouse_ship_submit",
+  MARKETPLACE_LIST_CREATE: "marketplace_list_create",
+  MARKETPLACE_BUY: "marketplace_buy",
+  MARKETPLACE_LIST_CANCEL: "marketplace_list_cancel",
+  COMMUNITY_POST_CREATE: "community_post_create",
+  COMMUNITY_COMMENT_CREATE: "community_comment_create",
+  COMMUNITY_LIKE: "community_like",
+  SHARE_REVEAL: "share_reveal",
+  ORDER_RESULT_MODAL_SHOW: "order_result_modal_show",
+  ORDER_RESULT_PAY_NOW_CLICK: "order_result_pay_now_click",
+  ORDER_RESULT_TRY_AGAIN_CLICK: "order_result_try_again_click",
+  ORDER_RESULT_SHARE_CLICK: "order_result_share_click",
+  ORDER_RESULT_VERIFY_FAIRNESS_CLICK: "order_result_verify_fairness_click",
+  GLOBAL_REFRESH_ERROR: "global_refresh_error",
+  GLOBAL_REFRESH_PARTIAL_ERROR: "global_refresh_partial_error",
+  NOTIFICATION_PERMISSION_GRANTED: "notification_permission_granted",
+  NOTIFICATION_PERMISSION_DENIED: "notification_permission_denied",
+  PUSH_TOKEN_REGISTERED: "push_token_registered",
+  PUSH_TOKEN_REGISTER_FAIL: "push_token_register_fail",
+  PUSH_TOKEN_UNREGISTERED: "push_token_unregistered",
+  PUSH_TOKEN_UNREGISTER_FAIL: "push_token_unregister_fail",
+  DEEP_LINK_OPEN: "deep_link_open",
+  DEEP_LINK_RESUME: "deep_link_resume",
+  TAB_FOCUS: "tab_focus",
+  QUEUE_JOIN: "queue_join",
+  QUEUE_LEAVE: "queue_leave",
+  NOTIFICATION_PREF_CHANGE: "notification_pref_change",
+  ADDRESS_SAVE: "address_save",
+  SETTINGS_TOGGLE: "settings_toggle",
+} as const;
+
+export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];
+
+export type EffectAnalyticsEvent = `effect_${string}`;
+
+export type TrackableEventName = AnalyticsEventName | EffectAnalyticsEvent;
+
+export function isAnalyticsEventName(value: string): value is AnalyticsEventName {
+  return Object.values(ANALYTICS_EVENTS).includes(value as AnalyticsEventName);
+}
+
+export function isTrackableEventName(value: string): value is TrackableEventName {
+  return isAnalyticsEventName(value) || value.startsWith("effect_");
+}

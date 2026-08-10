@@ -1,0 +1,22 @@
+{
+  "common": {
+    "back": "Back",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "loadMore": "Loading more…",
+    "retryLoadA11y": "Retry loading",
+    "sectionHotSale": "HOT SALE",
+    "sectionFeedback": "FEEDBACK",
+    "sectionHistory": "HISTORY",
+    "sectionCoupons": "COUPONS",
+    "sectionSystem": "SYSTEM",
+    "sectionOrders": "ORDERS",
+    "sectionPrizes": "PRIZES",
+    "amountAtLeast": "≥{{amount}}",
+    "gotIt": "Got it",
+    "contactSupport": "Contact support"
+  }
+}

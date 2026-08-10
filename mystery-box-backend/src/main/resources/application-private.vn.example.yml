@@ -1,0 +1,17 @@
+app:
+  market:
+    payment-provider: vnpay
+    currency: VND
+
+# Copy to application-private.yml (prod-vn profile). Never commit real secrets.
+vnpay:
+  tmn-code: YOUR_VNPAY_TMN_CODE
+  hash-secret: YOUR_VNPAY_HASH_SECRET
+  return-url: mysterybox://payment-return
+  # Public HTTPS endpoint — VNPay IPN (server-to-server). Example:
+  # ipn-url: https://api.your-domain.com/front/mystery-box-order/notify/pay/vnpay
+  ipn-url: https://YOUR_PUBLIC_API/front/mystery-box-order/notify/pay/vnpay
+  sandbox: false
+  pay-url: https://pay.vnpay.vn/paymentv2/vpcpay.html
+  query-url: https://merchant.vnpay.vn/merchant_webapi/api/transaction
+  refund-url: https://merchant.vnpay.vn/merchant_webapi/api/transaction

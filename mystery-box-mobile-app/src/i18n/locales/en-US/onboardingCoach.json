@@ -1,0 +1,13 @@
+{
+  "onboardingCoach": {
+    "step1Title": "① Choose a set",
+    "step1Body": "Tap Open now and pick draw count or mode.",
+    "step2Title": "② Confirm payment",
+    "step2Body": "Accept terms and complete mock payment on the order sheet.",
+    "step3Title": "③ Warehouse",
+    "step3Body": "Open Warehouse tab to view prizes and shipping.",
+    "next": "Next",
+    "start": "Get started",
+    "skip": "Skip"
+  }
+}

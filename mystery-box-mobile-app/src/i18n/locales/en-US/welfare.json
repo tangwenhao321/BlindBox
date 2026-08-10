@@ -1,0 +1,12 @@
+{
+  "welfare": {
+    "checkInToday": "Check in",
+    "checkInDone": "Checked in today",
+    "openCoupons": "View my coupons",
+    "heroTitle": "Daily rewards",
+    "dailyCheckIn": "Daily check-in",
+    "streakMeta": "{{days}}-day streak · +{{coins}} lucky coins",
+    "checkInSuccess": "Checked in · +{{coins}} lucky coins",
+    "pageTitle": "Welfare hub"
+  }
+}

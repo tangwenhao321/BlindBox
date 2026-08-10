@@ -1,0 +1,46 @@
+# Example Nginx reverse proxy for production (adjust server_name / SSL).
+upstream mystery_box_api {
+    server 127.0.0.1:9912;
+}
+
+server {
+    listen 80;
+    server_name api.example.com;
+
+    client_max_body_size 20m;
+
+    location / {
+        proxy_pass http://mystery_box_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Local OSS files (or proxy to object storage CDN)
+    location /uploads/ {
+        proxy_pass http://mystery_box_api/uploads/;
+    }
+}
+
+server {
+    listen 80;
+    server_name admin.example.com;
+    root /var/www/mystery-box-admin;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/ {
+        proxy_pass http://mystery_box_api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /uploads/ {
+        proxy_pass http://mystery_box_api/uploads/;
+    }
+}

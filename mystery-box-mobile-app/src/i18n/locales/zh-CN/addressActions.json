@@ -1,0 +1,9 @@
+{
+  "addressActions": {
+    "defaultSet": "已设为默认地址",
+    "deleteTitle": "删除地址",
+    "deleteMessage": "确认删除该收货地址？",
+    "deleteConfirm": "删除",
+    "deleted": "地址已删除"
+  }
+}

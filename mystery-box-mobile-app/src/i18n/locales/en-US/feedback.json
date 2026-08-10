@@ -1,0 +1,16 @@
+{
+  "feedback": {
+    "title": "Feedback",
+    "sectionContent": "Your feedback",
+    "sectionHistory": "History",
+    "contentPlaceholder": "Describe your issue or suggestion…",
+    "photoPlaceholder": "Image URLs (comma-separated, optional)",
+    "photoA11y": "Feedback image URLs",
+    "uploadPhoto": "Upload from gallery",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "submitSuccess": "Thanks — feedback received",
+    "submitFailed": "Submit failed — try again",
+    "emptyHistory": "No history yet"
+  }
+}

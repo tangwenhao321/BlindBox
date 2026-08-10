@@ -1,0 +1,14 @@
+{
+  "addressManage": {
+    "title": "Địa chỉ",
+    "emptyTitle": "Chưa có địa chỉ",
+    "emptyDesc": "Thêm địa chỉ để đặt hàng",
+    "addAddress": "Thêm địa chỉ",
+    "defaultTag": " (mặc định)",
+    "currentOrder": "Dùng cho thanh toán",
+    "edit": "Sửa",
+    "setDefault": "Đặt mặc định",
+    "delete": "Xóa",
+    "addNewButton": "+ Thêm địa chỉ"
+  }
+}

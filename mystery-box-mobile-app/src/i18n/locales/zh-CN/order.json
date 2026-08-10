@@ -1,0 +1,14 @@
+{
+  "order": {
+    "status": {
+      "unknown": "未知",
+      "TO_BE_PAID": "待支付",
+      "TO_BE_DELIVERED": "待发货",
+      "TO_BE_RECEIVED": "待收货",
+      "FINISHED": "已完成",
+      "COMPLETED": "已完成",
+      "CLOSED": "已关闭",
+      "REFUNDED": "已退款"
+    }
+  }
+}

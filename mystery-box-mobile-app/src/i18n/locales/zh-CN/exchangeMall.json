@@ -1,0 +1,14 @@
+{
+  "exchangeMall": {
+    "title": "碎片商城",
+    "titleAdvanced": "进阶兑换商城",
+    "balanceSummary": "我的碎片：{{balance}} · 可兑换 {{affordable}}/{{total}}",
+    "exchangeSuccess": "兑换成功",
+    "emptyTitle": "暂无可兑换商品",
+    "emptyDesc": "分解仓库赏品可获得碎片",
+    "goWarehouse": "去仓库",
+    "skuMeta": "消耗 {{cost}} 碎片 · 库存 {{stock}} · 进度 {{percent}}%",
+    "exchangeA11y": "兑换 {{name}}",
+    "exchangeNow": "立即兑换"
+  }
+}

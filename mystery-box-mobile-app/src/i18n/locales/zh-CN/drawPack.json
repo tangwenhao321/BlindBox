@@ -1,0 +1,20 @@
+{
+  "drawPack": {
+    "closeA11y": "关闭拆盒弹窗",
+    "sheetA11y": "拆盒抽好礼",
+    "title": "拆盒抽好礼",
+    "close": "关闭",
+    "poolRemaining": "奖池余量 {{remaining}}/{{total}}",
+    "wholeBox": "整盒 {{count}} 抽 · {{price}}",
+    "wholeBoxEstimate": "整盒约 {{count}} 抽（以当前库存为准）",
+    "optionA11y": "{{label}}，{{price}}元{{best}}",
+    "bestValue": "，最划算",
+    "bestTag": "最划算",
+    "addressRequired": "支付前需填写收货地址",
+    "addressRequiredA11y": "支付前需填写收货地址",
+    "confirmA11y": "确认开盒",
+    "confirmingA11y": "创建订单中",
+    "confirm": "确认开盒",
+    "confirming": "创建订单中..."
+  }
+}

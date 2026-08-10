@@ -1,0 +1,29 @@
+appId: mystery-box-mobile-app
+---
+# Share entry + spectator deep link (requires backend e2e fixture: app.reveal.e2e-fixture.enabled=true).
+- runFlow: mock-pay-smoke.yaml
+- extendedWaitUntil:
+    visible:
+      id: "orderResultShareRevealButton"
+    timeout: 60000
+- tapOn:
+    id: "orderResultShareRevealButton"
+- runFlow:
+    when:
+      visible: ".*Share.*|.*分享.*"
+    commands:
+      - back
+- openLink: "mysterybox://reveal/spectator?spectatorToken=e2e-spectator"
+- extendedWaitUntil:
+    visible:
+      id: "spectatorScreen"
+    timeout: 20000
+- assertVisible:
+    id: "spectatorProgress"
+- extendedWaitUntil:
+    visible:
+      id: "spectatorRoomSync"
+    timeout: 15000
+- assertVisible:
+    id: "spectatorReactionTicker"
+    optional: true

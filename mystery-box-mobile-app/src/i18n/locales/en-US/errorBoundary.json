@@ -1,0 +1,11 @@
+{
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "Please try again, or go home and re-enter.",
+    "unknown": "Unknown error",
+    "retryA11y": "Retry loading page",
+    "homeA11y": "Go home and retry",
+    "home": "Go home",
+    "retry": "Retry"
+  }
+}

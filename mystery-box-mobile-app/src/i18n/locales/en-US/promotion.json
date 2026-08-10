@@ -1,0 +1,25 @@
+{
+  "promotion": {
+    "title": "My referrals",
+    "invitees": "Invitees",
+    "inviteCode": "Code {{code}}",
+    "shareInvite": "Share invite",
+    "shareDialogTitle": "Invite friends",
+    "shareMessage": "Join me on Mystery Box! My invite code: {{code}}\n{{link}}{{extra}}",
+    "sharePoster": "Share poster",
+    "reached": "Reached",
+    "milestoneClaimed": "+{{coins}} lucky coins sent",
+    "milestonePendingClaim": "Reached — reward processing",
+    "progress": "{{current}}/{{target}}",
+    "milestonesHint": "Friends count when they register. Lucky coins are granted at each tier; you also earn 5% commission on their box purchases.",
+    "colSource": "Source",
+    "colCommission": "Commission",
+    "colTime": "Time",
+    "emptyTitle": "No referral records",
+    "emptyDesc": "Invite friends to earn commission here",
+    "posterBoxName": "Invite friends",
+    "feedSnippet": "{{name}} unboxed {{product}}",
+    "extrasMilestone": "Milestones: {{message}}",
+    "extrasFeed": "Feed: {{message}}"
+  }
+}

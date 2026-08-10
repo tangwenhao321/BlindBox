@@ -1,0 +1,10 @@
+{
+  "dataSync": {
+    "addressError": "地址：{{message}}",
+    "orderError": "订单：{{message}}",
+    "mallError": "商城：{{message}}",
+    "balanceError": "余额：{{message}}",
+    "balanceLogsError": "余额流水：{{message}}",
+    "partialSyncFailed": "部分数据未同步：{{message}}"
+  }
+}

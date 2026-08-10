@@ -1,0 +1,6 @@
+{
+  "upload": {
+    "permissionRequired": "需要相册权限才能选择图片",
+    "failed": "图片上传失败"
+  }
+}

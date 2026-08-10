@@ -1,0 +1,20 @@
+{
+  "vnpay": {
+    "title": "VNPay checkout",
+    "orderId": "Order {{id}}",
+    "statusReady": "Payment link ready",
+    "statusMissing": "Could not load payment link",
+    "tip": "Tap Open VNPay to complete payment in your browser, then return to the app.",
+    "noPrepay": "Prepay failed — retry or contact support.",
+    "sandbox": "Sandbox mode",
+    "open": "Open VNPay",
+    "openFailed": "Could not open VNPay",
+    "refreshStatus": "I have paid — refresh status",
+    "copyOrder": "Copy order number",
+    "orderCopied": "Order number copied",
+    "contactSupport": "Contact support",
+    "retryPrepay": "Retry prepay",
+    "mockPay": "Use mock payment (dev)",
+    "close": "Close"
+  }
+}

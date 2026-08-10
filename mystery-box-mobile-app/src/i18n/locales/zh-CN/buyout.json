@@ -1,0 +1,10 @@
+{
+  "buyout": {
+    "lockActive": "全收锁 · 剩余 {{seconds}}s",
+    "lockExpired": "全收锁已失效",
+    "poolRemaining": "将购买池内剩余 {{count}} 抽",
+    "lockActiveA11y": "全收锁剩余 {{seconds}} 秒，池内剩余 {{remaining}} 抽",
+    "lockExpiredA11y": "全收锁已失效，池内剩余 {{remaining}} 抽",
+    "lockProgressA11y": "全收锁进度 {{percent}}%"
+  }
+}

@@ -1,0 +1,9 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- tapOn:
+    id: "profileTab"
+- tapOn: "我的订单"
+- assertVisible: "全部"
+- tapOn: "待支付"
+- assertVisible: ".*"

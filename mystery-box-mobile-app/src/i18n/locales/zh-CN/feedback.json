@@ -1,0 +1,16 @@
+{
+  "feedback": {
+    "title": "意见反馈",
+    "sectionContent": "反馈内容",
+    "sectionHistory": "历史反馈",
+    "contentPlaceholder": "请描述你遇到的问题或建议...",
+    "photoPlaceholder": "图片链接（多个用逗号分隔，可选）",
+    "photoA11y": "反馈图片链接",
+    "uploadPhoto": "从相册上传图片",
+    "submit": "提交反馈",
+    "submitting": "提交中...",
+    "submitSuccess": "反馈已提交，感谢你的建议",
+    "submitFailed": "提交失败，请稍后重试",
+    "emptyHistory": "暂无历史记录"
+  }
+}

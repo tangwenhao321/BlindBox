@@ -1,0 +1,16 @@
+{
+  "effectProfile": {
+    "GENERAL": {
+      "title": "Reveal complete",
+      "tierLabel": "Standard"
+    },
+    "HIDDEN": {
+      "title": "Hidden tier!",
+      "tierLabel": "Hidden"
+    },
+    "LEGENDARY": {
+      "title": "Legendary burst!",
+      "tierLabel": "Legendary"
+    }
+  }
+}

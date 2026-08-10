@@ -1,0 +1,27 @@
+{
+  "actions": {
+    "addressSaved": "地址已保存",
+    "addressRequired": "请先添加并选择收货地址",
+    "ageRequired": "请先确认已满 18 周岁后再下单",
+    "orderConfirmTitle": "确认下单",
+    "orderConfirmMessage": "盲盒：{{boxName}}\n抽取：{{drawCount}} 次\n应付：{{payAmount}}{{couponLine}}\n确认创建订单？",
+    "orderConfirmCouponLine": "\n优惠券抵扣：{{amount}}",
+    "orderConfirmBtn": "确认下单",
+    "securityTitle": "安全确认",
+    "securityContinueOrder": "{{message}}\n是否继续创建订单？",
+    "securityContinuePay": "{{message}}\n是否继续支付？",
+    "continue": "继续",
+    "orderCreated": "订单创建成功：{{orderId}}",
+    "orderCancelled": "已取消未支付订单",
+    "offlineWechatPay": "当前离线，请恢复网络后再发起微信支付",
+    "offlineVnpayPay": "当前离线，请恢复网络后再发起 VNPay 支付",
+    "paymentCancelled": "已取消支付",
+    "receiveConfirmed": "已确认收货",
+    "redeemWithBalance": "已兑换 {{amount}}，当前余额 {{balance}}",
+    "redeemToBalance": "已兑换到余额：{{amount}}",
+    "resumeUnpaidTitle": "存在未支付订单",
+    "resumeUnpaidMessage": "您有「{{boxName}}」的未支付订单（{{orderId}}），是否继续支付该订单？",
+    "resumeUnpaidPay": "支付原订单",
+    "resumeUnpaidNew": "创建新订单"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "boxList": {
+    "defaultHint": "Tap for details and checkout",
+    "openNow": "Open now →",
+    "a11y": "{{name}}, {{price}}"
+  }
+}

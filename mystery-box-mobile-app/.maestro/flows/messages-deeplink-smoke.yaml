@@ -1,0 +1,5 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- openLink: mysterybox://messages
+- assertVisible: "消息中心"

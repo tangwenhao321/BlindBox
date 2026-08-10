@@ -1,0 +1,10 @@
+{
+  "orderUtils": {
+    "phoneUnbound": "未绑定手机号",
+    "boxOrderFallback": "盲盒 · {{id}}",
+    "boxOrderDefault": "盲盒订单",
+    "timeUnknown": "时间未知",
+    "couponFallback": "优惠券",
+    "couponWithAmount": "{{name}} (-{{amount}})"
+  }
+}

@@ -1,0 +1,10 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: smoke.yaml
+- tapOn:
+    id: "profileTab"
+- tapOn: "余额"
+- extendedWaitUntil:
+    visible: "余额记录"
+    timeout: 15000
+- assertVisible: ".*"

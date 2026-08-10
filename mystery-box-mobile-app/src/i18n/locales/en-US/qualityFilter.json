@@ -1,0 +1,10 @@
+{
+  "qualityFilter": {
+    "all": "All",
+    "general": "General",
+    "hidden": "Hidden",
+    "advanced": "Advanced",
+    "legendary": "Legendary",
+    "filterA11y": "Filter {{label}}"
+  }
+}

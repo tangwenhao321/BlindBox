@@ -1,0 +1,22 @@
+appId: mystery-box-mobile-app
+---
+# Full mock checkout: login -> box -> confirm order -> mock WeChat pay (requires address on test account).
+- runFlow: checkout-smoke.yaml
+- runFlow:
+    when:
+      visible:
+        id: "ageGateConfirmButton"
+    commands:
+      - tapOn:
+          id: "ageGateConfirmButton"
+- tapOn:
+    id: "confirmPayButton"
+- extendedWaitUntil:
+    visible: "微信支付"
+    timeout: 25000
+- tapOn:
+    id: "mockPayConfirmButton"
+- extendedWaitUntil:
+    visible: "支付成功"
+    timeout: 30000
+- runFlow: order-result-smoke.yaml

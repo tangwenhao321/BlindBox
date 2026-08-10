@@ -1,0 +1,20 @@
+{
+  "appUpdate": {
+    "title": "Update available",
+    "versionLine": "Current {{current}} · Latest {{latest}}",
+    "releaseNotes": "What's new",
+    "downloadAndInstall": "Update now",
+    "downloading": "Downloading update…",
+    "downloadProgress": "Downloading {{percent}}",
+    "installing": "Download complete — opening installer…",
+    "installHint": "Follow the system prompt to finish installing. If blocked, allow installs from this app in Settings.",
+    "later": "Later",
+    "alreadyLatest": "You're on the latest version",
+    "updateAvailable": "A new version is available",
+    "downloadFailed": "Download failed — please try again",
+    "storageUnavailable": "Storage unavailable — cannot download update",
+    "platformUnsupported": "In-app updates are not supported in this environment",
+    "checkUpdate": "Check for updates",
+    "currentVersion": "Version {{version}}"
+  }
+}

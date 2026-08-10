@@ -1,0 +1,20 @@
+/** Map common backend Chinese messages to i18n keys (used when locale is not zh-CN). */
+export const API_ERROR_MESSAGE_PATTERNS: ReadonlyArray<{ pattern: RegExp; key: string }> = [
+  { pattern: /订单不存在/, key: "api.errors.orderNotFound" },
+  { pattern: /盲盒不存在/, key: "api.errors.boxNotFound" },
+  { pattern: /用户不存在/, key: "api.errors.userNotFound" },
+  { pattern: /优惠券/, key: "api.errors.couponInvalid" },
+  { pattern: /验证码错误/, key: "api.errors.verifyCodeInvalid" },
+  { pattern: /密码/, key: "api.errors.authFailed" },
+  { pattern: /未登录|未授权|登录/, key: "api.errors.unauthorized" },
+  { pattern: /操作过于频繁|请勿重复/, key: "api.errors.rateLimited" },
+  { pattern: /非本人/, key: "api.errors.forbidden" },
+  { pattern: /订单状态/, key: "api.errors.orderStatusInvalid" },
+  { pattern: /数据不存在|不存在/, key: "api.errors.notFound" },
+  { pattern: /库存|不足/, key: "api.errors.outOfStock" },
+  { pattern: /账号已被封禁|封禁/, key: "api.errors.accountBanned" },
+  { pattern: /REVEAL_SPECTATOR_EXPIRED|观战链接已失效|观战链接已过期/, key: "spectator.expired" },
+  { pattern: /REVEAL_SPECTATOR_NOT_FOUND|暂无观战链接/, key: "api.errors.notFound" },
+  { pattern: /REVEAL_SPECTATOR_FORBIDDEN|观战链接已失效或无权更新/, key: "api.errors.forbidden" },
+  { pattern: /参数错误|参数有误|参数非法/, key: "api.errors.paramInvalid" },
+];

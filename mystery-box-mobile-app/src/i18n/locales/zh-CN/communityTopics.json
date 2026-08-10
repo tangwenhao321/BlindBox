@@ -1,0 +1,12 @@
+{
+  "communityTopics": {
+    "shareDraft": "#{{tag}} 我在「{{boxName}}」开出了{{tier}}{{productName}}！\norderId={{orderId}}\nproductId={{productId}}",
+    "tags": {
+      "晒单": "晒单",
+      "传说": "传说",
+      "隐藏": "隐藏",
+      "整盒": "整盒",
+      "回血": "回血"
+    }
+  }
+}

@@ -1,0 +1,538 @@
+{
+  "activity": {
+    "ended": "Đã kết thúc",
+    "countdown": "Kết thúc sau {{time}}",
+    "poolTitle": "Quỹ sự kiện",
+    "boxFallback": "Hộp {{id}}…",
+    "openBox": "Mở ›",
+    "emptyBoxes": "Không có hộp được liên kết",
+    "countdownParts": "{{hours}}giờ {{minutes}}phút {{seconds}}giây"
+  },
+  "ageGate": {
+    "title": "Xác nhận độ tuổi",
+    "body": "Các mục trong hộp mù là ngẫu nhiên. Xác nhận bạn đủ 18 tuổi trở lên và chấp nhận các điều khoản của nền tảng trước khi đặt hàng.",
+    "confirm": "Tôi từ 18 tuổi trở lên",
+    "decline": "Không phải bây giờ"
+  },
+  "analyticsQueue": {
+    "message": "Đồng bộ hóa phân tích không thành công — {{count}} sự kiện đang chờ xử lý (sẽ thử lại khi trực tuyến)",
+    "dismiss": "Bỏ qua",
+    "dismissA11y": "Bỏ qua thông báo đồng bộ hóa phân tích"
+  },
+  "api": {
+    "requestFailed": "Yêu cầu không thành công",
+    "requestRetry": "Lỗi yêu cầu. Thử lại sau.",
+    "cannotConnect": "Không thể truy cập {{url}} — kiểm tra máy chủ và EXPO_PUBLIC_API_BASE_URL",
+    "apiNotConfigured": "Chưa đặt EXPO_PUBLIC_API_BASE_URL — cấu hình trong .env",
+    "traceIdSuffix": "(traceId: {{traceId}})",
+    "errors": {
+      "sessionExpired": "Phiên làm việc của bạn đã kết thúc. Xin hãy đăng nhập lại.",
+      "unauthorized": "Không được phép — vui lòng đăng nhập lại",
+      "tokenInvalid": "Mã thông báo đăng nhập không hợp lệ — vui lòng đăng nhập lại",
+      "orderNotFound": "Không tìm thấy đơn hàng",
+      "boxNotFound": "Không tìm thấy hộp bí ẩn",
+      "userNotFound": "Không tìm thấy người dùng",
+      "couponInvalid": "Phiếu giảm giá không khả dụng",
+      "verifyCodeInvalid": "Mã xác minh không hợp lệ",
+      "authFailed": "Tài khoản hoặc mật khẩu không hợp lệ",
+      "rateLimited": "Thử quá nhiều lần. Vui lòng thử lại sau",
+      "forbidden": "Bạn không được phép thực hiện hành động này.",
+      "orderStatusInvalid": "Trạng thái đơn hàng không cho phép hành động này",
+      "notFound": "Không tìm thấy dữ liệu {0}",
+      "outOfStock": "Tạm Hết Hàng",
+      "accountBanned": "Tài khoản của bạn bị tạm khóa.",
+      "systemError": "Dịch vụ đang bận — vui lòng thử lại sau",
+      "paramInvalid": "Tham số yêu cầu không hợp lệ"
+    }
+  },
+  "appLoading": {
+    "a11y": "Đang tải ứng dụng",
+    "title": "Cửa hàng Hộp Bí ẩn",
+    "subtitle": "Đang tải thế giới unboxing của bạn…",
+    "badge": "Hộp"
+  },
+  "boxDetailsData": {
+    "quoting": "Đang tính tổng...",
+    "quoteFailed": "Báo giá không thành công: {{error}}",
+    "payAmount": "Thanh toán {{amount}} (bao gồm phí vận chuyển/giảm giá)",
+    "referencePrice": "Ước tính {{amount}} ({{drawCount}} lần rút)",
+    "purchaseLimitFailed": "Tải giới hạn mua không thành công: {{message}}",
+    "favoriteLoadFailed": "Tải trạng thái yêu thích không thành công: {{message}}",
+    "favoriteAdded": "Đã thêm vào mục ưa thích",
+    "favoriteRemoved": "Đã xóa khỏi mục yêu thích"
+  },
+  "boxDisplay": {
+    "poolSold": "{{count}} đã bán",
+    "promoNewcomer": "Ưu đãi cho người mới đến · rút thăm đầu tiên",
+    "promoLowStock": "Chỉ còn lại {{count}}",
+    "promoHot": "{{count}} đã bán · hot",
+    "promoPity": "Loạt Pity · tỷ lệ cược được tiết lộ",
+    "promoPriceSurprise": "Rút thăm bất ngờ {{price}}",
+    "promoDefault": "Tỷ lệ cược cao · xác thực"
+  },
+  "boxList": {
+    "defaultHint": "Nhấn để xem chi tiết và trả phòng",
+    "openNow": "Mở Ngay",
+    "a11y": "{{name}}, giá {{price}}"
+  },
+  "buyout": {
+    "lockActive": "Khóa mua lại · Còn {{seconds}} giây",
+    "lockExpired": "Khóa mua lại đã hết hạn",
+    "poolRemaining": "Sẽ mua tất cả {{count}} lần rút thăm còn lại",
+    "lockActiveA11y": "Khóa mua lại, còn {{seconds}} giây, còn {{remaining}} lượt rút",
+    "lockExpiredA11y": "Khóa mua lại đã hết hạn, còn lại {{remaining}} lượt rút thăm",
+    "lockProgressA11y": "Tiến độ khóa mua lại {{percent}} phần trăm"
+  },
+  "cabinet": {
+    "title": "Chọn một vị trí",
+    "hint": "Nhấn vào một số để đặt trước (~60 giây), sau đó thanh toán để mở",
+    "loading": "Đang tải vị trí…",
+    "statusAvailable": "Còn trống",
+    "statusReserved": "đã đặt",
+    "statusSold": "đã bán",
+    "slotA11y": "Khe {{no}}, {{status}}",
+    "hintTitle": "Thẻ gợi ý",
+    "hintUse": "Sử dụng gợi ý",
+    "hintRemaining": "{{count}} gợi ý còn lại ngày hôm nay · {{cards}} thẻ",
+    "hintExcluded": "Đã loại trừ: {{quality}}",
+    "hintFailed": "Gợi ý không thành công: {{message}}",
+    "reserveCountdown": "Dự trữ sẽ hết hạn sau {{seconds}}giây",
+    "shakeOpen": "Gợi ý lắc",
+    "shakeOpenA11y": "Mở gợi ý rung lắc",
+    "shakeTitle": "Lắc cho gợi ý",
+    "shakeSubtitle": "Lắc để loại trừ một cấp độ chất lượng (sử dụng thẻ gợi ý)",
+    "shakeCta": "Rung",
+    "shakeCtaA11y": "Lắc cho gợi ý",
+    "shakeLoading": "Đang gợi ý...",
+    "shakeClose": "Đóng",
+    "shakeCloseA11y": "Đóng gợi ý rung lắc"
+  },
+  "catalog": {
+    "mallLoadFailed": "Tải trung tâm mua sắm không thành công: {{message}}",
+    "homeLoadFailed": "Tải trang chủ không thành công: {{message}}",
+    "noNewcomerBox": "Không có hộp dành cho người mới — hãy thử lại sau",
+    "noBoxes": "Không có hộp nào — hãy thử lại sau"
+  },
+  "ceremonyTier": {
+    "TREASURE_LEGEND": "Huyền Thoại Kho Báu",
+    "PEERLESS": "Vô song",
+    "TREASURE_PEERLESS": "Bảo vật vô song",
+    "GENERAL": "Phổ biến",
+    "HIDDEN": "Ẩn"
+  },
+  "commission": {
+    "title": "Phí hoa hồng",
+    "totalLabel": "Tổng hoa hồng",
+    "sectionTitle": "Lịch sử hoa hồng",
+    "sectionHint": "(6 tháng giữ lại)",
+    "defaultRemark": "Phí hoa hồng",
+    "emptyTitle": "Không có bản ghi hoa hồng",
+    "emptyDesc": "Kiếm hoa hồng khi người được mời mua hàng",
+    "goPromotion": "Truy cập mục giới thiệu"
+  },
+  "communityTopics": {
+    "shareDraft": "#{{tag}} Tôi đã kéo {{tier}}{{productName}} từ 「{{boxName}}」!\norderId={{orderId}}\nproductId={{productId}}",
+    "tags": {
+      "晒单": "Hiện",
+      "传说": "Huyền thoại",
+      "隐藏": "Ẩn",
+      "整盒": "Trọn hộp",
+      "回血": "Rút tiền"
+    }
+  },
+  "confirmDialog": {
+    "closeA11y": "Đóng hộp thoại xác nhận"
+  },
+  "currency": {
+    "luckyCoinsDesc": "Kiếm xu may mắn từ việc nhận phòng hàng ngày — đổi lấy các đặc quyền và sự kiện.",
+    "starStonesDesc": "Star stone là điểm tăng trưởng từ lời mời và sự kiện — xem thông báo hoạt động.",
+    "currentLabel": "Hiện tại {{name}}",
+    "goCheckIn": "Ngày đến",
+    "goWelfare": "Trung tâm phúc lợi"
+  },
+  "dataSync": {
+    "addressError": "Địa chỉ: {{message}}",
+    "orderError": "Đơn hàng: {{message}}",
+    "mallError": "Trung tâm thương mại: {{message}}",
+    "balanceError": "Số dư: {{message}}",
+    "balanceLogsError": "Nhật ký số dư: {{message}}",
+    "partialSyncFailed": "Một phần dữ liệu chưa đồng bộ: {{message}}"
+  },
+  "drawPack": {
+    "closeA11y": "Đóng phương thức gói rút thăm",
+    "sheetA11y": "Ưu đãi gói rút thăm",
+    "title": "Gói rút thăm",
+    "close": "Đóng",
+    "poolRemaining": "Pool còn lại {{remaining}}/{{total}}",
+    "wholeBox": "Cả hộp {{count}} lượt · {{price}}",
+    "wholeBoxEstimate": "~{{count}} lượt mỗi hộp (tùy tồn kho)",
+    "optionA11y": "{{label}}, giá {{price}}{{best}}",
+    "bestValue": "Đáng tiền nhất",
+    "bestTag": "Đáng tiền nhất",
+    "addressRequired": "Thêm địa chỉ giao hàng trước khi thanh toán",
+    "addressRequiredA11y": "Thêm địa chỉ giao hàng trước khi thanh toán",
+    "confirmA11y": "Xác nhận rút thăm",
+    "confirmingA11y": "Tạo đơn hàng",
+    "confirm": "Xác nhận rút thăm",
+    "confirming": "Tạo đơn hàng"
+  },
+  "drawPackMath": {
+    "teaser": "{{count}}-pack tiết kiệm {{saved}} · từ {{perDraw}}/draw",
+    "progressHint": "Thêm {{need}} cho {{count}} -pack- tiết kiệm ~{{saved}}"
+  },
+  "drawQueue": {
+    "yourTurn": "Lượt của bạn! Thanh toán và mở cửa ngay",
+    "yourTurnToast": "Đến lượt bạn — hãy sớm mở hộp",
+    "waiting": "Trong hàng đợi: {{position}} / {{total}}",
+    "joining": "Đang tham gia hàng đợi…",
+    "panelA11y": "Trạng thái hàng đợi",
+    "expiringSoon": "Hàng đợi sẽ hết hạn sau ~{{seconds}}giây — hành động ngay",
+    "validMinutes": "Hàng đợi có giá trị trong {{minutes}} phút",
+    "queueMeta": "{{size}} trong hàng đợi · ước tính chờ {{wait}}",
+    "waitUnknown": "Tính toán",
+    "viewRoom": "Xem phòng xếp hàng",
+    "viewRoomA11y": "Mở phòng xếp hàng",
+    "roomTitle": "Phòng xếp hàng",
+    "roomCloseA11y": "Đóng phòng xếp hàng",
+    "feedTitle": "Tiết lộ trực tiếp",
+    "feedEmpty": "Chưa tiết lộ",
+    "feedTicker": "{{name}} đã nhận được {{product}}{{lastOne}}",
+    "feedLastOne": "Nhát cuối cùng."
+  },
+  "effectProfile": {
+    "GENERAL": {
+      "title": "Tiết lộ hoàn tất",
+      "tierLabel": "Tiêu chuẩn"
+    },
+    "HIDDEN": {
+      "title": "Cấp độ ẩn!",
+      "tierLabel": "Ẩn"
+    },
+    "LEGENDARY": {
+      "title": "Bùng nổ huyền thoại!",
+      "tierLabel": "Huyền thoại"
+    }
+  },
+  "errorBoundary": {
+    "title": "Đã xảy ra sự cố",
+    "description": "Vui lòng thử lại hoặc về nhà và nhập lại.",
+    "unknown": "Lỗi không xác định",
+    "retryA11y": "Thử tải lại trang",
+    "homeA11y": "Về nhà và thử lại",
+    "home": "Về Trang Chủ",
+    "retry": "Thử lại"
+  },
+  "exchangeMall": {
+    "title": "Cửa hàng phân mảnh",
+    "titleAdvanced": "Trao đổi nâng cao",
+    "balanceSummary": "Phân đoạn: {{balance}} · {{affordable}}/{{total}} có thể quy đổi",
+    "exchangeSuccess": "Đã đổi thành công",
+    "emptyTitle": "Không có gì để đổi",
+    "emptyDesc": "Phân tích giải thưởng kho để kiếm các mảnh vỡ",
+    "goWarehouse": "Nhà kho",
+    "skuMeta": "Chi phí {{cost}} · Cổ phiếu {{stock}} · {{percent}}%",
+    "exchangeA11y": "Đổi {{name}}",
+    "exchangeNow": "Đổi ngay bây giờ."
+  },
+  "fairness": {
+    "title": "Thực hiện xác minh tính công bằng",
+    "copyResult": "Xác minh bản sao",
+    "shareResult": "Xác minh chia sẻ",
+    "copied": "Đã sao chép xác minh",
+    "emptyTitle": "Không có hồ sơ xác minh",
+    "emptyDesc": "Đơn hàng có thể chưa được tiết lộ hoặc hồ sơ đang chờ xử lý",
+    "hint": "Mỗi lần rút thăm nhận được một hạt giống máy chủ và hàm băm mà bạn có thể xác minh độc lập.",
+    "quality": "Bậc {{type}}",
+    "verifiedOk": "Đã kiểm",
+    "verifiedBad": "Xác minh không hoàn thành",
+    "verifyHeader": "Xác minh tính công bằng của đơn hàng {{orderId}}"
+  },
+  "favorites": {
+    "title": "Yêu thích",
+    "loadFailed": "Không thể tải mục yêu thích ({{id}}...)",
+    "emptyTitle": "Không có mục yêu thích",
+    "emptyDesc": "Thêm mục yêu thích từ thông tin hộp",
+    "goBrowse": "Duyệt",
+    "unfavoriteA11y": "Gỡ bỏ mục ưa thích",
+    "remove": "Xóa"
+  },
+  "feedback": {
+    "title": "Phản hồi",
+    "sectionContent": "Phản hồi của bạn...",
+    "sectionHistory": "Lịch sử",
+    "contentPlaceholder": "Mô tả vấn đề hoặc đề xuất của bạn…",
+    "photoPlaceholder": "URL hình ảnh (được phân tách bằng dấu phẩy, tùy chọn)",
+    "photoA11y": "URL hình ảnh phản hồi",
+    "uploadPhoto": "Tải lên từ thư viện",
+    "submit": "Gửi",
+    "submitting": "Đang nộp",
+    "submitSuccess": "Cảm ơn — đã nhận được phản hồi",
+    "submitFailed": "Gửi không thành công — thử lại",
+    "emptyHistory": "Chưa có lịch sử!"
+  },
+  "homeBanner": {
+    "opsRecommend": "Trang trình bày nổi bật · {{count}}"
+  },
+  "infoPage": {
+    "subtitle": "Thông tin"
+  },
+  "invite": {
+    "title": "Trung tâm mời",
+    "tabPromotion": "Giới thiệu của tôi",
+    "tabTeam": "Đội",
+    "tabCommission": "Phí hoa hồng"
+  },
+  "ipTheme": {
+    "title": "Thư viện IP",
+    "hint": "Duyệt các hộp IP nóng theo danh mục — các hồ bơi hạn chế và các giọt mới xuất hiện ở đây",
+    "emptyTitle": "Chưa có chủ đề nào",
+    "emptyDesc": "Các hộp có danh mục sẽ xuất hiện ở đây khi được liệt kê",
+    "goHome": "Duyệt tìm nhà",
+    "hotIp": "IP nổi bật",
+    "sectionCount": "{{count}} bộ"
+  },
+  "leaderboard": {
+    "title": "Bảng may mắn",
+    "tabWeek": "Tuần này",
+    "tabMonth": "Tháng này",
+    "emptyTitle": "Không có hồ sơ cấp cao",
+    "emptyDesc": "Kéo huyền thoại hoặc ẩn để xếp hạng",
+    "highCount": "{{count}} cấp cao",
+    "myRank": "Hạng của tôi",
+    "notRanked": "Chưa có hạng"
+  },
+  "mall": {
+    "title": "TTTM",
+    "tags": "Xác thực  |  Được tuyển chọn  |  Vận chuyển nhanh",
+    "searchA11y": "Tìm kiếm sản phẩm trung tâm thương mại",
+    "searchPlaceholder": "Tìm kiếm sản phẩm",
+    "searchBtn": "Tìm kiếm",
+    "searchClear": "Xóa tìm kiếm",
+    "searchResultHint": "Kết quả cho “{{keyword}}”",
+    "emptySearch": "Không tìm thấy sản phẩm nào cho “{{keyword}}”. Hãy thử từ khóa khác.",
+    "categoryAll": "Tất cả",
+    "currentCategory": "Tên danh mục",
+    "fallbackNew": "Hàng mới nhập",
+    "fallbackDigital": "Kỹ thuật số",
+    "fallbackApple": "Vùng Apple",
+    "fallbackLife": "Lối sống ",
+    "fallbackHot": "Bán Chạy Nhất",
+    "boxNewcomer": "Mới",
+    "boxA11y": "{{name}}, giá {{price}}"
+  },
+  "memberLevel": {
+    "titles": {
+      "0": "Tân Binh",
+      "1": "Đồng",
+      "2": "Bạc",
+      "3": "Vàng",
+      "4": "Màu bạch kim",
+      "5": "Quả Trám",
+      "6": "ThS",
+      "7": "Đại Sư phụ",
+      "8": "Chú Giải",
+      "9": "Hạng Supreme "
+    }
+  },
+  "order": {
+    "status": {
+      "unknown": "Không xác định",
+      "TO_BE_PAID": "Không tính lương",
+      "TO_BE_DELIVERED": "Vận chuyển",
+      "TO_BE_RECEIVED": "Để nhận được",
+      "FINISHED": "Hoàn thành",
+      "COMPLETED": "Hoàn thành",
+      "CLOSED": "Đã đóng",
+      "REFUNDED": "Đã hoàn tiền"
+    }
+  },
+  "orderActions": {
+    "paySuccessRevealed": "Thanh toán thành công — giải thưởng được tiết lộ",
+    "autoRefreshFailed": "Tự động làm mới đơn hàng không thành công: {{message}}",
+    "pendingPayment": "Đang chờ thanh toán {{orderId}}… — thanh toán tại nhà"
+  },
+  "orderUtils": {
+    "phoneUnbound": "Không có số điện thoại nào được liên",
+    "boxOrderFallback": "Hộp mù · {{id}}",
+    "boxOrderDefault": "Thứ tự hộp mù",
+    "timeUnknown": "Thời gian không xác định",
+    "couponFallback": "Mã giảm giá",
+    "couponWithAmount": "{{name}} (giảm {{amount}})"
+  },
+  "oss": {
+    "noUrl": "Tải lên thành công nhưng không có URL tệp nào được trả về"
+  },
+  "paymentError": {
+    "title": "Thiết lập thanh toán không thành công",
+    "orderId": "Mã đặt phòng",
+    "orderCopied": "Đã sao chép mã đơn hàng",
+    "retry": "Thử thanh toán lại",
+    "copyOrder": "Mã Đơn",
+    "close": "Đóng",
+    "channelWechat": "Không thể tải thanh toán trước WeChat Pay.",
+    "channelVnpay": "Không thể tải thanh toán trước VNPay.",
+    "channelMomo": "Không thể tải thanh toán trước MoMo."
+  },
+  "playGuide": {
+    "title": "Cách chơi",
+    "p1": "Chọn một chuỗi hộp bí ẩn và mở thông tin chi tiết để xem tổng giải thưởng và tỷ lệ cược đã công bố.",
+    "p2": "Chọn số lần rút thăm và địa chỉ giao hàng, sau đó thanh toán — giải thưởng sẽ tự động tiết lộ sau khi thanh toán.",
+    "p3": "Chiến thắng sẽ được chuyển đến nhà kho của bạn; bạn có thể vận chuyển, đổi lấy số dư hoặc niêm yết trên thị trường.",
+    "p4": "Các nhóm người dùng mới và các sự kiện hạn chế xuất hiện trên băng chuyền tại nhà và phần hoạt động."
+  },
+  "priceInput": {
+    "placeholder": "Nhập giá "
+  },
+  "privacyPage": {
+    "p1": "Chúng tôi chỉ thu thập và sử dụng dữ liệu tài khoản, đơn hàng và thiết bị khi cần thiết để cung cấp dịch vụ.",
+    "p2": "Bạn có thể đăng xuất bất cứ lúc nào trong Cài đặt; liên hệ với bộ phận hỗ trợ để xóa tài khoản của bạn.",
+    "p3": "Tiếp tục sử dụng có nghĩa là bạn đồng ý với các điều khoản dịch vụ và chính sách quyền riêng tư."
+  },
+  "prizeEffect": {
+    "meta": "Bậc giải thưởng và cường độ hiệu ứng được đối sánh tự động"
+  },
+  "probability": {
+    "title": "Tiết lộ xác suất",
+    "noConfig": "Không có cấu hình xác suất",
+    "legendary": "Huyền thoại: {{rate}}",
+    "hidden": "Ẩn: {{rate}}",
+    "general": "được tính giá đồng như nhau",
+    "updatedAt": "Thời gian cập nhật",
+    "historyTitle": "Thay đổi lịch sử",
+    "historyRow": "{{time}} · Huyền thoại {{legendary}} / Ẩn {{hidden}} / Chung {{general}}",
+    "disclaimer": "Mức là cấp hộp (điểm cơ bản được hiển thị dưới dạng phần trăm). Các đợt rút thăm thực tế tuân theo kiểm kê và quy tắc của máy chủ. Thay đổi được ghi lại. Sau khi thanh toán, xác minh rút thăm theo thứ tự chi tiết thông qua kiểm tra hạt giống/băm. Người dùng dưới 18 tuổi không thể mua. Chi tiêu có trách nhiệm. Xác nhận số lần rút thăm và số tiền trước khi thanh toán; hàng hóa ảo ngẫu nhiên không được hoàn lại ngoại trừ các vấn đề về chất lượng. Câu hỏi: gửi phản hồi trong phần Hồ sơ — trả lời trong vòng 3 ngày làm việc."
+  },
+  "profileActions": {
+    "nicknameUpdated": "Đã cập nhật biệt danh",
+    "avatarUpdated": "Hình đại diện của bạn được cập nhật",
+    "addressLoadFailed": "Không thể tải địa chỉ: {{message}}"
+  },
+  "promotion": {
+    "title": "Giới thiệu của tôi",
+    "invitees": "Thành phần mời tham dự:",
+    "inviteCode": "Mã số / Code:",
+    "shareInvite": "Chia sẻ lời mời",
+    "shareDialogTitle": "Mời bạn bè",
+    "shareMessage": "Hãy tham gia cùng tôi trên Hộp Bí ẩn! Mã mời của tôi: {{code}}\n{{link}}{{extra}}",
+    "sharePoster": "Chia sẻ áp phích",
+    "reached": "Đã đạt",
+    "progress": "{{current}}/{{target}} tiến độ",
+    "colSource": "Nguồn",
+    "colCommission": "Phí hoa hồng",
+    "colTime": "Thời gian",
+    "emptyTitle": "Không có hồ sơ giới thiệu",
+    "emptyDesc": "Mời bạn bè kiếm hoa hồng tại đây",
+    "posterBoxName": "Mời bạn bè",
+    "feedSnippet": "{{name}} đã mở hộp {{product}}",
+    "extrasMilestone": "Các mốc quan trọng: {{message}}",
+    "extrasFeed": "Nguồn cấp dữ liệu: {{message}}"
+  },
+  "qualityFilter": {
+    "all": "Tất cả",
+    "general": "Tổng quan",
+    "hidden": "Ẩn",
+    "advanced": "Nâng cao",
+    "legendary": "Huyền thoại",
+    "filterA11y": "Nhãn bộ lọc"
+  },
+  "qualityTier": {
+    "LEGENDARY": "Huyền thoại",
+    "LEGEND": "Huyền thoại",
+    "EPIC": "Cực phẩm",
+    "RARE": "Hiếm",
+    "ADVANCED": "Nâng cao",
+    "HIDDEN": "Ẩn",
+    "GENERAL": "Tiêu chuẩn"
+  },
+  "revealA11y": {
+    "gotPrize": "Bạn có {{tier}}: {{name}}",
+    "gotPrizeNoName": "Bạn đã nhận được giải thưởng {{tier}}"
+  },
+  "revealShare": {
+    "brand": "Bỏ chọn báo cáo",
+    "burstStamp": "THẢ CHÚ THÍCH",
+    "footer": "Mock env · chia sẻ hình ảnh chỉ để hiển thị"
+  },
+  "seriesStats": {
+    "title": "Thống KÊ vòng quay SỐ",
+    "empty": "Không có dữ liệu rút thăm lịch sử",
+    "meta": "Tổng cộng {{name}} · {{count}} lần rút thăm",
+    "metaNoName": "Tổng cộng {{count}} lượt rút",
+    "configured": "Tỷ lệ được tiết lộ (điểm cơ bản): Huyền thoại {{legendary}} / Ẩn {{hidden}} / Chung {{general}}",
+    "tierRow": "{{count}} · thực tế {{percent}}%"
+  },
+  "team": {
+    "title": "Nhóm của tôi",
+    "inviteFriend": "Mời bạn bè",
+    "memberCount": "Thành viên nhóm: {{count}}",
+    "inviteCode": "Mã mời: {{code}}",
+    "level1": "Mức 1",
+    "level2": "Tầng 2",
+    "emptyTitle": "Thành viên của nhóm",
+    "emptyDesc": "Mời bạn bè xem tại đây"
+  },
+  "trust": {
+    "viewDisclosure": "Xem tiết lộ xác suất đầy đủ →"
+  },
+  "upload": {
+    "permissionRequired": "Yêu cầu quyền truy cập thư viện ảnh",
+    "failed": "Tải lên hình ảnh không thành công"
+  },
+  "vip": {
+    "title": "LỢI ÍCH VIP",
+    "vipActive": "VIP đang hoạt động",
+    "regularUser": "Người dùng tiêu chuẩn",
+    "levelTitle": "Cấp {{level}} {{title}}",
+    "upgradeHint": "{{count}} xu may mắn hơn để lên cấp",
+    "maxLevel": "Đã đạt đến cấp độ tối đa!",
+    "checkedTodaySuffix": "· Nhận phòng hôm nay",
+    "checkInPendingSuffix": "· Không nhận phòng — truy cập Phúc lợi",
+    "vipUntil": "VIP đến {{time}}",
+    "noVip": "Không có VIP đang hoạt động — định giá tiêu chuẩn khi thanh toán",
+    "benefitsTitle": "Quyền Lợi",
+    "benefit1": "Giảm giá cho khách VIP trả phòng (xem quyết toán)",
+    "benefit2": "Tiếp cận sớm các hồ bơi hạn chế và điểm giao dịch nhỏ lẻ",
+    "benefit3": "SLA ưu tiên hỗ trợ và vận chuyển",
+    "benefit4": "Gói cấp độ xếp chồng với phần thưởng nhận phòng",
+    "legal": "Cấp độ và phần thưởng được định cấu hình bởi các đơn vị vận hành — xem trang hoạt động và thanh toán. Chi tiêu có trách nhiệm cho các lần rút thăm ngẫu nhiên."
+  },
+  "vnpay": {
+    "title": "VNPay thanh toán",
+    "orderId": "Mã đặt phòng",
+    "statusReady": "Liên kết thanh toán đã sẵn sàng",
+    "statusMissing": "Không thể tải liên kết thanh toán",
+    "tip": "Chạm vào Mở VNPay để hoàn tất thanh toán trong trình duyệt của bạn, sau đó quay lại ứng dụng.",
+    "noPrepay": "Trả trước không thành công — thử lại hoặc liên hệ với bộ phận hỗ trợ.",
+    "sandbox": "Chế độ sandbox",
+    "open": "Mở VNPay",
+    "openFailed": "Không thể mở VNPay",
+    "refreshStatus": "Tôi đã thanh toán — làm mới trạng thái",
+    "copyOrder": "Số đơn hàng",
+    "orderCopied": "Đã sao chép số đơn hàng",
+    "contactSupport": "Liên hệ hỗ trợ",
+    "retryPrepay": "Thử trả trước lần nữa",
+    "mockPay": "Sử dụng thanh toán mô phỏng (dev)",
+    "close": "Đóng"
+  },
+  "welfare": {
+    "checkInToday": "Ngày đến",
+    "checkInDone": "Nhận phòng hôm nay",
+    "openCoupons": "Xem phiếu giảm giá của tôi",
+    "heroTitle": "Phần Thưởng Hàng Ngày",
+    "dailyCheckIn": "Điểm Danh Hằng Ngày",
+    "streakMeta": "Chuỗi {{days}}ngày · +{{coins}} xu may mắn",
+    "checkInSuccess": "Đã nhận phòng · +{{coins}} xu may mắn",
+    "pageTitle": "Trung tâm phúc lợi"
+  },
+  "winRecord": {
+    "title": "Bảng tin trực tiếp",
+    "closeA11y": "Đóng nguồn cấp dữ liệu",
+    "banner": "Bản ghi rút thăm thực tế (biệt danh được che dấu)",
+    "fallbackName": "Hạng mục bể bơi",
+    "line": "{{displayName}} đã nhận được {{productName}}{{lastOne}}",
+    "lastOne": "Nhát cuối cùng.",
+    "empty": "Chưa có bản ghi nào — rút thăm xuất hiện ở đây",
+    "emptyFilter": "Không có bản ghi cho cấp độ này — hãy thử bộ lọc khác",
+    "loadMore": "Đang tải thêm"
+  }
+}

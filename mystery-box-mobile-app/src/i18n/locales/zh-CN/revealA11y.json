@@ -1,0 +1,6 @@
+{
+  "revealA11y": {
+    "gotPrize": "获得{{tier}}：{{name}}",
+    "gotPrizeNoName": "获得{{tier}}奖品"
+  }
+}

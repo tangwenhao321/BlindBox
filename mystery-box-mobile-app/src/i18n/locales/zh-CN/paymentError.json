@@ -1,0 +1,13 @@
+{
+  "paymentError": {
+    "title": "支付发起失败",
+    "orderId": "订单号 {{id}}",
+    "orderCopied": "订单号已复制",
+    "retry": "重试支付",
+    "copyOrder": "复制订单号",
+    "close": "关闭",
+    "channelWechat": "微信支付预下单失败，请重试或联系客服。",
+    "channelVnpay": "VNPay 预下单失败，请重试或联系客服。",
+    "channelMomo": "MoMo 预下单失败，请重试或联系客服。"
+  }
+}

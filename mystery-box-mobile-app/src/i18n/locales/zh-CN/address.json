@@ -1,0 +1,33 @@
+{
+  "address": {
+    "editTitle": "编辑地址",
+    "addTitle": "新增地址",
+    "recipient": "收件人",
+    "recipientPlaceholder": "请填写收货人姓名",
+    "phone": "手机号",
+    "phonePlaceholder": "请填写手机号",
+    "region": "所在地区",
+    "selectRegion": "选择所在地区",
+    "details": "详细地址",
+    "detailsPlaceholder": "街道、小区、门牌号等",
+    "houseNumber": "门牌号",
+    "houseNumberPlaceholder": "楼栋、单元、室号",
+    "isDefault": "默认地址",
+    "saving": "保存中...",
+    "save": "保存地址",
+    "modalSubtitle": "请填写可用于配送识别的完整地址信息",
+    "bannerText": "支付前请先填写收货地址",
+    "bannerAdd": "去填写",
+    "bannerAddA11y": "去填写收货地址",
+    "bannerDismissA11y": "关闭提示",
+    "regionSearchPlaceholder": "搜索省 / 市 / 区",
+    "regionSearchA11y": "搜索地区",
+    "regionEmpty": "未找到匹配地区",
+    "regionCloseA11y": "关闭地区选择",
+    "regionSheetA11y": "选择所在地区",
+    "district": "郡/县",
+    "districtPlaceholder": "例如 Quận 1",
+    "ward": "坊/社",
+    "wardPlaceholder": "例如 Phường Bến Nghé"
+  }
+}

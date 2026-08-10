@@ -1,0 +1,10 @@
+{
+  "seriesStats": {
+    "title": "系列出货统计",
+    "empty": "暂无历史开奖数据",
+    "meta": "{{name}} · 累计 {{count}} 次开奖",
+    "metaNoName": "累计 {{count}} 次开奖",
+    "configured": "公示概率（万分比）：传说 {{legendary}} / 隐藏 {{hidden}} / 普通 {{general}}",
+    "tierRow": "{{count}} 次 · 实际 {{percent}}%"
+  }
+}

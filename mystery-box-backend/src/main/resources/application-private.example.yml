@@ -1,0 +1,47 @@
+# Copy to application-private.yml (gitignored) and customize.
+spring:
+  datasource:
+    username: root
+    password: "CHANGE_ME"
+
+wx:
+  miniapp:
+    appid: local-appid
+    secret: local-secret
+  pay:
+    app-id: local-app-id
+    mch-id: local-mch-id
+    apiv3-key: local-apiv3-key
+    cert-serial-no: local-cert-serial
+    notify-url: http://localhost:9912/front/mystery-box-order/notify/pay/wechat
+
+oss:
+  provider: local
+  local:
+    base-dir: ./data/uploads
+    public-base-url: /uploads
+
+sms:
+  provider: none
+
+tenant:
+  map:
+    key: local-tenant-key
+
+security:
+  admin-action-otp: "LocalDevOtp2026!"
+  default-admin:
+    enabled: true
+    account: admin
+    password: "Admin@123456"
+
+# Optional production integrations (also see application-dev.yml env vars)
+logistics:
+  kuaidi100:
+    enabled: false
+    customer: ""
+    key: ""
+ops:
+  low-stock:
+    threshold: 5
+    webhook-url: ""

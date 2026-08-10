@@ -1,0 +1,26 @@
+{
+  "warehouseShip": {
+    "successTitle": "Ship request submitted",
+    "successSub": "Warehouse will process soon — track under Ship requests",
+    "viewRequests": "View ship requests",
+    "done": "Done",
+    "title": "Batch ship request",
+    "selectedCount": "{{count}} items selected",
+    "noItemsWarn": "No shippable items — go back and select",
+    "addressLabel": "Shipping address",
+    "manageAddress": "Manage addresses",
+    "addAddressFirst": "Add a shipping address first",
+    "selectAddressHint": "Tap an address card above to select",
+    "quoteRow": "Warehouse {{order}} · Marketplace {{market}}",
+    "deliveryFee": "Shipping {{amount}}",
+    "payAmount": "Total {{amount}}",
+    "quotingWaiting": "Calculating shipping…",
+    "quotingNeedAddress": "Select address to quote shipping",
+    "selectAddressError": "Select a shipping address",
+    "waitQuoteError": "Wait for shipping quote",
+    "retrySubmit": "Retry submit",
+    "submitting": "Submitting…",
+    "submit": "Confirm ship request",
+    "successTrackHint": "Track progress anytime under Profile → Ship requests."
+  }
+}

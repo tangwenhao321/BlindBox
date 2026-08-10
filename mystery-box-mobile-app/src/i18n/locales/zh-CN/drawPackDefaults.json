@@ -1,0 +1,10 @@
+{
+  "drawPackDefaults": {
+    "pack1": "一发入魂",
+    "pack5": "霸气五连",
+    "pack10": "豪气十连",
+    "pack50": "欧皇五十连",
+    "drawCount": "{{count}}连",
+    "discountTag": "限时减{{amount}}元"
+  }
+}

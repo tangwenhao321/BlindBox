@@ -1,0 +1,12 @@
+{
+  "boxDetailsData": {
+    "quoting": "Calculating total…",
+    "quoteFailed": "Quote failed: {{error}}",
+    "payAmount": "Pay {{amount}} (incl. shipping/discounts)",
+    "referencePrice": "Est. {{amount}} ({{drawCount}} draws)",
+    "purchaseLimitFailed": "Purchase limit load failed: {{message}}",
+    "favoriteLoadFailed": "Favorite status load failed: {{message}}",
+    "favoriteAdded": "Added to favorites",
+    "favoriteRemoved": "Removed from favorites"
+  }
+}

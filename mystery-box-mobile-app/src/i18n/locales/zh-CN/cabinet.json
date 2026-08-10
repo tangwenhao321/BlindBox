@@ -1,0 +1,26 @@
+{
+  "cabinet": {
+    "title": "柜面选盒",
+    "hint": "点击编号锁定柜位（约 60 秒），支付后开盒",
+    "loading": "加载柜位…",
+    "statusAvailable": "可选",
+    "statusReserved": "已锁定",
+    "statusSold": "已售",
+    "slotA11y": "柜位 {{no}}，{{status}}",
+    "hintTitle": "提示卡",
+    "hintUse": "使用提示卡",
+    "hintRemaining": "今日剩余 {{count}} 次 · 余额 {{cards}} 张",
+    "hintExcluded": "已排除：{{quality}}",
+    "hintFailed": "提示失败：{{message}}",
+    "reserveCountdown": "锁位剩余 {{seconds}}s",
+    "shakeOpen": "摇盒提示",
+    "shakeOpenA11y": "打开摇盒提示",
+    "shakeTitle": "摇一摇提示",
+    "shakeSubtitle": "摇一摇排除一种品质（消耗提示卡）",
+    "shakeCta": "摇一摇",
+    "shakeCtaA11y": "摇一摇获取提示",
+    "shakeLoading": "提示中…",
+    "shakeClose": "关闭",
+    "shakeCloseA11y": "关闭摇盒提示"
+  }
+}

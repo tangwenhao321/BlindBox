@@ -1,0 +1,11 @@
+{
+  "qualityTier": {
+    "LEGENDARY": "Legendary",
+    "LEGEND": "Legendary",
+    "EPIC": "Epic",
+    "RARE": "Rare",
+    "ADVANCED": "Advanced",
+    "HIDDEN": "Hidden",
+    "GENERAL": "Standard"
+  }
+}

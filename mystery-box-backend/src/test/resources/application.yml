@@ -1,0 +1,62 @@
+# Defaults for all @SpringBootTest runs (test overrides + dev/private from main profiles).
+spring:
+  profiles:
+    active: test,dev,private
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    out-of-order: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/mystery_box
+    username: root
+    password: ${DEV_DB_PASSWORD:Admin123#}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  data:
+    redis:
+      url: ${REDIS_URL:redis://127.0.0.1:6379/0}
+      repositories:
+        enabled: false
+  task:
+    scheduling:
+      enabled: false
+
+app:
+  draw:
+    realtime:
+      redis:
+        enabled: false
+
+payment:
+  mock-enabled: true
+
+wx:
+  miniapp:
+    appid: test-appid
+    secret: test-secret
+  pay:
+    app-id: test-app-id
+    mch-id: test-mch-id
+    apiv3-key: test-apiv3-key
+    cert-serial-no: test-cert-serial
+    notify-url: http://localhost:9912/front/mystery-box-order/notify/pay/wechat
+
+security:
+  rate-limit:
+    distributed: false
+
+leaderboard:
+  warmup:
+    delay-ms: 86400000
+
+oss:
+  provider: local
+  local:
+    base-dir: ./target/test-uploads
+    public-base-url: /uploads
+
+sms:
+  provider: none
+
+tenant:
+  map:
+    key: test-tenant-key

@@ -1,0 +1,8 @@
+{
+  "catalog": {
+    "mallLoadFailed": "商城加载失败：{{message}}",
+    "homeLoadFailed": "首页加载失败：{{message}}",
+    "noNewcomerBox": "暂无新人专享盲盒，请稍后重试",
+    "noBoxes": "暂无盲盒，请稍后再试"
+  }
+}

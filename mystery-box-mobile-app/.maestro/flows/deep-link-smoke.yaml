@@ -1,0 +1,7 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: smoke.yaml
+- openLink: mysterybox://messages
+- extendedWaitUntil:
+    visible: "消息中心"
+    timeout: 15000

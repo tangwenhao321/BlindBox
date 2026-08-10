@@ -1,0 +1,92 @@
+{
+  "common": {
+    "gotIt": "Đã hiểu"
+  },
+  "auth": {
+    "loginSyncHint": "Đăng nhập để đồng bộ đơn hàng, kho và số dư"
+  },
+  "productionEnv": {
+    "userBannerTitle": "Thông báo cấu hình",
+    "userBannerDismiss": "Đóng"
+  },
+  "offline": {
+    "queuedSubmitDetail": "Ngoại tuyến — {{action}} đã lưu; sẽ hoàn tất khi có mạng."
+  },
+  "payment": {
+    "retryPay": "Thử thanh toán lại",
+    "retentionAutoApplyHint": "Coupon sẽ tự áp dụng ở lần thanh toán tiếp theo."
+  },
+  "checkout": {
+    "trustSummaryTitle": "Trước khi thanh toán",
+    "trustLine1": "Kết quả ngẫu nhiên — xem xác suất ở trang hộp.",
+    "trustLine2": "Sau thanh toán phần thưởng vào kho — giao hàng hoặc đổi số dư.",
+    "trustLine3": "Dưới 18 tuổi không được mua; hoàn tiền theo quy định nền tảng."
+  },
+  "boxDetails": {
+    "advancedModesExpand": "Thêm chế độ mở ▾",
+    "advancedModesCollapse": "Ẩn chế độ nâng cao ▴",
+    "advancedModesExpandA11y": "Hiện xếp hàng, chọn ô, mua hết",
+    "advancedModesCollapseA11y": "Ẩn chế độ mở nâng cao",
+    "switchToInstant": "Chuyển mở ngay",
+    "switchToInstantA11y": "Chuyển sang chế độ mở ngay"
+  },
+  "warehouse": {
+    "approximateCountHint": "Dấu ~ nghĩa là số lượng có thể trễ nhẹ — xem danh sách để biết chính xác.",
+    "guideTitle": "Kho trong 3 bước",
+    "guideBody": "1) Chọn phần thưởng ở tab Sản phẩm · 2) Giao hàng hàng loạt · 3) Thanh toán phí ship và theo dõi tại Yêu cầu giao."
+  },
+  "warehouseShip": {
+    "successTrackHint": "Theo dõi tại Của tôi → Yêu cầu giao hàng."
+  },
+  "messages": {
+    "tabAction": "Cần xử lý",
+    "actionSection": "Cần chú ý",
+    "emptyActionTitle": "Không còn việc chờ",
+    "emptyActionDesc": "Đơn chưa thanh toán, cập nhật giao hàng và thông báo chưa đọc hiện ở đây",
+    "tabAll": "Tất cả",
+    "tabSystem": "Hệ thống",
+    "tabPay": "Chưa thanh toán",
+    "tabShip": "Giao hàng",
+    "tabCoupon": "Coupon",
+    "filterAll": "Tất cả",
+    "filterOrder": "Đơn hàng",
+    "filterRefund": "Hoàn tiền",
+    "filterMarketplace": "Chợ",
+    "filterShip": "Giao hàng",
+    "emptyDesc": "Đơn, hoàn tiền và thông báo hệ thống hiện ở đây",
+    "orderPayTitle": "Chưa thanh toán",
+    "orderPayBody": "「{{boxName}}」 chờ thanh toán",
+    "orderShipTitle": "Chờ giao",
+    "orderShipBody": "「{{boxName}}」 đã thanh toán — chờ giao",
+    "orderReceiveTitle": "Chờ nhận",
+    "orderReceiveBody": "「{{boxName}}」 đã giao — vui lòng kiểm tra",
+    "couponReminder": "Nhắc coupon",
+    "couponAvailable": "Bạn có {{count}} coupon khi thanh toán",
+    "couponEmpty": "Không có coupon",
+    "viewCoupons": "Xem coupon",
+    "systemSection": "Hệ thống",
+    "orderSection": "Đơn hàng",
+    "unread": "Chưa đọc",
+    "statusPay": "Chưa thanh toán",
+    "statusActivity": "Cập nhật",
+    "emptySystemTitle": "Không có thông báo hệ thống",
+    "emptySystemDesc": "Thanh toán, giao hàng, hoàn tiền và chợ hiện ở đây",
+    "emptyPayTitle": "Không có đơn chưa thanh toán",
+    "emptyPayDesc": "Đơn chưa thanh toán sau checkout hiện ở đây",
+    "emptyPayAction": "Xem tất cả đơn",
+    "emptyShipAction": "Đi tới kho",
+    "emptyActivityTitle": "Không có hoạt động",
+    "emptyActivityDesc": "Cập nhật đơn, giao hàng và thanh toán hiện ở đây"
+  },
+  "settings": {
+    "offlineQueueIdle": "Không có thao tác ngoại tuyến — sẽ tự đồng bộ khi có mạng."
+  },
+  "revealSummary": {
+    "verifyFairness": "Xác minh mở thưởng",
+    "verifyFairnessA11y": "Xác minh công bằng lần mở này"
+  },
+  "marketplace": {
+    "guideTitle": "Chợ hoạt động thế nào",
+    "guideBody": "Mua bằng số dư · người bán nhận ~95% (phí nền tảng 5%) · giao phần thưởng đã mua từ kho."
+  }
+}

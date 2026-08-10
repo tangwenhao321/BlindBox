@@ -1,0 +1,7 @@
+{
+  "analyticsQueue": {
+    "message": "埋点同步失败，{{count}} 条待上传（联网后将自动重试）",
+    "dismiss": "关闭",
+    "dismissA11y": "关闭埋点同步提示"
+  }
+}

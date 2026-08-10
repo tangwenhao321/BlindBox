@@ -1,0 +1,16 @@
+{
+  "spectator": {
+    "title": "观战揭晓",
+    "expired": "观战链接已过期",
+    "phaseUnknown": "等待中",
+    "phaseGap": "下一抽即将开始…",
+    "phasePlaying": "正在揭晓",
+    "progress": "第 {{current}} / {{total}} 抽",
+    "waitingHost": "等待主播揭晓…",
+    "roomSynced": "观战房间已同步",
+    "roomPolling": "正在通过轮询同步",
+    "readOnlyHint": "只读观战 — 仅展示结果",
+    "loadError": "无法加载观战链接",
+    "retry": "重试"
+  }
+}

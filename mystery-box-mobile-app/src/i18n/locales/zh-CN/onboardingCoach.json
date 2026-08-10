@@ -1,0 +1,13 @@
+{
+  "onboardingCoach": {
+    "step1Title": "① 选套开盒",
+    "step1Body": "点击「立即开箱」，选择抽数与模式。",
+    "step2Title": "② 确认支付",
+    "step2Body": "勾选协议后在确认单完成模拟支付。",
+    "step3Title": "③ 仓库收货",
+    "step3Body": "底部「仓库」查看已开赏品与物流。",
+    "next": "下一步",
+    "start": "开始体验",
+    "skip": "跳过"
+  }
+}

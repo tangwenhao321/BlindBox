@@ -1,0 +1,21 @@
+{
+  "mall": {
+    "title": "Mall",
+    "tags": "Authentic  |  Curated  |  Fast ship",
+    "searchA11y": "Search mall products",
+    "searchPlaceholder": "Search products",
+    "searchBtn": "Search",
+    "searchClear": "Clear search",
+    "searchResultHint": "Results for “{{keyword}}”",
+    "emptySearch": "No products found for “{{keyword}}”. Try another keyword.",
+    "categoryAll": "All",
+    "currentCategory": "Category: {{name}}",
+    "fallbackNew": "New arrivals",
+    "fallbackDigital": "Digital",
+    "fallbackApple": "Apple zone",
+    "fallbackLife": "Lifestyle",
+    "fallbackHot": "Best sellers",
+    "boxNewcomer": "New",
+    "boxA11y": "{{name}}, {{price}}"
+  }
+}

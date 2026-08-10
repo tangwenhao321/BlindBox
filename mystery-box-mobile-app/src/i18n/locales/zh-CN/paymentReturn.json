@@ -1,0 +1,15 @@
+{
+  "paymentReturn": {
+    "title": "支付结果",
+    "orderId": "订单号 {{id}}",
+    "confirming": "正在确认支付结果…",
+    "loadFailed": "加载订单失败",
+    "successTitle": "支付成功",
+    "successAmount": "已支付 {{amount}}",
+    "viewOrder": "查看订单",
+    "failTitle": "支付未完成",
+    "failHint": "如已扣款请稍后在订单页刷新；也可重新发起支付。",
+    "retryPay": "重新支付",
+    "backHome": "返回首页"
+  }
+}

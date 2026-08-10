@@ -1,0 +1,17 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- tapOn:
+    id: "profileTab"
+- tapOn: "消息"
+- assertVisible: "消息中心"
+- tapOn: "系统"
+- assertVisible:
+    text: "系统通知"
+    optional: true
+- tapOn:
+    text: "全部"
+    optional: true
+- back
+- assertVisible:
+    id: "profileTab"

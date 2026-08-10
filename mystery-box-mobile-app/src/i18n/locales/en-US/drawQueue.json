@@ -1,0 +1,21 @@
+{
+  "drawQueue": {
+    "yourTurn": "Your turn! Pay and open now",
+    "yourTurnToast": "It's your turn — open the box soon",
+    "waiting": "In queue: {{position}} / {{total}}",
+    "joining": "Joining queue…",
+    "panelA11y": "Queue status",
+    "expiringSoon": "Queue expiring in ~{{seconds}}s — act now",
+    "validMinutes": "Queue valid for {{minutes}} min",
+    "queueMeta": "{{size}} in queue · est. wait {{wait}}",
+    "waitUnknown": "calculating",
+    "viewRoom": "View queue room",
+    "viewRoomA11y": "Open queue room",
+    "roomTitle": "Queue room",
+    "roomCloseA11y": "Close queue room",
+    "feedTitle": "Live reveals",
+    "feedEmpty": "No reveals yet",
+    "feedTicker": "{{name}} got {{product}}{{lastOne}}",
+    "feedLastOne": " (last one)"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "productionEnv": {
+    "apiMissing": "未配置 EXPO_PUBLIC_API_BASE_URL",
+    "mockPaymentMode": "生产环境仍为模拟支付（EXPO_PUBLIC_PAYMENT_MODE=mock）",
+    "mockPaymentFlag": "EXPO_PUBLIC_MOCK_PAYMENT 仍为 true",
+    "sentrySdkMissing": "已配置 EXPO_PUBLIC_SENTRY_DSN 但未安装 @sentry/react-native"
+  }
+}

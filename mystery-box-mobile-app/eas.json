@@ -1,0 +1,52 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_PAYMENT_MODE": "mock",
+        "EXPO_PUBLIC_MOCK_PAYMENT": "true"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_PAYMENT_MODE": "mock",
+        "EXPO_PUBLIC_MOCK_PAYMENT": "true"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_PAYMENT_MODE": "wechat",
+        "EXPO_PUBLIC_MOCK_PAYMENT": "false"
+      },
+      "channel": "production"
+    },
+    "production-sentry": {
+      "extends": "production",
+      "env": {
+        "SENTRY_ORG": "",
+        "SENTRY_PROJECT": "",
+        "SENTRY_URL": "https://sentry.io/"
+      }
+    },
+    "production-vn": {
+      "extends": "production",
+      "env": {
+        "EXPO_PUBLIC_DEFAULT_LOCALE": "vi-VN",
+        "EXPO_PUBLIC_CURRENCY": "VND",
+        "EXPO_PUBLIC_PAYMENT_MODE": "vnpay",
+        "EXPO_PUBLIC_MOCK_PAYMENT": "false"
+      },
+      "channel": "production-vn"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

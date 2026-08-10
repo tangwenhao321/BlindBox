@@ -1,0 +1,57 @@
+# www.jarcheng.top 路径式测试环境（与四方 Nginx 共存，勿覆盖四方 location）
+# 安装:
+#   sudo cp deploy/nginx.jarcheng.test.conf.example /etc/nginx/conf.d/mystery-box-test.conf
+#   sudo nginx -t && sudo systemctl reload nginx
+#
+# 访问:
+#   API:    https://www.jarcheng.top/test-api/
+#   管理端: https://www.jarcheng.top/test-admin/
+
+upstream mystery_box_test_api {
+    server 127.0.0.1:9913;
+    keepalive 16;
+}
+
+# 若已有 www.jarcheng.top 的 server {}，将下面 location 块合并进该 server，勿重复 listen 80/443
+
+server {
+    listen 80;
+    server_name www.jarcheng.top jarcheng.top;
+
+    client_max_body_size 25m;
+
+    # ---------- 盲盒测试 API ----------
+    location /test-api/ {
+        rewrite ^/test-api/(.*)$ /$1 break;
+        proxy_pass http://mystery_box_test_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 120s;
+    }
+
+    # ---------- 盲盒测试管理端（静态） ----------
+    location /test-admin/ {
+        alias /opt/mystery-box-test/releases/admin-dist/;
+        try_files $uri $uri/ /test-admin/index.html;
+    }
+
+    location /test-admin/api/ {
+        rewrite ^/test-admin/api/(.*)$ /$1 break;
+        proxy_pass http://mystery_box_test_api;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /test-api/uploads/ {
+        alias /opt/mystery-box-test/data/uploads-test/;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+}
+
+# HTTPS: 在现有 443 server 中复制上述 location，或 certbot 续签后同样 reload

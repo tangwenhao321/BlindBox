@@ -1,0 +1,7 @@
+{
+  "wechatPay": {
+    "sdkMissingExpo": "当前环境未接入微信 SDK。Expo Go 请使用模拟支付；真机请用 dev client 并安装 react-native-wechat-lib。",
+    "sdkMissing": "当前环境未接入微信 SDK。请使用 dev client 构建并安装 react-native-wechat-lib。",
+    "invokeFailed": "调起微信支付失败，请稍后重试或使用模拟支付"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "ipTheme": {
+    "title": "IP 专题馆",
+    "hint": "按分类浏览热门 IP 盲盒，限时池与新品将在此聚合展示",
+    "emptyTitle": "暂无专题",
+    "emptyDesc": "上架盲盒并配置分类后，将自动出现在此",
+    "goHome": "回首页看看",
+    "hotIp": "热门 IP",
+    "sectionCount": "{{count}} 套"
+  }
+}

@@ -1,0 +1,15 @@
+appId: host.exp.Exponent
+---
+- launchApp
+- tapOn:
+    id: "tab-profile"
+- scrollUntilVisible:
+    element:
+      text: ".*设置.*|.*Settings.*"
+    direction: DOWN
+- tapOn:
+    text: ".*设置.*|.*Settings.*"
+- scrollUntilVisible:
+    element:
+      text: ".*通知.*|.*Notification.*"
+    direction: DOWN

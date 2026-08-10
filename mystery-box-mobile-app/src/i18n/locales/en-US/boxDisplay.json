@@ -1,0 +1,11 @@
+{
+  "boxDisplay": {
+    "poolSold": "{{count}} sold",
+    "promoNewcomer": "Newcomer · first draw deal",
+    "promoLowStock": "Only {{count}} left",
+    "promoHot": "{{count}} sold · hot",
+    "promoPity": "Pity series · odds disclosed",
+    "promoPriceSurprise": "{{price}} surprise draw",
+    "promoDefault": "High odds · authentic"
+  }
+}

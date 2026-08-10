@@ -1,0 +1,16 @@
+{
+  "refunds": {
+    "title": "退款记录",
+    "emptyTitle": "暂无退款申请",
+    "emptyDesc": "可在订单详情发起退款",
+    "goOrders": "查看订单",
+    "statusSuccess": "已通过",
+    "statusFailed": "已驳回",
+    "statusPending": "审核中",
+    "orderLabel": "订单 {{id}}…",
+    "collapseTimeline": "收起进度",
+    "expandTimeline": "查看进度",
+    "viewOrder": "查看订单 ›",
+    "defaultReason": "用户申请退款"
+  }
+}

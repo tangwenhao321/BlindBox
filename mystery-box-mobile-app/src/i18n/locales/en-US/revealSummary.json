@@ -1,0 +1,19 @@
+{
+  "revealSummary": {
+    "closeA11y": "Close summary",
+    "title": "Unboxing complete",
+    "count": "{{total}} prizes total",
+    "rareMixed": "{{legendary}} legendary · {{hidden}} hidden",
+    "rareCeremony": "Treasure Legend {{treasureLegend}} · Peerless {{peerless}} · Treasure Peerless {{treasurePeerless}}",
+    "rareNone": "All common this time — better luck next draw",
+    "goWarehouse": "Warehouse",
+    "goWarehouseA11y": "View prizes in warehouse",
+    "orderAgain": "Draw again",
+    "orderAgainA11y": "Draw again",
+    "viewSettlement": "Tap to view settlement",
+    "verifyFairness": "Verify draw",
+    "verifyFairnessA11y": "Verify fairness of this draw",
+    "heroCaption": "Best pull",
+    "skipToGrid": "View all"
+  }
+}

@@ -1,0 +1,9 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: smoke.yaml
+- tapOn:
+    id: "profileTab"
+- assertVisible: "余额"
+- assertVisible: "全部订单"
+- tapOn: "我的订单"
+- assertVisible: "全部"

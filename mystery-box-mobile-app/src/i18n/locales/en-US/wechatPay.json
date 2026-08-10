@@ -1,0 +1,7 @@
+{
+  "wechatPay": {
+    "sdkMissingExpo": "WeChat SDK not available. Use mock pay in Expo Go; install react-native-wechat-lib on device builds.",
+    "sdkMissing": "WeChat SDK not available. Build with dev client and install react-native-wechat-lib.",
+    "invokeFailed": "WeChat Pay failed — retry or use mock pay"
+  }
+}

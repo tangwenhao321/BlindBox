@@ -1,0 +1,9 @@
+{
+  "addressActions": {
+    "defaultSet": "Set as default address",
+    "deleteTitle": "Delete address",
+    "deleteMessage": "Delete this shipping address?",
+    "deleteConfirm": "Delete",
+    "deleted": "Address deleted"
+  }
+}

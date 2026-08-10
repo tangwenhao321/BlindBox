@@ -1,0 +1,7 @@
+{
+  "crashMonitoring": {
+    "ready": "Enabled (Sentry)",
+    "dsnMissingSdk": "DSN set — install @sentry/react-native",
+    "notConfigured": "Not configured (optional)"
+  }
+}

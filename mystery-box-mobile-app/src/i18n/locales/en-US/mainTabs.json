@@ -1,0 +1,10 @@
+{
+  "mainTabs": {
+    "loadError": "Load error: {{message}}",
+    "retry": "Retry",
+    "retryA11y": "Retry loading",
+    "dismiss": "Dismiss",
+    "dismissA11y": "Dismiss error",
+    "mallBannerSub": "Browse boxes by category"
+  }
+}

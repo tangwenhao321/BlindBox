@@ -1,0 +1,68 @@
+{
+  "common": {
+    "gotIt": "知道了"
+  },
+  "auth": {
+    "loginSyncHint": "登录后可同步订单、仓库赏品与余额"
+  },
+  "productionEnv": {
+    "userBannerTitle": "配置提醒",
+    "userBannerDismiss": "知道了"
+  },
+  "offline": {
+    "queuedSubmitDetail": "当前离线，{{action}}已保存，恢复网络后自动完成"
+  },
+  "payment": {
+    "retryPay": "重试支付",
+    "retentionAutoApplyHint": "优惠券将在下次下单时自动抵扣。"
+  },
+  "checkout": {
+    "trustSummaryTitle": "支付前请知悉",
+    "trustLine1": "结果为随机抽取，概率说明见盲盒详情页。",
+    "trustLine2": "支付成功后赏品进入仓库，可发货或兑换余额。",
+    "trustLine3": "未满 18 岁不可购买；退款按平台规则处理。",
+    "spendLimitWarning": "已接近或超出消费限额，订单可能被拒绝",
+    "spendLimitDailyWarning": "本单 {{amount}} 超出今日剩余额度（{{remaining}}）",
+    "spendLimitBlocked": "已超出消费限额，请前往设置调整"
+  },
+  "boxDetails": {
+    "advancedModesExpand": "更多开盒模式 ▾",
+    "advancedModesCollapse": "收起高级模式 ▴",
+    "advancedModesExpandA11y": "展开排队、选号、全收模式",
+    "advancedModesCollapseA11y": "收起高级开盒模式",
+    "switchToInstant": "改回即时开盒",
+    "switchToInstantA11y": "切换到即时开盒模式"
+  },
+  "warehouse": {
+    "approximateCountHint": "带 ~ 表示数量可能略有延迟，以列表为准。",
+    "guideTitle": "仓库三步走",
+    "guideBody": "1）在「商品」Tab 选择赏品 · 2）点批量发货 · 3）付运费后在「发货请求」跟踪进度。"
+  },
+  "warehouseShip": {
+    "successTrackHint": "可在「我的 → 发货请求」随时查看进度。"
+  },
+  "messages": {
+    "tabAction": "待处理",
+    "actionSection": "需要处理",
+    "emptyActionTitle": "暂无待办",
+    "emptyActionDesc": "待付款、物流更新和未读通知会出现在这里"
+  },
+  "settings": {
+    "offlineQueueIdle": "暂无离线待同步操作，联网后会自动同步。",
+    "offlineQueueItems": "待同步明细"
+  },
+  "revealPrompt": {
+    "title": "开盒动画",
+    "body": "是否保留开盒动画？可在设置中随时关闭。",
+    "keep": "保留动画",
+    "textOnly": "仅文字揭晓"
+  },
+  "revealSummary": {
+    "verifyFairness": "验证开赏",
+    "verifyFairnessA11y": "验证本次开赏公平性"
+  },
+  "marketplace": {
+    "guideTitle": "市集怎么玩",
+    "guideBody": "用余额购买 · 卖家约收 95%（平台 5% 手续费）· 买到的赏品在仓库申请发货。"
+  }
+}

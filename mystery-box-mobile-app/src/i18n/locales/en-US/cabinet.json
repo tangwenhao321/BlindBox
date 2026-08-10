@@ -1,0 +1,26 @@
+{
+  "cabinet": {
+    "title": "Pick a slot",
+    "hint": "Tap a number to reserve (~60s), then pay to open",
+    "loading": "Loading slots…",
+    "statusAvailable": "available",
+    "statusReserved": "reserved",
+    "statusSold": "sold",
+    "slotA11y": "Slot {{no}}, {{status}}",
+    "hintTitle": "Hint card",
+    "hintUse": "Use hint",
+    "hintRemaining": "{{count}} hints left today · {{cards}} cards",
+    "hintExcluded": "Excluded: {{quality}}",
+    "hintFailed": "Hint failed: {{message}}",
+    "reserveCountdown": "Reserve expires in {{seconds}}s",
+    "shakeOpen": "Shake hint",
+    "shakeOpenA11y": "Open shake hint",
+    "shakeTitle": "Shake for hint",
+    "shakeSubtitle": "Shake to exclude one quality tier (uses hint card)",
+    "shakeCta": "Shake",
+    "shakeCtaA11y": "Shake for hint",
+    "shakeLoading": "Hinting…",
+    "shakeClose": "Close",
+    "shakeCloseA11y": "Close shake hint"
+  }
+}

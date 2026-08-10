@@ -1,0 +1,15 @@
+{
+  "paymentReturn": {
+    "title": "Payment result",
+    "orderId": "Order {{id}}",
+    "confirming": "Confirming payment…",
+    "loadFailed": "Could not load order",
+    "successTitle": "Payment successful",
+    "successAmount": "Paid {{amount}}",
+    "viewOrder": "View order",
+    "failTitle": "Payment not completed",
+    "failHint": "If you were charged, refresh the order page later or try paying again.",
+    "retryPay": "Pay again",
+    "backHome": "Back to home"
+  }
+}

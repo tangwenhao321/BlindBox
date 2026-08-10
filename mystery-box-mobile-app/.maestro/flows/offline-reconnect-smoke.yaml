@@ -1,0 +1,15 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: login-smoke.yaml
+- toggleAirplaneMode
+- extendedWaitUntil:
+    visible:
+      id: "offlineBanner"
+    timeout: 15000
+- assertVisible:
+    id: "offlineBanner"
+- toggleAirplaneMode
+- extendedWaitUntil:
+    notVisible:
+      id: "offlineBanner"
+    timeout: 20000

@@ -1,0 +1,12 @@
+{
+  "team": {
+    "title": "My team",
+    "inviteFriend": "Invite friends",
+    "memberCount": "Team members: {{count}}",
+    "inviteCode": "Invite code: {{code}}",
+    "level1": "Level 1",
+    "level2": "Level 2",
+    "emptyTitle": "No team members",
+    "emptyDesc": "Invite friends to see them here"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "orderActions": {
+    "paySuccessRevealed": "支付成功，已开奖",
+    "autoRefreshFailed": "订单自动刷新失败：{{message}}",
+    "pendingPayment": "您有待支付订单 {{orderId}}…，可在首页继续支付",
+    "retryNeedsBox": "无法再次购买，请返回盲盒详情页重试",
+    "invalidDrawCount": "抽取数量无效，请返回盲盒详情页重试"
+  }
+}

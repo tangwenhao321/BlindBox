@@ -1,0 +1,10 @@
+{
+  "productionEnv": {
+    "apiMissing": "EXPO_PUBLIC_API_BASE_URL not set",
+    "mockPaymentMode": "Production still uses mock pay (EXPO_PUBLIC_PAYMENT_MODE=mock)",
+    "mockPaymentFlag": "EXPO_PUBLIC_MOCK_PAYMENT is still true",
+    "sentrySdkMissing": "EXPO_PUBLIC_SENTRY_DSN set but @sentry/react-native not installed",
+    "userBannerTitle": "Configuration notice",
+    "userBannerDismiss": "Dismiss"
+  }
+}

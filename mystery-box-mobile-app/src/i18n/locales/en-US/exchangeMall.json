@@ -1,0 +1,14 @@
+{
+  "exchangeMall": {
+    "title": "Fragment shop",
+    "titleAdvanced": "Advanced exchange",
+    "balanceSummary": "Fragments: {{balance}} · {{affordable}}/{{total}} redeemable",
+    "exchangeSuccess": "Redeemed successfully",
+    "emptyTitle": "Nothing to redeem",
+    "emptyDesc": "Decompose warehouse prizes to earn fragments",
+    "goWarehouse": "Warehouse",
+    "skuMeta": "Cost {{cost}} · Stock {{stock}} · {{percent}}%",
+    "exchangeA11y": "Redeem {{name}}",
+    "exchangeNow": "Redeem now"
+  }
+}

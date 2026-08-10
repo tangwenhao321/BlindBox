@@ -1,0 +1,10 @@
+{
+  "drawPackDefaults": {
+    "pack1": "Single draw",
+    "pack5": "5-pack",
+    "pack10": "10-pack",
+    "pack50": "50-pack",
+    "drawCount": "{{count}}-pack",
+    "discountTag": "Save {{amount}}"
+  }
+}

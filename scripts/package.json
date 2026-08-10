@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "docx": "^9.7.1",
+    "ssh2": "^1.17.0"
+  }
+}

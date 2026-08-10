@@ -1,0 +1,17 @@
+{
+  "revealSummary": {
+    "closeA11y": "关闭汇总",
+    "title": "开箱完成",
+    "count": "共 {{total}} 件奖品",
+    "rareMixed": "含传说 {{legendary}} 件 · 隐藏 {{hidden}} 件",
+    "rareCeremony": "珍品传说 {{treasureLegend}} · 无双 {{peerless}} · 珍品无双 {{treasurePeerless}}",
+    "rareNone": "本次均为普通款，下次一定出稀有",
+    "goWarehouse": "去仓库",
+    "goWarehouseA11y": "去仓库查看奖品",
+    "orderAgain": "再开一单",
+    "orderAgainA11y": "再开一单",
+    "viewSettlement": "点击查看结算",
+    "heroCaption": "本场最佳",
+    "skipToGrid": "查看全部"
+  }
+}

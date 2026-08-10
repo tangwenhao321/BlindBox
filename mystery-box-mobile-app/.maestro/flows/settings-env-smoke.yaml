@@ -1,0 +1,8 @@
+appId: mystery-box-mobile-app
+---
+- launchApp
+- tapOn:
+    id: "profileTab"
+- tapOn: "设置"
+- assertVisible: "API 地址"
+- assertVisible: "崩溃监控"

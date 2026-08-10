@@ -1,0 +1,9 @@
+{
+  "currency": {
+    "luckyCoinsDesc": "Earn lucky coins from daily check-in — redeem for perks and events.",
+    "starStonesDesc": "Star stones are growth points from invites and events — see ops announcements.",
+    "currentLabel": "Current {{name}}",
+    "goCheckIn": "Check in",
+    "goWelfare": "Welfare center"
+  }
+}

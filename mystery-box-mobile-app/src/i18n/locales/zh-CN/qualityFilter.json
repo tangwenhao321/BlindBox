@@ -1,0 +1,10 @@
+{
+  "qualityFilter": {
+    "all": "全部",
+    "general": "普通",
+    "hidden": "隐藏",
+    "advanced": "高级",
+    "legendary": "传说",
+    "filterA11y": "筛选{{label}}"
+  }
+}

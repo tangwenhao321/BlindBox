@@ -1,0 +1,12 @@
+{
+  "boxDetailsData": {
+    "quoting": "正在计算应付金额…",
+    "quoteFailed": "估价失败：{{error}}",
+    "payAmount": "应付 {{amount}}（含运费/优惠）",
+    "referencePrice": "参考 {{amount}}（{{drawCount}} 抽）",
+    "purchaseLimitFailed": "限购信息加载失败：{{message}}",
+    "favoriteLoadFailed": "收藏状态加载失败：{{message}}",
+    "favoriteAdded": "已加入收藏",
+    "favoriteRemoved": "已取消收藏"
+  }
+}

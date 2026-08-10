@@ -1,0 +1,14 @@
+{
+  "addressManage": {
+    "title": "Addresses",
+    "emptyTitle": "No addresses",
+    "emptyDesc": "Add an address to place orders",
+    "addAddress": "Add address",
+    "defaultTag": " (default)",
+    "currentOrder": "Used for checkout",
+    "edit": "Edit",
+    "setDefault": "Set default",
+    "delete": "Delete",
+    "addNewButton": "+ Add address"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "seriesStats": {
+    "title": "Series draw stats",
+    "empty": "No historical draw data",
+    "meta": "{{name}} · {{count}} draws total",
+    "metaNoName": "{{count}} draws total",
+    "configured": "Disclosed rates (basis pts): Legendary {{legendary}} / Hidden {{hidden}} / Common {{general}}",
+    "tierRow": "{{count}} · actual {{percent}}%"
+  }
+}

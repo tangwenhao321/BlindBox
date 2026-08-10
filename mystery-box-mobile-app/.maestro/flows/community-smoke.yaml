@@ -1,0 +1,8 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: smoke.yaml
+- openLink: mysterybox://community
+- extendedWaitUntil:
+    visible: "晒单墙"
+    timeout: 15000
+- assertVisible: ".*"

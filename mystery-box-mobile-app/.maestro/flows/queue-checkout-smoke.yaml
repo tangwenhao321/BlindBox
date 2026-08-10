@@ -1,0 +1,18 @@
+appId: mystery-box-mobile-app
+---
+- runFlow: login-smoke.yaml
+- tapOn:
+    id: "boxCard-.*"
+    index: 0
+- extendedWaitUntil:
+    visible:
+      id: "openBoxButton"
+    timeout: 15000
+- tapOn:
+    id: "openBoxButton"
+- extendedWaitUntil:
+    visible:
+      id: "drawPackConfirmButton"
+    timeout: 8000
+- assertVisible:
+    id: "drawPackConfirmButton"

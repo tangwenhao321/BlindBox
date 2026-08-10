@@ -1,0 +1,25 @@
+{
+  "promotion": {
+    "title": "我的推广",
+    "invitees": "我的下级 (人)",
+    "inviteCode": "邀请码 {{code}}",
+    "shareInvite": "分享邀请",
+    "shareDialogTitle": "邀请好友",
+    "shareMessage": "我在盲盒 App 等你一起开赏！我的邀请码：{{code}}\n{{link}}{{extra}}",
+    "sharePoster": "分享海报",
+    "reached": "已达成",
+    "milestoneClaimed": "已发放 +{{coins}} 幸运币",
+    "milestonePendingClaim": "已达成，奖励发放中",
+    "progress": "{{current}}/{{target}}",
+    "milestonesHint": "好友注册即计入邀请；达标后自动发放幸运币，下级每次开盒另返 5% 佣金到余额。",
+    "colSource": "来源",
+    "colCommission": "佣金",
+    "colTime": "时间",
+    "emptyTitle": "暂无推广记录",
+    "emptyDesc": "邀请好友后可在此查看佣金",
+    "posterBoxName": "邀请好友一起玩",
+    "feedSnippet": "{{name}} 开出 {{product}}",
+    "extrasMilestone": "里程碑：{{message}}",
+    "extrasFeed": "战报：{{message}}"
+  }
+}
