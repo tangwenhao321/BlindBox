@@ -10,7 +10,7 @@ export type MainTabsBuildInput = {
   view: AppView;
   navigate: (view: AppView, options?: NavigateOptions) => void;
   resetTo: (tab: AppView) => void;
-  goBack: () => void;
+  goBack: (options?: Pick<NavigateOptions, "skipRouterSync">) => void;
   navigationEpoch: number;
   token: string;
   openLoginPage: () => void;
@@ -62,6 +62,7 @@ export type MainTabsBuildInput = {
   quote: PaymentPriceView | null;
   quotingPrice: boolean;
   quoteError: string | null;
+  retryQuote: () => void;
   availableCoupons: CouponItem[];
   selectedCouponUserId: string;
   setSelectedCouponUserId: (id: string) => void;

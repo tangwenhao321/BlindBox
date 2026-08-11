@@ -23,7 +23,8 @@
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_PAYMENT_MODE": "wechat",
-        "EXPO_PUBLIC_MOCK_PAYMENT": "false"
+        "EXPO_PUBLIC_MOCK_PAYMENT": "false",
+        "EXPO_PUBLIC_APP_VARIANT": "production"
       },
       "channel": "production"
     },
@@ -41,7 +42,8 @@
         "EXPO_PUBLIC_DEFAULT_LOCALE": "vi-VN",
         "EXPO_PUBLIC_CURRENCY": "VND",
         "EXPO_PUBLIC_PAYMENT_MODE": "vnpay",
-        "EXPO_PUBLIC_MOCK_PAYMENT": "false"
+        "EXPO_PUBLIC_MOCK_PAYMENT": "false",
+        "EXPO_PUBLIC_APP_VARIANT": "production-vn"
       },
       "channel": "production-vn"
     }

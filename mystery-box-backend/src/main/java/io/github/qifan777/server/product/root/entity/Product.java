@@ -9,6 +9,7 @@ import org.babyfish.jimmer.sql.Entity;
 import org.babyfish.jimmer.sql.IdView;
 import org.babyfish.jimmer.sql.ManyToOne;
 import org.babyfish.jimmer.sql.Serialized;
+import jakarta.validation.constraints.Null;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -27,10 +28,17 @@ public interface Product extends BaseEntity {
     String name();
 
     /**
-     * 价格
+     * 价格（零售/展示）
      */
     @GenNumberField(label = "价格", order = 1)
     BigDecimal price();
+
+    /**
+     * Optional COGS for EV / house-edge gate. When null, retail {@link #price()} is used as a
+     * conservative proxy (overestimates cost).
+     */
+    @Null
+    BigDecimal costPrice();
 
     /**
      * 封面

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { parseError } from "../api";
-import { fetchActiveActivities, type MysteryBoxActivity } from "../services/activityService";
 import { queryBoxCategories } from "../services/categoryService";
 import { queryDrawPackConfigs, type DrawPackConfig } from "../services/drawPackService";
 import { dedupeMysteryBoxCategories } from "../utils/boxDisplay";
@@ -21,7 +20,6 @@ export function useHomeCatalogSideData(mode: Mode) {
   const [drawPackConfigs, setDrawPackConfigs] = useState<DrawPackConfig[]>([]);
   const [categoryLoadError, setCategoryLoadError] = useState<string | null>(null);
   const [apiCategories, setApiCategories] = useState<MysteryBoxCategory[]>([]);
-  const [activities, setActivities] = useState<MysteryBoxActivity[]>([]);
   const [secondaryReady, setSecondaryReady] = useState(mode !== "home");
 
   const homeEnabled = mode === "home" && secondaryReady;
@@ -46,10 +44,6 @@ export function useHomeCatalogSideData(mode: Mode) {
 
   useEffect(() => {
     if (mode !== "home" || !secondaryReady) return;
-    void fetchActiveActivities().then((list) => {
-      const active = list.filter((a) => new Date(a.endTime).getTime() > Date.now());
-      setActivities(active);
-    });
     if (token) {
       void queryDrawPackConfigs(token).then(setDrawPackConfigs);
     }
@@ -92,9 +86,9 @@ export function useHomeCatalogSideData(mode: Mode) {
     categoryLoadError,
     apiCategories,
     drawFeed: drawFeedQuery.data ?? [],
-    activities,
     homeSummary: homeSummaryQuery.data ?? null,
-    recommendBoxes: recommendQuery.data ?? [],
+    recommendBoxes: recommendQuery.data?.items ?? [],
+    recommendVariant: recommendQuery.data?.variant,
     retryCategories,
   };
 }

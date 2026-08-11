@@ -19,7 +19,6 @@ export function MainTabsTabContent() {
     resetTab,
     requireAuth,
     pageLoading,
-    onOpenActivity,
   } = useMainTabsShellViewState();
   const boxViewProps = useMainTabsBoxViewProps();
   const orderViewProps = useMainTabsOrderViewProps();
@@ -91,16 +90,9 @@ export function MainTabsTabContent() {
         onRefresh={onRefreshAll}
         onLoadMore={onLoadMore}
         onOpenDetails={onOpenDetails}
-        onOpenFeature={(title) => requireAuth?.(() => featureViewProps.onOpenFeature(title))}
         onContactSupport={() => requireAuth?.(() => featureViewProps.onOpenFeature(FEATURE_KEYS.CONTACT_SUPPORT))}
-        onGoMall={() => resetTab("mall")}
-        onGoMallSearch={(keyword) => {
-          resetTab("mall");
-          onMallSearch(keyword);
-        }}
         showNewcomerBar={showNewcomerBar}
         onNewcomerPress={onNewcomerPress}
-        onOpenActivity={onOpenActivity}
         onOpenCatalogSearch={onOpenCatalogSearch}
         onOpenPlayGuide={onOpenPlayGuide}
         onOpenProbabilityDisclosure={onOpenProbabilityDisclosure}

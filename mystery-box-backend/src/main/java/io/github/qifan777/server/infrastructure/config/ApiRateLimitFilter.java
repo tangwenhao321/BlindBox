@@ -1,5 +1,6 @@
 package io.github.qifan777.server.infrastructure.config;
 
+import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,6 +27,8 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     private final Map<String, Counter> counters = new ConcurrentHashMap<>();
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
+    @Autowired
+    private ClientIpResolver clientIpResolver;
     @Value("${security.rate-limit.enabled:true}")
     private boolean enabled;
     @Value("${security.rate-limit.per-minute:120}")
@@ -34,9 +37,6 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     private int analyticsPerMinute;
     @Value("${security.rate-limit.distributed:false}")
     private boolean distributed;
-
-    @Value("${security.rate-limit.trusted-proxy:false}")
-    private boolean trustedProxy;
 
     @Value("${security.rate-limit.login-per-minute:20}")
     private int loginPerMinute;
@@ -151,17 +151,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     }
 
     private String clientIp(HttpServletRequest request) {
-        if (trustedProxy) {
-            String headerIp = request.getHeader("X-Forwarded-For");
-            if (headerIp != null && !headerIp.isBlank()) {
-                return headerIp.split(",")[0].trim();
-            }
-            String realIp = request.getHeader("X-Real-IP");
-            if (realIp != null && !realIp.isBlank()) {
-                return realIp.trim();
-            }
-        }
-        return request.getRemoteAddr();
+        return clientIpResolver.resolve(request);
     }
 
     private static class Counter {

@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { LayoutRectangle, View } from "react-native";
 
-export type OnboardingAnchorKey = "openBox" | "payArea" | "warehouseTab";
+export type OnboardingAnchorKey = "openBox" | "payArea" | "warehouseTab" | "profileTab";
 
 type AnchorMap = Partial<Record<OnboardingAnchorKey, LayoutRectangle>>;
 

@@ -39,6 +39,16 @@ export function createPaymentReturnRoute() {
   };
 }
 
+export function createMarketplaceChatRoute() {
+  return function MarketplaceChatRouteScreen() {
+    const params = useLocalSearchParams<{ listingId?: string; title?: string }>();
+    const listingId = typeof params.listingId === "string" ? params.listingId : params.listingId?.[0];
+    const listingTitle = typeof params.title === "string" ? params.title : params.title?.[0];
+    useSyncAppViewFromRoute({ view: "marketplaceChat", listingId, listingTitle });
+    return null;
+  };
+}
+
 export function createRevealSpectatorRoute() {
   return function RevealSpectatorRouteScreen() {
     const { token } = useLocalSearchParams<{ token: string }>();

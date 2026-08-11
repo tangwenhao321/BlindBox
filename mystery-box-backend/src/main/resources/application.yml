@@ -24,6 +24,7 @@ sa-token:
   # 是否允许同一账号并发登录 (为true时允许一起登录, 为false时新登录挤掉旧登录)
   is-concurrent: true
   # 在多人登录同一账号时，是否共用一个token (为true时所有登录共用一个token, 为false时每次登录新建一个token)
+  # Local/dev may keep true for convenience; prod / prod-vn override to false (see application-prod*.yml).
   is-share: true
   # token风格
   token-style: uuid
@@ -45,6 +46,11 @@ security:
       daily: 5000
       monthly: 20000
       cooling-off-hours: 24
+    minor:
+      enabled: true
+      verification-required: false
+    identity:
+      hash-secret: ${IDENTITY_HASH_SECRET:CHANGE_ME_IDENTITY_HASH_SECRET}
   rate-limit:
     enabled: true
     per-minute: 120
@@ -58,7 +64,8 @@ security:
     spectator-get-per-minute: 60
   idempotency:
     enabled: true
-    ttl-ms: 300000
+    # 15 minutes — covers client retries after a successful mutating response
+    ttl-ms: 900000
     distributed: true
     required: false
 management:
@@ -100,7 +107,7 @@ wx:
     privateKeyPath: classpath:wechat/apiclient_key.pem
     privateCertPath: classpath:wechat/apiclient_cert.pem
 sms:
-  # 修改provider
+  # none | ali_yun | vn_esms
   provider: none
   # 阿里云短信配置
   ali-yun:
@@ -108,6 +115,27 @@ sms:
     access-key-secret: xxx
     sign-name: xxx
     template-code: xxx
+  # Vietnam eSMS-shaped stub (enable with sms.provider=vn_esms)
+  vn-esms:
+    api-key: ${SMS_VN_ESMS_API_KEY:}
+    secret-key: ${SMS_VN_ESMS_SECRET_KEY:}
+    brandname: ${SMS_VN_ESMS_BRANDNAME:}
+# MoMo defaults — stub until Partner API; prod-vn hard-disables offering
+momo:
+  enabled: false
+  stub: true
+  partner-wired: ${MOMO_PARTNER_WIRED:false}
+zalopay:
+  enabled: false
+  stub: true
+  partner-wired: ${ZALOPAY_PARTNER_WIRED:false}
+# Zalo OAuth login (POST /front/auth/zalo/login). Prefer client-id/secret; app-id/app-secret aliases work too.
+# Token: POST https://oauth.zaloapp.com/v4/access_token | Profile: GET https://graph.zalo.me/v2.0/me
+zalo:
+  client-id: ${ZALO_CLIENT_ID:}
+  client-secret: ${ZALO_CLIENT_SECRET:}
+  # app-id: ${ZALO_APP_ID:}
+  # app-secret: ${ZALO_APP_SECRET:}
 oss:
   provider: ali_yun
   # 阿里云oss配置
@@ -120,6 +148,54 @@ tenant:
   map:
     key: xxx
 app:
+  auth:
+    zalo-enabled: false
+  # local | ghn | ghtk | viettel
+  logistics:
+    provider: ${APP_LOGISTICS_PROVIDER:local}
+    # Stay false until Partner HTTP client is implemented (token alone is insufficient).
+    partner-wired: ${APP_LOGISTICS_PARTNER_WIRED:false}
+    ghn:
+      token: ${LOGISTICS_GHN_TOKEN:}
+    ghtk:
+      token: ${LOGISTICS_GHTK_TOKEN:}
+    viettel:
+      token: ${LOGISTICS_VIETTEL_TOKEN:}
+  team-lottery:
+    boost-enabled: ${APP_TEAM_LOTTERY_BOOST_ENABLED:false}
+  pity:
+    # price floor : pity threshold (draws). Used only when box.pityThreshold is unset/0.
+    # Do not use floor 0 if you want admin UI thresholds to apply for cheap boxes.
+    price-thresholds: "50:60,100:50,200:40"
+    compensate-points: 100
+    # When > 0: points = max(compensate-points, round(boxPrice * rate))
+    compensate-points-rate: ${APP_PITY_COMPENSATE_POINTS_RATE:0}
+  draw:
+    # Max stacked positive hidden boost as % of base hidden (house-edge guard).
+    dynamic-boost-cap-percent: ${APP_DRAW_DYNAMIC_BOOST_CAP_PERCENT:25}
+    # Min margin vs retail-price EV proxy at admin save (0.15 = 15%).
+    min-margin-ratio: ${APP_DRAW_MIN_MARGIN_RATIO:0.15}
+    # Free terminal prize when pool empties (lastOne). Off by default — kills margin.
+    last-one-enabled: ${APP_DRAW_LAST_ONE_ENABLED:false}
+  newcomer:
+    first-draw-price: ${APP_NEWCOMER_FIRST_DRAW_PRICE:0.01}
+    # Max prize EV allowed under first-draw subsidy; above this, charge full pack price.
+    max-ev-cost: ${APP_NEWCOMER_MAX_EV_COST:50}
+    enabled: ${APP_NEWCOMER_SUBSIDY_ENABLED:true}
+  marketplace:
+    fee-rate: ${MARKETPLACE_FEE_RATE:0.05}
+    payout-gateway: ${MARKETPLACE_PAYOUT_GATEWAY:wallet}
+    external-payout-timeout-hours: ${MARKETPLACE_EXTERNAL_PAYOUT_TIMEOUT_HOURS:24}
+  # local | ekyc_vendor — local = checksum/format validation; ekyc_vendor requires vendor wiring
+  identity:
+    provider: ${APP_IDENTITY_PROVIDER:local}
+  fairness:
+    # When false, applyWinRuleIfPresent skips overwrite (prod-vn sets false).
+    allow-win-rule-override: ${APP_FAIRNESS_ALLOW_WIN_RULE_OVERRIDE:false}
+  referral:
+    commission-rate: ${APP_REFERRAL_COMMISSION_RATE:0.05}
+  compliance:
+    teen-daily-cap: 140
   mobile-update:
     android-version-code: ${APP_ANDROID_VERSION_CODE:0}
     android-version-name: ${APP_ANDROID_VERSION_NAME:}
@@ -137,6 +213,13 @@ app:
     enterprise-wechat: ${APP_SUPPORT_WECHAT:}
   privacy:
     mask-nickname-suffix: 4
+  # Retention: original unpaid order only; 1 claim / user / day.
+  # Flat discount-amount (currency default VND 10000 / CNY 5), or discount-percent (0–100)
+  # capped by discount-amount / max-discount-amount.
+  retention:
+    max-claims-per-user-per-day: 1
+    # discount-percent: 5
+    # max-discount-amount: 10000
   cache:
     home-summary-ttl-seconds: 60
   pool:
@@ -154,4 +237,20 @@ app:
       cron: "0 */5 * * * ?"
       min-age-minutes: 10
       batch-size: 50
+    refund-reconcile:
+      enabled: true
+      cron: "0 */7 * * * ?"
+      min-age-minutes: 10
+      batch-size: 50
+    draw-integrity:
+      enabled: true
+      cron: "0 30 4 * * ?"
+      lookback-hours: 24
+      batch-size: 200
+      empty-repair-min-age-minutes: 15
+    wallet-reconcile:
+      enabled: true
+      cron: "0 15 3 * * ?"
+      lookback-hours: 48
+      sample-size: 100
     pool-slot-expire-ms: 60000

@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { MenuDto, UserDto } from '@/apis/__generated/model/dto'
 import { api } from '@/utils/api-instance'
+import { request } from '@/utils/request'
+import { clearAdminToken } from '@/utils/admin-auth-token'
 import type { MenuTreeDto } from '@/typings'
 import { buildMenuTree } from '@/views/menu/store/menu-store'
 import { useTagStore } from '@/layout/store/tag-store'
@@ -28,7 +30,13 @@ export const useHomeStore = defineStore('home', () => {
     await getUserInfo()
     await getMenuList()
   }
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await request({ url: '/admin/auth/logout', method: 'post' })
+    } catch {
+      // Still clear client session if network/auth already dead
+    }
+    clearAdminToken()
     useTagStore().tags = []
     menuTreeList.value = []
     menuList.value = []

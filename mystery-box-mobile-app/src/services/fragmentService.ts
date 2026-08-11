@@ -1,5 +1,6 @@
 import { api, buildAuthHeaders } from "../api";
 import type { ApiResult } from "../types";
+import { createIdempotencyKey, IDEMPOTENCY_HEADER } from "../utils/idempotencyKey";
 
 export type FragmentSku = {
   id: string;
@@ -60,8 +61,19 @@ export async function fetchFragmentSkus(token: string): Promise<FragmentSku[]> {
   return unwrapResult(response.data) ?? [];
 }
 
-export async function exchangeFragmentSku(token: string, skuId: string): Promise<void> {
-  await api.post(`/front/fragment/exchange/${skuId}`, {}, { headers: buildAuthHeaders(token) });
+export async function exchangeFragmentSku(
+  token: string,
+  skuId: string,
+  options?: { idempotencySeed?: string },
+): Promise<void> {
+  const headers = {
+    ...buildAuthHeaders(token),
+    [IDEMPOTENCY_HEADER]: createIdempotencyKey(
+      "fragment-exchange",
+      options?.idempotencySeed ?? `${skuId}:${Date.now()}`,
+    ),
+  };
+  await api.post(`/front/fragment/exchange/${skuId}`, {}, { headers });
 }
 
 export async function decomposeOrderItem(

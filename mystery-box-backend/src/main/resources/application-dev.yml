@@ -47,6 +47,11 @@ app:
       cron: "0 30 4 * * ?"
       lookback-hours: 24
       batch-size: 200
+    wallet-reconcile:
+      enabled: true
+      cron: "0 15 3 * * ?"
+      lookback-hours: 48
+      sample-size: 100
   reveal:
     e2e-fixture:
       enabled: false
@@ -61,6 +66,8 @@ app:
     summary-hero-ms: 1800
   marketplace:
     fee-rate: ${MARKETPLACE_FEE_RATE:0.05}
+    payout-gateway: ${MARKETPLACE_PAYOUT_GATEWAY:wallet}
+    external-payout-timeout-hours: ${MARKETPLACE_EXTERNAL_PAYOUT_TIMEOUT_HOURS:24}
   community:
     auto-approve: ${COMMUNITY_AUTO_APPROVE:true}
   redeem:
@@ -104,6 +111,9 @@ security:
   risk-control:
     enabled: ${RISK_CONTROL_ENABLED:true}
     confirm-threshold: ${RISK_CONTROL_CONFIRM_THRESHOLD:80}
+    velocity-threshold: ${RISK_CONTROL_VELOCITY_THRESHOLD:8}
+    velocity-window-ms: ${RISK_CONTROL_VELOCITY_WINDOW_MS:60000}
+    device-user-limit: ${RISK_CONTROL_DEVICE_USER_LIMIT:5}
 
 # 本地开发：健康检查展开组件，便于确认 Redis 等是否就绪（勿用于生产对外暴露）
 management:

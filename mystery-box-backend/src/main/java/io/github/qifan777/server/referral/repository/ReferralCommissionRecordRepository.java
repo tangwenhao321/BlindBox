@@ -14,6 +14,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 public interface ReferralCommissionRecordRepository extends JRepository<ReferralCommissionRecord, String> {
     ReferralCommissionRecordTable t = ReferralCommissionRecordTable.$;
@@ -37,5 +38,16 @@ public interface ReferralCommissionRecordRepository extends JRepository<Referral
                 .select(t.amount().sum())
                 .fetchOneOrNull();
         return sum == null ? BigDecimal.ZERO : sum;
+    }
+
+    default Optional<ReferralCommissionRecord> findByOrderId(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            return Optional.empty();
+        }
+        return sql().createQuery(t)
+                .where(t.orderId().eq(orderId))
+                .select(t.fetch(ReferralCommissionRecordFetcher.$.allScalarFields()
+                        .user(UserFetcher.$.allScalarFields())))
+                .fetchOptional();
     }
 }

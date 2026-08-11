@@ -69,7 +69,8 @@ public class AppVersionPushService {
         int offset = 0;
         while (true) {
             List<UserPushTokenService.PushTarget> targets =
-                    userPushTokenService.listTargetsByPlatform(release.platform(), offset, PAGE_SIZE);
+                    userPushTokenService.listTargetsByPlatformAndChannel(
+                            release.platform(), release.channel(), offset, PAGE_SIZE);
             if (targets.isEmpty()) {
                 break;
             }

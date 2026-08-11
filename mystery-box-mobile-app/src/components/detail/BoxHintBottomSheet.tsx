@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { parseError } from "../../api";
 import { requestBoxHint, type HintResult } from "../../services/hintService";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
+import { useAppTheme } from "../../context/ThemeContext";
 import { radius, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 import { qualityLabelFromRaw } from "../../utils/quality";
@@ -19,6 +21,7 @@ type Props = {
 
 export function BoxHintBottomSheet({ visible, token, boxId, onClose }: Props) {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(buildHintSheetStyles);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +96,13 @@ export function BoxHintBottomSheet({ visible, token, boxId, onClose }: Props) {
             disabled={loading}
             onPress={onShake}
           >
-            <Text style={styles.shakeEmoji}>📳</Text>
+            <Ionicons
+              name="phone-portrait-outline"
+              size={22}
+              color={colors.textOnBrand}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
             <Text style={styles.shakeText}>{loading ? t("boxDetails.hintLoading") : t("boxDetails.hintShakeCta")}</Text>
           </Pressable>
 
@@ -151,7 +160,6 @@ function buildHintSheetStyles(colors: ThemeColors) {
       gap: spacing.xs,
     },
     shakeActive: { opacity: 0.85, transform: [{ scale: 0.98 }] },
-    shakeEmoji: { fontSize: 28 },
     shakeText: { color: colors.textOnBrand, fontWeight: "800" },
     closeBtn: { alignItems: "center", paddingVertical: spacing.sm },
     closeText: { color: colors.textMuted, fontWeight: "700" },

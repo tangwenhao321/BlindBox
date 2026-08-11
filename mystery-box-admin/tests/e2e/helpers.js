@@ -73,7 +73,7 @@ export async function loginViaUi(page) {
  * @param {import('@playwright/test').Page} page
  */
 export async function readToken(page) {
-  return page.evaluate(() => localStorage.getItem('token'))
+  return page.evaluate(() => sessionStorage.getItem('token') || localStorage.getItem('token'))
 }
 
 /**

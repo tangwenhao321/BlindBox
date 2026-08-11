@@ -1,13 +1,15 @@
 package io.github.qifan777.server.box.product.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.qifan.infrastructure.common.exception.BusinessException;
+import io.github.qifan777.server.box.draw.BoxProfitabilityService;
 import io.github.qifan777.server.box.product.entity.MysteryBoxProductRel;
 import io.github.qifan777.server.box.product.entity.dto.MysteryBoxProductRelInput;
 import io.github.qifan777.server.box.product.entity.dto.MysteryBoxProductRelSpec;
 import io.github.qifan777.server.box.product.repository.MysteryBoxProductRelRepository;
 import io.github.qifan777.server.box.product.service.PrizeStockAuditService;
+import io.github.qifan777.server.box.product.service.PrizeStockService;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
@@ -27,6 +29,8 @@ import java.util.List;
 public class MysteryBoxProductRelForAdminController {
     private final MysteryBoxProductRelRepository mysteryBoxProductRelRepository;
     private final PrizeStockAuditService prizeStockAuditService;
+    private final PrizeStockService prizeStockService;
+    private final BoxProfitabilityService boxProfitabilityService;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_ADMIN") MysteryBoxProductRel findById(@PathVariable String id) {
@@ -60,6 +64,14 @@ public class MysteryBoxProductRelForAdminController {
                 saved.stockRemaining(),
                 saved.lastOne()
         );
+        int beforeRem = beforeRemaining == null ? 0 : beforeRemaining;
+        prizeStockService.notifyStockIncreased(
+                saved.mysteryBoxId(),
+                saved.productId(),
+                beforeRem,
+                saved.stockRemaining()
+        );
+        boxProfitabilityService.recheckBoxForRel(saved);
         return saved.id();
     }
 

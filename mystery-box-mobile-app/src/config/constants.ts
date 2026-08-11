@@ -33,3 +33,6 @@ export const ENTERPRISE_WECHAT_ID = process.env.EXPO_PUBLIC_ENTERPRISE_WECHAT_ID
 
 /** Zalo Official Account ID，可通过 EXPO_PUBLIC_ZALO_OA_ID 覆盖 */
 export const ZALO_OA_ID = process.env.EXPO_PUBLIC_ZALO_OA_ID ?? "";
+
+/** Zalo OAuth App ID fallback when GET /front/auth/zalo/config is unavailable */
+export const ZALO_APP_ID = process.env.EXPO_PUBLIC_ZALO_APP_ID ?? "";

@@ -18,7 +18,6 @@ import org.springframework.data.redis.core.ValueOperations;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -78,13 +77,13 @@ class PendingPaymentReminderJobTest {
                 "order-1",
                 "ExponentPushToken[abc]"
         );
-        when(userNotificationService.preparePushMessage(
+        when(userNotificationService.preparePushMessages(
                 "user-1",
                 "PENDING_PAY",
                 "待支付提醒",
                 "您有一笔订单即将超时，请尽快完成支付。",
                 "order-1"
-        )).thenReturn(Optional.of(message));
+        )).thenReturn(List.of(message));
 
         job.remindUnpaidOrders();
 

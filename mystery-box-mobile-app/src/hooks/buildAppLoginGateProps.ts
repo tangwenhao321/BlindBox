@@ -18,8 +18,14 @@ type AuthHandlers = {
   setForgotCode: (v: string) => void;
   setRegisterCode: (v: string) => void;
   registerCode: string;
+  loginSmsCode: string;
+  setLoginSmsCode: (v: string) => void;
   setForgotPassword: (v: string) => void;
+  termsAccepted: boolean;
+  setTermsAccepted: (v: boolean | ((prev: boolean) => boolean)) => void;
   onLogin: () => void | Promise<void>;
+  onSmsLogin: () => void | Promise<void>;
+  onZaloLogin: (payload: import("../services/authService").ZaloLoginPayload) => void | Promise<void>;
   onRegister: () => void | Promise<void>;
   onForgotSubmit: () => void | Promise<void>;
 };
@@ -73,6 +79,8 @@ export function buildAppLoginGateProps(input: LoginGateBuildInput): ComponentPro
     forgotPassword: authHandlers.forgotPassword,
     forgotSubmitting: authHandlers.forgotSubmitting,
     registerCode: authHandlers.registerCode,
+    loginSmsCode: authHandlers.loginSmsCode,
+    termsAccepted: authHandlers.termsAccepted,
     authError: authHandlers.authError,
     onPhoneChange: (value) => {
       authHandlers.clearAuthError();
@@ -92,6 +100,8 @@ export function buildAppLoginGateProps(input: LoginGateBuildInput): ComponentPro
     },
     onClose: () => setLoginVisible(false),
     onLogin: authHandlers.onLogin,
+    onSmsLogin: authHandlers.onSmsLogin,
+    onZaloLogin: authHandlers.onZaloLogin,
     onRegister: authHandlers.onRegister,
     onForgotOpen: () => {
       authHandlers.setForgotPhone(phone);
@@ -100,10 +110,22 @@ export function buildAppLoginGateProps(input: LoginGateBuildInput): ComponentPro
     onForgotPhoneChange: authHandlers.setForgotPhone,
     onForgotCodeChange: authHandlers.setForgotCode,
     onRegisterCodeChange: authHandlers.setRegisterCode,
+    onLoginSmsCodeChange: authHandlers.setLoginSmsCode,
     onForgotPasswordChange: authHandlers.setForgotPassword,
+    onTermsToggle: () => authHandlers.setTermsAccepted((v) => !v),
     onForgotClose: () => authHandlers.setForgotVisible(false),
-    onForgotSendCode: () => sendAuthSmsCode(authHandlers.forgotPhone),
-    onRegisterSendCode: () => sendAuthSmsCode(phone),
+    onForgotSendCode: () =>
+      sendAuthSmsCode(authHandlers.forgotPhone, {
+        onNormalized: (normalized) => authHandlers.setForgotPhone(normalized),
+      }),
+    onRegisterSendCode: () =>
+      sendAuthSmsCode(phone, {
+        onNormalized: (normalized) => setPhone(normalized),
+      }),
+    onLoginSmsSendCode: () =>
+      sendAuthSmsCode(phone, {
+        onNormalized: (normalized) => setPhone(normalized),
+      }),
     onForgotSubmit: authHandlers.onForgotSubmit,
     onClearAuthError: authHandlers.clearAuthError,
     biometricUnlockAvailable: true,

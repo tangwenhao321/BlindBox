@@ -67,6 +67,7 @@ function minimalSlices(overrides?: { setPendingCheckoutResume?: ReturnType<typeo
       quote: null,
       quotingPrice: false,
       quoteError: null,
+      retryQuote: noop,
       availableCoupons: [],
       selectedCouponUserId: "",
       setSelectedCouponUserId: noop,
@@ -106,6 +107,7 @@ function minimalSlices(overrides?: { setPendingCheckoutResume?: ReturnType<typeo
       searchedOrders: [],
       onFilterByStatus: noop,
       ordersLoadError: null,
+      ordersReady: true,
     },
     account: {
       couponCount: 0,

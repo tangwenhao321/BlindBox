@@ -16,6 +16,7 @@ import logo from '@/assets/logo.jpg'
 import router from '@/router'
 import background from '@/assets/background.jpg'
 import { request } from '@/utils/request'
+import { isCookieAuthMode, setAdminToken, setAdminTokenCookieMode } from '@/utils/admin-auth-token'
 import { useHomeStore } from '@/stores/home-store'
 import type { UserLoginInput } from '@/apis/__generated/model/static'
 
@@ -43,8 +44,13 @@ const handleLogin = () => {
       async (res: any) => {
         const homeStore = useHomeStore()
         homeStore.logout()
+        if (isCookieAuthMode()) {
+          // HttpOnly cookie is primary; do not persist JWT (optional e2e memory via setAdminTokenCookieMode(token))
+          setAdminTokenCookieMode()
+        } else {
+          setAdminToken(res.tokenValue)
+        }
         await homeStore.init()
-        localStorage.setItem('token', res.tokenValue)
         router.replace({ path: '/' })
       }
     )

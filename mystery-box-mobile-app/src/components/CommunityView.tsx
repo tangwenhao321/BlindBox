@@ -40,6 +40,7 @@ import {
   matchesTopicFilter,
   type CommunityTopicTag,
 } from "../utils/communityTopics";
+import { Ionicons } from "@expo/vector-icons";
 import { useAppTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useAuthToken } from "../hooks/useAuthToken";
@@ -379,9 +380,14 @@ export function CommunityView({ userId, onBack, onRequireLogin, onGoHome, initia
                     await perform();
                   }}
                 >
-                  <Text style={[styles.action, liked ? styles.actionLiked : null]}>
-                    {liked ? "❤️" : "🤍"} {item.likes.length}
-                  </Text>
+                  <View style={styles.actionRow}>
+                    <Ionicons
+                      name={liked ? "heart" : "heart-outline"}
+                      size={16}
+                      color={liked ? colors.danger : colors.brand}
+                    />
+                    <Text style={[styles.action, liked ? styles.actionLiked : null]}>{item.likes.length}</Text>
+                  </View>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -391,7 +397,10 @@ export function CommunityView({ userId, onBack, onRequireLogin, onGoHome, initia
                     setCommentDraft("");
                   }}
                 >
-                  <Text style={styles.action}>💬 {item.comments.length}</Text>
+                  <View style={styles.actionRow}>
+                    <Ionicons name="chatbubble-outline" size={16} color={colors.brand} />
+                    <Text style={styles.action}>{item.comments.length}</Text>
+                  </View>
                 </Pressable>
                 <Pressable
                   accessibilityRole="button"
@@ -401,7 +410,10 @@ export function CommunityView({ userId, onBack, onRequireLogin, onGoHome, initia
                     await shareViaZalo(text || item.content, undefined, inviteUrl);
                   }}
                 >
-                  <Text style={styles.action}>📤 Zalo</Text>
+                  <View style={styles.actionRow}>
+                    <Ionicons name="share-outline" size={16} color={colors.brand} />
+                    <Text style={styles.action}>Zalo</Text>
+                  </View>
                 </Pressable>
               </View>
               {commenting ? (
@@ -523,7 +535,8 @@ function buildCommunityStyles(colors: ThemeColors) {
   content: { fontSize: typography.body, color: colors.textPrimary, marginVertical: spacing.xs },
   imageRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginVertical: spacing.xs },
   postImage: { width: 96, height: 96, borderRadius: 8 },
-  actions: { flexDirection: "row", gap: spacing.lg },
+  actions: { flexDirection: "row", gap: spacing.lg, alignItems: "center" },
+  actionRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   action: { fontSize: typography.caption, color: colors.brand, fontWeight: "700" },
   actionLiked: { color: colors.danger },
   commentCompose: { marginTop: spacing.sm, gap: spacing.xs },

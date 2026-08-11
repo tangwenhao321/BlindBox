@@ -23,6 +23,7 @@ const initForm: ProductInput = {
   description: '',
   name: '',
   price: 0,
+  costPrice: undefined,
   qualityType: 'GENERAL',
   specifications: [],
   tags: []
@@ -68,7 +69,16 @@ onActivated(() => {
         <el-input v-model.trim="form.name"></el-input>
       </el-form-item>
       <el-form-item label="价格" prop="price">
-        <el-input-number v-model="form.price"></el-input-number>
+        <el-input-number v-model="form.price" :min="0" :precision="2"></el-input-number>
+      </el-form-item>
+      <el-form-item label="成本价(COGS)" prop="costPrice">
+        <el-input-number
+          v-model="form.costPrice"
+          :min="0"
+          :precision="2"
+          placeholder="可选，用于毛利闸门"
+        ></el-input-number>
+        <span class="hint">不填则用零售价作成本代理；建议高档赏填写真实进价</span>
       </el-form-item>
       <el-form-item label="封面" prop="cover">
         <image-upload v-model="form.cover"></image-upload>
@@ -110,5 +120,10 @@ onActivated(() => {
   background: white;
   padding: 20px;
   border-radius: 5px;
+}
+.hint {
+  margin-left: 12px;
+  color: #909399;
+  font-size: 12px;
 }
 </style>

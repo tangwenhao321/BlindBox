@@ -37,6 +37,7 @@ const ROUTES: RouteRegistryEntry[] = [
   { view: "orders", path: "orders" },
   { view: "messages", path: "messages", pushCategory: "MESSAGES" },
   { view: "marketplace", path: "marketplace", pushCategory: "MARKETPLACE" },
+  { view: "marketplaceChat", path: "marketplace-chat" },
   { view: "refunds", path: "refunds", pushCategory: "REFUND" },
   { view: "coupons", path: "coupons", pushCategory: "COUPON" },
   { view: "favorites", path: "favorites" },
@@ -44,7 +45,7 @@ const ROUTES: RouteRegistryEntry[] = [
   { view: "shipRequests", path: "ship-requests", pushCategory: "WAREHOUSE_SHIP", pushRefAsShipRequestId: true },
   { view: "exchangeMall", path: "exchange-mall" },
   { view: "orderDetails", path: "order", pushCategory: "ORDER", pushRefAsOrderId: true },
-  { view: "boxDetails", path: "box" },
+  { view: "boxDetails", path: "box", pushCategory: "RESTOCK", pushRefAsBoxId: true },
   { view: "settings", path: "settings" },
   { view: "leaderboard", path: "leaderboard" },
   { view: "fairnessVerify", path: "fairness" },
@@ -56,6 +57,7 @@ const ROUTES: RouteRegistryEntry[] = [
   { view: "promotion", path: "promotion" },
   { view: "commission", path: "commission" },
   { view: "team", path: "team" },
+  { view: "teamLottery", path: "team-lottery" },
   { view: "luckyCoins", path: "lucky-coins" },
   { view: "starStones", path: "star-stones" },
   { view: "privacy", path: "privacy" },
@@ -64,6 +66,7 @@ const ROUTES: RouteRegistryEntry[] = [
   { view: "levelGift", path: "level-gift" },
   { view: "inviteCenter", path: "invite" },
   { view: "ipTheme", path: "ip-theme" },
+  { view: "effectsCenter", path: "effects-center" },
   { view: "probability", path: "probability" },
   { view: "activityDetail", path: "activity" },
   { view: "catalogSearch", path: "search" },
@@ -76,6 +79,12 @@ const ORDER_DETAIL_PUSH: RouteRegistryEntry = {
   view: "orderDetails",
   pushCategory: "PENDING_PAY",
   pushRefAsOrderId: true,
+};
+
+const BOX_DETAIL_PUSH_PITY: RouteRegistryEntry = {
+  view: "boxDetails",
+  pushCategory: "PITY",
+  pushRefAsBoxId: true,
 };
 
 const pathByView = new Map<AppView, string>();
@@ -92,6 +101,7 @@ for (const entry of ROUTES) {
   }
 }
 pushByCategory.set("PENDING_PAY", ORDER_DETAIL_PUSH);
+pushByCategory.set("PITY", BOX_DETAIL_PUSH_PITY);
 
 export function getRoutePath(view: AppView): string | undefined {
   return pathByView.get(view);
@@ -116,6 +126,7 @@ export function resolveDeepLinkFromPush(
     return link;
   }
   if (entry.pushRefAsOrderId && !refId) return null;
+  if (entry.pushRefAsBoxId && !refId) return null;
   if (entry.pushRefAsShipRequestId && category === "WAREHOUSE_SHIP" && !refId) return null;
   return link;
 }
@@ -156,6 +167,20 @@ export function resolveDeepLinkFromAppPath(path: string): NotificationDeepLink |
     const token = trimmed.slice("reveal/spectator/".length).split("/")[0]?.trim();
     if (token) return { view: "revealSpectator", spectatorToken: token };
     return null;
+  }
+
+  if (trimmed.startsWith("marketplace-chat")) {
+    const query = trimmed.includes("?") ? trimmed.split("?")[1] : "";
+    const params = new URLSearchParams(query);
+    const listingId = params.get("listingId")?.trim();
+    if (listingId) {
+      return {
+        view: "marketplaceChat",
+        listingId,
+        listingTitle: params.get("title")?.trim() || undefined,
+      };
+    }
+    return { view: "marketplaceChat" };
   }
 
   const segment = trimmed.split("/")[0];

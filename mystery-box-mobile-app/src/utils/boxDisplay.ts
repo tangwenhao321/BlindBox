@@ -49,7 +49,7 @@ export function listItemKey(id: string, index: number, prefix = "item") {
 }
 
 export function getBoxValueRange(box: MysteryBox) {
-  const prices = (box.products ?? []).map((p) => p.price).filter((p) => p > 0);
+  const prices = (box.products ?? []).map((p) => p.price ?? 0).filter((p) => p > 0);
   if (!prices.length) {
     return { min: box.price, max: Math.max(box.price * 120, box.price + 100) };
   }

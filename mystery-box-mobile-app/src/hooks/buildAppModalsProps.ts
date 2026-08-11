@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import type { AppModals } from "../components/AppModals";
+import type { AppModals, OrderResultState } from "../components/AppModals";
 import { MOCK_PAYMENT_ENABLED } from "../config/constants";
 import type { MysteryBox, PrepayResult, Product, VNPayPrepayResult, MoMoPrepayResult } from "../types";
 import { getOrderById } from "../services/orderService";
@@ -12,19 +12,8 @@ import { resolveBoxForOrderRetry } from "./orderResultState";
 import { toast } from "../utils/toast";
 import i18n from "../i18n";
 
-export type OrderResultState = {
-  orderId: string;
-  boxName: string;
-  boxId?: string;
-  boxCategoryName?: string;
-  boxCover?: string;
-  drawCount: number;
-  payAmount: number;
-  prizes: Product[];
-  pendingPayment: boolean;
-  /** Bumped after payment succeeds to force reveal playback. */
-  revealPlaybackKey?: number;
-} | null;
+// Owned by the modal component so the props it accepts and the state callers hold cannot drift apart.
+export type { OrderResultState };
 
 export type AppModalsBuildInput = {
   token: string;
@@ -42,7 +31,7 @@ export type AppModalsBuildInput = {
   setMomoSession: (value: { orderId: string; payAmount: number; prepay: MoMoPrepayResult } | null) => void;
   paymentErrorSession: import("./useAppPaymentShell").PaymentErrorSession | null;
   setPaymentErrorSession: (value: import("./useAppPaymentShell").PaymentErrorSession | null) => void;
-  requestPayment: (orderId: string, payAmount?: number) => Promise<void>;
+  requestPayment: (orderId: string, payAmount?: number, wallet?: "default" | "momo", freshPrepay?: boolean) => Promise<void>;
   payWithPrepay: (orderId: string, prepay: import("../types").PrepayResult) => Promise<boolean>;
   onPaymentConfirmed: (orderId: string) => Promise<void>;
   showAddressModal: boolean;
@@ -69,7 +58,10 @@ export type AppModalsBuildInput = {
   setOrderResult: (value: OrderResultState) => void;
   activeBox: MysteryBox | null;
   setActiveBox: (box: MysteryBox | null) => void;
-  navigate: (view: import("../components/MainTabsView").AppView) => void;
+  navigate: (
+    view: import("../components/MainTabsView").AppView,
+    options?: import("./useAppNavigation").NavigateOptions,
+  ) => void;
   createOrder: (
     drawMode?: import("../services/orderService").DrawMode,
     slotNo?: number,
@@ -159,6 +151,18 @@ export function buildAppModalsProps(input: AppModalsBuildInput): ComponentProps<
     onRetryPrepay: () => {
       if (!prepaySession) return;
       void requestPayment(prepaySession.orderId, prepaySession.payAmount);
+    },
+    onRetentionReprepay: async ({ orderId, payAmount }) => {
+      // Drop stale gateway payloads so the next prepay uses post-claim amount.
+      setPrepaySession(null);
+      setVnpaySession(null);
+      setMomoSession(null);
+      if (MOCK_PAYMENT_ENABLED) {
+        setPaymentSession({ orderId, payAmount });
+        return;
+      }
+      // freshPrepay=true → new idempotency seed, avoid replaying full-amount cached prepay.
+      await requestPayment(orderId, payAmount, undefined, true);
     },
     onPayFromPrepay: async () => {
       if (!prepaySession?.prepay) {

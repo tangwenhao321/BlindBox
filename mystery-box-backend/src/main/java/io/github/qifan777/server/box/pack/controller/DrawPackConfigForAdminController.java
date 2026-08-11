@@ -1,6 +1,7 @@
 package io.github.qifan777.server.box.pack.controller;
 
 import cn.dev33.satoken.annotation.SaCheckRole;
+import io.github.qifan777.server.box.draw.BoxProfitabilityService;
 import io.github.qifan777.server.box.pack.model.DrawPackConfigView;
 import io.github.qifan777.server.box.pack.service.DrawPackConfigService;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,7 @@ import java.util.List;
 @SaCheckRole("管理员")
 public class DrawPackConfigForAdminController {
     private final DrawPackConfigService drawPackConfigService;
+    private final BoxProfitabilityService boxProfitabilityService;
 
     @GetMapping
     public List<DrawPackConfigView> list() {
@@ -22,11 +24,16 @@ public class DrawPackConfigForAdminController {
 
     @PostMapping
     public DrawPackConfigView save(@RequestBody DrawPackConfigView input) {
-        return drawPackConfigService.save(input);
+        DrawPackConfigView saved = drawPackConfigService.save(input);
+        if (saved.enabled()) {
+            boxProfitabilityService.recheckAllBoxesForPackChange();
+        }
+        return saved;
     }
 
     @DeleteMapping("{id}")
     public void delete(@PathVariable String id) {
         drawPackConfigService.delete(id);
+        boxProfitabilityService.recheckAllBoxesForPackChange();
     }
 }

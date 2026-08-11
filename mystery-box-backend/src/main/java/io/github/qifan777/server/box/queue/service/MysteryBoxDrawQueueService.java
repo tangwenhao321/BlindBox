@@ -61,7 +61,8 @@ public class MysteryBoxDrawQueueService {
 
     public void assertBuyoutLock(String mysteryBoxId, String userId) {
         String holder = redisTemplate.opsForValue().get(lockKey(mysteryBoxId));
-        if (holder != null && !holder.equals(userId)) {
+        // Fail closed: expired/missing Redis lock must not allow payment to proceed.
+        if (holder == null || !holder.equals(userId)) {
             throw new BusinessException("全收锁池不属于当前用户，请重新获取锁");
         }
     }

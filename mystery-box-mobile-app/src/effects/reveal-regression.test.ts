@@ -99,8 +99,8 @@ describe("reveal regression bundle", () => {
       if (rows[0]) seen.push(rows[0].emoji);
     });
     void connectRevealRoom("order-react", "token", "host");
-    publishRevealRoomReaction("🔥");
-    expect(seen.at(-1)).toBe("🔥");
+    publishRevealRoomReaction("★");
+    expect(seen.at(-1)).toBe("★");
     unsub();
     leaveRevealSpectatorRoom();
   });

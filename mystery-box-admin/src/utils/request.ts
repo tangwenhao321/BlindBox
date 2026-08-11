@@ -1,17 +1,23 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
+import { clearAdminToken, getAdminToken, isCookieAuthMode } from '@/utils/admin-auth-token'
 
 const BASE_URL = import.meta.env.VITE_API_PREFIX
 const AUTH_ERROR_CODES = new Set([1001010, 1001007, 1001008])
+const cookieMode = isCookieAuthMode()
 
 const request = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000
+  timeout: 30000,
+  // Same-origin HttpOnly cookie auth (docs/ADMIN_SECURITY.md)
+  withCredentials: cookieMode
 })
 
 request.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const token = getAdminToken()
+  // Cookie mode + no memory token: rely on HttpOnly cookie (no header).
+  // Memory token (e2e) still sent as header fallback.
   if (token) {
     config.headers = config.headers || {}
     config.headers.token = token
@@ -32,7 +38,7 @@ request.interceptors.response.use(
       ElMessage.warning({ message: msg })
     }
     if (code && AUTH_ERROR_CODES.has(code)) {
-      localStorage.removeItem('token')
+      clearAdminToken()
       router.push('/login')
     }
     const payload = response?.data ?? {}

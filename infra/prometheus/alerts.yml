@@ -74,6 +74,19 @@ groups:
 
   - name: mystery_box_draw_integrity
     rules:
+      - alert: MysteryBoxDrawIntegrityMismatchMetric
+        expr: sum(increase(mystery_box_draw_integrity_mismatch_total[15m])) > 0
+        for: 0m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Draw integrity reconciliation mismatches (Micrometer)
+          description: >
+            Counter mystery_box.draw.integrity.mismatch increased. Check
+            OrderDrawIntegrityReconciliationJob audit ORDER_DRAW_INTEGRITY_RECONCILE
+            and GET /front/mystery-box-order/{id}/draw-integrity. See docs/REVEAL_AND_OPS.md.
+
       # Option A: Loki / log-based (enable if Promtail ships backend logs)
       - alert: MysteryBoxDrawIntegrityMismatch
         expr: |
@@ -99,7 +112,7 @@ groups:
         annotations:
           summary: Draw integrity scheduled job failed
           description: >
-            Requires exporting job_run_audit.status=FAILED to Prometheus. Until wired, rely on log alert above
+            Requires exporting job_run_audit.status=FAILED to Prometheus. Until wired, rely on metric/log alerts
             or Admin job run audit UI.
 
   - name: mystery_box_push
@@ -133,3 +146,101 @@ groups:
         annotations:
           summary: Large burst of failed Expo push deliveries
           description: Check notification service logs and Expo status page.
+
+  - name: mystery_box_marketplace
+    rules:
+      - alert: MysteryBoxMarketplacePendingExternalBacklog
+        expr: mystery_box_marketplace_pending_external_count > 0
+        for: 30m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Marketplace PENDING_EXTERNAL trades stuck
+          description: >
+            Gauge mystery_box.marketplace.pending_external.count is non-zero for 30m.
+            Use admin marketplace trades view or GET /admin/marketplace/trades/pending-external
+            then complete-external / fail-external. See MarketplaceExternalPayoutWatchJob.
+
+      - alert: MysteryBoxMarketplacePendingExternalAged
+        expr: mystery_box_marketplace_pending_external_oldest_age_hours > 24
+        for: 15m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Marketplace PENDING_EXTERNAL older than timeout
+          description: >
+            Oldest PENDING_EXTERNAL age exceeds app.marketplace.external-payout-timeout-hours (default 24).
+            Watch job should auto-fail; if not, check ShedLock / job_run_audit for MarketplaceExternalPayoutWatchJob.
+
+      - alert: MysteryBoxMarketplacePendingExternalAgedFailBurst
+        expr: sum(increase(mystery_box_marketplace_pending_external_aged_failed_total[1h])) > 5
+        for: 0m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Multiple aged PENDING_EXTERNAL auto-fails
+          description: >
+            Counter mystery_box.marketplace.pending_external.aged_failed. Investigate MoMo/ZaloPay disbursement
+            or switch payout-gateway back to wallet.
+
+      # Option B: Loki / log-based until gauges are scraped
+      - alert: MysteryBoxMarketplacePendingExternalAgedFailLog
+        expr: |
+          sum(count_over_time({job=~"mystery-box.*"} |~ "marketplace PENDING_EXTERNAL aged fail" [30m])) > 0
+        for: 0m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Log pattern for aged PENDING_EXTERNAL fail
+          description: >
+            Enable if Promtail ships backend logs. Prefer gauge alerts above when actuator/prometheus is scraped.
+            # sql_exporter stub example:
+            # SELECT COUNT(*) AS pending_external_count FROM marketplace_trade WHERE status='PENDING_EXTERNAL';
+            # SELECT TIMESTAMPDIFF(HOUR, MIN(edited_time), NOW()) AS oldest_age_hours
+            #   FROM marketplace_trade WHERE status='PENDING_EXTERNAL';
+
+  - name: mystery_box_wallet
+    rules:
+      - alert: MysteryBoxWalletReconcileMismatch
+        expr: sum(increase(mystery_box_wallet_reconcile_mismatch_total[1h])) > 0
+        for: 0m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: Wallet balance vs ledger mismatch detected
+          description: >
+            Counter mystery_box.wallet.reconcile.mismatch from WalletReconcileJob.
+            Check job_run_audit WALLET_RECONCILE / WalletReconcileJob and
+            GET /admin/user/{id}/wallet/reconcile for sample userIds in audit payload.
+
+  - name: mystery_box_refund
+    rules:
+      - alert: MysteryBoxRefundReconcileStillStuck
+        expr: sum(rate(mystery_box_refund_reconcile_still_stuck_total[15m])) > 0.01
+        for: 15m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Stuck REFUNDING rows not clearing via reconcile
+          description: >
+            Counter mystery_box.refund.reconcile.still_stuck is rising.
+            Check RefundReconciliationJob, WeChat refundQueryV3 / VNPay retry, and admin refund queue.
+            See job_run_audit RefundReconciliationJob.
+
+      - alert: MysteryBoxRefundReconcileFailed
+        expr: sum(rate(mystery_box_refund_reconcile_failed_total[15m])) > 0.01
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Refund reconcile job exceptions
+          description: >
+            Counter mystery_box.refund.reconcile.failed. Inspect backend logs for
+            "refund reconcile failed" and payment_reliability refund_reconcile events.

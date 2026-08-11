@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { loginByPhone, queryUserBalanceLogs, registerByPhone } from "./authService";
+import { loginByPhone, loginByZalo, queryUserBalanceLogs, registerByPhone } from "./authService";
 
 const { postMock, getMock } = vi.hoisted(() => ({
   postMock: vi.fn(),
@@ -35,6 +35,19 @@ describe("authService", () => {
     });
   });
 
+  it("logs in by Zalo code and returns token", async () => {
+    postMock.mockResolvedValueOnce({
+      data: { code: 1, msg: "ok", result: { tokenValue: "token-zalo" } },
+    });
+
+    const token = await loginByZalo({ code: "auth-code", codeVerifier: "verifier" });
+    expect(token).toBe("token-zalo");
+    expect(postMock).toHaveBeenCalledWith("/front/auth/zalo/login", {
+      code: "auth-code",
+      codeVerifier: "verifier",
+    });
+  });
+
   it("registers by phone and returns token", async () => {
     postMock.mockResolvedValueOnce({
       data: { code: 1, msg: "ok", result: { tokenValue: "token-register" } },
@@ -62,4 +75,3 @@ describe("authService", () => {
     });
   });
 });
-

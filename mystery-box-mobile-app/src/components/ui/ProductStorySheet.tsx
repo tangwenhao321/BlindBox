@@ -19,7 +19,7 @@ export function ProductStorySheet({ visible, story, onClose }: Props) {
       <Pressable style={styles.backdrop} onPress={onClose} accessibilityRole="button">
         <Pressable style={[styles.sheet, { backgroundColor: colors.bgCard }]} onPress={() => undefined}>
           <Text style={[styles.title, { color: colors.textPrimary }]}>
-            {story.title || t("revealOverlay.productStoryTitle", { defaultValue: "Style story" })}
+            {story.title || t("revealOverlay.productStoryTitle")}
           </Text>
           <ScrollView style={styles.bodyScroll}>
             <Text style={[styles.body, { color: colors.textSecondary }]}>{story.body}</Text>
@@ -30,7 +30,7 @@ export function ProductStorySheet({ visible, story, onClose }: Props) {
             style={[styles.closeBtn, { backgroundColor: colors.bgSoft }]}
           >
             <Text style={[styles.closeText, { color: colors.textPrimary }]}>
-              {t("common.close", { defaultValue: "Close" })}
+              {t("common.close")}
             </Text>
           </Pressable>
         </Pressable>

@@ -15,6 +15,36 @@ export async function loginByPhone(phone: string, password: string) {
   return readAuthToken(response.data.result, "auth.actionLogin");
 }
 
+export async function loginBySms(phone: string, code: string) {
+  const response = await api.post<ApiResult<TokenInfo>>("/front/user/login/sms", { phone, code });
+  return readAuthToken(response.data.result, "auth.actionLogin");
+}
+
+export type ZaloLoginPayload =
+  | { code: string; codeVerifier?: string; accessToken?: never; inviteCode?: string }
+  | { accessToken: string; code?: never; codeVerifier?: never; inviteCode?: string };
+
+export async function loginByZalo(payload: ZaloLoginPayload) {
+  const inviteCode = payload.inviteCode?.trim() || undefined;
+  const body =
+    "accessToken" in payload && payload.accessToken
+      ? { accessToken: payload.accessToken, inviteCode }
+      : { code: payload.code, codeVerifier: payload.codeVerifier, inviteCode };
+  const response = await api.post<ApiResult<TokenInfo>>("/front/auth/zalo/login", body);
+  return readAuthToken(response.data.result, "auth.actionLogin");
+}
+
+export type ZaloAuthPublicConfig = {
+  enabled: boolean;
+  appId?: string | null;
+  authorizationUrl?: string | null;
+};
+
+export async function fetchZaloAuthConfig() {
+  const response = await api.get<ApiResult<ZaloAuthPublicConfig>>("/front/auth/zalo/config");
+  return response.data.result;
+}
+
 export async function registerByPhone(phone: string, password: string, code: string, inviteCode?: string) {
   const response = await api.post<ApiResult<TokenInfo>>("/front/user/register", {
     phone,
@@ -43,6 +73,18 @@ export async function updateUserInfo(token: string, payload: { nickname?: string
 export async function resetPassword(phone: string, password: string, code: string) {
   const response = await api.put<ApiResult<TokenInfo>>("/front/user/password", { phone, password, code });
   return response.data.result.tokenValue;
+}
+
+/** Request SMS OTP for register / password reset (anonymous). */
+export async function sendAuthSms(phone: string) {
+  const response = await api.post<ApiResult<boolean> | boolean>("/front/auth/sms/send", null, {
+    params: { phone },
+  });
+  const data = response.data;
+  if (typeof data === "boolean") {
+    return data;
+  }
+  return Boolean((data as ApiResult<boolean>)?.result ?? true);
 }
 
 export async function queryUserBalanceLogs(token: string, limit = 20) {

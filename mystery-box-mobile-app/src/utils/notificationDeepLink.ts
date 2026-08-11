@@ -8,6 +8,8 @@ export type NotificationDeepLink = {
   shipRequestId?: string;
   paymentResponseCode?: string;
   spectatorToken?: string;
+  listingId?: string;
+  listingTitle?: string;
 };
 
 export function resolveNotificationDeepLink(

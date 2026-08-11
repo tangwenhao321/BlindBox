@@ -44,6 +44,13 @@ describe("appViewRoutes", () => {
     expect(appViewToHref("profile")).toBe("/(shell)/(tabs)/profile");
   });
 
+  it("maps marketplace chat with listingId query", () => {
+    expect(appViewToHref("marketplaceChat", { listingId: "lst-1", listingTitle: "Figure" })).toBe(
+      "/marketplace-chat?listingId=lst-1&title=Figure",
+    );
+    expect(appPathToHref("marketplace-chat?listingId=lst-1")).toBe("/marketplace-chat?listingId=lst-1");
+  });
+
   it("appPathToHref delegates to routeRegistry deep link resolver", () => {
     expect(appPathToHref("orders")).toBe("/orders");
     expect(appPathToHref("order/ord-1")).toBe("/order/ord-1");

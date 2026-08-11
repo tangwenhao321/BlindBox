@@ -6,6 +6,7 @@
     "boxFallback": "Box {{id}}…",
     "openBox": "Open ›",
     "emptyBoxes": "No linked boxes",
+    "emptyBoxesDesc": "Pull to refresh or retry loading this event pool.",
     "countdownParts": "{{hours}}h {{minutes}}m {{seconds}}s"
   }
 }

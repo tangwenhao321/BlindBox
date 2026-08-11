@@ -18,7 +18,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class OpsPlatformService {
-    private static final int SEGMENT_USER_LIMIT = 500;
+    private static final int SEGMENT_PAGE_SIZE = 500;
 
     private final AuditTrailService auditTrailService;
     private final JdbcTemplate jdbcTemplate;
@@ -116,27 +116,84 @@ public class OpsPlatformService {
         return task;
     }
 
+    /**
+     * Dry-run: count segment matches for a message task without sending notifications
+     * or changing task status.
+     */
+    public SegmentDryRun dryRunMessageTask(String actorId, String taskId, String traceId) {
+        MessageTask task = jdbcTemplate.query(
+                "SELECT id, template_name, segment_id, status, created_time, edited_time FROM ops_message_task WHERE id = ?",
+                rs -> {
+                    if (!rs.next()) {
+                        return null;
+                    }
+                    return new MessageTask(
+                            rs.getString("id"),
+                            rs.getString("template_name"),
+                            rs.getString("segment_id"),
+                            rs.getString("status"),
+                            rs.getTimestamp("created_time").toLocalDateTime(),
+                            rs.getTimestamp("edited_time").toLocalDateTime()
+                    );
+                },
+                taskId
+        );
+        if (task == null) {
+            throw new BusinessException(ResultCode.NotFindError, "消息任务不存在");
+        }
+        int matched = countSegmentUsers(task.segmentId());
+        auditTrailService.record(
+                "OPS_MESSAGE_TASK_DRY_RUN",
+                actorId,
+                "messageTask",
+                taskId,
+                traceId,
+                Map.of("segmentId", task.segmentId() == null ? "" : task.segmentId(), "matchedUserCount", matched)
+        );
+        return new SegmentDryRun(taskId, task.segmentId(), matched);
+    }
+
+    /** Count users matched by a segment rule (no send). */
+    public int countSegmentUsers(String segmentId) {
+        int total = 0;
+        int offset = 0;
+        while (true) {
+            List<String> page = resolveSegmentUserIds(segmentId, offset, SEGMENT_PAGE_SIZE);
+            total += page.size();
+            if (page.size() < SEGMENT_PAGE_SIZE) {
+                break;
+            }
+            offset += SEGMENT_PAGE_SIZE;
+        }
+        return total;
+    }
+
     private int dispatchMessageNotifications(MessageTask task) {
-        List<String> userIds = resolveSegmentUserIds(task.segmentId());
         String title = task.templateName() == null || task.templateName().isBlank()
                 ? "运营消息"
                 : task.templateName();
         String body = "您有一条新的运营通知，请查看。";
+        // Paged so a campaign reaches the whole segment rather than the first page of it, and so a
+        // multi-million-user segment never has to be held in memory at once.
         int sent = 0;
-        for (String userId : userIds) {
-            userNotificationService.push(userId, "OPS_MESSAGE", title, body, task.id());
-            sent++;
+        int offset = 0;
+        while (true) {
+            List<String> page = resolveSegmentUserIds(task.segmentId(), offset, SEGMENT_PAGE_SIZE);
+            if (page.isEmpty()) {
+                break;
+            }
+            sent += userNotificationService.pushBulk(page, "OPS_MESSAGE", title, body, task.id());
+            if (page.size() < SEGMENT_PAGE_SIZE) {
+                break;
+            }
+            offset += SEGMENT_PAGE_SIZE;
         }
         return sent;
     }
 
-    private List<String> resolveSegmentUserIds(String segmentId) {
+    private List<String> resolveSegmentUserIds(String segmentId, int offset, int limit) {
         if (segmentId == null || segmentId.isBlank()) {
-            return jdbcTemplate.queryForList(
-                    "SELECT id FROM user ORDER BY created_time DESC LIMIT ?",
-                    String.class,
-                    SEGMENT_USER_LIMIT
-            );
+            return allUserIds(offset, limit);
         }
         String ruleJson = jdbcTemplate.query(
                 "SELECT rule_json FROM ops_segment WHERE id = ?",
@@ -151,18 +208,121 @@ public class OpsPlatformService {
             });
             if (Boolean.TRUE.equals(rule.get("vip"))) {
                 return jdbcTemplate.queryForList(
-                        "SELECT DISTINCT user_id FROM vip WHERE end_time > NOW() ORDER BY user_id LIMIT ?",
+                        "SELECT DISTINCT user_id FROM vip WHERE end_time > NOW() ORDER BY user_id LIMIT ? OFFSET ?",
                         String.class,
-                        SEGMENT_USER_LIMIT
+                        limit,
+                        offset
                 );
+            }
+            if (rule.get("locale") != null && !String.valueOf(rule.get("locale")).isBlank()) {
+                return resolveByLocale(String.valueOf(rule.get("locale")).trim(), offset, limit);
+            }
+            if (rule.get("last_pay_days") != null) {
+                int days = toPositiveInt(rule.get("last_pay_days"), 30);
+                return jdbcTemplate.queryForList(
+                        """
+                                SELECT DISTINCT mbo.creator_id
+                                FROM mystery_box_order mbo
+                                JOIN payment p ON p.id = mbo.id
+                                WHERE p.pay_time IS NOT NULL
+                                  AND p.pay_time >= DATE_SUB(NOW(), INTERVAL ? DAY)
+                                ORDER BY mbo.creator_id
+                                LIMIT ? OFFSET ?
+                                """,
+                        String.class,
+                        days,
+                        limit,
+                        offset
+                );
+            }
+            if (rule.get("spend_tier") != null && !String.valueOf(rule.get("spend_tier")).isBlank()) {
+                return resolveBySpendTier(String.valueOf(rule.get("spend_tier")).trim(), offset, limit);
             }
         } catch (Exception ignored) {
             return List.of();
         }
+        return allUserIds(offset, limit);
+    }
+
+    private List<String> resolveByLocale(String locale, int offset, int limit) {
+        String normalized = locale.toLowerCase();
+        if (normalized.startsWith("vi")) {
+            return jdbcTemplate.queryForList(
+                    """
+                            SELECT u.id
+                            FROM user u
+                            LEFT JOIN user_compliance c ON c.user_id = u.id
+                            WHERE u.phone LIKE '+84%' OR c.id_region = 'VN'
+                            ORDER BY u.id
+                            LIMIT ? OFFSET ?
+                            """,
+                    String.class,
+                    limit,
+                    offset
+            );
+        }
+        if (normalized.startsWith("zh")) {
+            return jdbcTemplate.queryForList(
+                    """
+                            SELECT u.id
+                            FROM user u
+                            LEFT JOIN user_compliance c ON c.user_id = u.id
+                            WHERE u.phone LIKE '+86%' OR u.phone REGEXP '^1[3-9][0-9]{9}$' OR c.id_region = 'CN'
+                            ORDER BY u.id
+                            LIMIT ? OFFSET ?
+                            """,
+                    String.class,
+                    limit,
+                    offset
+            );
+        }
+        return allUserIds(offset, limit);
+    }
+
+    /**
+     * Simple lifetime spend tiers from paid mystery-box orders (VND-friendly thresholds).
+     * low &lt; 100k; mid 100k–1M; high ≥ 1M.
+     */
+    private List<String> resolveBySpendTier(String tier, int offset, int limit) {
+        String having = switch (tier.toLowerCase()) {
+            case "low" -> "SUM(p.pay_amount) < 100000";
+            case "mid", "medium" -> "SUM(p.pay_amount) >= 100000 AND SUM(p.pay_amount) < 1000000";
+            case "high" -> "SUM(p.pay_amount) >= 1000000";
+            default -> null;
+        };
+        if (having == null) {
+            return List.of();
+        }
+        String sql = """
+                SELECT creator_id FROM (
+                    SELECT mbo.creator_id AS creator_id
+                    FROM mystery_box_order mbo
+                    JOIN payment p ON p.id = mbo.id
+                    WHERE p.pay_time IS NOT NULL
+                    GROUP BY mbo.creator_id
+                    HAVING %s
+                ) t
+                ORDER BY creator_id
+                LIMIT ? OFFSET ?
+                """.formatted(having);
+        return jdbcTemplate.queryForList(sql, String.class, limit, offset);
+    }
+
+    private static int toPositiveInt(Object raw, int fallback) {
+        try {
+            int value = Integer.parseInt(String.valueOf(raw).trim());
+            return value > 0 ? value : fallback;
+        } catch (Exception ignored) {
+            return fallback;
+        }
+    }
+
+    private List<String> allUserIds(int offset, int limit) {
         return jdbcTemplate.queryForList(
-                "SELECT id FROM user ORDER BY created_time DESC LIMIT ?",
+                "SELECT id FROM user ORDER BY id LIMIT ? OFFSET ?",
                 String.class,
-                SEGMENT_USER_LIMIT
+                limit,
+                offset
         );
     }
 
@@ -239,6 +399,9 @@ public class OpsPlatformService {
     }
 
     public record MessageTask(String id, String templateName, String segmentId, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    }
+
+    public record SegmentDryRun(String taskId, String segmentId, int matchedUserCount) {
     }
 
     public record Ticket(String id, String userId, String title, String content, String status, LocalDateTime createdAt, LocalDateTime updatedAt) {

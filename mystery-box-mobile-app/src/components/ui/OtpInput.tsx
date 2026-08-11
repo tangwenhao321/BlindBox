@@ -9,7 +9,7 @@ import type { ThemeColors } from "../../styles/themes";
 type Props = {
   value: string;
   onChange: (value: string) => void;
-  onSendCode: () => void | Promise<void>;
+  onSendCode: () => void | boolean | Promise<void | boolean | { ok: boolean }>;
   disabled?: boolean;
   length?: number;
   testID?: string;
@@ -30,7 +30,14 @@ export function OtpInput({
 
   const handleSend = () => {
     if (!canResend || disabled) return;
-    void Promise.resolve(onSendCode()).then(() => startCooldown());
+    void Promise.resolve(onSendCode()).then((result) => {
+      // Support legacy void handlers and new { ok } results.
+      if (result === false) return;
+      if (result && typeof result === "object" && "ok" in result && !(result as { ok: boolean }).ok) {
+        return;
+      }
+      startCooldown();
+    });
   };
 
   return (
@@ -44,6 +51,8 @@ export function OtpInput({
           onChangeText={(text) => onChange(text.replace(/\D/g, "").slice(0, length))}
           style={styles.input}
           keyboardType="number-pad"
+          textContentType="oneTimeCode"
+          autoComplete="sms-otp"
           maxLength={length}
           placeholder={t("login.codePlaceholder")}
           placeholderTextColor={colors.textMuted}

@@ -29,6 +29,7 @@ public class RevealRoomHandler extends TextWebSocketHandler {
 
     private final RevealRoomStore roomStore;
     private final ObjectMapper objectMapper;
+    private final RevealRoomRedisFanout redisFanout;
     private final ConcurrentHashMap<String, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> sessionMembers = new ConcurrentHashMap<>();
 
@@ -214,22 +215,41 @@ public class RevealRoomHandler extends TextWebSocketHandler {
     }
 
     void broadcast(String roomId, Map<String, Object> payload, WebSocketSession exclude) {
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(payload);
+        } catch (IOException ex) {
+            log.warn("reveal room broadcast serialize failed roomId={}: {}", roomId, ex.getMessage());
+            return;
+        }
+        String excludeId = exclude != null ? exclude.getId() : null;
+        deliverLocal(roomId, json, excludeId);
+        // Other nodes fan out via Redis subscriber; local already delivered. Falls back to local-only if Redis down.
+        redisFanout.tryPublish(roomId, json);
+    }
+
+    /**
+     * Deliver a JSON payload to JVM-local WebSocket sessions for {@code roomId}.
+     * Used by local broadcast and by {@link RevealRoomRedisSubscriber}.
+     */
+    void deliverLocal(String roomId, String json, String excludeSessionId) {
         Set<WebSocketSession> sessions = roomSessions.get(roomId);
         if (sessions == null || sessions.isEmpty()) {
             return;
         }
-        try {
-            TextMessage message = new TextMessage(objectMapper.writeValueAsString(payload));
-            for (WebSocketSession session : sessions) {
-                if (exclude != null && exclude.getId().equals(session.getId())) {
-                    continue;
-                }
-                if (session.isOpen()) {
+        TextMessage message = new TextMessage(json);
+        for (WebSocketSession session : sessions) {
+            if (excludeSessionId != null && excludeSessionId.equals(session.getId())) {
+                continue;
+            }
+            if (session.isOpen()) {
+                try {
                     session.sendMessage(message);
+                } catch (IOException ex) {
+                    log.warn("reveal room local deliver failed roomId={} session={}: {}",
+                            roomId, session.getId(), ex.getMessage());
                 }
             }
-        } catch (IOException ex) {
-            log.warn("reveal room broadcast failed roomId={}: {}", roomId, ex.getMessage());
         }
     }
 

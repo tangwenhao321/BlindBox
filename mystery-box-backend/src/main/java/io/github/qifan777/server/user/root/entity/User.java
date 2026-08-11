@@ -27,6 +27,10 @@ public interface User extends BaseDateTime {
     @Key
     String phone();
 
+    /** Zalo Social API user id; unique when set (OAuth login). */
+    @Null
+    String zaloOpenId();
+
     @GenField(value = "密码", order = 1)
     String password();
 

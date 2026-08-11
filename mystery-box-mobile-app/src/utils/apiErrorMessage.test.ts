@@ -21,6 +21,25 @@ describe("resolveApiErrorMessage", () => {
     expect(resolveApiErrorMessage(new ApiClientError("订单不存在", 400001))).toBe("Order not found");
     await i18n.changeLanguage(prev);
   });
+
+  it("maps token error codes in every locale", async () => {
+    const prev = i18n.language;
+    await i18n.changeLanguage("zh-CN");
+    expect(resolveApiErrorMessage(new ApiClientError("PITY_STOCK_EXHAUSTED:保底触发", 400001))).toContain("保底");
+    expect(resolveApiErrorMessage(new ApiClientError("PITY_COMPENSATE_DENIED:x", 400001))).toContain("保底补偿");
+    expect(resolveApiErrorMessage(new ApiClientError("TEAM_LOTTERY_UNPAID:pay", 400001))).toContain("支付");
+    expect(resolveApiErrorMessage(new ApiClientError("MARKETPLACE_GATEWAY_NOT_READY: x", 400001))).toContain("打款");
+    expect(
+      resolveApiErrorMessage(new ApiClientError("raw", 400001, undefined, "REFUND_IN_PROGRESS")),
+    ).toContain("退款");
+    await i18n.changeLanguage("en-US");
+    expect(resolveApiErrorMessage(new ApiClientError("TEAM_LOTTERY_LOCKED", 400001))).toContain("Team lottery");
+    expect(resolveApiErrorMessage(new ApiClientError("MARKETPLACE_CREDIT_LOW: low", 400001))).toContain("Marketplace");
+    expect(
+      resolveApiErrorMessage(new ApiClientError("raw", 400001, undefined, "STOCK_CONFLICT")),
+    ).toContain("Stock");
+    await i18n.changeLanguage(prev);
+  });
 });
 
 describe("parseError", () => {

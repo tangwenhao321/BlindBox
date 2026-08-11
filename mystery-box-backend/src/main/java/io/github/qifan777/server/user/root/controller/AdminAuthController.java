@@ -2,6 +2,7 @@ package io.github.qifan777.server.user.root.controller;
 
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.stp.SaTokenInfo;
+import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.user.root.entity.dto.UserLoginInput;
 import io.github.qifan777.server.user.root.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,5 +22,13 @@ public class AdminAuthController {
     @PostMapping("login")
     public SaTokenInfo login(@RequestBody @Validated UserLoginInput loginInput) {
         return userService.loginForAdmin(loginInput);
+    }
+
+    /** Invalidate Sa-Token session (clears HttpOnly cookie when cookie auth is enabled). */
+    @PostMapping("logout")
+    public void logout() {
+        if (StpUtil.isLogin()) {
+            StpUtil.logout();
+        }
     }
 }

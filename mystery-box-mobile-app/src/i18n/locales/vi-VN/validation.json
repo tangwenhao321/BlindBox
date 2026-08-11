@@ -1,7 +1,9 @@
 {
   "validation": {
     "phone": "Nhập số di động 10 chữ số, bắt đầu bằng 0",
-    "passwordMin": "Mật khẩu tối thiểu 6 ký tự",
+    "passwordMin": "Mật khẩu tối thiểu 8 ký tự",
+    "passwordMinLogin": "Mật khẩu tối thiểu 6 ký tự",
+    "passwordComplexity": "Mật khẩu cần có chữ cái và số",
     "recipientRequired": "Nhập tên người nhận",
     "recipientMin": "Tên người nhận tối thiểu 2 ký tự",
     "regionRequired": "Chọn tỉnh / thành phố",

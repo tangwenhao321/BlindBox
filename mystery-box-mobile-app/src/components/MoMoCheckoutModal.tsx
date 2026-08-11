@@ -1,6 +1,8 @@
 import { AppState, Linking, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { PaymentAbandonPanel } from "./PaymentAbandonPanel";
+import { usePaymentAbandonOffer } from "../hooks/usePaymentAbandonOffer";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
@@ -14,26 +16,54 @@ type Props = {
   visible: boolean;
   orderId: string;
   payAmount: number;
+  token?: string;
   prepay: MoMoPrepayResult | null;
   onClose: () => void;
   onRetry?: () => void;
   onRefreshStatus?: () => Promise<boolean>;
   onPaid?: () => void | Promise<void>;
+  onClaimAndReprepay?: (payload: { orderId: string; payAmount: number }) => void | Promise<void>;
 };
 
 export function MoMoCheckoutModal({
   visible,
   orderId,
   payAmount,
+  token,
   prepay,
   onClose,
   onRetry,
   onRefreshStatus,
   onPaid,
+  onClaimAndReprepay,
 }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildMoMoStyles);
   const pollingRef = useRef(false);
+  const [displayPayAmount, setDisplayPayAmount] = useState(payAmount);
+
+  useEffect(() => {
+    if (visible) setDisplayPayAmount(payAmount);
+  }, [visible, payAmount]);
+
+  const {
+    abandonPhase,
+    offerEligible,
+    offerDiscount,
+    claiming,
+    requestClose,
+    continuePay,
+    leaveDirect,
+    claimAndContinue,
+  } = usePaymentAbandonOffer({
+    visible,
+    token,
+    orderId,
+    channel: "momo",
+    onClose,
+    onPayAmountChange: setDisplayPayAmount,
+    onClaimAndReprepay,
+  });
 
   const refreshPaymentStatus = useCallback(async () => {
     if (!onRefreshStatus || pollingRef.current) return;
@@ -72,40 +102,55 @@ export function MoMoCheckoutModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={requestClose}>
       <View style={styles.mask}>
         <View style={styles.card}>
-          <Text style={styles.title}>{t("momo.title")}</Text>
-          <Text style={styles.amount}>{formatCurrency(payAmount)}</Text>
-          <Text style={styles.meta}>{t("momo.orderId", { id: orderId })}</Text>
-          <Text style={styles.hint}>{prepay?.stub ? t("momo.stubHint") : t("momo.continueHint")}</Text>
-          <Pressable
-            style={styles.btn}
-            onPress={() => {
-              trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_OPEN, { orderId });
-              void openMoMo();
-            }}
-            accessibilityRole="button"
-          >
-            <Text style={styles.btnText}>{t("momo.continue")}</Text>
-          </Pressable>
-          {onRefreshStatus ? (
-            <Pressable
-              onPress={() => void refreshPaymentStatus()}
-              accessibilityRole="button"
-              style={styles.secondaryBtn}
-            >
-              <Text style={styles.secondaryText}>{t("momo.checkStatus")}</Text>
-            </Pressable>
-          ) : null}
-          {onRetry ? (
-            <Pressable onPress={onRetry} accessibilityRole="button">
-              <Text style={styles.cancel}>{t("momo.retry")}</Text>
-            </Pressable>
-          ) : null}
-          <Pressable onPress={onClose} accessibilityRole="button">
-            <Text style={styles.cancel}>{t("common.cancel")}</Text>
-          </Pressable>
+          {abandonPhase ? (
+            <PaymentAbandonPanel
+              onContinuePay={continuePay}
+              onClaimAndContinue={() => {
+                void claimAndContinue();
+              }}
+              onLeaveDirect={leaveDirect}
+              offerEligible={offerEligible}
+              offerDiscount={offerDiscount}
+              claiming={claiming}
+            />
+          ) : (
+            <>
+              <Text style={styles.title}>{t("momo.title")}</Text>
+              <Text style={styles.amount}>{formatCurrency(displayPayAmount)}</Text>
+              <Text style={styles.meta}>{t("momo.orderId", { id: orderId })}</Text>
+              <Text style={styles.hint}>{prepay?.stub ? t("momo.stubHint") : t("momo.continueHint")}</Text>
+              <Pressable
+                style={styles.btn}
+                onPress={() => {
+                  trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_OPEN, { orderId });
+                  void openMoMo();
+                }}
+                accessibilityRole="button"
+              >
+                <Text style={styles.btnText}>{t("momo.continue")}</Text>
+              </Pressable>
+              {onRefreshStatus ? (
+                <Pressable
+                  onPress={() => void refreshPaymentStatus()}
+                  accessibilityRole="button"
+                  style={styles.secondaryBtn}
+                >
+                  <Text style={styles.secondaryText}>{t("momo.checkStatus")}</Text>
+                </Pressable>
+              ) : null}
+              {onRetry ? (
+                <Pressable onPress={onRetry} accessibilityRole="button">
+                  <Text style={styles.cancel}>{t("momo.retry")}</Text>
+                </Pressable>
+              ) : null}
+              <Pressable onPress={requestClose} accessibilityRole="button">
+                <Text style={styles.cancel}>{t("common.cancel")}</Text>
+              </Pressable>
+            </>
+          )}
         </View>
       </View>
     </Modal>

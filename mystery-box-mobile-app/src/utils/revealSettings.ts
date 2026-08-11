@@ -235,8 +235,9 @@ export type RevealEffectPresetId = "default" | "neon" | "warm";
 
 export async function getRevealEffectPresetId(): Promise<RevealEffectPresetId> {
   const raw = await AsyncStorage.getItem(sk(KEY_EFFECT_PRESET));
-  if (raw === "neon" || raw === "warm") return raw;
-  return "default";
+  if (raw === "neon" || raw === "default" || raw === "warm") return raw;
+  // Night Cabinet default: warm brass when unset
+  return "warm";
 }
 
 export async function setRevealEffectPresetId(id: RevealEffectPresetId): Promise<void> {
@@ -244,7 +245,7 @@ export async function setRevealEffectPresetId(id: RevealEffectPresetId): Promise
   cachedEffectPresetId = id;
 }
 
-let cachedEffectPresetId: RevealEffectPresetId = "default";
+let cachedEffectPresetId: RevealEffectPresetId = "warm";
 export function getRuntimeRevealEffectPresetId(): RevealEffectPresetId {
   return cachedEffectPresetId;
 }
@@ -264,7 +265,15 @@ export type RevealCeremonyTemplateId =
 
 export async function getRevealCeremonyTemplateId(): Promise<RevealCeremonyTemplateId> {
   const raw = await AsyncStorage.getItem(sk(KEY_CEREMONY_TEMPLATE));
-  if (raw === "efficiency" || raw === "immersive") return raw;
+  if (
+    raw === "efficiency" ||
+    raw === "immersive" ||
+    raw === "eyeCare" ||
+    raw === "collectMinimal" ||
+    raw === "standard"
+  ) {
+    return raw;
+  }
   return "standard";
 }
 

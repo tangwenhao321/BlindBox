@@ -4,6 +4,7 @@ import io.github.qifan777.server.address.entity.Address;
 import io.github.qifan777.server.address.repository.AddressRepository;
 import io.github.qifan777.server.carriage.entity.model.CarriageConfig;
 import io.github.qifan777.server.carriage.repository.CarriageTemplateRepository;
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.payment.config.MarketProperties;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
@@ -48,9 +49,11 @@ public class CarriageTemplateService {
         if (matchedRange.isEmpty() && marketProperties.isVndMarket() && !priceRanges.isEmpty()) {
             matchedRange = priceRanges.stream().max(Comparator.comparing(r -> r.getMaxPrice()));
         }
-        return matchedRange
-                .orElseThrow(() -> new BusinessException("运费模板不适应与该订单，请联系客服"))
-                .getCarriage();
+        return MoneyRounding.round(
+                matchedRange
+                        .orElseThrow(() -> new BusinessException("运费模板不适应与该订单，请联系客服"))
+                        .getCarriage(),
+                marketProperties.getCurrency());
     }
 
     private boolean matchesProvince(CarriageConfig config, Address address) {

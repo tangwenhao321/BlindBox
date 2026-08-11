@@ -13,10 +13,9 @@ import { getPaymentMode } from "../config/payment";
 import type { MysteryBox, PrepayResult, Product, VNPayPrepayResult, MoMoPrepayResult } from "../types";
 import { toast } from "../utils/toast";
 import { getRevealSpectatorShareToken } from "../utils/revealSpectatorTokenBridge";
-import { trackEvent } from "../utils/analytics";
 import { useTranslation } from "react-i18next";
 
-type OrderResultState = {
+export type OrderResultState = {
   orderId: string;
   boxName: string;
   boxId?: string;
@@ -26,6 +25,8 @@ type OrderResultState = {
   payAmount: number;
   prizes: Product[];
   pendingPayment: boolean;
+  /** Bumped after payment succeeds to force reveal playback. */
+  revealPlaybackKey?: number;
 } | null;
 
 type Props = {
@@ -55,6 +56,8 @@ type Props = {
   paymentErrorSession: { orderId: string; payAmount: number; message: string; channel: "wechat" | "vnpay" | "momo" } | null;
   onClosePaymentError: () => void;
   onRetryPaymentError: () => void;
+  /** After retention claim: refresh amount and force a fresh prepay (drop stale gateway URL). */
+  onRetentionReprepay?: (payload: { orderId: string; payAmount: number }) => void | Promise<void>;
   showAddressModal: boolean;
   editingAddressId: string | null;
   formRealName: string;
@@ -115,6 +118,7 @@ export function AppModals(props: Props) {
     paymentErrorSession,
     onClosePaymentError,
     onRetryPaymentError,
+    onRetentionReprepay,
     showAddressModal,
     editingAddressId,
     formRealName,
@@ -241,36 +245,30 @@ export function AppModals(props: Props) {
             await onConfirmMockPay();
           }}
           onSimulateFail={() => toast.error(t("payment.simulateFailToast"))}
+          onClaimAndReprepay={onRetentionReprepay}
         />
       </ErrorBoundary>
       <WechatPrepayModal
         visible={!!prepaySession && getPaymentMode() === "wechat"}
         orderId={prepaySession?.orderId || ""}
         payAmount={prepaySession?.payAmount || 0}
+        token={token}
         prepay={prepaySession?.prepay ?? null}
-        onClose={() => {
-          if (prepaySession?.orderId) {
-            trackEvent("payment_cancel", { orderId: prepaySession.orderId, channel: "wechat" });
-          }
-          onClosePrepay();
-        }}
+        onClose={onClosePrepay}
         onRetry={onRetryPrepay}
         onPay={onPayFromPrepay}
         onUseMockPay={
           MOCK_PAYMENT_ENABLED && __DEV__ ? () => void onMockPayFromPrepay() : undefined
         }
+        onClaimAndReprepay={onRetentionReprepay}
       />
       <VNPayCheckoutModal
         visible={!!vnpaySession && getPaymentMode() === "vnpay"}
         orderId={vnpaySession?.orderId || ""}
         payAmount={vnpaySession?.payAmount || 0}
+        token={token}
         prepay={vnpaySession?.prepay ?? null}
-        onClose={() => {
-          if (vnpaySession?.orderId) {
-            trackEvent("payment_cancel", { orderId: vnpaySession.orderId, channel: "vnpay" });
-          }
-          onCloseVnpay();
-        }}
+        onClose={onCloseVnpay}
         onRetry={onRetryVnpay}
         onRefreshStatus={onRefreshVnpayStatus}
         onPaid={onVnpayPaid}
@@ -279,21 +277,19 @@ export function AppModals(props: Props) {
             ? () => void onMockPayFromVnpay()
             : undefined
         }
+        onClaimAndReprepay={onRetentionReprepay}
       />
       <MoMoCheckoutModal
         visible={!!momoSession && getPaymentMode() === "vnpay"}
         orderId={momoSession?.orderId || ""}
         payAmount={momoSession?.payAmount || 0}
+        token={token}
         prepay={momoSession?.prepay ?? null}
-        onClose={() => {
-          if (momoSession?.orderId) {
-            trackEvent("payment_cancel", { orderId: momoSession.orderId, channel: "momo" });
-          }
-          onCloseMomo();
-        }}
+        onClose={onCloseMomo}
         onRetry={onRetryMomo}
         onRefreshStatus={onRefreshMomoStatus}
         onPaid={onMomoPaid}
+        onClaimAndReprepay={onRetentionReprepay}
       />
       <PaymentErrorSheet
         visible={!!paymentErrorSession}

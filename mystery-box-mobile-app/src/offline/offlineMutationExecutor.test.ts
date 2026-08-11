@@ -115,7 +115,9 @@ describe("offlineMutationExecutor", () => {
       payload: { skuId: "sku-1" },
       createdAt: Date.now(),
     });
-    expect(mocks.exchangeFragment).toHaveBeenCalledWith("tok", "sku-1");
+    expect(mocks.exchangeFragment).toHaveBeenCalledWith("tok", "sku-1", {
+      idempotencySeed: "sku-1",
+    });
   });
 
   it("executes decomposeOrderItem mutation", async () => {

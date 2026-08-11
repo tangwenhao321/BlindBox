@@ -6,6 +6,7 @@
     "boxFallback": "Hộp {{id}}…",
     "openBox": "Mở ›",
     "emptyBoxes": "Không có hộp được liên kết",
+    "emptyBoxesDesc": "Kéo để làm mới hoặc thử tải lại quỹ sự kiện.",
     "countdownParts": "{{hours}}giờ {{minutes}}phút {{seconds}}giây"
   },
   "ageGate": {
@@ -42,14 +43,29 @@
       "outOfStock": "Tạm Hết Hàng",
       "accountBanned": "Tài khoản của bạn bị tạm khóa.",
       "systemError": "Dịch vụ đang bận — vui lòng thử lại sau",
-      "paramInvalid": "Tham số yêu cầu không hợp lệ"
+      "paramInvalid": "Tham số yêu cầu không hợp lệ",
+      "pityCompensateDenied": "Hiện không thể nhận bồi thường pity — thử lại sau hoặc liên hệ hỗ trợ",
+      "pityStockExhausted": "Kho phần thưởng pity đã hết — chọn chờ nhập hàng hoặc nhận điểm bù",
+      "refundInProgress": "Đơn này đã có yêu cầu hoàn tiền đang xử lý",
+      "refundDenied": "Trạng thái đơn hiện tại không thể yêu cầu hoàn tiền",
+      "paymentAmountMismatch": "Số tiền thanh toán hoặc hoàn tiền không khớp",
+      "orderOwnershipDenied": "Bạn không được phép thao tác đơn này",
+      "stockConflict": "Kho bị cập nhật đồng thời — vui lòng thử lại",
+      "teamLotteryUnpaid": "Vui lòng thanh toán đơn hộp trước khi quay thưởng",
+      "teamLotteryError": "Xổ số nhóm tạm thời không khả dụng — thử lại sau",
+      "marketplaceGatewayNotReady": "Cổng thanh toán chợ chưa sẵn sàng — thử lại sau hoặc liên hệ hỗ trợ",
+      "marketplaceListingUnavailable": "Tin đăng không khả dụng hoặc đã bán",
+      "marketplaceInsufficientBalance": "Số dư không đủ để mua trên chợ",
+      "marketplaceCooling": "Giao dịch đang trong thời gian làm mát hoặc trạng thái không hợp lệ",
+      "marketplaceUnauthorized": "Bạn không được phép thực hiện thao tác chợ này",
+      "marketplaceError": "Thao tác chợ thất bại — thử lại sau"
     }
   },
   "appLoading": {
-    "a11y": "Đang tải ứng dụng",
-    "title": "Cửa hàng Hộp Bí ẩn",
-    "subtitle": "Đang tải thế giới unboxing của bạn…",
-    "badge": "Hộp"
+    "a11y": "Đang tải Tủ báu đêm",
+    "title": "Tủ báu đêm",
+    "subtitle": "Đang thắp sáng các ngăn báu của bạn…",
+    "badge": "柜"
   },
   "boxDetailsData": {
     "quoting": "Đang tính tổng...",
@@ -303,7 +319,8 @@
   },
   "mall": {
     "title": "TTTM",
-    "tags": "Xác thực  |  Được tuyển chọn  |  Vận chuyển nhanh",
+    "shelfEyebrow": "Kệ tối nay",
+    "tags": "Chính hãng  ·  Theo lối  ·  Giao nhanh",
     "searchA11y": "Tìm kiếm sản phẩm trung tâm thương mại",
     "searchPlaceholder": "Tìm kiếm sản phẩm",
     "searchBtn": "Tìm kiếm",
@@ -311,7 +328,9 @@
     "searchResultHint": "Kết quả cho “{{keyword}}”",
     "emptySearch": "Không tìm thấy sản phẩm nào cho “{{keyword}}”. Hãy thử từ khóa khác.",
     "categoryAll": "Tất cả",
-    "currentCategory": "Tên danh mục",
+    "currentCategory": "Lối · {{name}}",
+    "aisleTitle": "Lối · {{name}}",
+    "aisleAll": "Lối · Tất cả kệ",
     "fallbackNew": "Hàng mới nhập",
     "fallbackDigital": "Kỹ thuật số",
     "fallbackApple": "Vùng Apple",
@@ -349,7 +368,8 @@
   "orderActions": {
     "paySuccessRevealed": "Thanh toán thành công — giải thưởng được tiết lộ",
     "autoRefreshFailed": "Tự động làm mới đơn hàng không thành công: {{message}}",
-    "pendingPayment": "Đang chờ thanh toán {{orderId}}… — thanh toán tại nhà"
+    "pendingPayment": "Đang chờ thanh toán {{orderId}}… — thanh toán tại nhà",
+    "pendingPaymentRetention": "Đơn {{orderId}}… đã áp dụng ưu đãi giữ chân, cần thanh toán {{amount}}"
   },
   "orderUtils": {
     "phoneUnbound": "Không có số điện thoại nào được liên",
@@ -400,7 +420,10 @@
     "updatedAt": "Thời gian cập nhật",
     "historyTitle": "Thay đổi lịch sử",
     "historyRow": "{{time}} · Huyền thoại {{legendary}} / Ẩn {{hidden}} / Chung {{general}}",
-    "disclaimer": "Mức là cấp hộp (điểm cơ bản được hiển thị dưới dạng phần trăm). Các đợt rút thăm thực tế tuân theo kiểm kê và quy tắc của máy chủ. Thay đổi được ghi lại. Sau khi thanh toán, xác minh rút thăm theo thứ tự chi tiết thông qua kiểm tra hạt giống/băm. Người dùng dưới 18 tuổi không thể mua. Chi tiêu có trách nhiệm. Xác nhận số lần rút thăm và số tiền trước khi thanh toán; hàng hóa ảo ngẫu nhiên không được hoàn lại ngoại trừ các vấn đề về chất lượng. Câu hỏi: gửi phản hồi trong phần Hồ sơ — trả lời trong vòng 3 ngày làm việc."
+    "disclaimer": "Mức là cấp hộp (điểm cơ bản được hiển thị dưới dạng phần trăm). Các đợt rút thăm thực tế tuân theo kiểm kê và quy tắc của máy chủ, và có thể điều chỉnh theo người mới, chuỗi thua, rút nhiều lần và khung giờ. Thay đổi được ghi lại. Sau khi thanh toán, xác minh rút thăm theo thứ tự chi tiết thông qua kiểm tra hạt giống/băm. Người dùng dưới 18 tuổi không thể mua. Chi tiêu có trách nhiệm. Xác nhận số lần rút thăm và số tiền trước khi thanh toán; sau khi mở thưởng về nguyên tắc không hoàn, chưa mở có thể gửi duyệt, lỗi hệ thống (hết hàng bảo hiểm) sẽ hoàn tự động. Câu hỏi: gửi phản hồi trong phần Hồ sơ — trả lời trong vòng 3 ngày làm việc.",
+    "dynamicNote": "Xác suất hiệu lực theo tài khoản có thể khác mức công bố (người mới / chuỗi / giờ). Tăng cộng dồn bị giới hạn để bảo vệ biên lợi nhuận.",
+    "effectiveRatesTitle": "Xác suất hiệu lực của bạn",
+    "baseRatesTitle": "Xác suất cơ sở công bố"
   },
   "profileActions": {
     "nicknameUpdated": "Đã cập nhật biệt danh",
@@ -446,7 +469,8 @@
   },
   "revealA11y": {
     "gotPrize": "Bạn có {{tier}}: {{name}}",
-    "gotPrizeNoName": "Bạn đã nhận được giải thưởng {{tier}}"
+    "gotPrizeNoName": "Bạn đã nhận được giải thưởng {{tier}}",
+    "prizeCard": "Thẻ phần thưởng: {{name}}"
   },
   "revealShare": {
     "brand": "Bỏ chọn báo cáo",
@@ -515,13 +539,15 @@
     "close": "Đóng"
   },
   "welfare": {
-    "checkInToday": "Ngày đến",
-    "checkInDone": "Nhận phòng hôm nay",
+    "checkInToday": "Thắp đèn hôm nay",
+    "checkInDone": "Đã thắp hôm nay",
     "openCoupons": "Xem phiếu giảm giá của tôi",
-    "heroTitle": "Phần Thưởng Hàng Ngày",
-    "dailyCheckIn": "Điểm Danh Hằng Ngày",
-    "streakMeta": "Chuỗi {{days}}ngày · +{{coins}} xu may mắn",
-    "checkInSuccess": "Đã nhận phòng · +{{coins}} xu may mắn",
+    "heroTitle": "Đèn tối",
+    "heroSub": "Nghi thức nhẹ mỗi ngày — giữ chuỗi ấm.",
+    "dailyCheckIn": "Điểm danh tối nay",
+    "lanternDaysLabel": "Ngày đèn",
+    "streakMeta": "{{days}} ngày đèn · +{{coins}} xu may mắn tối nay",
+    "checkInSuccess": "Đèn đã sáng · +{{coins}} xu may mắn",
     "pageTitle": "Trung tâm phúc lợi"
   },
   "winRecord": {

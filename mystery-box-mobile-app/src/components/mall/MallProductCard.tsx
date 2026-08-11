@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { AnimatedRevealCard } from "../AnimatedRevealCard";
 import { RemoteImage } from "../ui/RemoteImage";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { radius, shadows, spacing, typography } from "../../styles/tokens";
+import { font, radius, shelfLipMetrics, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 import type { MysteryBox } from "../../types";
 import { resolveBoxImageUrl } from "../../utils/boxImage";
@@ -32,12 +32,13 @@ function MallProductCardInner({ item, index, onPress }: Props) {
         style={({ pressed }) => [styles.card, pressed ? styles.pressed : null]}
       >
         <View style={styles.imageWrap}>
-          <RemoteImage uri={resolveBoxImageUrl(item)} style={styles.image} />
+          <RemoteImage uri={resolveBoxImageUrl(item)} style={styles.image} priority="low" />
           {item.newcomerExclusive ? (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{t("mall.boxNewcomer")}</Text>
             </View>
           ) : null}
+          <View style={styles.shelfLip} />
         </View>
         <View style={styles.body}>
           <Text style={styles.title} numberOfLines={2}>
@@ -60,30 +61,54 @@ function buildMallProductCardStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
       flex: 1,
-      backgroundColor: colors.bgCard,
+      backgroundColor: colors.bgSoft,
       borderRadius: radius.md,
       overflow: "hidden",
       borderWidth: 1,
       borderColor: colors.border,
-      ...shadows.cardSm,
     },
-    pressed: { opacity: 0.94 },
-    imageWrap: { aspectRatio: 1, backgroundColor: colors.bgSoft },
+    pressed: { opacity: 0.9 },
+    imageWrap: {
+      aspectRatio: 1,
+      backgroundColor: colors.bgMuted,
+      position: "relative",
+    },
     image: { width: "100%", height: "100%" },
+    shelfLip: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: shelfLipMetrics.height,
+      backgroundColor: colors.shelfLip,
+      borderTopWidth: shelfLipMetrics.borderTopWidth,
+      borderTopColor: colors.brandDark,
+    },
     badge: {
       position: "absolute",
       top: spacing.sm,
       left: spacing.sm,
       backgroundColor: colors.brand,
-      borderRadius: radius.pill,
+      borderRadius: radius.sm,
       paddingHorizontal: spacing.sm,
       paddingVertical: 2,
     },
     badgeText: { color: colors.textOnBrand, fontSize: typography.micro, fontWeight: "900" },
-    body: { padding: spacing.md, gap: 4 },
-    title: { fontSize: typography.caption, fontWeight: "700", color: colors.textPrimary, lineHeight: 18 },
-    promo: { fontSize: typography.micro, color: colors.textSecondary, marginTop: 2 },
-    price: { fontSize: typography.bodyLg, fontWeight: "900", color: colors.danger, marginTop: spacing.xs },
-    pool: { fontSize: typography.micro, fontWeight: "700", color: colors.brand },
+    body: { padding: spacing.md, gap: 4, paddingBottom: spacing.md + 2 },
+    title: {
+      ...font("bodySemiBold"),
+      fontSize: typography.caption,
+      color: colors.textPrimary,
+      lineHeight: 20,
+    },
+    promo: { ...font("body"), fontSize: typography.micro, color: colors.textSecondary, marginTop: 2 },
+    price: {
+      ...font("numeral"),
+      fontSize: typography.bodyLg,
+      fontWeight: "900",
+      color: colors.brandText,
+      marginTop: spacing.xs,
+    },
+    pool: { ...font("bodySemiBold"), fontSize: typography.micro, color: colors.brand },
   });
 }

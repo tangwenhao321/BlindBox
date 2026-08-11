@@ -9,6 +9,7 @@ import { useAuthToken } from "../hooks/useAuthToken";
 import { useCouponsQuery } from "../query/hooks/useCouponsQuery";
 import { EmptyState } from "./EmptyState";
 import { SubPageHeader } from "./ui/SubPageHeader";
+import { SubPageShelfAccent } from "./ui/SubPageShelfAccent";
 import { OptimizedFlatList } from "./ui/OptimizedFlatList";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { listEmptyWhenOk, shouldShowListSkeleton } from "./ui/listScreenHelpers";
@@ -43,6 +44,7 @@ export function CouponsView({ onBack, onGoWelfare, onGoMall, onOpenBox }: Props)
   return (
     <View style={styles.root}>
       <SubPageHeader title={t("coupons.title")} onBack={onBack} />
+      <SubPageShelfAccent />
       {loadError ? <ListErrorBanner message={loadError} onRetry={() => void refetch()} /> : null}
       {shouldShowListSkeleton(isLoading, items.length, loadError, refreshing) ? (
         <ListSkeleton variant="row" rows={5} />

@@ -1,12 +1,14 @@
 {
   "welfare": {
-    "checkInToday": "Check in",
-    "checkInDone": "Checked in today",
+    "checkInToday": "Light the lantern",
+    "checkInDone": "Lantern lit today",
     "openCoupons": "View my coupons",
-    "heroTitle": "Daily rewards",
-    "dailyCheckIn": "Daily check-in",
-    "streakMeta": "{{days}}-day streak · +{{coins}} lucky coins",
-    "checkInSuccess": "Checked in · +{{coins}} lucky coins",
+    "heroTitle": "Evening lanterns",
+    "heroSub": "A quiet daily ritual — keep the streak warm.",
+    "dailyCheckIn": "Tonight's check-in",
+    "lanternDaysLabel": "Lantern days",
+    "streakMeta": "{{days}} lantern days · +{{coins}} lucky coins tonight",
+    "checkInSuccess": "Lantern lit · +{{coins}} lucky coins",
     "pageTitle": "Welfare hub"
   }
 }

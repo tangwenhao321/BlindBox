@@ -10,13 +10,16 @@ import type { MysteryBox } from "../../types";
 import { resolveBoxImageUrl } from "../../utils/boxImage";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { trackEvent } from "../../utils/analytics";
+import { setVariant as setRecommendVariant } from "../../utils/lastRecommendAttribution";
 
 type Props = {
   boxes: MysteryBox[];
   onOpenBox: (id: string) => void;
+  /** A/B variant from recommendation API — include in RECOMMEND_IMPRESSION. */
+  variant?: string;
 };
 
-export function RecommendCarousel({ boxes, onOpenBox }: Props) {
+export function RecommendCarousel({ boxes, onOpenBox, variant }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildRecommendCarouselStyles);
   const impressedRef = useRef(false);
@@ -36,7 +39,7 @@ export function RecommendCarousel({ boxes, onOpenBox }: Props) {
       onLayout={() => {
         if (impressedRef.current) return;
         impressedRef.current = true;
-        trackEvent("recommend_impression", { count: boxes.length });
+        trackEvent("recommend_impression", { count: boxes.length, variant });
       }}
     >
       <Text style={styles.title}>{t("home.recommendTitle")}</Text>
@@ -48,11 +51,12 @@ export function RecommendCarousel({ boxes, onOpenBox }: Props) {
             accessibilityLabel={t("mall.boxA11y", { name: item.name, price: formatCurrency(item.price) })}
             style={({ pressed }) => [styles.card, pressed ? styles.pressed : null]}
             onPress={() => {
-              trackEvent("recommend_click", { boxId: item.id, boxName: item.name });
+              setRecommendVariant(item.id, variant);
+              trackEvent("recommend_click", { boxId: item.id, boxName: item.name, variant });
               onOpenBox(item.id);
             }}
           >
-            <RemoteImage uri={resolveBoxImageUrl(item)} style={styles.image} />
+            <RemoteImage uri={resolveBoxImageUrl(item)} style={styles.image} priority="low" />
             <Text style={styles.name} numberOfLines={1}>
               {item.name}
             </Text>

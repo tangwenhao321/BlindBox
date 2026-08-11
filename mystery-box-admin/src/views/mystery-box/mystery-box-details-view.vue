@@ -52,7 +52,8 @@ const initForm: MysteryBoxForm = {
   generalRate: 9241,
   legendaryRatePercent: 0.13,
   hiddenRatePercent: 7.46,
-  generalRatePercent: 92.41
+  generalRatePercent: 92.41,
+  pityThreshold: 50
 }
 const box = ref<MysteryBoxDto['MysteryBoxRepository/COMPLEX_FETCHER_FOR_ADMIN']>()
 const { formData: form, restForm } = useFormHelper<MysteryBoxForm>(initForm)
@@ -67,6 +68,7 @@ const rules = reactive<FormRules<MysteryBoxForm>>({
   legendaryRatePercent: [{ required: true, message: '请输入超神概率(%)', trigger: 'blur' }],
   hiddenRatePercent: [{ required: true, message: '请输入隐藏概率(%)', trigger: 'blur' }],
   generalRatePercent: [{ required: true, message: '请输入普通概率(%)', trigger: 'blur' }],
+  pityThreshold: [{ required: true, message: '请输入保底阈值', trigger: 'blur' }],
   cover: [{ required: true, message: '请输入封面', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }]
 })
@@ -160,6 +162,11 @@ const handleConfirm = async () => {
     assertFormValidate(() =>
       api.mysteryBoxForAdminController.save({ body: form.value }).then(async (res) => {
         form.value.id = res
+        const threshold = Math.max(1, Math.min(9999, Number(form.value.pityThreshold) || 50))
+        await api.mysteryBoxForAdminController.updatePityThreshold({
+          id: res,
+          body: { pityThreshold: threshold }
+        })
         ElMessage.success('操作成功。请在「赏品库存」Tab 配置各赏品余量与终赏。')
         init()
       })
@@ -175,7 +182,8 @@ const init = () => {
         categoryId: res.category.id,
         legendaryRatePercent: Number((res.legendaryRate / 100).toFixed(2)),
         hiddenRatePercent: Number((res.hiddenRate / 100).toFixed(2)),
-        generalRatePercent: Number((res.generalRate / 100).toFixed(2))
+        generalRatePercent: Number((res.generalRate / 100).toFixed(2)),
+        pityThreshold: res.pityThreshold > 0 ? res.pityThreshold : 50
       }
       box.value = res
     })
@@ -228,6 +236,10 @@ const activeName = ref('selected')
           :max="100"
           :precision="2"
         ></el-input-number>
+      </el-form-item>
+      <el-form-item label="保底阈值" prop="pityThreshold">
+        <el-input-number v-model="form.pityThreshold" :min="1" :max="9999" :step="1"></el-input-number>
+        <span class="pity-hint">未出高阶累计抽数达到该值后触发保底（默认 50）</span>
       </el-form-item>
       <el-form-item label="概率合计">
         <el-tag :type="isRateValid ? 'success' : 'danger'"> {{ totalPercent.toFixed(2) }}% </el-tag>
@@ -299,5 +311,10 @@ const activeName = ref('selected')
   .total {
     color: #303133;
   }
+}
+.pity-hint {
+  margin-left: 12px;
+  color: #909399;
+  font-size: 12px;
 }
 </style>

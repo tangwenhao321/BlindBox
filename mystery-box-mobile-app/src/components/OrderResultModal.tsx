@@ -32,6 +32,7 @@ import { RevealPreferencePrompt } from "./RevealPreferencePrompt";
 import { shouldAskRevealPreference, markRevealPreferenceAsked } from "../utils/revealPromptStorage";
 import { setRevealAnimationsEnabled, setRevealTextOnlyMode } from "../utils/revealSettings";
 import { useAppPublicConfig } from "../hooks/useAppPublicConfig";
+import { RevealCoachTips } from "./ui/RevealCoachTips";
 
 type Props = {
   visible: boolean;
@@ -145,6 +146,8 @@ export function OrderResultModal(props: Props) {
     a11yLustreScale,
     spectatorShareToken,
     atmosphereParticleScale,
+    pityProgress,
+    refetchPityProgress,
   } = reveal;
 
   const shareProduct = useMemo(() => {
@@ -195,15 +198,11 @@ export function OrderResultModal(props: Props) {
       setShareWatermark(null);
       if (!captured) {
         toast.error(t("orderResult.shareCaptureFailed"));
-        onShare();
         return;
       }
       const shareMessage = deepLink
-        ? t("orderResult.shareSpectatorMessage", {
-            defaultValue: "Watch my reveal live",
-            url: deepLink,
-          })
-        : t("orderResult.shareHighlightMessage", { defaultValue: "Check out my pull!" });
+        ? t("orderResult.shareSpectatorMessage", { url: deepLink })
+        : t("orderResult.shareHighlightMessage");
       await shareRevealHighlight(captured, { message: shareMessage, url: deepLink });
       await recordShareAchievement("rare_share");
       toast.success(
@@ -211,7 +210,6 @@ export function OrderResultModal(props: Props) {
           ? t("orderResult.shareHighlightVideoSuccess")
           : t("orderResult.shareHighlightImageSuccess"),
       );
-      onShare();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : t("orderResult.shareFailed"));
     } finally {
@@ -221,7 +219,6 @@ export function OrderResultModal(props: Props) {
     shareProduct,
     sharing,
     orderId,
-    onShare,
     sharePulse,
     t,
     authToken,
@@ -394,12 +391,17 @@ export function OrderResultModal(props: Props) {
           onViewOrders={onViewOrders}
           onPayNow={onPayNow}
           onTryAgain={onTryAgain}
+          onGoWarehouse={onGoWarehouse}
           onVerifyFairness={onVerifyFairness}
-          onShareReveal={() => void handleShareReveal()}
+          onShareHighlight={() => void handleShareReveal()}
+          onSharePoster={onShare}
           revealTheme={revealTheme}
           reduceMotion={reduceMotion}
+          pityCompensateStatus={pityProgress?.compensateStatus}
+          onPityCompleted={refetchPityProgress}
         />
       ) : null}
+      <RevealCoachTips active={visible && !pendingPayment && (showReveal || showSettlementSheet)} />
       {shareProduct ? (
         <View style={styles.offscreenShare} pointerEvents="none">
           <Animated.View style={shareCardStyle}>
@@ -439,7 +441,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalRootRevealSequence: {
-    backgroundColor: "rgba(6, 8, 18, 0.97)",
+    backgroundColor: "rgba(10, 8, 7, 0.97)",
   },
   offscreenShare: { position: "absolute", left: -9999, top: 0, opacity: 0.01 },
 });

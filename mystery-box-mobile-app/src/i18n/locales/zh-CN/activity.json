@@ -6,6 +6,7 @@
     "boxFallback": "盲盒 {{id}}…",
     "openBox": "去开盒 ›",
     "emptyBoxes": "暂无关联盲盒",
+    "emptyBoxesDesc": "可下拉刷新或点击重试加载活动奖池。",
     "countdownParts": "{{hours}}时{{minutes}}分{{seconds}}秒"
   }
 }

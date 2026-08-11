@@ -14,22 +14,22 @@
   },
   "payment": {
     "retryPay": "重试支付",
-    "retentionAutoApplyHint": "优惠券将在下次下单时自动抵扣。"
+    "retentionAutoApplyHint": "优惠已抵扣到本笔待支付订单，支付时生效。"
   },
   "checkout": {
     "trustSummaryTitle": "支付前请知悉",
-    "trustLine1": "结果为随机抽取，概率说明见盲盒详情页。",
-    "trustLine2": "支付成功后赏品进入仓库，可发货或兑换余额。",
-    "trustLine3": "未满 18 岁不可购买；退款按平台规则处理。",
+    "trustLine1": "结果随机——概率见上方公示或盲盒页概率说明。",
+    "trustLine2": "支付后奖品进入仓库，可发货或兑换。",
+    "trustLine3": "未满18周岁不可购买；仅质量问题可退款（见《用户协议》），年龄规则见《未成年人声明》。",
     "spendLimitWarning": "已接近或超出消费限额，订单可能被拒绝",
     "spendLimitDailyWarning": "本单 {{amount}} 超出今日剩余额度（{{remaining}}）",
     "spendLimitBlocked": "已超出消费限额，请前往设置调整"
   },
   "boxDetails": {
-    "advancedModesExpand": "更多开盒模式 ▾",
+    "advancedModesExpand": "高级购买模式 ▾",
     "advancedModesCollapse": "收起高级模式 ▴",
     "advancedModesExpandA11y": "展开排队、选号、全收模式",
-    "advancedModesCollapseA11y": "收起高级开盒模式",
+    "advancedModesCollapseA11y": "收起高级购买模式",
     "switchToInstant": "改回即时开盒",
     "switchToInstantA11y": "切换到即时开盒模式"
   },

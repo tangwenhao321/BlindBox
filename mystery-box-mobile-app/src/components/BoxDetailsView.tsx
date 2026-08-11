@@ -64,8 +64,13 @@ type Props = {
   quoteRetentionDiscount?: number;
   quoteSavingsAmount?: number;
   suggestedCouponApplied?: boolean;
+  suggestedCouponUserId?: string;
+  availableCoupons?: import("../types").CouponItem[];
+  selectedCouponUserId?: string;
+  onSelectCoupon?: (couponUserId: string) => void;
   quotingPrice?: boolean;
   quoteError?: string | null;
+  onRetryQuote?: () => void;
   offline?: boolean;
   skipOnboardingCoach?: boolean;
 };
@@ -97,8 +102,13 @@ export function BoxDetailsView(props: Props) {
     quoteRetentionDiscount = 0,
     quoteSavingsAmount = 0,
     suggestedCouponApplied = false,
+    suggestedCouponUserId,
+    availableCoupons = [],
+    selectedCouponUserId = "",
+    onSelectCoupon,
     quotingPrice,
     quoteError,
+    onRetryQuote,
     offline = false,
     skipOnboardingCoach = false,
   } = props;
@@ -377,6 +387,7 @@ export function BoxDetailsView(props: Props) {
         isLoggedIn={isLoggedIn}
         onRequireLogin={onRequireLogin}
         onOpenDrawModal={() => setDrawModalVisible(true)}
+        pityProgress={pityProgress}
       />
 
       <BoxDetailsCheckoutModals
@@ -394,8 +405,13 @@ export function BoxDetailsView(props: Props) {
         quoteRetentionDiscount={quoteRetentionDiscount}
         quoteSavingsAmount={quoteSavingsAmount}
         suggestedCouponApplied={suggestedCouponApplied}
+        suggestedCouponUserId={suggestedCouponUserId}
+        availableCoupons={availableCoupons}
+        selectedCouponUserId={selectedCouponUserId}
+        onSelectCoupon={onSelectCoupon}
         quotingPrice={quotingPrice}
         quoteError={quoteError}
+        onRetryQuote={onRetryQuote}
         creatingOrder={creatingOrder}
         canSubmit={canSubmit}
         priceHint={priceHint}
@@ -410,6 +426,7 @@ export function BoxDetailsView(props: Props) {
         poolTotal={poolTotal}
         poolRemaining={poolRemaining}
         wholeBoxDrawCount={wholeBoxDrawCount ?? undefined}
+        pityProgress={pityProgress}
         onChangeDrawCount={onChangeDrawCount}
         onCreateOrder={onCreateOrder}
         onRequireLogin={onRequireLogin}

@@ -3,18 +3,100 @@ app:
     payment-provider: vnpay
     currency: VND
     logistics-mode: local-only
+  # local | ghn | ghtk | viettel — switch away from local when carrier API tokens exist
+  logistics:
+    provider: local
+    ghn:
+      token: ${LOGISTICS_GHN_TOKEN:}
+    ghtk:
+      token: ${LOGISTICS_GHTK_TOKEN:}
+    viettel:
+      token: ${LOGISTICS_VIETTEL_TOKEN:}
   default-locale: vi-VN
+  marketplace:
+    payout-gateway: ${MARKETPLACE_PAYOUT_GATEWAY:wallet}
+    external-payout-timeout-hours: ${MARKETPLACE_EXTERNAL_PAYOUT_TIMEOUT_HOURS:24}
+  # Prefer ekyc_vendor once credentials exist. Local checksums are NOT trusted by default.
+  identity:
+    provider: ${APP_IDENTITY_PROVIDER:local}
+    trust-local-verification: ${APP_IDENTITY_TRUST_LOCAL:false}
   support:
     zalo-oa-id: ${APP_SUPPORT_ZALO_OA_ID:}
+  auth:
+    zalo-enabled: ${APP_AUTH_ZALO_ENABLED:false}
+    allow-mock-otp: false
+  fairness:
+    # Designated wins off in VN prod unless explicitly enabled via env.
+    allow-win-rule-override: ${APP_FAIRNESS_ALLOW_WIN_RULE_OVERRIDE:false}
+  draw:
+    dynamic-boost-cap-percent: ${APP_DRAW_DYNAMIC_BOOST_CAP_PERCENT:25}
+    min-margin-ratio: ${APP_DRAW_MIN_MARGIN_RATIO:0.15}
+    last-one-enabled: ${APP_DRAW_LAST_ONE_ENABLED:false}
+  newcomer:
+    # VND-scaled defaults (override via env). CN-style 0.01/50 would misprice or always EV-block.
+    first-draw-price: ${APP_NEWCOMER_FIRST_DRAW_PRICE:1000}
+    max-ev-cost: ${APP_NEWCOMER_MAX_EV_COST:50000}
+    enabled: ${APP_NEWCOMER_SUBSIDY_ENABLED:true}
+  compliance:
+    # Teen hard cap in VND (CNY-scale 140 would block all teen spends).
+    teen-daily-cap: ${APP_TEEN_DAILY_CAP:2000000}
+  retention:
+    discount-amount: ${APP_RETENTION_DISCOUNT_AMOUNT:10000}
+    max-claims-per-user-per-day: ${APP_RETENTION_MAX_CLAIMS_PER_DAY:1}
+    # Optional: APP_RETENTION_DISCOUNT_PERCENT + APP_RETENTION_MAX_DISCOUNT_AMOUNT
+
+# Each login gets its own token in VN production.
+# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.37 SaCookieConfig (sa-token.cookie.*).
+sa-token:
+  is-share: false
+  is-read-header: true
+  is-read-cookie: true
+  cookie:
+    httpOnly: true
+    secure: true
+    sameSite: Strict
 
 security:
   compliance:
     spend-limit:
       daily: 2000000
       monthly: 10000000
+    minor:
+      # Keep false until ekyc_vendor is wired; true + local + untrusted refuses boot.
+      verification-required: ${APP_MINOR_VERIFICATION_REQUIRED:false}
+    identity:
+      hash-secret: ${IDENTITY_HASH_SECRET:}
+  rate-limit:
+    # Distributed limiter when Redis is available (required for multi-instance prod-vn)
+    distributed: ${RATE_LIMIT_DISTRIBUTED:true}
+    trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
+  idempotency:
+    # Require x-idempotency-key on mutating front/admin writes (create order / prepay / marketplace buy, etc.)
+    required: true
+
+# Public actuator only; keep prometheus/metrics off the public port in prod-vn.
+# To scrape prometheus, bind a separate management port (e.g. management.server.port=9913)
+# and set management.endpoints.web.exposure.include=health,info,prometheus on that port.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
 
 payment:
   mock-enabled: false
+
+# Disable Jimmer OpenAPI / TS zip endpoints in production
+jimmer:
+  client:
+    ts:
+      path:
+    openapi:
+      path:
+      ui-path:
 
 vnpay:
   tmn-code: ${VNPAY_TMN_CODE:}
@@ -26,13 +108,36 @@ vnpay:
   query-url: ${VNPAY_QUERY_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
   refund-url: ${VNPAY_REFUND_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
 
-# MoMo wallet stub — enable when partner credentials are ready
+# MoMo wallet — hard-disabled while Partner create/IPN/HMAC is unimplemented.
+# partner-wired must stay false until HTTP clients exist (same pattern as eSMS).
 momo:
-  enabled: ${MOMO_ENABLED:false}
+  enabled: false
+  stub: true
+  partner-wired: ${MOMO_PARTNER_WIRED:false}
   partner-code: ${MOMO_PARTNER_CODE:}
   access-key: ${MOMO_ACCESS_KEY:}
   secret-key: ${MOMO_SECRET_KEY:}
   return-url: ${MOMO_RETURN_URL:mysterybox://payment-return}
 
+zalopay:
+  enabled: ${ZALOPAY_ENABLED:false}
+  stub: ${ZALOPAY_STUB:true}
+  partner-wired: ${ZALOPAY_PARTNER_WIRED:false}
+  app-id: ${ZALOPAY_APP_ID:}
+  key1: ${ZALOPAY_KEY1:}
+  key2: ${ZALOPAY_KEY2:}
+
+# Zalo OAuth (POST /front/auth/zalo/login). Token: https://oauth.zaloapp.com/v4/access_token
+zalo:
+  client-id: ${ZALO_CLIENT_ID:}
+  client-secret: ${ZALO_CLIENT_SECRET:}
+
 sms:
-  provider: ${SMS_PROVIDER:ali_yun}
+  # prod-vn: vn_esms needs api-key/secret-key; partner-wired must stay false until HTTP client exists.
+  # blank/none SMS allowed only when app.auth.zalo-enabled=true. ali_yun is refused.
+  provider: ${SMS_PROVIDER:}
+  vn-esms:
+    api-key: ${SMS_VN_ESMS_API_KEY:}
+    secret-key: ${SMS_VN_ESMS_SECRET_KEY:}
+    brandname: ${SMS_VN_ESMS_BRANDNAME:}
+    partner-wired: ${SMS_VN_ESMS_PARTNER_WIRED:false}

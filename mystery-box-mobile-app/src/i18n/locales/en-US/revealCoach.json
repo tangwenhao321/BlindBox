@@ -1,0 +1,12 @@
+{
+  "revealCoach": {
+    "kicker": "First reveal",
+    "skipTitle": "Skip / skip remaining",
+    "skipBody": "Tap to skip the current prize, or use Skip rest to jump through the batch.",
+    "shareTitle": "Share after settle",
+    "shareBody": "When the settlement sheet opens, tap Share highlight for a capture, or Share poster for the order card.",
+    "next": "Next",
+    "done": "Got it",
+    "skip": "Skip tips"
+  }
+}

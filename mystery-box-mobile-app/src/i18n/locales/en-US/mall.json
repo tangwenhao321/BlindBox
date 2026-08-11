@@ -1,7 +1,8 @@
 {
   "mall": {
     "title": "Mall",
-    "tags": "Authentic  |  Curated  |  Fast ship",
+    "shelfEyebrow": "Tonight's shelves",
+    "tags": "Authentic  ·  Curated aisles  ·  Fast ship",
     "searchA11y": "Search mall products",
     "searchPlaceholder": "Search products",
     "searchBtn": "Search",
@@ -9,7 +10,9 @@
     "searchResultHint": "Results for “{{keyword}}”",
     "emptySearch": "No products found for “{{keyword}}”. Try another keyword.",
     "categoryAll": "All",
-    "currentCategory": "Category: {{name}}",
+    "currentCategory": "Aisle · {{name}}",
+    "aisleTitle": "Aisle · {{name}}",
+    "aisleAll": "Aisle · All shelves",
     "fallbackNew": "New arrivals",
     "fallbackDigital": "Digital",
     "fallbackApple": "Apple zone",

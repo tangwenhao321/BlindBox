@@ -1,0 +1,21 @@
+{
+  "effectsCenter": {
+    "title": "特效中心",
+    "hint": "装备已解锁的开箱特效，预览仅展示主题名称",
+    "unlocked": "已解锁",
+    "locked": "未解锁",
+    "equip": "装备",
+    "equipped": "使用中",
+    "equipDone": "已装备「{{name}}」",
+    "preview": "预览",
+    "previewLabel": "预览：{{name}}（开箱时生效）",
+    "emptyTitle": "暂无可用特效",
+    "emptyDesc": "主题未能加载，请重试刷新解锁状态。",
+    "weeklyBanner": "本周开箱特效已更新为[{{name}}]，快去试试吧！",
+    "theme_classic": "经典特效",
+    "theme_adventure": "沉浸式叙事",
+    "theme_cyberpunk": "赛博故障风",
+    "theme_asmr": "治愈系 ASMR",
+    "theme_party": "派对狂欢"
+  }
+}

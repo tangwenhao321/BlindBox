@@ -14,6 +14,7 @@ import {
 } from "../utils/pendingPaymentNotification";
 import { fetchOrderPaymentMeta } from "../services/orderPaymentService";
 import { toast } from "../utils/toast";
+import { formatCurrency } from "../utils/formatCurrency";
 
 type OrderCreatedPayload = {
   orderId: string;
@@ -29,7 +30,18 @@ export function usePendingPayment(token: string | undefined, orders: Order[]) {
       if (!orderId) return;
       const pending = orders.find((o) => o.id === orderId && o.status === ORDER_STATUS.TO_BE_PAID);
       if (pending) {
-        toast.info(i18n.t("orderActions.pendingPayment", { orderId: formatOrderIdShort(orderId) }));
+        void fetchOrderPaymentMeta(token, orderId).then((meta) => {
+          if (meta?.retentionClaimed && meta.payAmount != null) {
+            toast.info(
+              i18n.t("orderActions.pendingPaymentRetention", {
+                orderId: formatOrderIdShort(orderId),
+                amount: formatCurrency(meta.payAmount),
+              }),
+            );
+            return;
+          }
+          toast.info(i18n.t("orderActions.pendingPayment", { orderId: formatOrderIdShort(orderId) }));
+        });
       }
     });
   }, [token, orders]);

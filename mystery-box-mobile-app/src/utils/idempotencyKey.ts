@@ -5,7 +5,9 @@ export type IdempotencyScope =
   | "prepay-wechat"
   | "prepay-vnpay"
   | "redeem-item"
-  | "redeem-order";
+  | "redeem-order"
+  | "marketplace-buy"
+  | "fragment-exchange";
 
 let counter = 0;
 

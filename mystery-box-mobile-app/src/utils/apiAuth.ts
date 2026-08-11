@@ -4,6 +4,7 @@ export function isPublicAuthApiPath(url?: string): boolean {
   return (
     url.includes("/front/user/login") ||
     url.includes("/front/user/register") ||
-    url.includes("/front/user/password")
+    url.includes("/front/user/password") ||
+    url.includes("/front/auth/zalo/")
   );
 }

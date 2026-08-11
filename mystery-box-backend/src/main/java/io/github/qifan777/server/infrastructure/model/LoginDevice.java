@@ -7,4 +7,6 @@ public interface LoginDevice {
     String MP_WECHAT = "mp-wechat";
     // "浏览器"
     String BROWSER = "browser";
+    /** Zalo OAuth (mobile / web). */
+    String APP_ZALO = "app-zalo";
 }

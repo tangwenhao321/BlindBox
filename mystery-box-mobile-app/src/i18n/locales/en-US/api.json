@@ -22,7 +22,24 @@
       "outOfStock": "Out of stock",
       "accountBanned": "Account has been suspended",
       "systemError": "Service is busy — please try again later",
-      "paramInvalid": "Invalid request parameters"
+      "paramInvalid": "Invalid request parameters",
+      "pityCompensateDenied": "Pity compensation is not available right now — try again later or contact support",
+      "pityStockExhausted": "Pity prize stock is exhausted — choose wait for restock or points compensation",
+      "generalPoolSoldOut": "Common prizes are sold out — sales paused to keep published odds honest. Please wait for restock.",
+      "evGateRejected": "This box fails the profit margin check — adjust rates or prize values",
+      "refundInProgress": "A refund is already in progress for this order",
+      "refundDenied": "This order cannot be refunded in its current status",
+      "paymentAmountMismatch": "Payment or refund amount does not match",
+      "orderOwnershipDenied": "You are not allowed to operate on this order",
+      "stockConflict": "Stock was updated by another request — please retry",
+      "teamLotteryUnpaid": "Complete your mystery-box payment before drawing",
+      "teamLotteryError": "Team lottery is temporarily unavailable — try again later",
+      "marketplaceGatewayNotReady": "Marketplace payout gateway is not ready — try again later or contact support",
+      "marketplaceListingUnavailable": "This listing is unavailable or already sold",
+      "marketplaceInsufficientBalance": "Insufficient balance for this marketplace purchase",
+      "marketplaceCooling": "Trade is in cooling period or cooling state is invalid",
+      "marketplaceUnauthorized": "You are not allowed to perform this marketplace action",
+      "marketplaceError": "Marketplace action failed — try again later"
     }
   }
 }

@@ -1,10 +1,11 @@
 package io.github.qifan777.server.referral.service;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.RandomUtil;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrderTable;
 import io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
+import io.github.qifan777.server.payment.config.MarketProperties;
 import io.github.qifan777.server.referral.entity.ReferralCommissionRecord;
 import io.github.qifan777.server.referral.entity.ReferralCommissionRecordDraft;
 import io.github.qifan777.server.referral.entity.dto.ReferralCommissionRecordSpec;
@@ -15,12 +16,14 @@ import io.github.qifan777.server.referral.repository.ReferralCommissionRecordRep
 import io.github.qifan777.server.user.root.entity.User;
 import io.github.qifan777.server.user.root.entity.UserDraft;
 import io.github.qifan777.server.user.root.entity.UserTable;
-import io.github.qifan777.server.user.root.entity.UserBalanceLogDraft;
-import io.github.qifan777.server.user.root.repository.UserBalanceLogRepository;
 import io.github.qifan777.server.user.root.repository.UserRepository;
+import io.github.qifan777.server.user.root.service.UserCoinLedgerService;
+import io.github.qifan777.server.user.root.service.UserWalletService;
 import io.qifan.infrastructure.common.constants.ResultCode;
 import io.qifan.infrastructure.common.exception.BusinessException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -28,16 +31,19 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@Slf4j
 @Transactional
 public class ReferralService {
-    private static final BigDecimal COMMISSION_RATE = new BigDecimal("0.05");
+    private static final String INVITE_CODE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    private static final int INVITE_CODE_LENGTH = 6;
+    private static final SecureRandom INVITE_CODE_RANDOM = new SecureRandom();
     private static final List<InviteMilestoneDef> INVITE_MILESTONES = List.of(
             new InviteMilestoneDef(1, 20, "下级开盒返 5% 佣金到余额"),
             new InviteMilestoneDef(3, 30, "累计邀请奖励"),
@@ -52,9 +58,14 @@ public class ReferralService {
     );
 
     private final UserRepository userRepository;
-    private final UserBalanceLogRepository userBalanceLogRepository;
+    private final UserWalletService userWalletService;
+    private final UserCoinLedgerService userCoinLedgerService;
     private final ReferralCommissionRecordRepository referralCommissionRecordRepository;
     private final JdbcTemplate jdbcTemplate;
+    private final MarketProperties marketProperties;
+
+    @Value("${app.referral.commission-rate:0.05}")
+    private BigDecimal commissionRate = new BigDecimal("0.05");
 
     private record InviteMilestoneDef(int targetCount, int rewardCoins, String perkHint) {
         String label() {
@@ -174,15 +185,22 @@ public class ReferralService {
         if (rewardCoins <= 0 || isMilestoneClaimed(userId, targetCount)) {
             return;
         }
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
+        if (userRepository.findById(userId).isEmpty()) {
             return;
         }
-        int nextCoins = user.luckyCoins() + rewardCoins;
-        userRepository.update(UserDraft.$.produce(draft -> draft.setId(userId).setLuckyCoins(nextCoins)));
+        boolean credited = userCoinLedgerService.credit(
+                userId,
+                UserCoinLedgerService.COIN_TYPE_LUCKY,
+                rewardCoins,
+                "REFERRAL_MILESTONE",
+                "referral_milestone:" + targetCount
+        );
+        if (!credited && isMilestoneClaimed(userId, targetCount)) {
+            return;
+        }
         jdbcTemplate.update(
                 """
-                        INSERT INTO referral_milestone_grant (id, user_id, target_count, reward_coins, created_time)
+                        INSERT IGNORE INTO referral_milestone_grant (id, user_id, target_count, reward_coins, created_time)
                         VALUES (?, ?, ?, ?, ?)
                         """,
                 IdUtil.fastSimpleUUID(),
@@ -258,13 +276,20 @@ public class ReferralService {
         if (buyer == null || !StringUtils.hasText(buyer.inviterId())) {
             return;
         }
-        BigDecimal commission = payAmount.multiply(COMMISSION_RATE).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal rate = commissionRate != null ? commissionRate : new BigDecimal("0.05");
+        String currency = marketProperties != null ? marketProperties.getCurrency() : "CNY";
+        BigDecimal commission = MoneyRounding.round(payAmount.multiply(rate), currency);
         if (commission.compareTo(BigDecimal.ZERO) <= 0) {
             return;
         }
         String inviterId = buyer.inviterId();
-        userRepository.addBalance(inviterId, commission);
-        BigDecimal latestBalance = userRepository.findById(inviterId).orElseThrow().balance();
+        userWalletService.credit(
+                inviterId,
+                commission,
+                "REFERRAL_COMMISSION",
+                "邀请佣金",
+                orderId
+        );
         referralCommissionRecordRepository.save(ReferralCommissionRecordDraft.$.produce(draft -> draft
                 .setUserId(inviterId)
                 .setSourceUserId(buyerId)
@@ -273,19 +298,56 @@ public class ReferralService {
                 .setRemark("下级开盒佣金")
                 .setCreatedTime(LocalDateTime.now())
                 .setEditedTime(LocalDateTime.now())));
-        userBalanceLogRepository.save(UserBalanceLogDraft.$.produce(draft -> draft
-                .setUserId(inviterId)
-                .setChangeType("REFERRAL_COMMISSION")
-                .setAmount(commission)
-                .setBalanceAfter(latestBalance)
-                .setRelatedOrderId(orderId)
-                .setRemark("邀请佣金")));
+    }
+
+    /** Reverse commission when order is refunded. Idempotent via REFERRAL_CLAWBACK+orderId. */
+    public void clawbackCommissionOnRefund(String orderId) {
+        if (!StringUtils.hasText(orderId)) {
+            return;
+        }
+        referralCommissionRecordRepository.findByOrderId(orderId).ifPresent(record -> {
+            BigDecimal amount = record.amount();
+            if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+                return;
+            }
+            String inviterId = record.user().id();
+            try {
+                userWalletService.deduct(
+                        inviterId,
+                        amount,
+                        "REFERRAL_CLAWBACK",
+                        "订单退款收回邀请佣金",
+                        orderId
+                );
+            } catch (BusinessException ex) {
+                log.warn("Referral clawback failed (insufficient balance?) orderId={} inviterId={}: {}",
+                        orderId, inviterId, ex.getMessage());
+                LocalDateTime now = LocalDateTime.now();
+                jdbcTemplate.update(
+                        """
+                                INSERT INTO referral_clawback_debt
+                                    (order_id, inviter_user_id, amount, status, created_time, edited_time)
+                                VALUES (?, ?, ?, 'OPEN', ?, ?)
+                                ON DUPLICATE KEY UPDATE
+                                    inviter_user_id = VALUES(inviter_user_id),
+                                    amount = VALUES(amount),
+                                    status = 'OPEN',
+                                    edited_time = VALUES(edited_time)
+                                """,
+                        orderId,
+                        inviterId,
+                        amount,
+                        now,
+                        now
+                );
+            }
+        });
     }
 
     private String generateUniqueInviteCode() {
         UserTable userTable = UserTable.$;
         for (int i = 0; i < 20; i++) {
-            String code = RandomUtil.randomString(6).toUpperCase();
+            String code = randomInviteCode();
             boolean exists = userRepository.sql().createQuery(userTable)
                     .where(userTable.inviteCode().eq(code))
                     .select(userTable.id())
@@ -296,6 +358,18 @@ public class ReferralService {
             }
         }
         throw new BusinessException("邀请码生成失败，请重试");
+    }
+
+    /**
+     * Invite codes decide who earns commission, so they are drawn from {@link SecureRandom}: codes from a
+     * predictable generator could be guessed ahead of issue and used to hijack a referral chain.
+     */
+    private static String randomInviteCode() {
+        StringBuilder code = new StringBuilder(INVITE_CODE_LENGTH);
+        for (int i = 0; i < INVITE_CODE_LENGTH; i++) {
+            code.append(INVITE_CODE_ALPHABET.charAt(INVITE_CODE_RANDOM.nextInt(INVITE_CODE_ALPHABET.length())));
+        }
+        return code.toString();
     }
 
     private static String maskPhone(String phone) {

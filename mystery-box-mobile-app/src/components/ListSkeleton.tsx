@@ -7,8 +7,8 @@ import type { ThemeColors } from "../styles/themes";
 
 type Props = {
   rows?: number;
-  /** `card` for grid/catalog tiles; `row` for compact list rows (orders, coupons). */
-  variant?: "card" | "row";
+  /** `card` list tiles; `row` compact rows; `grid` 2-column mall catalog. */
+  variant?: "card" | "row" | "grid";
 };
 
 function Shimmer({ style, staticShimmer }: { style: ViewStyle; staticShimmer: boolean }) {
@@ -32,6 +32,21 @@ export function ListSkeleton(props: Props) {
     const sub = AccessibilityInfo.addEventListener?.("reduceMotionChanged", setStaticShimmer);
     return () => sub?.remove?.();
   }, []);
+
+  if (variant === "grid") {
+    return (
+      <View style={[styles.wrap, styles.gridWrap]}>
+        {Array.from({ length: rows }).map((_, index) => (
+          <View key={`skeleton-grid-${index}`} style={styles.gridCard}>
+            <Shimmer style={styles.gridShimmerBlock} staticShimmer={staticShimmer} />
+            <Shimmer style={styles.linePrimary} staticShimmer={staticShimmer} />
+            <Shimmer style={styles.lineSecondary} staticShimmer={staticShimmer} />
+          </View>
+        ))}
+      </View>
+    );
+  }
+
   return (
     <View style={styles.wrap}>
       {Array.from({ length: rows }).map((_, index) =>
@@ -61,6 +76,14 @@ function buildListSkeletonStyles(colors: ThemeColors) {
       paddingHorizontal: layout.screenPaddingX,
       paddingTop: spacing.md,
     },
+    gridWrap: {
+      // Parent lists (e.g. mall FlatList) already apply screenPaddingX
+      paddingHorizontal: 0,
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "space-between",
+      rowGap: spacing.sm,
+    },
     card: {
       backgroundColor: colors.bgCard,
       borderWidth: 1,
@@ -71,11 +94,27 @@ function buildListSkeletonStyles(colors: ThemeColors) {
       overflow: "hidden",
       ...shadows.cardSm,
     },
+    gridCard: {
+      width: "48%",
+      backgroundColor: colors.bgCard,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      overflow: "hidden",
+      ...shadows.cardSm,
+    },
     shimmerBlock: {
       height: 120,
       borderRadius: radius.sm,
       backgroundColor: colors.bgMuted,
       marginBottom: spacing.md,
+    },
+    gridShimmerBlock: {
+      height: 100,
+      borderRadius: radius.sm,
+      backgroundColor: colors.bgMuted,
+      marginBottom: spacing.sm,
     },
     linePrimary: {
       height: 14,

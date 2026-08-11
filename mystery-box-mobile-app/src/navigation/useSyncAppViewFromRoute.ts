@@ -2,6 +2,7 @@ import { useIsFocused } from "@react-navigation/native";
 import { useEffect, useRef } from "react";
 import type { AppView } from "../components/mainTabs/appViews";
 import { useMainTabsRouteSyncOptional } from "../context/MainTabsContext";
+import { setMarketplaceChatParams } from "./marketplaceChatParams";
 import { setPaymentReturnParams } from "./paymentReturnParams";
 import { setSpectatorToken } from "./spectatorParams";
 import { dismissVnpayCheckoutModal, dismissMomoCheckoutModal } from "../payment/paymentShellBridge";
@@ -15,13 +16,23 @@ type SyncParams = {
   boxId?: string;
   paymentResponseCode?: string;
   spectatorToken?: string;
+  listingId?: string;
+  listingTitle?: string;
 };
 
 /**
  * Keeps legacy MainTabs navigation state aligned with the current expo-router screen.
  * Used by thin route files under app/(shell)/.
  */
-export function useSyncAppViewFromRoute({ view, orderId, boxId, paymentResponseCode, spectatorToken }: SyncParams) {
+export function useSyncAppViewFromRoute({
+  view,
+  orderId,
+  boxId,
+  paymentResponseCode,
+  spectatorToken,
+  listingId,
+  listingTitle,
+}: SyncParams) {
   const nav = useMainTabsRouteSyncOptional();
   const isFocused = useIsFocused();
   const openOrderRef = useRef(nav?.openOrderDetailsPage);
@@ -33,6 +44,7 @@ export function useSyncAppViewFromRoute({ view, orderId, boxId, paymentResponseC
   const lastSyncedEpochRef = useRef(nav?.navigationEpoch ?? 0);
   const lastSyncedBoxIdRef = useRef<string | undefined>(undefined);
   const lastSyncedOrderIdRef = useRef<string | undefined>(undefined);
+  const lastSyncedListingIdRef = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (nav?.appView !== "boxDetails") {
@@ -40,6 +52,9 @@ export function useSyncAppViewFromRoute({ view, orderId, boxId, paymentResponseC
     }
     if (nav?.appView !== "orderDetails") {
       lastSyncedOrderIdRef.current = undefined;
+    }
+    if (nav?.appView !== "marketplaceChat") {
+      lastSyncedListingIdRef.current = undefined;
     }
   }, [nav?.appView]);
 
@@ -56,6 +71,10 @@ export function useSyncAppViewFromRoute({ view, orderId, boxId, paymentResponseC
       return;
     }
     if (memoryView === view) {
+      if (view === "marketplaceChat" && listingId) {
+        setMarketplaceChatParams({ listingId, listingTitle });
+        lastSyncedListingIdRef.current = listingId;
+      }
       lastSyncedEpochRef.current = navigationEpoch;
       return;
     }
@@ -71,6 +90,14 @@ export function useSyncAppViewFromRoute({ view, orderId, boxId, paymentResponseC
       view === "boxDetails" &&
       boxId &&
       shouldSkipDuplicateEntityRouteSync(boxId, lastSyncedBoxIdRef.current)
+    ) {
+      lastSyncedEpochRef.current = navigationEpoch;
+      return;
+    }
+    if (
+      view === "marketplaceChat" &&
+      listingId &&
+      shouldSkipDuplicateEntityRouteSync(listingId, lastSyncedListingIdRef.current)
     ) {
       lastSyncedEpochRef.current = navigationEpoch;
       return;
@@ -95,6 +122,22 @@ export function useSyncAppViewFromRoute({ view, orderId, boxId, paymentResponseC
     if (view === "revealSpectator" && spectatorToken) {
       setSpectatorToken(spectatorToken);
     }
+    if (view === "marketplaceChat" && listingId) {
+      lastSyncedListingIdRef.current = listingId;
+      setMarketplaceChatParams({ listingId, listingTitle });
+    }
     navigateFn(view, { skipRouterSync: true });
-  }, [isFocused, nav?.appView, nav?.navigationEpoch, navigateFn, view, orderId, boxId, paymentResponseCode, spectatorToken]);
+  }, [
+    isFocused,
+    nav?.appView,
+    nav?.navigationEpoch,
+    navigateFn,
+    view,
+    orderId,
+    boxId,
+    paymentResponseCode,
+    spectatorToken,
+    listingId,
+    listingTitle,
+  ]);
 }

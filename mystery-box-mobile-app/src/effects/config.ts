@@ -21,8 +21,6 @@ export type EffectProfile = {
   revealDelayMs: number;
   /** 揭晓前蓄力阶段（王者式 suspense） */
   chargeMs: number;
-  /** 是否展示仪式档位横幅 */
-  showCeremonyBanner: boolean;
 };
 
 const BASE: Record<CeremonyTier, EffectProfile> = {
@@ -43,7 +41,6 @@ const BASE: Record<CeremonyTier, EffectProfile> = {
     flashPeak: 0.55,
     revealDelayMs: 1400,
     chargeMs: 0,
-    showCeremonyBanner: false,
   },
   HIDDEN: {
     tier: "HIDDEN",
@@ -62,7 +59,6 @@ const BASE: Record<CeremonyTier, EffectProfile> = {
     flashPeak: 0.72,
     revealDelayMs: 2200,
     chargeMs: 480,
-    showCeremonyBanner: false,
   },
   TREASURE_LEGEND: {
     tier: "TREASURE_LEGEND",
@@ -81,7 +77,6 @@ const BASE: Record<CeremonyTier, EffectProfile> = {
     flashPeak: 0.88,
     revealDelayMs: 3600,
     chargeMs: 720,
-    showCeremonyBanner: false,
   },
   PEERLESS: {
     tier: "PEERLESS",
@@ -100,7 +95,6 @@ const BASE: Record<CeremonyTier, EffectProfile> = {
     flashPeak: 0.94,
     revealDelayMs: 4400,
     chargeMs: 980,
-    showCeremonyBanner: false,
   },
   TREASURE_PEERLESS: {
     tier: "TREASURE_PEERLESS",
@@ -119,7 +113,6 @@ const BASE: Record<CeremonyTier, EffectProfile> = {
     flashPeak: 1,
     revealDelayMs: 5200,
     chargeMs: 1200,
-    showCeremonyBanner: false,
   },
 };
 
@@ -152,7 +145,6 @@ export function getEffectProfile(tier: PrizeTier, opts?: { reduceMotion?: boolea
     flashPeak: opts.reduceMotion ? 0.25 : base.flashPeak * 0.7,
     revealDelayMs: opts.reduceMotion ? 280 : Math.min(base.revealDelayMs, 900),
     chargeMs: opts.reduceMotion ? 0 : Math.min(base.chargeMs, 400),
-    showCeremonyBanner: opts.reduceMotion ? false : base.showCeremonyBanner,
     vibrationPattern: opts.reduceMotion ? [0, 25] : base.vibrationPattern,
   };
 }

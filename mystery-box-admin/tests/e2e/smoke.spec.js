@@ -311,7 +311,10 @@ async function mockAdminAuth(page) {
 test.describe('admin UI smoke (offline mocks)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
-    await page.evaluate(() => localStorage.clear())
+    await page.evaluate(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
   })
 
   test('admin login page can render', async ({ page }) => {
@@ -325,6 +328,10 @@ test.describe('admin UI smoke (offline mocks)', () => {
     expect(response.headers()['x-content-type-options']).toBe('nosniff')
     expect(response.headers()['x-frame-options']).toBe('DENY')
     expect(response.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin')
+    const csp = response.headers()['content-security-policy'] || ''
+    expect(csp).toContain("default-src 'self'")
+    expect(csp).toContain("object-src 'none'")
+    expect(csp).toContain("base-uri 'self'")
   })
 
   test('protected route redirects to login without token', async ({ page }) => {

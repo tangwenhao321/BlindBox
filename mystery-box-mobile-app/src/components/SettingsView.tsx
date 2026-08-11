@@ -6,7 +6,11 @@ import {
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { isRunningInExpoGo } from "expo";
-import { fetchSpendLimit, updateSpendLimitPreference, type SpendLimitView } from "../services/complianceService";
+import * as FileSystem from "expo-file-system/legacy";
+import * as Sharing from "expo-sharing";
+import { fetchSpendLimit, updateSpendLimitPreference, verifyIdentity, fetchIdentityStatus, type SpendLimitView, type IdentityStatus } from "../services/complianceService";
+import { exportPrivacyData, requestAccountDeletion } from "../services/privacyService";
+import { applyAgeTierToRevealMinorMode, setMinorAudioScale } from "../effects/revealMinorMode";
 import { fetchNotificationPrefs, updateNotificationPrefs, type NotificationPrefs } from "../services/notificationPrefsService";
 import { useAppUpdateContext } from "../context/AppUpdateContext";
 import { parseError } from "../api";
@@ -87,6 +91,8 @@ import {
   saveAtmosphereProfile,
   type AtmosphereProfile,
 } from "../effects/revealAtmosphereWorkshop";
+import { applyAtmosphereProfileToRuntime } from "../effects/revealAtmosphereRuntime";
+import { getRevealRemoteConfig } from "../effects/revealRemote";
 import { setRuntimeRevealSoundPack } from "../effects/sound";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { SubPageHeader } from "./ui/SubPageHeader";
@@ -134,6 +140,7 @@ type Props = {
   onRetryRemoteConfig?: () => void;
   onBack: () => void;
   onOpenPrivacy: () => void;
+  onOpenEffectsCenter?: () => void;
   onLogout?: () => void | Promise<void>;
 };
 
@@ -144,6 +151,7 @@ export function SettingsView({
   onRetryRemoteConfig,
   onBack,
   onOpenPrivacy,
+  onOpenEffectsCenter,
   onLogout,
 }: Props) {
   const authToken = useAuthToken();
@@ -178,11 +186,14 @@ export function SettingsView({
   const [playerFitOriginal, setPlayerFitOriginal] = useState(false);
   const [focusModeEnabled, setFocusModeEnabled] = useState(false);
   const [immersiveCeremony, setImmersiveCeremony] = useState(false);
-  const [effectPresetId, setEffectPresetId] = useState<RevealEffectPresetId>("default");
+  const [effectPresetId, setEffectPresetId] = useState<RevealEffectPresetId>("warm");
   const [voiceLineEnabled, setVoiceLineEnabled] = useState(false);
   const [eyeCareMode, setEyeCareMode] = useState(false);
   const [recordingSafeMode, setRecordingSafeMode] = useState(false);
   const [emotionProfileId, setEmotionProfileId] = useState("stim");
+  const [lastNonEyeCareTemplate, setLastNonEyeCareTemplate] =
+    useState<RevealCeremonyTemplateId>("standard");
+  const [hasVoiceLineUris, setHasVoiceLineUris] = useState(false);
   const [emotionCharge, setEmotionCharge] = useState(1.15);
   const [emotionGap, setEmotionGap] = useState(0.9);
   const [emotionHaptic, setEmotionHaptic] = useState(1.2);
@@ -191,12 +202,18 @@ export function SettingsView({
   const [atmosphereProfile, setAtmosphereProfile] = useState<AtmosphereProfile | null>(null);
   const [spendLimit, setSpendLimit] = useState<SpendLimitView | null>(null);
   const [spendLimitError, setSpendLimitError] = useState<string | null>(null);
+  const [identityStatus, setIdentityStatus] = useState<IdentityStatus | null>(null);
+  const [identityDoc, setIdentityDoc] = useState("");
+  const [identityName, setIdentityName] = useState("");
+  const [identityBusy, setIdentityBusy] = useState(false);
+  const [privacyBusy, setPrivacyBusy] = useState(false);
   const [dailyCapDraft, setDailyCapDraft] = useState("");
   const [monthlyCapDraft, setMonthlyCapDraft] = useState("");
   const [savingSpendLimit, setSavingSpendLimit] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs | null>(null);
   const [notificationPrefsError, setNotificationPrefsError] = useState<string | null>(null);
   const [savingNotificationPref, setSavingNotificationPref] = useState(false);
+  const [advancedEffectsExpanded, setAdvancedEffectsExpanded] = useState(false);
 
   useEffect(() => {
     void getBiometricUnlockEnabled().then(setBiometricUnlock);
@@ -239,7 +256,9 @@ export function SettingsView({
       setRevealFocusMode(v);
     });
     void getRevealCeremonyTemplateId().then((id) => {
+      setEyeCareMode(id === "eyeCare");
       setImmersiveCeremony(id === "immersive");
+      if (id !== "eyeCare") setLastNonEyeCareTemplate(id);
       setRuntimeRevealCeremonyTemplateId(id);
     });
     void getRevealEffectPresetId().then((id) => {
@@ -247,6 +266,7 @@ export function SettingsView({
       setRuntimeRevealEffectPresetId(id);
     });
     void getRevealVoiceLineEnabled().then(setVoiceLineEnabled);
+    setHasVoiceLineUris(Object.keys(getRevealRemoteConfig().voiceLineUris ?? {}).length > 0);
     void getRevealRecordingSafeMode().then(setRecordingSafeMode);
     void loadEmotionProfiles().then(() => {
       setEmotionProfileId(getActiveEmotionProfileId());
@@ -257,13 +277,17 @@ export function SettingsView({
       setEmotionVolume(p.volumeScale);
       setEmotionParticles(p.particleScale);
     });
-    void loadAtmosphereProfile().then(setAtmosphereProfile);
+    void loadAtmosphereProfile().then((profile) => {
+      setAtmosphereProfile(profile);
+      applyAtmosphereProfileToRuntime(profile);
+    });
   }, []);
 
   useEffect(() => {
     if (!authToken) {
       setSpendLimit(null);
       setSpendLimitError(null);
+      setIdentityStatus(null);
       return;
     }
     void fetchSpendLimit(authToken)
@@ -274,11 +298,24 @@ export function SettingsView({
           view.userMonthlyLimit != null ? String(view.userMonthlyLimit) : String(view.monthlyLimit ?? ""),
         );
         setSpendLimitError(null);
+        if (typeof view.audioVolumeScale === "number") {
+          setMinorAudioScale(view.audioVolumeScale);
+        }
+        if (view.ageTier) {
+          applyAgeTierToRevealMinorMode(view.ageTier, view.minor);
+        }
       })
       .catch((error) => {
         setSpendLimit(null);
         setSpendLimitError(parseError(error));
       });
+    void fetchIdentityStatus(authToken).then((status) => {
+      setIdentityStatus(status);
+      if (status) {
+        applyAgeTierToRevealMinorMode(status.ageTier, status.minor);
+        setMinorAudioScale(status.audioVolumeScale);
+      }
+    });
   }, [authToken]);
 
   useEffect(() => {
@@ -336,6 +373,60 @@ export function SettingsView({
     void setAppLocale(next);
   };
 
+  const handleExportPrivacyData = async () => {
+    if (!authToken || privacyBusy) return;
+    setPrivacyBusy(true);
+    try {
+      const dump = await exportPrivacyData(authToken);
+      const baseDir = FileSystem.cacheDirectory ?? FileSystem.documentDirectory;
+      if (!baseDir) {
+        throw new Error(t("settings.exportDirUnavailable"));
+      }
+      const filename = `privacy-export-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      const uri = `${baseDir}${filename}`;
+      await FileSystem.writeAsStringAsync(uri, JSON.stringify(dump, null, 2), {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+      const available = await Sharing.isAvailableAsync();
+      if (available) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "application/json",
+          dialogTitle: t("settings.exportDataShareTitle"),
+        });
+      }
+      toast.success(t("settings.exportDataSuccess"));
+      trackEvent(ANALYTICS_EVENTS.PRIVACY_EXPORT);
+    } catch (error) {
+      toast.error(parseError(error));
+    } finally {
+      setPrivacyBusy(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!authToken || privacyBusy) return;
+    const ok = await confirm({
+      title: t("settings.deleteAccountTitle"),
+      message: t("settings.deleteAccountMessage"),
+      confirmLabel: t("settings.deleteAccountConfirm"),
+      destructive: true,
+    });
+    if (!ok) return;
+    setPrivacyBusy(true);
+    try {
+      await requestAccountDeletion(authToken);
+      toast.success(t("settings.deleteAccountSuccess"));
+      trackEvent(ANALYTICS_EVENTS.PRIVACY_DELETE);
+      if (onLogout) {
+        await onLogout();
+      }
+    } catch (error) {
+      toast.error(parseError(error));
+    } finally {
+      setPrivacyBusy(false);
+    }
+  };
+
   return (
     <View style={styles.root}>
       <SubPageHeader title={t("settings.title")} onBack={onBack} />
@@ -347,36 +438,6 @@ export function SettingsView({
           />
         ) : null}
         <View style={screenStyles.screenCard}>
-          <Text style={styles.label}>{t("settings.language")}</Text>
-          <View style={styles.langRow}>
-            <Pressable
-              style={[styles.langChip, locale === "zh-CN" ? styles.langChipOn : null]}
-              onPress={() => switchLocale("zh-CN")}
-              accessibilityRole="button"
-              accessibilityLabel={t("settings.languageZh")}
-              accessibilityState={{ selected: locale === "zh-CN" }}
-            >
-              <Text style={[styles.langText, locale === "zh-CN" ? styles.langTextOn : null]}>{t("settings.languageZh")}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.langChip, locale === "en-US" ? styles.langChipOn : null]}
-              onPress={() => switchLocale("en-US")}
-              accessibilityRole="button"
-              accessibilityLabel={t("settings.languageEn")}
-              accessibilityState={{ selected: locale === "en-US" }}
-            >
-              <Text style={[styles.langText, locale === "en-US" ? styles.langTextOn : null]}>{t("settings.languageEn")}</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.langChip, locale === "vi-VN" ? styles.langChipOn : null]}
-              onPress={() => switchLocale("vi-VN")}
-              accessibilityRole="button"
-              accessibilityLabel={t("settings.languageVi")}
-              accessibilityState={{ selected: locale === "vi-VN" }}
-            >
-              <Text style={[styles.langText, locale === "vi-VN" ? styles.langTextOn : null]}>{t("settings.languageVi")}</Text>
-            </Pressable>
-          </View>
           <Text style={styles.label}>{t("settings.appearance")}</Text>
           <View style={styles.langRow}>
             <Pressable
@@ -408,6 +469,37 @@ export function SettingsView({
             </Pressable>
           </View>
           <Text style={styles.hint}>{t("settings.appearanceHint")}</Text>
+
+          <Text style={[styles.label, styles.gapTop]}>{t("settings.language")}</Text>
+          <View style={styles.langRow}>
+            <Pressable
+              style={[styles.langChip, locale === "zh-CN" ? styles.langChipOn : null]}
+              onPress={() => switchLocale("zh-CN")}
+              accessibilityRole="button"
+              accessibilityLabel={t("settings.languageZh")}
+              accessibilityState={{ selected: locale === "zh-CN" }}
+            >
+              <Text style={[styles.langText, locale === "zh-CN" ? styles.langTextOn : null]}>{t("settings.languageZh")}</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.langChip, locale === "en-US" ? styles.langChipOn : null]}
+              onPress={() => switchLocale("en-US")}
+              accessibilityRole="button"
+              accessibilityLabel={t("settings.languageEn")}
+              accessibilityState={{ selected: locale === "en-US" }}
+            >
+              <Text style={[styles.langText, locale === "en-US" ? styles.langTextOn : null]}>{t("settings.languageEn")}</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.langChip, locale === "vi-VN" ? styles.langChipOn : null]}
+              onPress={() => switchLocale("vi-VN")}
+              accessibilityRole="button"
+              accessibilityLabel={t("settings.languageVi")}
+              accessibilityState={{ selected: locale === "vi-VN" }}
+            >
+              <Text style={[styles.langText, locale === "vi-VN" ? styles.langTextOn : null]}>{t("settings.languageVi")}</Text>
+            </Pressable>
+          </View>
           {authToken ? (
             <View style={styles.spendLimitBlock}>
               <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
@@ -458,6 +550,330 @@ export function SettingsView({
               <Text style={styles.hint}>{getPaymentMethodHint()}</Text>
             </>
           ) : null}
+          {__DEV__ && mode === "mock" ? (
+            <View style={styles.checklist}>
+              <Text style={styles.label}>{t("settings.prodChecklistTitle")}</Text>
+              {getProductionPaymentChecklistLines().map((line) => (
+                <Text key={line} style={styles.checkItem}>
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+          {__DEV__ && productionWarnings.length ? (
+            <View style={styles.checklist}>
+              <Text style={[styles.label, styles.gapTop]}>{t("settings.prodWarningsTitle")}</Text>
+              {productionWarnings.map((line) => (
+                <Text key={line} style={styles.warnItem}>
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+          {__DEV__ ? (
+            <>
+              <Text style={[styles.label, styles.gapTop]}>{t("settings.crashMonitoring")}</Text>
+              <Text style={styles.value}>{getCrashMonitoringStatusLabel(crashStatus)}</Text>
+              <Text style={[styles.label, styles.gapTop]}>{t("settings.wechatSdk")}</Text>
+              <Text style={styles.value}>
+                {getWechatSdkAvailable() ? t("settings.wechatSdkInstalled") : t("settings.wechatSdkMissing")}
+              </Text>
+              {crashStatus === "dsn_missing_sdk" ? <Text style={styles.hint}>{t("settings.sentryHint")}</Text> : null}
+              <PrimaryButton
+                label={t("settings.clearOfflineQueue")}
+                variant="ghost"
+                onPress={() => {
+                  clearOfflineMutationQueue();
+                  toast.info(t("settings.clearOfflineQueueDone"));
+                }}
+              />
+            </>
+          ) : null}
+          <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+            {t("settings.accountSection")}
+          </Text>
+          {biometricAvailable ? (
+            <View style={styles.switchRow}>
+              <View style={styles.switchTextCol}>
+                <Text style={[styles.label, styles.gapTop]}>{t("settings.biometricUnlock")}</Text>
+                <Text style={styles.hint}>{t("settings.biometricUnlockHint")}</Text>
+              </View>
+              <Switch
+                value={biometricUnlock}
+                accessibilityLabel={t("settings.biometricUnlock")}
+                onValueChange={(v) => {
+                  setBiometricUnlock(v);
+                  void setBiometricUnlockEnabled(v);
+                  trackEvent(ANALYTICS_EVENTS.SETTINGS_TOGGLE, { key: "biometric_unlock", value: v });
+                }}
+              />
+            </View>
+          ) : null}
+          {authToken ? (
+            <View style={styles.spendLimitBlock}>
+              <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+                {t("settings.offlineQueueTitle")}
+              </Text>
+              <Text style={styles.hint}>
+                {offlineQueue.count > 0
+                  ? t("settings.offlineQueueHint", { count: offlineQueue.count })
+                  : t("settings.offlineQueueIdle")}
+              </Text>
+              {offlineQueue.count > 0 ? (
+                <View style={styles.offlineQueueList}>
+                  <Text style={styles.label}>{t("settings.offlineQueueItems")}</Text>
+                  {offlineQueue.items.map((item) => (
+                    <View key={item.id} style={styles.offlineQueueRow}>
+                      <Text style={styles.hint} numberOfLines={2}>
+                        · {resolveOfflineActionLabel(item.label)}
+                      </Text>
+                      <View style={styles.offlineQueueActions}>
+                        <Pressable
+                          onPress={() => {
+                            void retryOfflineMutationById(item.id).then((ok) => {
+                              toast.info(ok ? t("settings.offlineQueueItemRetryDone") : t("settings.offlineQueueItemRetryFailed"));
+                            });
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t("settings.offlineQueueItemRetry")}
+                        >
+                          <Text style={styles.offlineQueueAction}>{t("settings.offlineQueueItemRetry")}</Text>
+                        </Pressable>
+                        <Pressable
+                          onPress={() => {
+                            removeOfflineMutation(item.id);
+                            toast.info(t("settings.offlineQueueItemRemoved"));
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t("settings.offlineQueueItemDelete")}
+                        >
+                          <Text style={styles.offlineQueueActionDanger}>{t("settings.offlineQueueItemDelete")}</Text>
+                        </Pressable>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+              {offlineQueue.count > 0 ? (
+                <PrimaryButton
+                  label={t("settings.offlineQueueRetry")}
+                  variant="ghost"
+                  onPress={() => {
+                    void flushOfflineMutationQueue().then(() => toast.info(t("settings.offlineQueueRetryDone")));
+                  }}
+                />
+              ) : null}
+            </View>
+          ) : null}
+          {authToken ? (
+            <View style={styles.spendLimitBlock} accessibilityRole="summary">
+              <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+                {t("settings.identity.title")}
+              </Text>
+              {identityStatus?.verified ? (
+                <Text style={styles.value}>
+                  {t("settings.identity.verified", {
+                    tier: identityStatus.ageTier,
+                    masked: identityStatus.maskedIdNumber ?? "—",
+                  })}
+                </Text>
+              ) : (
+                <>
+                  <Text style={styles.hint}>{t("settings.identity.hint")}</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={identityName}
+                    onChangeText={setIdentityName}
+                    placeholder={t("settings.identity.name")}
+                    accessibilityLabel={t("settings.identity.nameLabel")}
+                  />
+                  <TextInput
+                    style={styles.input}
+                    value={identityDoc}
+                    onChangeText={setIdentityDoc}
+                    placeholder={t("settings.identity.documentType")}
+                    accessibilityLabel={t("settings.identity.documentType")}
+                    autoCapitalize="characters"
+                  />
+                  <PrimaryButton
+                    label={t("settings.identity.submit")}
+                    disabled={identityBusy || identityDoc.trim().length < 9}
+                    onPress={() => {
+                      if (!authToken || identityBusy) return;
+                      setIdentityBusy(true);
+                      void verifyIdentity(authToken, {
+                        documentNumber: identityDoc.trim(),
+                        fullName: identityName.trim() || undefined,
+                      })
+                        .then((result) => {
+                          if (!result) {
+                            toast.error(t("settings.identity.failed"));
+                            return;
+                          }
+                          setIdentityStatus(result);
+                          applyAgeTierToRevealMinorMode(result.ageTier, result.minor);
+                          setMinorAudioScale(result.audioVolumeScale);
+                          toast.success(t("settings.identity.success"));
+                        })
+                        .finally(() => setIdentityBusy(false));
+                    }}
+                  />
+                </>
+              )}
+            </View>
+          ) : null}
+          {authToken ? (
+            <View style={styles.spendLimitBlock} accessibilityRole="summary">
+              <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+                {t("settings.spendLimitTitle")}
+              </Text>
+              {spendLimitError ? (
+                <Text style={styles.warn}>{spendLimitError}</Text>
+              ) : spendLimit?.enabled ? (
+                <>
+                  <Text style={styles.value}>
+                    {t("settings.spendLimitDaily", {
+                      spent: formatCurrency(spendLimit.dailySpent ?? 0),
+                      limit: formatCurrencyOptional(spendLimit.dailyLimit ?? null),
+                      remaining: formatCurrencyOptional(spendLimit.dailyRemaining ?? null),
+                    })}
+                  </Text>
+                  <Text style={styles.hint}>
+                    {t("settings.spendLimitMonthly", {
+                      spent: formatCurrency(spendLimit.monthlySpent ?? 0),
+                      limit: formatCurrencyOptional(spendLimit.monthlyLimit ?? null),
+                      remaining: formatCurrencyOptional(spendLimit.monthlyRemaining ?? null),
+                    })}
+                  </Text>
+                  {spendLimit.serverDailyLimit != null || spendLimit.serverMonthlyLimit != null ? (
+                    <Text style={styles.hint}>
+                      {t("settings.spendLimitServerCap", {
+                        daily: formatCurrencyOptional(spendLimit.serverDailyLimit ?? null),
+                        monthly: formatCurrencyOptional(spendLimit.serverMonthlyLimit ?? null),
+                      })}
+                    </Text>
+                  ) : null}
+                  {!spendLimit.withinLimits ? (
+                    <Text style={styles.warn}>{t("settings.spendLimitExceeded")}</Text>
+                  ) : null}
+                  {coolingOff && spendLimit.coolingOffUntil ? (
+                    <Text style={styles.warn}>{t("settings.spendLimitCoolingOff", { until: spendLimit.coolingOffUntil })}</Text>
+                  ) : null}
+                  <Text style={[styles.label, styles.gapTop]}>{t("settings.spendLimitUserDaily")}</Text>
+                  <TextInput
+                    style={[styles.input, coolingOff ? styles.inputDisabled : null]}
+                    keyboardType="decimal-pad"
+                    editable={!coolingOff}
+                    value={dailyCapDraft}
+                    onChangeText={setDailyCapDraft}
+                    accessibilityLabel={t("settings.spendLimitUserDaily")}
+                  />
+                  <Text style={[styles.label, styles.gapTop]}>{t("settings.spendLimitUserMonthly")}</Text>
+                  <TextInput
+                    style={[styles.input, coolingOff ? styles.inputDisabled : null]}
+                    keyboardType="decimal-pad"
+                    editable={!coolingOff}
+                    value={monthlyCapDraft}
+                    onChangeText={setMonthlyCapDraft}
+                    accessibilityLabel={t("settings.spendLimitUserMonthly")}
+                  />
+                  <PrimaryButton
+                    label={t("settings.spendLimitSave")}
+                    loading={savingSpendLimit}
+                    disabled={coolingOff}
+                    onPress={() => {
+                      if (!authToken || coolingOff) return;
+                      setSavingSpendLimit(true);
+                      void updateSpendLimitPreference(authToken, {
+                        dailyLimit: Number(dailyCapDraft),
+                        monthlyLimit: Number(monthlyCapDraft),
+                      })
+                        .then((view) => {
+                          setSpendLimit(view);
+                          toast.success(t("settings.spendLimitSaved"));
+                        })
+                        .catch((error) => toast.error(parseError(error)))
+                        .finally(() => setSavingSpendLimit(false));
+                    }}
+                  />
+                </>
+              ) : (
+                <Text style={styles.hint}>{t("settings.spendLimitDisabled")}</Text>
+              )}
+            </View>
+          ) : null}
+          {productionWarnings.length && !__DEV__ ? (
+            <View style={styles.checklist}>
+              <Text style={[styles.label, styles.gapTop]}>{t("settings.prodWarningsTitle")}</Text>
+              {productionWarnings.map((line) => (
+                <Text key={line} style={styles.warnItem}>
+                  · {line}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+        </View>
+        {appUpdate.supported ? (
+          <View style={styles.checklist}>
+            <Text style={[styles.label, styles.gapTop]}>{t("appUpdate.currentVersion", { version: appUpdate.localVersion.versionName })}</Text>
+            <PrimaryButton
+              label={t("appUpdate.checkUpdate")}
+              loading={appUpdate.phase === "checking"}
+              onPress={() => void appUpdate.checkForUpdate({ manual: true })}
+            />
+          </View>
+        ) : null}
+        <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+          {t("settings.privacySection")}
+        </Text>
+        <Pressable
+          style={({ pressed }) => [screenStyles.secondaryBtn, pressed ? screenStyles.pressed : null]}
+          onPress={onOpenPrivacy}
+          accessibilityRole="button"
+          accessibilityLabel={t("settings.privacyPolicy")}
+        >
+          <Text style={screenStyles.secondaryText}>{t("settings.privacyPolicy")}</Text>
+        </Pressable>
+        {authToken ? (
+          <View style={styles.spendLimitBlock}>
+            <Text style={[styles.label, styles.gapTop]}>{t("settings.privacyDataTitle")}</Text>
+            <Text style={styles.hint}>{t("settings.privacyDataHint")}</Text>
+            <PrimaryButton
+              label={t("settings.exportData")}
+              loading={privacyBusy}
+              onPress={() => void handleExportPrivacyData()}
+            />
+            <PrimaryButton
+              label={t("settings.deleteAccount")}
+              variant="ghost"
+              loading={privacyBusy}
+              onPress={() => void handleDeleteAccount()}
+            />
+          </View>
+        ) : null}
+        {authToken && onLogout ? (
+          <PrimaryButton
+            label={t("settings.logout")}
+            variant="ghost"
+            onPress={() => void confirmLogout(confirm, onLogout, t)}
+          />
+        ) : null}
+        <View style={screenStyles.screenCard}>
+          <Pressable
+            style={styles.advancedHeader}
+            onPress={() => setAdvancedEffectsExpanded((v) => !v)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: advancedEffectsExpanded }}
+            accessibilityLabel={t("settings.advancedEffects")}
+          >
+            <View style={styles.switchTextCol}>
+              <Text style={styles.advancedTitle}>{t("settings.advancedEffects")}</Text>
+              <Text style={styles.hint}>{t("settings.advancedEffectsHint")}</Text>
+            </View>
+            <Text style={styles.advancedChevron}>{advancedEffectsExpanded ? "▾" : "▸"}</Text>
+          </Pressable>
+          {advancedEffectsExpanded ? (
+            <View style={styles.advancedBody}>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
               <Text style={[styles.label, styles.gapTop]}>{t("settings.revealSound")}</Text>
@@ -477,7 +893,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.revealSoundAmbient", { defaultValue: "Ambient layer" })}</Text>
+              <Text style={[styles.label, styles.gapTop]}>{t("settings.revealSoundAmbient")}</Text>
             </View>
             <Switch
               value={soundAmbient}
@@ -490,7 +906,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealSoundCharge", { defaultValue: "Charge layer" })}</Text>
+              <Text style={styles.label}>{t("settings.revealSoundCharge")}</Text>
             </View>
             <Switch
               value={soundCharge}
@@ -503,7 +919,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealSoundRevealLayer", { defaultValue: "Reveal layer" })}</Text>
+              <Text style={styles.label}>{t("settings.revealSoundRevealLayer")}</Text>
             </View>
             <Switch
               value={soundReveal}
@@ -516,7 +932,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealSoundFinale", { defaultValue: "Finale layer" })}</Text>
+              <Text style={styles.label}>{t("settings.revealSoundFinale")}</Text>
             </View>
             <Switch
               value={soundFinale}
@@ -529,7 +945,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealDanmaku", { defaultValue: "Replay danmaku" })}</Text>
+              <Text style={styles.label}>{t("settings.revealDanmaku")}</Text>
             </View>
             <Switch
               value={danmakuEnabled}
@@ -541,7 +957,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealA11yGestures", { defaultValue: "Accessibility reveal gestures" })}</Text>
+              <Text style={styles.label}>{t("settings.revealA11yGestures")}</Text>
             </View>
             <Switch
               value={a11yGesturesEnabled}
@@ -553,7 +969,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealFocusMode", { defaultValue: "Reveal focus mode" })}</Text>
+              <Text style={styles.label}>{t("settings.revealFocusMode")}</Text>
             </View>
             <Switch
               value={focusModeEnabled}
@@ -564,37 +980,68 @@ export function SettingsView({
               }}
             />
           </View>
+          <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+            {t("settings.revealCeremonySection")}
+          </Text>
+          <Text style={styles.hint}>{t("settings.revealCeremonyAutoHint")}</Text>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealImmersiveCeremony", { defaultValue: "Immersive ceremony" })}</Text>
+              <Text style={styles.label}>{t("settings.revealCeremonyFull")}</Text>
             </View>
             <Switch
-              value={immersiveCeremony}
+              value={immersiveCeremony && !eyeCareMode}
+              accessibilityLabel={t("settings.revealCeremonyFull")}
               onValueChange={(v) => {
-                setImmersiveCeremony(v);
-                const id: RevealCeremonyTemplateId = v ? "immersive" : "efficiency";
-                setRuntimeRevealCeremonyTemplateId(id);
-                void setRevealCeremonyTemplateId(id);
+                if (v) {
+                  setEyeCareMode(false);
+                  setImmersiveCeremony(true);
+                  setLastNonEyeCareTemplate("immersive");
+                  setRuntimeRevealCeremonyTemplateId("immersive");
+                  void setRevealCeremonyTemplateId("immersive");
+                  return;
+                }
+                setImmersiveCeremony(false);
+                const id: RevealCeremonyTemplateId =
+                  lastNonEyeCareTemplate === "immersive" ? "standard" : lastNonEyeCareTemplate;
+                const next = id === "eyeCare" ? "standard" : id;
+                setLastNonEyeCareTemplate(next);
+                setRuntimeRevealCeremonyTemplateId(next);
+                void setRevealCeremonyTemplateId(next);
               }}
             />
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEyeCare", { defaultValue: "Eye-care ceremony" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEyeCare")}</Text>
             </View>
             <Switch
               value={eyeCareMode}
               onValueChange={(v) => {
-                setEyeCareMode(v);
-                const id: RevealCeremonyTemplateId = v ? "eyeCare" : "standard";
-                setRuntimeRevealCeremonyTemplateId(id);
-                void setRevealCeremonyTemplateId(id);
+                if (v) {
+                  // eyeCare wins over immersive — persist a single template id
+                  if (!eyeCareMode && immersiveCeremony) {
+                    setLastNonEyeCareTemplate("immersive");
+                  } else if (!eyeCareMode && !immersiveCeremony) {
+                    setLastNonEyeCareTemplate(lastNonEyeCareTemplate === "eyeCare" ? "standard" : lastNonEyeCareTemplate);
+                  }
+                  setEyeCareMode(true);
+                  setImmersiveCeremony(false);
+                  setRuntimeRevealCeremonyTemplateId("eyeCare");
+                  void setRevealCeremonyTemplateId("eyeCare");
+                  return;
+                }
+                setEyeCareMode(false);
+                const restore =
+                  lastNonEyeCareTemplate === "eyeCare" ? "standard" : lastNonEyeCareTemplate;
+                setImmersiveCeremony(restore === "immersive");
+                setRuntimeRevealCeremonyTemplateId(restore);
+                void setRevealCeremonyTemplateId(restore);
               }}
             />
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealRecordingSafe", { defaultValue: "Recording-safe mode" })}</Text>
+              <Text style={styles.label}>{t("settings.revealRecordingSafe")}</Text>
             </View>
             <Switch
               value={recordingSafeMode}
@@ -606,21 +1053,40 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEmotionProfile", { defaultValue: "Emotion rhythm profile" })}</Text>
-              <Text style={styles.hint}>{emotionProfileId}</Text>
+              <Text style={styles.label}>{t("settings.revealEmotionProfile")}</Text>
+              <Text style={styles.hint}>{t(`settings.revealEmotionProfile_${emotionProfileId}`)}</Text>
             </View>
-            <Switch
-              value={emotionProfileId === "chill"}
-              onValueChange={(v) => {
-                const id = v ? "chill" : "stim";
-                setEmotionProfileId(id);
-                setActiveEmotionProfileId(id);
-              }}
-            />
+            <View style={styles.langRow}>
+              {(["chill", "stim", "quiet"] as const).map((id) => {
+                const active = emotionProfileId === id;
+                return (
+                  <Pressable
+                    key={id}
+                    accessibilityRole="button"
+                    onPress={() => {
+                      setEmotionProfileId(id);
+                      void setActiveEmotionProfileId(id).then(() => {
+                        const p = resolveActiveEmotionProfile();
+                        setEmotionCharge(p.chargeScale);
+                        setEmotionGap(p.gapScale);
+                        setEmotionHaptic(p.hapticScale);
+                        setEmotionVolume(p.volumeScale);
+                        setEmotionParticles(p.particleScale);
+                      });
+                    }}
+                    style={[styles.langChip, active ? styles.langChipOn : null]}
+                  >
+                    <Text style={[styles.langText, active ? styles.langTextOn : null]}>
+                      {t(`settings.revealEmotionProfile_${id}`)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEmotionCharge", { defaultValue: "Charge intensity" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEmotionCharge")}</Text>
               <Text style={styles.hint}>{emotionCharge.toFixed(2)}</Text>
             </View>
             <Switch
@@ -634,7 +1100,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEmotionVolume", { defaultValue: "Sound volume" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEmotionVolume")}</Text>
               <Text style={styles.hint}>{emotionVolume.toFixed(2)}</Text>
             </View>
             <Switch
@@ -648,7 +1114,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEmotionGap", { defaultValue: "Anticipation gap" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEmotionGap")}</Text>
               <Text style={styles.hint}>{emotionGap.toFixed(2)}</Text>
             </View>
             <Switch
@@ -662,7 +1128,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEmotionHaptic", { defaultValue: "Haptic intensity" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEmotionHaptic")}</Text>
               <Text style={styles.hint}>{emotionHaptic.toFixed(2)}</Text>
             </View>
             <Switch
@@ -676,7 +1142,7 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEmotionParticles", { defaultValue: "Particle density" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEmotionParticles")}</Text>
               <Text style={styles.hint}>{emotionParticles.toFixed(2)}</Text>
             </View>
             <Switch
@@ -689,18 +1155,16 @@ export function SettingsView({
             />
           </View>
           <Text style={[styles.label, styles.gapTop]}>
-            {t("settings.revealAtmosphereWorkshop", { defaultValue: "Atmosphere workshop" })}
+            {t("settings.revealAtmosphereWorkshop")}
           </Text>
           <Text style={styles.hint}>
-            {t("settings.revealAtmosphereWorkshopHint", {
-              defaultValue: "Tune ceremony mood, sound pack, and particle style for the next reveal.",
-            })}
+            {t("settings.revealAtmosphereWorkshopHint")}
           </Text>
           {(["soundPack", "particleStyle", "lightStyle"] as const).map((field) => (
             <View key={field} style={styles.switchRow}>
               <View style={styles.switchTextCol}>
                 <Text style={styles.label}>
-                  {t(`settings.revealAtmosphere_${field}`, { defaultValue: field })}
+                  {t(`settings.revealAtmosphere_${field}`)}
                 </Text>
               </View>
               <View style={styles.langRow}>
@@ -718,6 +1182,7 @@ export function SettingsView({
                       onPress={() => {
                         void saveAtmosphereProfile({ [field]: option }).then((next) => {
                           setAtmosphereProfile(next);
+                          applyAtmosphereProfileToRuntime(next);
                           if (field === "soundPack") {
                             const pack =
                               option === "arcade"
@@ -730,7 +1195,7 @@ export function SettingsView({
                             void setRevealSoundPack(pack);
                           }
                           toast.success(
-                            t("settings.revealAtmosphereSaved", { defaultValue: "Atmosphere updated" }),
+                            t("settings.revealAtmosphereSaved"),
                           );
                         });
                       }}
@@ -745,38 +1210,41 @@ export function SettingsView({
           ))}
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealCacheSnapshots", { defaultValue: "Clear highlight snapshots" })}</Text>
-              <Text style={styles.hint}>{t("settings.revealCacheSnapshotsHint", { defaultValue: "7-day temporary cache" })}</Text>
+              <Text style={styles.label}>{t("settings.revealCacheSnapshots")}</Text>
+              <Text style={styles.hint}>{t("settings.revealCacheSnapshotsHint")}</Text>
             </View>
             <Pressable
               accessibilityRole="button"
               onPress={() => {
                 void clearSnapshotCache().then(() =>
-                  toast.success(t("settings.revealCacheCleared", { defaultValue: "Cache cleared" })),
+                  toast.success(t("settings.revealCacheCleared")),
                 );
               }}
             >
-              <Text style={styles.linkAction}>{t("common.clear", { defaultValue: "Clear" })}</Text>
+              <Text style={styles.linkAction}>{t("common.clear")}</Text>
             </Pressable>
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealCacheThemed", { defaultValue: "Clear event theme cache" })}</Text>
+              <Text style={styles.label}>{t("settings.revealCacheThemed")}</Text>
             </View>
             <Pressable
               accessibilityRole="button"
               onPress={() => {
                 void clearThemedAssets().then(() =>
-                  toast.success(t("settings.revealCacheCleared", { defaultValue: "Cache cleared" })),
+                  toast.success(t("settings.revealCacheCleared")),
                 );
               }}
             >
-              <Text style={styles.linkAction}>{t("common.clear", { defaultValue: "Clear" })}</Text>
+              <Text style={styles.linkAction}>{t("common.clear")}</Text>
             </Pressable>
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealVoiceLine", { defaultValue: "Brand voice lines" })}</Text>
+              <Text style={styles.label}>{t("settings.revealVoiceLine")}</Text>
+              {!hasVoiceLineUris ? (
+                <Text style={styles.hint}>{t("settings.revealVoiceLineHint")}</Text>
+              ) : null}
             </View>
             <Switch
               value={voiceLineEnabled}
@@ -788,12 +1256,13 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealEffectPreset", { defaultValue: "Effect preset (neon)" })}</Text>
+              <Text style={styles.label}>{t("settings.revealEffectPreset")}</Text>
             </View>
             <Switch
-              value={effectPresetId === "neon"}
+              value={effectPresetId !== "default"}
+              accessibilityLabel={t("settings.revealEffectPreset")}
               onValueChange={(v) => {
-                const id: RevealEffectPresetId = v ? "neon" : "default";
+                const id: RevealEffectPresetId = v ? "warm" : "default";
                 setEffectPresetId(id);
                 setRuntimeRevealEffectPresetId(id);
                 void setRevealEffectPresetId(id);
@@ -802,7 +1271,28 @@ export function SettingsView({
           </View>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
-              <Text style={styles.label}>{t("settings.revealPlayerOriginal", { defaultValue: "Original quality replay" })}</Text>
+              <Text style={styles.legacyLabel}>{t("settings.revealEffectPresetNeon")}</Text>
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: effectPresetId === "neon" }}
+              accessibilityLabel={t("settings.revealEffectPresetNeon")}
+              onPress={() => {
+                const id: RevealEffectPresetId = effectPresetId === "neon" ? "warm" : "neon";
+                setEffectPresetId(id);
+                setRuntimeRevealEffectPresetId(id);
+                void setRevealEffectPresetId(id);
+              }}
+              style={[styles.langChipQuiet, effectPresetId === "neon" ? styles.langChipQuietOn : null]}
+            >
+              <Text style={[styles.langTextQuiet, effectPresetId === "neon" ? styles.langTextQuietOn : null]}>
+                {t("settings.revealEffectPreset_neon")}
+              </Text>
+            </Pressable>
+          </View>
+          <View style={styles.switchRow}>
+            <View style={styles.switchTextCol}>
+              <Text style={styles.label}>{t("settings.revealPlayerOriginal")}</Text>
             </View>
             <Switch
               value={playerFitOriginal}
@@ -887,6 +1377,9 @@ export function SettingsView({
               }}
             />
           </View>
+          <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+            {t("settings.revealReplayChromeSection")}
+          </Text>
           <View style={styles.switchRow}>
             <View style={styles.switchTextCol}>
               <Text style={styles.label}>{t("settings.revealImmersive")}</Text>
@@ -992,234 +1485,20 @@ export function SettingsView({
               }}
             />
           </View>
-          {__DEV__ && mode === "mock" ? (
-            <View style={styles.checklist}>
-              <Text style={styles.label}>{t("settings.prodChecklistTitle")}</Text>
-              {getProductionPaymentChecklistLines().map((line) => (
-                <Text key={line} style={styles.checkItem}>
-                  · {line}
-                </Text>
-              ))}
-            </View>
-          ) : null}
-          {__DEV__ && productionWarnings.length ? (
-            <View style={styles.checklist}>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.prodWarningsTitle")}</Text>
-              {productionWarnings.map((line) => (
-                <Text key={line} style={styles.warnItem}>
-                  · {line}
-                </Text>
-              ))}
-            </View>
-          ) : null}
-          {__DEV__ ? (
-            <>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.crashMonitoring")}</Text>
-              <Text style={styles.value}>{getCrashMonitoringStatusLabel(crashStatus)}</Text>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.wechatSdk")}</Text>
-              <Text style={styles.value}>
-                {getWechatSdkAvailable() ? t("settings.wechatSdkInstalled") : t("settings.wechatSdkMissing")}
-              </Text>
-              {crashStatus === "dsn_missing_sdk" ? <Text style={styles.hint}>{t("settings.sentryHint")}</Text> : null}
-              <PrimaryButton
-                label={t("settings.clearOfflineQueue")}
-                variant="ghost"
-                onPress={() => {
-                  clearOfflineMutationQueue();
-                  toast.info(t("settings.clearOfflineQueueDone"));
-                }}
-              />
-            </>
-          ) : null}
-          {biometricAvailable ? (
-            <View style={styles.switchRow}>
-              <View style={styles.switchTextCol}>
-                <Text style={[styles.label, styles.gapTop]}>{t("settings.biometricUnlock")}</Text>
-                <Text style={styles.hint}>{t("settings.biometricUnlockHint")}</Text>
-              </View>
-              <Switch
-                value={biometricUnlock}
-                accessibilityLabel={t("settings.biometricUnlock")}
-                onValueChange={(v) => {
-                  setBiometricUnlock(v);
-                  void setBiometricUnlockEnabled(v);
-                  trackEvent(ANALYTICS_EVENTS.SETTINGS_TOGGLE, { key: "biometric_unlock", value: v });
-                }}
-              />
-            </View>
-          ) : null}
-          {authToken ? (
-            <View style={styles.spendLimitBlock}>
-              <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
-                {t("settings.offlineQueueTitle")}
-              </Text>
-              <Text style={styles.hint}>
-                {offlineQueue.count > 0
-                  ? t("settings.offlineQueueHint", { count: offlineQueue.count })
-                  : t("settings.offlineQueueIdle")}
-              </Text>
-              {offlineQueue.count > 0 ? (
-                <View style={styles.offlineQueueList}>
-                  <Text style={styles.label}>{t("settings.offlineQueueItems")}</Text>
-                  {offlineQueue.items.map((item) => (
-                    <View key={item.id} style={styles.offlineQueueRow}>
-                      <Text style={styles.hint} numberOfLines={2}>
-                        · {resolveOfflineActionLabel(item.label)}
-                      </Text>
-                      <View style={styles.offlineQueueActions}>
-                        <Pressable
-                          onPress={() => {
-                            void retryOfflineMutationById(item.id).then((ok) => {
-                              toast.info(ok ? t("settings.offlineQueueItemRetryDone") : t("settings.offlineQueueItemRetryFailed"));
-                            });
-                          }}
-                          accessibilityRole="button"
-                          accessibilityLabel={t("settings.offlineQueueItemRetry")}
-                        >
-                          <Text style={styles.offlineQueueAction}>{t("settings.offlineQueueItemRetry")}</Text>
-                        </Pressable>
-                        <Pressable
-                          onPress={() => {
-                            removeOfflineMutation(item.id);
-                            toast.info(t("settings.offlineQueueItemRemoved"));
-                          }}
-                          accessibilityRole="button"
-                          accessibilityLabel={t("settings.offlineQueueItemDelete")}
-                        >
-                          <Text style={styles.offlineQueueActionDanger}>{t("settings.offlineQueueItemDelete")}</Text>
-                        </Pressable>
-                      </View>
-                    </View>
-                  ))}
-                </View>
+
+              {onOpenEffectsCenter ? (
+                <Pressable
+                  style={({ pressed }) => [screenStyles.secondaryBtn, pressed ? screenStyles.pressed : null]}
+                  onPress={onOpenEffectsCenter}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("effectsCenter.title")}
+                >
+                  <Text style={screenStyles.secondaryText}>{t("effectsCenter.title")}</Text>
+                </Pressable>
               ) : null}
-              {offlineQueue.count > 0 ? (
-                <PrimaryButton
-                  label={t("settings.offlineQueueRetry")}
-                  variant="ghost"
-                  onPress={() => {
-                    void flushOfflineMutationQueue().then(() => toast.info(t("settings.offlineQueueRetryDone")));
-                  }}
-                />
-              ) : null}
-            </View>
-          ) : null}
-          {authToken ? (
-            <View style={styles.spendLimitBlock} accessibilityRole="summary">
-              <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
-                {t("settings.spendLimitTitle")}
-              </Text>
-              {spendLimitError ? (
-                <Text style={styles.warn}>{spendLimitError}</Text>
-              ) : spendLimit?.enabled ? (
-                <>
-                  <Text style={styles.value}>
-                    {t("settings.spendLimitDaily", {
-                      spent: formatCurrency(spendLimit.dailySpent ?? 0),
-                      limit: formatCurrencyOptional(spendLimit.dailyLimit ?? null),
-                      remaining: formatCurrencyOptional(spendLimit.dailyRemaining ?? null),
-                    })}
-                  </Text>
-                  <Text style={styles.hint}>
-                    {t("settings.spendLimitMonthly", {
-                      spent: formatCurrency(spendLimit.monthlySpent ?? 0),
-                      limit: formatCurrencyOptional(spendLimit.monthlyLimit ?? null),
-                      remaining: formatCurrencyOptional(spendLimit.monthlyRemaining ?? null),
-                    })}
-                  </Text>
-                  {spendLimit.serverDailyLimit != null || spendLimit.serverMonthlyLimit != null ? (
-                    <Text style={styles.hint}>
-                      {t("settings.spendLimitServerCap", {
-                        daily: formatCurrencyOptional(spendLimit.serverDailyLimit ?? null),
-                        monthly: formatCurrencyOptional(spendLimit.serverMonthlyLimit ?? null),
-                      })}
-                    </Text>
-                  ) : null}
-                  {!spendLimit.withinLimits ? (
-                    <Text style={styles.warn}>{t("settings.spendLimitExceeded")}</Text>
-                  ) : null}
-                  {coolingOff && spendLimit.coolingOffUntil ? (
-                    <Text style={styles.warn}>{t("settings.spendLimitCoolingOff", { until: spendLimit.coolingOffUntil })}</Text>
-                  ) : null}
-                  <Text style={[styles.label, styles.gapTop]}>{t("settings.spendLimitUserDaily")}</Text>
-                  <TextInput
-                    style={[styles.input, coolingOff ? styles.inputDisabled : null]}
-                    keyboardType="decimal-pad"
-                    editable={!coolingOff}
-                    value={dailyCapDraft}
-                    onChangeText={setDailyCapDraft}
-                    accessibilityLabel={t("settings.spendLimitUserDaily")}
-                  />
-                  <Text style={[styles.label, styles.gapTop]}>{t("settings.spendLimitUserMonthly")}</Text>
-                  <TextInput
-                    style={[styles.input, coolingOff ? styles.inputDisabled : null]}
-                    keyboardType="decimal-pad"
-                    editable={!coolingOff}
-                    value={monthlyCapDraft}
-                    onChangeText={setMonthlyCapDraft}
-                    accessibilityLabel={t("settings.spendLimitUserMonthly")}
-                  />
-                  <PrimaryButton
-                    label={t("settings.spendLimitSave")}
-                    loading={savingSpendLimit}
-                    disabled={coolingOff}
-                    onPress={() => {
-                      if (!authToken || coolingOff) return;
-                      setSavingSpendLimit(true);
-                      void updateSpendLimitPreference(authToken, {
-                        dailyLimit: Number(dailyCapDraft),
-                        monthlyLimit: Number(monthlyCapDraft),
-                      })
-                        .then((view) => {
-                          setSpendLimit(view);
-                          toast.success(t("settings.spendLimitSaved"));
-                        })
-                        .catch((error) => toast.error(parseError(error)))
-                        .finally(() => setSavingSpendLimit(false));
-                    }}
-                  />
-                </>
-              ) : (
-                <Text style={styles.hint}>{t("settings.spendLimitDisabled")}</Text>
-              )}
-            </View>
-          ) : null}
-          {productionWarnings.length && !__DEV__ ? (
-            <View style={styles.checklist}>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.prodWarningsTitle")}</Text>
-              {productionWarnings.map((line) => (
-                <Text key={line} style={styles.warnItem}>
-                  · {line}
-                </Text>
-              ))}
             </View>
           ) : null}
         </View>
-        {appUpdate.supported ? (
-          <View style={styles.checklist}>
-            <Text style={[styles.label, styles.gapTop]}>{t("appUpdate.currentVersion", { version: appUpdate.localVersion.versionName })}</Text>
-            <PrimaryButton
-              label={t("appUpdate.checkUpdate")}
-              loading={appUpdate.phase === "checking"}
-              onPress={() => void appUpdate.checkForUpdate({ manual: true })}
-            />
-          </View>
-        ) : null}
-        <Pressable
-          style={({ pressed }) => [screenStyles.secondaryBtn, pressed ? screenStyles.pressed : null]}
-          onPress={onOpenPrivacy}
-          accessibilityRole="button"
-          accessibilityLabel={t("settings.privacyPolicy")}
-        >
-          <Text style={screenStyles.secondaryText}>{t("settings.privacyPolicy")}</Text>
-        </Pressable>
-        {authToken && onLogout ? (
-          <PrimaryButton
-            label={t("settings.logout")}
-            variant="ghost"
-            onPress={() => void confirmLogout(confirm, onLogout, t)}
-          />
-        ) : null}
       </ScreenScaffold>
     </View>
   );
@@ -1263,6 +1542,22 @@ function buildSettingsStyles(colors: ThemeColors) {
   langChipOn: { borderColor: colors.brand, backgroundColor: colors.bgBrandSoft },
   langText: { fontSize: typography.caption, color: colors.textSecondary, fontWeight: "700" },
   langTextOn: { color: colors.brand },
+  langChipQuiet: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    opacity: 0.72,
+  },
+  langChipQuietOn: {
+    borderColor: colors.textMuted,
+    backgroundColor: colors.bgSoft,
+    opacity: 0.9,
+  },
+  langTextQuiet: { fontSize: typography.caption, color: colors.textMuted, fontWeight: "600" },
+  langTextQuietOn: { color: colors.textSecondary },
+  legacyLabel: { fontSize: typography.caption, color: colors.textMuted, fontWeight: "600" },
   input: {
     marginTop: spacing.xs,
     borderWidth: 1,
@@ -1274,5 +1569,14 @@ function buildSettingsStyles(colors: ThemeColors) {
     color: colors.textPrimary,
   },
   inputDisabled: { opacity: 0.5, backgroundColor: colors.bgSoft },
+  advancedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.md,
+  },
+  advancedTitle: { fontSize: typography.body, color: colors.textPrimary, fontWeight: "800" },
+  advancedChevron: { fontSize: typography.body, color: colors.textMuted, fontWeight: "700" },
+  advancedBody: { marginTop: spacing.sm },
   });
 }

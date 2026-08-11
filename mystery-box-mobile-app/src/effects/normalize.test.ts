@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { normalizePrizeProducts } from "./normalize";
+import type { Product } from "../types";
 
 describe("effects/normalize", () => {
   it("lists all prize rows and normalizes qualityType", () => {
@@ -25,7 +26,8 @@ describe("effects/normalize", () => {
     const products = normalizePrizeProducts({
       id: "o9",
       status: "FINISHED",
-      items: [{ id: "line-1", products: [{ name: "Mystery prize", price: 3 }] }],
+      // Cast because the backend can omit the product id, which is exactly what this asserts on.
+      items: [{ id: "line-1", products: [{ name: "Mystery prize", price: 3 } as Product] }],
     });
     expect(products[0].id).toMatch(/^prize-o9-/);
   });

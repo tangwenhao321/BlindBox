@@ -32,12 +32,14 @@ class RevealRoomHandlerTest {
     private RevealRoomStore roomStore;
 
     private ObjectMapper objectMapper;
+    private RevealRoomRedisFanout redisFanout;
     private RevealRoomHandler handler;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        handler = new RevealRoomHandler(roomStore, objectMapper);
+        redisFanout = new RevealRoomRedisFanout();
+        handler = new RevealRoomHandler(roomStore, objectMapper, redisFanout);
     }
 
     @Test

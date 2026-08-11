@@ -8,6 +8,11 @@ public record OrderPaymentMetaView(
         LocalDateTime payDeadline,
         Integer stockLockedSeconds,
         boolean retentionClaimed,
-        BigDecimal retentionDiscount
+        BigDecimal retentionDiscount,
+        /** Whether the leave-with-offer CTA should be shown. */
+        boolean retentionEligible,
+        /** ALREADY_CLAIMED / DAILY_LIMIT / AMOUNT_TOO_LOW / DISABLED / null when eligible. */
+        String retentionBlockReason,
+        BigDecimal payAmount
 ) {
 }

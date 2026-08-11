@@ -23,6 +23,7 @@ type AccountSlice = Pick<
   | "refreshServerNotifications"
   | "setReadNotificationIds"
   | "openOrderDetailsPage"
+  | "openDetailsPage"
   | "onLogout"
   | "formRealName"
   | "formPhoneNumber"
@@ -63,6 +64,7 @@ export function buildAccountViewProps(input: AccountSlice) {
     refreshServerNotifications,
     setReadNotificationIds,
     openOrderDetailsPage,
+    openDetailsPage,
     onLogout,
     formRealName,
     formPhoneNumber,
@@ -124,6 +126,9 @@ export function buildAccountViewProps(input: AccountSlice) {
       onOpenPrivacy: () => {
         void openFeaturePage(FEATURE_KEYS.PRIVACY);
       },
+      onOpenEffectsCenter: () => {
+        void openFeaturePage(FEATURE_KEYS.EFFECTS_CENTER);
+      },
       onLogout,
     },
     messageViewProps: {
@@ -133,6 +138,9 @@ export function buildAccountViewProps(input: AccountSlice) {
       onBack: goBack,
       onOpenOrder: (orderId: string) => {
         void openOrderDetailsPage(orderId);
+      },
+      onOpenBox: (boxId: string) => {
+        void openDetailsPage(boxId);
       },
       onOpenCoupons: () => {
         if (!requireAuth()) return;

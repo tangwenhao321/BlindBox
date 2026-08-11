@@ -69,6 +69,18 @@ public class OpsPlatformForAdminController {
         return opsPlatformService.runMessageTask(currentUserId(), taskId, traceId);
     }
 
+    @PostMapping("message-tasks/{taskId}/dry-run")
+    public OpsPlatformService.SegmentDryRun dryRunMessageTask(@PathVariable String taskId,
+                                                              @RequestHeader(value = "x-trace-id", required = false) String traceId) {
+        return opsPlatformService.dryRunMessageTask(currentUserId(), taskId, traceId);
+    }
+
+    @GetMapping("segments/{segmentId}/count")
+    public Map<String, Object> segmentCount(@PathVariable String segmentId) {
+        int count = opsPlatformService.countSegmentUsers(segmentId);
+        return Map.of("segmentId", segmentId, "matchedUserCount", count);
+    }
+
     @GetMapping("message-tasks")
     public List<OpsPlatformService.MessageTask> messageTasks() {
         return opsPlatformService.listMessageTasks();

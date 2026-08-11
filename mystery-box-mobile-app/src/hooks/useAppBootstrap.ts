@@ -48,6 +48,8 @@ export function useAppBootstrap(params: Params) {
   useEffect(() => {
     const restore = async () => {
       const savedToken = await restoreToken();
+      // Hide splash as soon as token restore finishes; home catalog can continue in background.
+      setLoading(false);
       if (savedToken) {
         try {
           await onRestoreSuccess(savedToken);
@@ -55,7 +57,6 @@ export function useAppBootstrap(params: Params) {
           await onRestoreFail();
         }
       }
-      setLoading(false);
     };
     if (loading) {
       restore();

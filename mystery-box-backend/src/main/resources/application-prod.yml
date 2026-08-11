@@ -6,15 +6,38 @@ spring:
 jimmer:
   show-sql: false
   pretty-sql: false
+  client:
+    ts:
+      path:
+    openapi:
+      path:
+      ui-path:
 
+# Public actuator only. Documented option: set management.server.port and expose prometheus there.
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
   endpoint:
     health:
       show-details: when_authorized
 
+# Each login gets its own token (harder to hijack shared session across devices/instances).
+# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.37 SaCookieConfig (sa-token.cookie.*).
+sa-token:
+  is-share: false
+  is-read-header: true
+  is-read-cookie: true
+  cookie:
+    httpOnly: true
+    secure: true
+    sameSite: Strict
+
 app:
   auth:
     allow-mock-otp: false
+    zalo-enabled: ${APP_AUTH_ZALO_ENABLED:false}
   cors:
     allowed-origin-patterns: ${APP_CORS_ORIGINS:https://admin.example.com,https://h5.example.com}
   queue:
@@ -33,6 +56,17 @@ app:
       cron: "${APP_DRAW_INTEGRITY_CRON:0 30 4 * * ?}"
       lookback-hours: ${APP_DRAW_INTEGRITY_LOOKBACK_HOURS:24}
       batch-size: ${APP_DRAW_INTEGRITY_BATCH_SIZE:200}
+      empty-repair-min-age-minutes: ${APP_DRAW_INTEGRITY_EMPTY_REPAIR_MIN_AGE:15}
+    refund-reconcile:
+      enabled: ${APP_REFUND_RECONCILE_JOB_ENABLED:true}
+      cron: "${APP_REFUND_RECONCILE_CRON:0 */7 * * * ?}"
+      min-age-minutes: ${APP_REFUND_RECONCILE_MIN_AGE_MINUTES:10}
+      batch-size: ${APP_REFUND_RECONCILE_BATCH_SIZE:50}
+    wallet-reconcile:
+      enabled: ${APP_WALLET_RECONCILE_JOB_ENABLED:true}
+      cron: "${APP_WALLET_RECONCILE_CRON:0 15 3 * * ?}"
+      lookback-hours: ${APP_WALLET_RECONCILE_LOOKBACK_HOURS:48}
+      sample-size: ${APP_WALLET_RECONCILE_SAMPLE_SIZE:100}
   reveal:
     particle-scale: ${APP_REVEAL_PARTICLE_SCALE:1.0}
     confetti-scale: ${APP_REVEAL_CONFETTI_SCALE:1.0}
@@ -50,8 +84,14 @@ sms:
 security:
   default-admin:
     enabled: false
+  compliance:
+    minor:
+      verification-required: ${COMPLIANCE_VERIFICATION_REQUIRED:false}
+    identity:
+      hash-secret: ${IDENTITY_HASH_SECRET:}
   rate-limit:
-    distributed: true
+    # Distributed rate limit when Redis is available (default true for prod)
+    distributed: ${RATE_LIMIT_DISTRIBUTED:true}
     trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
   analytics:
     enabled: ${ANALYTICS_ENABLED:true}

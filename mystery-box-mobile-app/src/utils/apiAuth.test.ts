@@ -6,6 +6,8 @@ describe("isPublicAuthApiPath", () => {
     expect(isPublicAuthApiPath("/front/user/login")).toBe(true);
     expect(isPublicAuthApiPath("/front/user/register")).toBe(true);
     expect(isPublicAuthApiPath("/front/user/password")).toBe(true);
+    expect(isPublicAuthApiPath("/front/auth/zalo/login")).toBe(true);
+    expect(isPublicAuthApiPath("/front/auth/zalo/config")).toBe(true);
   });
 
   it("does not match authenticated APIs", () => {

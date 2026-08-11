@@ -25,9 +25,16 @@ public interface MysteryBoxWinRuleRepository extends JRepository<MysteryBoxWinRu
     }
 
     default void consumeOne(String id, int remainingCount) {
-        sql().createUpdate(t)
+        consumeOneAtomic(id);
+    }
+
+    /** Atomic: remaining_count = remaining_count - 1 WHERE remaining_count > 0. */
+    default boolean consumeOneAtomic(String id) {
+        int updated = sql().createUpdate(t)
                 .where(t.id().eq(id))
-                .set(t.remainingCount(), Math.max(remainingCount - 1, 0))
+                .where(t.remainingCount().gt(0))
+                .set(t.remainingCount(), t.remainingCount().minus(1))
                 .execute();
+        return updated > 0;
     }
 }

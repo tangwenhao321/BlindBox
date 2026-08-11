@@ -116,15 +116,15 @@ function buildBalanceStatsStyles(colors: ThemeColors) {
     actionLink: { color: colors.link, fontWeight: "700" },
     hint: { marginTop: 4, color: colors.textSecondary },
     statsCard: {
-      backgroundColor: colors.violetPanel,
+      backgroundColor: colors.bgCard,
       borderWidth: 1,
-      borderColor: colors.violetPanelBorder,
+      borderColor: colors.border,
       borderRadius: radius.sm,
       padding: spacing.md,
       marginBottom: spacing.md,
       gap: 4,
     },
-    statsText: { color: colors.violetTextStrong, fontWeight: "700", fontSize: typography.caption },
+    statsText: { color: colors.brandDark, fontWeight: "700", fontSize: typography.caption },
     monthCard: {
       backgroundColor: colors.successSoft,
       borderWidth: 1,

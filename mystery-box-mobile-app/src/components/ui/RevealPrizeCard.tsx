@@ -126,7 +126,6 @@ export function RevealPrizeCard({
       pointerEvents="none"
       accessibilityRole="summary"
       accessibilityLabel={t("revealA11y.prizeCard", {
-        defaultValue: "Prize card: {{name}}",
         name: prizeName ?? t("revealOverlay.feedTickerPrize"),
       })}
       accessibilityLiveRegion="polite"

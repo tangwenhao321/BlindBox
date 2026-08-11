@@ -91,13 +91,14 @@ export async function fetchHomeBoxesPage(token: string, pageNum: number): Promis
   }
   try {
     const recommended = await queryRecommendedBoxes(token, 8);
-    if (!recommended.length) {
+    const recommendedItems = recommended.items ?? [];
+    if (!recommendedItems.length) {
       return { items: dedupeMysteryBoxes(items), hasMore };
     }
-    const recommendedIds = new Set(recommended.map((item) => item.id));
+    const recommendedIds = new Set(recommendedItems.map((item) => item.id));
     return {
       items: dedupeMysteryBoxes([
-        ...recommended,
+        ...recommendedItems,
         ...items.filter((item) => !recommendedIds.has(item.id)),
       ]),
       hasMore,

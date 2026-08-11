@@ -8,6 +8,9 @@
     "updatedAt": "Updated: {{time}}",
     "historyTitle": "Change history",
     "historyRow": "{{time}} · Legendary {{legendary}} / Hidden {{hidden}} / Common {{general}}",
-    "disclaimer": "Rates are box-level (basis points shown as percent). Actual draws follow server inventory and rules. Changes are logged. After payment, verify draws in order details via seed/hash check. Users under 18 cannot purchase. Spend responsibly. Confirm draw count and amount before paying; random virtual goods are non-refundable except for quality issues. Questions: submit feedback under Profile — reply within 3 business days."
+    "disclaimer": "Rates are box-level (basis points shown as percent). Actual draws follow server inventory and rules, and may be adjusted for new players, lose streaks, multi-draw packs, and time of day. Changes are logged. After payment, verify draws in order details via seed/hash check. Users under 18 cannot purchase. Spend responsibly. Confirm draw count and amount before paying; after reveal refunds are generally unavailable, pre-reveal review may be requested, and system auto-refunds cover pity stock failure. Questions: submit feedback under Profile — reply within 3 business days.",
+    "dynamicNote": "Effective rates for your account may differ from the published base rates (newbie / streak / time). Stacked boosts are capped for house edge.",
+    "effectiveRatesTitle": "Your effective rates",
+    "baseRatesTitle": "Published base rates"
   }
 }

@@ -1,4 +1,5 @@
 import * as Haptics from "expo-haptics";
+import { Alert } from "react-native";
 import { parseError, toAppError } from "../api";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import i18n from "../i18n";
@@ -21,10 +22,11 @@ import {
   isRiskConfirmRequired,
   mockPayOrder,
 } from "../services/orderService";
-import { clearRetentionOrderId } from "../utils/retentionStorage";
+import { clearRetentionOrderId, getRetentionOrderId } from "../utils/retentionStorage";
+import { rememberPaymentChannel } from "../payment/paymentChannelMemory";
 import { invokeWechatPay } from "../utils/wechatPay";
 import type { PrepayResult, VNPayPrepayResult, MoMoPrepayResult } from "../types";
-import { consumePendingPaymentWallet } from "../payment/paymentWalletPreference";
+import { consumePendingPaymentWallet, peekPendingPaymentWallet } from "../payment/paymentWalletPreference";
 
 const MOMO_ENABLED = process.env.EXPO_PUBLIC_MOMO_ENABLED === "true";
 import { validateAddressForm } from "../utils/addressValidation";
@@ -36,6 +38,11 @@ import { formatOrderIdShort, isUnpaidOrder } from "../order-utils";
 import { reportAppError } from "../utils/crashReport";
 import { blockOfflineSubmit, queueIfOffline } from "../utils/offlineSubmitGuard";
 import { isOffline } from "../utils/connectivity";
+import {
+  applyPityCompensateChoice,
+  isPityStockExhaustedError,
+  resolveOrderBoxId,
+} from "../utils/pityCompensate";
 import { mergeAddressForSave } from "./useAddressForm";
 import { fetchAgeCompliance } from "../services/complianceService";
 import { useCancelOrderMutation } from "../query/mutations/useCancelOrderMutation";
@@ -394,16 +401,32 @@ export function useAppActions(params: Params) {
         } else {
           toast.success(i18n.t("actions.orderCreated", { orderId }));
         }
-        trackEvent("order_created", { orderId, payAmount, drawCount: payload.drawCount });
+        trackEvent("order_created", {
+          orderId,
+          payAmount,
+          drawCount: payload.drawCount,
+          channel:
+            peekPendingPaymentWallet() === "momo" && MOMO_ENABLED ? "momo" : resolvePaymentMode(),
+        });
         if (MOCK_PAYMENT_ENABLED && onPaymentRequest) {
           trackEvent("payment_mock_requested", { orderId, payAmount });
           onPaymentRequest({ orderId, payAmount });
         } else {
-          const channel = resolvePaymentMode();
-          trackEvent(channel === "vnpay" ? "payment_vnpay_requested" : "payment_wechat_requested", {
-            orderId,
-            payAmount,
-          });
+          const channel =
+            peekPendingPaymentWallet() === "momo" && MOMO_ENABLED && resolvePaymentMode() === "vnpay"
+              ? "momo"
+              : resolvePaymentMode();
+          trackEvent(
+            channel === "momo"
+              ? ANALYTICS_EVENTS.PAYMENT_MOMO_REQUESTED
+              : channel === "vnpay"
+                ? "payment_vnpay_requested"
+                : "payment_wechat_requested",
+            {
+              orderId,
+              payAmount,
+            },
+          );
           await requestPayment(orderId, payAmount);
         }
       };
@@ -411,8 +434,20 @@ export function useAppActions(params: Params) {
       if (queueIfOffline("offline.actionOrder", performSubmit, orderPersist)) return;
       await performSubmit();
     } catch (error) {
-      reportAppError(toAppError(error), "create_order");
-      toast.error(parseError(error));
+      const message = parseError(error);
+      if (isPityStockExhaustedError(message) && payload.box?.id) {
+        trackEvent("payment_fail", {
+          message,
+          reason: "pity_stock_exhausted",
+          boxId: payload.box.id,
+          stage: "create",
+        });
+        await promptPityCompensateForBox(payload.box.id);
+        toast.error(i18n.t("boxDetails.pityCompensatePayBlocked"));
+      } else {
+        reportAppError(toAppError(error), "create_order");
+        toast.error(message);
+      }
     } finally {
       setCreatingOrder(false);
     }
@@ -461,42 +496,76 @@ export function useAppActions(params: Params) {
   const payWithPrepay = async (orderId: string, prepay: PrepayResult) => {
     const paid = await invokeWechatPay(prepay);
     if (!paid) return false;
-    await clearRetentionOrderId();
     await syncOrders();
     if (onPaymentSuccess) {
       await onPaymentSuccess(orderId);
     } else {
+      await clearRetentionOrderId();
       await openOrderDetails(orderId);
     }
     return true;
   };
 
-  const requestPayment = async (orderId: string, payAmount?: number, wallet = consumePendingPaymentWallet()) => {
+  const requestPayment = async (
+    orderId: string,
+    payAmount?: number,
+    wallet = consumePendingPaymentWallet(),
+    freshPrepay = false,
+  ) => {
     if (isOffline()) {
       toast.info(i18n.t(getPaymentMode() === "vnpay" ? "actions.offlineVnpayPay" : "actions.offlineWechatPay"));
       return;
     }
     const amount = Number(payAmount ?? 0);
-    trackEvent("payment_start", { orderId, payAmount: amount, mock: MOCK_PAYMENT_ENABLED, channel: resolvePaymentMode(), wallet });
+    // After retention claim, bypass cached full-amount prepay (~15m idempotency TTL).
+    // Also auto-detect claim on retry / resume-unpaid so all paths use a fresh seed.
+    const retainedOrderId = await getRetentionOrderId().catch(() => null);
+    const useFresh = freshPrepay || retainedOrderId === orderId;
+    const freshSeed = useFresh ? `${orderId}:retention` : undefined;
+    trackEvent("payment_start", {
+      orderId,
+      payAmount: amount,
+      mock: MOCK_PAYMENT_ENABLED,
+      channel: resolvePaymentMode(),
+      wallet,
+      freshPrepay: useFresh,
+    });
     armPaymentStaleWatch(orderId);
     if (MOCK_PAYMENT_ENABLED) {
+      rememberPaymentChannel("mock");
       onPaymentRequest?.({ orderId, payAmount: amount });
       return;
     }
     if (wallet === "momo" && MOMO_ENABLED && resolvePaymentMode() === "vnpay") {
       try {
-        const prepay = await getMoMoPrepayParams(token, orderId);
-        trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_REQUESTED, { orderId, payAmount: amount });
-        onMoMoPrepayReady?.({ orderId, payAmount: amount, prepay });
+        const prepay = await getMoMoPrepayParams(
+          token,
+          orderId,
+          freshSeed ? { idempotencySeed: `${freshSeed}:momo` } : undefined,
+        );
+        const serverAmount = Number((prepay as { payAmount?: number })?.payAmount ?? amount);
+        rememberPaymentChannel("momo");
+        trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_REQUESTED, { orderId, payAmount: serverAmount });
+        onMoMoPrepayReady?.({ orderId, payAmount: serverAmount, prepay });
       } catch (error) {
         try {
-          const prepay = await retryMoMoPrepayParams(token, orderId);
-          trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_REQUESTED, { orderId, payAmount: amount });
-          onMoMoPrepayReady?.({ orderId, payAmount: amount, prepay });
+          const prepay = await retryMoMoPrepayParams(
+            token,
+            orderId,
+            freshSeed ? { idempotencySeed: `${freshSeed}:momo-retry` } : undefined,
+          );
+          const serverAmount = Number((prepay as { payAmount?: number })?.payAmount ?? amount);
+          rememberPaymentChannel("momo");
+          trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_REQUESTED, { orderId, payAmount: serverAmount });
+          onMoMoPrepayReady?.({ orderId, payAmount: serverAmount, prepay });
         } catch (retryError) {
           const message = parseError(retryError);
           trackEvent("payment_fail", { orderId, message, channel: "momo" });
           reportAppError(retryError instanceof Error ? retryError : new Error(message), "momo_prepay");
+          if (isPityStockExhaustedError(message)) {
+            await handlePityStockExhausted(orderId, message);
+            return;
+          }
           if (onPrepayFail) {
             onPrepayFail({ orderId, payAmount: amount, message, channel: "momo" });
           } else {
@@ -508,16 +577,32 @@ export function useAppActions(params: Params) {
     }
     if (resolvePaymentMode() === "vnpay") {
       try {
-        const prepay = await getVNPayPrepayParams(token, orderId);
-        onVnpayPrepayReady?.({ orderId, payAmount: amount, prepay });
+        const prepay = await getVNPayPrepayParams(
+          token,
+          orderId,
+          freshSeed ? { idempotencySeed: freshSeed } : undefined,
+        );
+        const serverAmount = Number(prepay?.payAmount ?? amount);
+        rememberPaymentChannel("vnpay");
+        onVnpayPrepayReady?.({ orderId, payAmount: serverAmount, prepay });
       } catch (error) {
         try {
-          const prepay = await retryVNPayPrepayParams(token, orderId);
-          onVnpayPrepayReady?.({ orderId, payAmount: amount, prepay });
+          const prepay = await retryVNPayPrepayParams(
+            token,
+            orderId,
+            freshSeed ? { idempotencySeed: `${freshSeed}:retry` } : undefined,
+          );
+          const serverAmount = Number(prepay?.payAmount ?? amount);
+          rememberPaymentChannel("vnpay");
+          onVnpayPrepayReady?.({ orderId, payAmount: serverAmount, prepay });
         } catch (retryError) {
           const message = parseError(retryError);
           trackEvent("payment_fail", { orderId, message, channel: "vnpay" });
           reportAppError(retryError instanceof Error ? retryError : new Error(message), "vnpay_prepay");
+          if (isPityStockExhaustedError(message)) {
+            await handlePityStockExhausted(orderId, message);
+            return;
+          }
           if (onPrepayFail) {
             onPrepayFail({ orderId, payAmount: amount, message, channel: "vnpay" });
           } else {
@@ -527,23 +612,38 @@ export function useAppActions(params: Params) {
       }
       return;
     }
-    const loadPrepay = () => getWechatPrepayParams(token, orderId);
+    const loadPrepay = () =>
+      getWechatPrepayParams(token, orderId, freshSeed ? { idempotencySeed: freshSeed } : undefined);
     try {
       const prepay = await loadPrepay();
+      rememberPaymentChannel("wechat");
       if (await payWithPrepay(orderId, prepay)) {
         clearPaymentStaleWatch(orderId);
-        trackEvent("payment_success", { orderId, channel: "wechat" });
+        if (onPaymentSuccess) {
+          await onPaymentSuccess(orderId);
+        } else {
+          trackEvent(ANALYTICS_EVENTS.PAYMENT_SUCCESS, { orderId, channel: "wechat" });
+        }
         return;
       }
       onPrepayReady?.({ orderId, payAmount: amount, prepay });
     } catch (error) {
       try {
-        const prepay = await retryWechatPrepayParams(token, orderId);
+        const prepay = await retryWechatPrepayParams(
+          token,
+          orderId,
+          freshSeed ? { idempotencySeed: `${freshSeed}:retry` } : undefined,
+        );
+        rememberPaymentChannel("wechat");
         onPrepayReady?.({ orderId, payAmount: amount, prepay });
       } catch (retryError) {
         const message = parseError(retryError);
         trackEvent("payment_fail", { orderId, message, channel: "wechat" });
         reportAppError(retryError instanceof Error ? retryError : new Error(message), "wechat_prepay");
+        if (isPityStockExhaustedError(message)) {
+          await handlePityStockExhausted(orderId, message);
+          return;
+        }
         if (onPrepayFail) {
           onPrepayFail({ orderId, payAmount: amount, message, channel: "wechat" });
         } else {
@@ -553,13 +653,58 @@ export function useAppActions(params: Params) {
     }
   };
 
+  const promptPityCompensateForBox = async (boxId: string) => {
+    const choice = await new Promise<"WAIT" | "POINTS" | null>((resolve) => {
+      Alert.alert(
+        i18n.t("boxDetails.pityCompensateTitle"),
+        i18n.t("boxDetails.pityCompensateBody"),
+        [
+          {
+            text: i18n.t("common.cancel"),
+            style: "cancel",
+            onPress: () => resolve(null),
+          },
+          {
+            text: i18n.t("boxDetails.pityCompensateWait"),
+            onPress: () => resolve("WAIT"),
+          },
+          {
+            text: i18n.t("boxDetails.pityCompensatePoints"),
+            onPress: () => resolve("POINTS"),
+          },
+        ],
+        { cancelable: true, onDismiss: () => resolve(null) },
+      );
+    });
+    if (!choice) return;
+    await applyPityCompensateChoice(token, boxId, choice);
+  };
+
+  const handlePityStockExhausted = async (orderId: string, message: string) => {
+    trackEvent("payment_fail", { orderId, message, reason: "pity_stock_exhausted" });
+    try {
+      const order = await getOrderById(token, orderId);
+      const boxId = resolveOrderBoxId(order);
+      if (boxId) {
+        await promptPityCompensateForBox(boxId);
+      }
+    } catch (lookupError) {
+      reportAppError(toAppError(lookupError), "pity_compensate_lookup");
+    }
+    throw new Error(i18n.t("boxDetails.pityCompensatePayBlocked"));
+  };
+
   const executeMockPayment = async (orderId: string) => {
     const perform = async () => {
+      rememberPaymentChannel("mock");
       const submit = async (riskConfirm?: boolean) => mockPayOrder(token, orderId, { riskConfirm });
       try {
         await submit(false);
       } catch (error) {
         const message = parseError(error);
+        if (isPityStockExhaustedError(message)) {
+          await handlePityStockExhausted(orderId, message);
+        }
         if (!isRiskConfirmRequired(message)) {
           trackEvent("payment_fail", { orderId, message });
           reportAppError(error instanceof Error ? error : new Error(message), "mock_payment");
@@ -574,16 +719,25 @@ export function useAppActions(params: Params) {
           trackEvent("payment_cancel", { orderId, reason: "risk_confirm_declined" });
           throw new Error(i18n.t("actions.paymentCancelled"));
         }
-        await submit(true);
+        try {
+          await submit(true);
+        } catch (retryError) {
+          const retryMessage = parseError(retryError);
+          if (isPityStockExhaustedError(retryMessage)) {
+            await handlePityStockExhausted(orderId, retryMessage);
+          }
+          throw retryError;
+        }
       }
-      await clearRetentionOrderId();
       await syncOrders();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       clearPaymentStaleWatch(orderId);
-      trackEvent("payment_success", { orderId, channel: "mock" });
+      // Success + retention_converted are emitted once in confirmPaymentSuccess (channel-aware).
       if (onPaymentSuccess) {
         await onPaymentSuccess(orderId);
       } else {
+        await clearRetentionOrderId();
+        trackEvent(ANALYTICS_EVENTS.PAYMENT_SUCCESS, { orderId, channel: "mock" });
         await openOrderDetails(orderId);
       }
     };

@@ -28,6 +28,17 @@ class NotificationPrefGateTest {
     }
 
     @Test
+    void restockCategoryUsesOrderEnabled() {
+        assertTrue(NotificationPrefGate.allowsPush(ALL_ON, "RESTOCK"));
+        assertFalse(NotificationPrefGate.allowsPush(ALL_OFF, "RESTOCK"));
+    }
+
+    @Test
+    void pityCategoryAlwaysAllowed() {
+        assertTrue(NotificationPrefGate.allowsPush(ALL_OFF, "PITY"));
+    }
+
+    @Test
     void unknownCategoryDefaultsToAllow() {
         assertTrue(NotificationPrefGate.allowsPush(ALL_OFF, "SYSTEM"));
     }

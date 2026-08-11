@@ -1,6 +1,7 @@
 {
   "revealA11y": {
     "gotPrize": "You got {{tier}}: {{name}}",
-    "gotPrizeNoName": "You got a {{tier}} prize"
+    "gotPrizeNoName": "You got a {{tier}} prize",
+    "prizeCard": "Prize card: {{name}}"
   }
 }

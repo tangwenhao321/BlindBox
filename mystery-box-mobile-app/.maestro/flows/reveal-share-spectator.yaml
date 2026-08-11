@@ -4,10 +4,10 @@ appId: mystery-box-mobile-app
 - runFlow: mock-pay-smoke.yaml
 - extendedWaitUntil:
     visible:
-      id: "orderResultShareRevealButton"
+      id: "orderResultShareHighlightButton"
     timeout: 60000
 - tapOn:
-    id: "orderResultShareRevealButton"
+    id: "orderResultShareHighlightButton"
 - runFlow:
     when:
       visible: ".*Share.*|.*分享.*"

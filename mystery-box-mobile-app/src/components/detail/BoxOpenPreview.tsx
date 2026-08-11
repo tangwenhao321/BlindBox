@@ -18,7 +18,7 @@ import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { RemoteImage } from "../ui/RemoteImage";
 import { resolveBoxImageUrl } from "../../utils/boxImage";
 import type { MysteryBox } from "../../types";
-import { radius, spacing } from "../../styles/tokens";
+import { font, radius, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 import { rnSpring } from "../../effects/reanimated/springConfig";
 
@@ -38,7 +38,7 @@ export function BoxOpenPreview({ box, onPress, onHoldPreviewStart, onHoldPreview
   const styles = useThemedStyles(buildPreviewStyles);
   const { width } = useWindowDimensions();
   const isTablet = width >= 600;
-  const size = isTablet ? 96 : 72;
+  const size = isTablet ? 112 : 88;
   const pulse = useSharedValue(0);
   const lid = useSharedValue(0);
 
@@ -120,11 +120,11 @@ export function BoxOpenPreview({ box, onPress, onHoldPreviewStart, onHoldPreview
       accessibilityLabel={t("boxDetails.previewA11y")}
     >
       <Animated.View style={[styles.box, { width: size, height: size + 10 }, boxStyle]}>
-        <LinearGradient colors={["#2d2d3a", "#12121a"]} style={[styles.body, { width: size, height: size }]}>
+        <LinearGradient colors={[colors.bgMuted, colors.bgPage]} style={[styles.body, { width: size, height: size }]}>
           <RemoteImage uri={cover} style={styles.img} contentFit="cover" />
         </LinearGradient>
         <Animated.View style={[styles.lid, { width: size + 4, height: size * 0.38 }, lidStyle]}>
-          <LinearGradient colors={[colors.brand, "#6eb6ff"]} style={styles.lidFill} />
+          <LinearGradient colors={[colors.brand, colors.brandGradientEnd]} style={styles.lidFill} />
         </Animated.View>
       </Animated.View>
       <Text style={styles.hint}>{t("boxDetails.previewHint")}</Text>
@@ -134,13 +134,13 @@ export function BoxOpenPreview({ box, onPress, onHoldPreviewStart, onHoldPreview
 
 function buildPreviewStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    wrap: { alignItems: "center", marginVertical: spacing.sm },
+    wrap: { alignItems: "center", marginVertical: spacing.md },
     box: { alignItems: "center" },
     body: {
       borderRadius: radius.md,
       overflow: "hidden",
-      borderWidth: 1,
-      borderColor: "rgba(255,255,255,0.2)",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.borderSoft,
     },
     img: { width: "100%", height: "100%" },
     lid: {
@@ -149,7 +149,12 @@ function buildPreviewStyles(colors: ThemeColors) {
       borderRadius: radius.sm,
       overflow: "hidden",
     },
-    lidFill: { flex: 1, opacity: 0.85 },
-    hint: { marginTop: 6, fontSize: 11, color: colors.textMuted, fontWeight: "600" },
+    lidFill: { flex: 1, opacity: 0.9 },
+    hint: {
+      ...font("bodyMedium"),
+      marginTop: spacing.sm,
+      fontSize: typography.micro,
+      color: colors.textMuted,
+    },
   });
 }

@@ -10,11 +10,15 @@
 
 | 文档 | 说明 |
 |------|------|
+| [**DEV_ONBOARDING.md**](DEV_ONBOARDING.md) | **Day-1 English onboarding**（clone、profiles、Flyway、mobile、admin、secrets） |
+| [**INVITE_ATTRIBUTION.md**](INVITE_ATTRIBUTION.md) | Invite deep link → register / bindInviter |
 | [**TEST_ENV_GUIDE.md**](TEST_ENV_GUIDE.md) | **测试环境部署、隔离说明、使用指南、概率说明、注意事项** |
 | [../MOBILE_APP_SETUP.md](../MOBILE_APP_SETUP.md) | 移动端本地部署、API、SSE、支付、围观 |
 | [../RELEASE_CHECKLIST.md](../RELEASE_CHECKLIST.md) | 发布检查清单 |
 | [../COMMERCIAL_READINESS.md](../COMMERCIAL_READINESS.md) | 商业化就绪 |
+| [ADMIN_SECURITY.md](ADMIN_SECURITY.md) | 管理端会话 / XSS / CSP / HttpOnly cookie |
 | [OPS_RUNBOOK.md](OPS_RUNBOOK.md) | 运维 / on-call |
+| [BACKUP_RESTORE_RUNBOOK.md](BACKUP_RESTORE_RUNBOOK.md) | MySQL / Redis 备份恢复 |
 | [VN_LAUNCH_RUNBOOK.md](VN_LAUNCH_RUNBOOK.md) | 越南 VNPay 上线 |
 | [REVEAL_AND_OPS.md](REVEAL_AND_OPS.md) | 开奖与运营配置 |
 | [METRICS_ALERTS.md](METRICS_ALERTS.md) | 指标与告警 |

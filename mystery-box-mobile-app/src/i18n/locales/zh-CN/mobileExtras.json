@@ -24,7 +24,8 @@
   },
   "messages": {
     "filterRestock": "补货",
-    "filterPity": "保底"
+    "filterPity": "保底",
+    "filterProbability": "概率变更"
   },
   "promotion": {
     "milestonesTitle": "邀请里程碑"

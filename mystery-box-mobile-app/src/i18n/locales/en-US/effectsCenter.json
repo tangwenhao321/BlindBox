@@ -1,0 +1,21 @@
+{
+  "effectsCenter": {
+    "title": "Effects Center",
+    "hint": "Equip unlocked unbox themes. Preview shows the theme label only.",
+    "unlocked": "Unlocked",
+    "locked": "Locked",
+    "equip": "Equip",
+    "equipped": "Equipped",
+    "equipDone": "Equipped \"{{name}}\"",
+    "preview": "Preview",
+    "previewLabel": "Preview: {{name}} (applies on unbox)",
+    "emptyTitle": "No effects available",
+    "emptyDesc": "Themes could not be loaded. Retry to refresh unlock state.",
+    "weeklyBanner": "This week's unbox effect is now [{{name}}]. Try it!",
+    "theme_classic": "Classic",
+    "theme_adventure": "Adventure Narrative",
+    "theme_cyberpunk": "Cyberpunk Glitch",
+    "theme_asmr": "Healing ASMR",
+    "theme_party": "Party Carnival"
+  }
+}

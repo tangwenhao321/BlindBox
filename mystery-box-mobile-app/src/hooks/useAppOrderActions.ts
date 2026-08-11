@@ -20,6 +20,11 @@ import {
   invalidateOrderQueries,
   invalidatePurchaseLimitQueries,
 } from "../utils/invalidateAppQueries";
+import { trackEvent } from "../utils/analytics";
+import { ANALYTICS_EVENTS } from "../utils/analyticsEvents";
+import { fetchOrderPaymentMeta } from "../services/orderPaymentService";
+import { getRetentionOrderId, clearRetentionOrderId } from "../utils/retentionStorage";
+import { getLastPaymentChannel } from "../payment/paymentChannelMemory";
 
 type PaymentShell = ReturnType<typeof useAppPaymentShell>;
 
@@ -99,6 +104,36 @@ export function useAppOrderActions(params: Params) {
   const confirmPaymentSuccess = useCallback(
     async (orderId: string) => {
       addCrashMonitoringBreadcrumb("payment", "payment_success", { orderId });
+      let retentionClaimed = false;
+      let retentionDiscount = 0;
+      try {
+        const meta = await fetchOrderPaymentMeta(token, orderId);
+        retentionClaimed = !!meta?.retentionClaimed;
+        retentionDiscount = Number(meta?.retentionDiscountAmount ?? 0);
+      } catch {
+        // ignore meta failures for analytics
+      }
+      const storedRetentionOrderId = await getRetentionOrderId();
+      if (!retentionClaimed && storedRetentionOrderId === orderId) {
+        retentionClaimed = true;
+      }
+      const channel = getLastPaymentChannel();
+      trackEvent(ANALYTICS_EVENTS.PAYMENT_SUCCESS, {
+        orderId,
+        channel,
+        retentionClaimed,
+        retentionDiscount,
+      });
+      if (retentionClaimed) {
+        trackEvent(ANALYTICS_EVENTS.RETENTION_CONVERTED, {
+          orderId,
+          channel,
+          discountAmount: retentionDiscount,
+        });
+      }
+      if (storedRetentionOrderId === orderId) {
+        await clearRetentionOrderId();
+      }
       prepareFreshRevealPlayback(orderId);
       resetRevealDriverTierForPaidReveal();
       let order = await getOrderById(token, orderId);

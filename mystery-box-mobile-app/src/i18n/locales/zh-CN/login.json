@@ -1,12 +1,13 @@
 {
   "login": {
-    "brandMark": "MYSTERY BOX",
-    "heroTitle": "开盒有惊喜",
-    "heroSub": "流畅下单 · 即时开奖 · 统一订单体验",
+    "brandMark": "夜市珍宝柜",
+    "heroTitle": "今晚的珍宝柜",
+    "heroSub": "开启未知 · 夜市灯火下的一格惊喜",
     "tabLogin": "登录",
     "tabRegister": "注册",
     "phoneLabel": "手机号",
     "phonePlaceholder": "请输入手机号",
+    "phonePlaceholderVn": "例如 0901234567",
     "passwordLabel": "密码",
     "passwordPlaceholder": "请输入密码",
     "confirmPasswordLabel": "确认密码",
@@ -28,6 +29,13 @@
     "biometricFailed": "生物识别验证失败",
     "biometricSuccess": "已登录",
     "biometricNoSession": "无已保存会话，请使用密码登录",
+    "zaloComingSoon": "Zalo 登录即将上线",
+    "zaloLogin": "使用 Zalo 登录",
+    "zaloConfigMissing": "Zalo 登录未配置，请联系客服",
+    "zaloFailed": "Zalo 登录失败，请重试",
+    "zaloPasteHint": "请粘贴浏览器中的 Zalo 授权码以完成登录",
+    "zaloPastePlaceholder": "授权码",
+    "zaloPasteSubmit": "完成 Zalo 登录",
     "localhostWarn": "真机无法访问 127.0.0.1，请在 .env 中设置电脑局域网 IP 并重启 Expo",
     "endpoint": "API · {{url}}",
     "devAccountHint": "本地测试：登录 {{phone}} / {{password}}；注册验证码 {{code}}",
@@ -39,7 +47,15 @@
     "resendIn": "{{seconds}}s",
     "resendCodeA11y": "重新发送验证码",
     "resendCodeWaitA11y": "请等待 {{seconds}} 秒后再发送验证码",
-    "newPasswordPlaceholder": "新密码（至少6位）",
-    "confirmReset": "确认重置"
+    "newPasswordPlaceholder": "新密码（至少8位，含字母和数字）",
+    "confirmReset": "确认重置",
+    "methodPassword": "密码登录",
+    "methodSms": "验证码登录",
+    "passwordStrength_weak": "密码强度：弱",
+    "passwordStrength_fair": "密码强度：中",
+    "passwordStrength_strong": "密码强度：强",
+    "agreeTerms": "我已阅读并同意《用户协议》与《隐私政策》",
+    "openTerms": "用户协议",
+    "openPrivacy": "隐私政策"
   }
 }

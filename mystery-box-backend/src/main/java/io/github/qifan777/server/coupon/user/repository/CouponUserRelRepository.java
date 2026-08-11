@@ -25,6 +25,7 @@ public interface CouponUserRelRepository extends JRepository<CouponUserRel, Stri
             .editor(UserFetcher.$.phone().nickname());
     CouponUserRelFetcher COMPLEX_FETCHER_FOR_FRONT = CouponUserRelFetcher.$.allScalarFields()
             .coupon(Fetchers.COUPON_FETCHER.allScalarFields())
+            .user(true)
             .creator(true);
 
     default Page<CouponUserRel> findPage(QueryRequest<CouponUserRelSpec> queryRequest,
@@ -39,7 +40,7 @@ public interface CouponUserRelRepository extends JRepository<CouponUserRel, Stri
                         SpringPageFactory.getInstance());
     }
 
-   default void changeStatus(String id, DictConstants.CouponUseStatus couponUseStatus){
+    default void changeStatus(String id, DictConstants.CouponUseStatus couponUseStatus) {
         if (!StringUtils.hasText(id)) {
             return;
         }
@@ -47,5 +48,18 @@ public interface CouponUserRelRepository extends JRepository<CouponUserRel, Stri
                 .set(t.status(), couponUseStatus)
                 .where(t.id().eq(id))
                 .execute();
-   }
+    }
+
+    /** CAS UNUSED → USED; returns false when already used or missing. */
+    default boolean tryMarkUsed(String id) {
+        if (!StringUtils.hasText(id)) {
+            return false;
+        }
+        int updated = sql().createUpdate(t)
+                .set(t.status(), DictConstants.CouponUseStatus.USED)
+                .where(t.id().eq(id))
+                .where(t.status().eq(DictConstants.CouponUseStatus.UNUSED))
+                .execute();
+        return updated > 0;
+    }
 }

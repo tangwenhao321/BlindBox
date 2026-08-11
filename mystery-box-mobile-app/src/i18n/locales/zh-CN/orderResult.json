@@ -23,8 +23,14 @@
     "prizesTitle": "本次奖品",
     "viewOrders": "查看订单",
     "payNow": "去支付",
+    "goWarehouse": "去仓库",
+    "goWarehouseA11y": "去仓库查看奖品",
     "tryAgain": "再开一单",
-    "shareReveal": "生成战报图并分享",
+    "shareHighlight": "分享高光",
+    "shareHighlightA11y": "分享开盒高光截取",
+    "sharePoster": "分享战报海报",
+    "sharePosterA11y": "分享订单战报海报",
+    "shareReveal": "分享高光",
     "verifyFairness": "查看公平验证",
     "shareCaptureFailed": "生成战报图失败",
     "shareCaptureSuccess": "战报图已生成",
@@ -51,7 +57,10 @@
     "temporaryTurboA11y": "切换本单极速揭晓",
     "integrityFallback": "因数据完整性校验，揭晓已简化展示。可在订单详情查看公平验证。",
     "shareSpectatorMessage": "来观战我的开盒直播：{{url}}",
-    "shareHighlightMessage": "看看我这发欧气！"
+    "shareHighlightMessage": "看看我这发欧气！",
+    "pityCompensateTitle": "保底库存不足",
+    "pityCompensateBody": "保底已触发，但高档赏品暂时售罄。可等待补货并保留进度，或领取积分补偿。",
+    "pityCompensateCta": "选择补偿方案"
   },
   "achievements": {
     "multiRareTitle": "欧气连击",

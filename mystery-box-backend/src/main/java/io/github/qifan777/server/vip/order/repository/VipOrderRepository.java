@@ -17,6 +17,9 @@ import org.babyfish.jimmer.sql.fetcher.Fetcher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 public interface VipOrderRepository extends JRepository<VipOrder, String> {
     VipOrderTable t = VipOrderTable.$;
     VipOrderFetcher COMPLEX_FETCHER_FOR_ADMIN = VipOrderFetcher.$.allScalarFields()
@@ -49,5 +52,17 @@ public interface VipOrderRepository extends JRepository<VipOrder, String> {
                 .select(t.fetch(fetcher))
                 .fetchPage(queryRequest.getPageNum() - 1, queryRequest.getPageSize(),
                         SpringPageFactory.getInstance());
+    }
+
+    /** Unpaid VIP orders older than 5 minutes — for gateway QueryDR reconciliation. */
+    default List<VipOrder> findUnpaidOrdersBatch(int limit) {
+        int size = Math.min(Math.max(limit, 1), 200);
+        return sql().createQuery(t)
+                .where(t.baseOrder().payment().payTime().isNull())
+                .where(t.createdTime().le(LocalDateTime.now().minusMinutes(5)))
+                .orderBy(t.createdTime().asc())
+                .select(t.fetch(COMPLEX_FETCHER_FOR_ADMIN))
+                .limit(size)
+                .execute();
     }
 }

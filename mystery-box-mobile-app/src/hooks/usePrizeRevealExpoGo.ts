@@ -6,8 +6,15 @@ import { resolveCeremonyTier, ceremonyTierToDisplayQuality } from "../effects/ce
 import { getEffectProfileWithBoost } from "../effects/intensity";
 import { applyRemoteRevealProfile, getRevealRemoteConfig, type ReduceMotionLevel } from "../effects/revealRemote";
 import { applyRevealTheme, resolveRevealTheme } from "../effects/revealTheme";
+import { resolveActiveRevealThemeId, rollSurpriseThemeId } from "../effects/revealThemeRotation";
 import type { RevealPacing } from "../effects/revealSequence";
-import { cancelScheduledRevealSoundTimers, cancelScheduledRevealSounds, playRevealSoundArc, warmupTierSounds } from "../effects/sound";
+import {
+  cancelScheduledRevealSoundTimers,
+  cancelScheduledRevealSounds,
+  playRevealSoundArc,
+  setRuntimeThemeSoundBankFromTheme,
+  warmupTierSounds,
+} from "../effects/sound";
 import { getExpoRevealTimeline } from "../effects/expoRevealTiming";
 import { getStepIdleMs, resolveHoldDuration } from "../effects/revealTiming";
 import { trackEffectEvent } from "../effects/telemetry";
@@ -84,15 +91,21 @@ export function usePrizeRevealExpoGo({
     if (!product) return resolveCeremonyTier({ id: "", name: "", price: 0 } as Product, drawProducts);
     return resolveCeremonyTier(product, drawProducts ?? products);
   }, [products, drawProducts]);
+  const surpriseThemeId = useMemo(() => rollSurpriseThemeId(), [orderId]);
   const revealTheme = useMemo(
     () =>
       resolveRevealTheme({
         boxName,
         categoryName: boxCategoryName,
-        remoteThemeId: getRevealRemoteConfig().themeId,
+        remoteThemeId: resolveActiveRevealThemeId({
+          surpriseThemeId,
+        }),
       }),
-    [boxName, boxCategoryName],
+    [boxName, boxCategoryName, surpriseThemeId],
   );
+  useEffect(() => {
+    setRuntimeThemeSoundBankFromTheme(revealTheme.id);
+  }, [revealTheme.id]);
   const profile = useMemo(() => {
     const opts = { reduceMotion: false, lowPerf: false };
     const base =
@@ -193,8 +206,9 @@ export function usePrizeRevealExpoGo({
         isFinaleDraw,
         soundEnabled,
         afterBoxTeaser: showBoxTeaser,
-        chargeMs: profile.chargeMs,
+        chargeMs: Math.max(profile.chargeMs, 900),
         accelerateTier: accelTier,
+        themeId: revealTheme.id,
       });
       if (!reduceMotion) {
         Vibration.vibrate(profile.vibrationPattern);

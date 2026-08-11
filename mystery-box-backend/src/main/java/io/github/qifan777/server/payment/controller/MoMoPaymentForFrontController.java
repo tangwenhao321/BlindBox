@@ -14,15 +14,25 @@ public class MoMoPaymentForFrontController {
 
     @GetMapping("status")
     public MoMoStatusView status() {
+        boolean offered = momoProperties.isCheckoutOffered();
+        String message;
+        if (offered) {
+            message = "MoMo checkout ready";
+        } else if (momoProperties.isStub()) {
+            message = "MoMo Partner API not wired (stub); checkout is not offered";
+        } else if (!momoProperties.isEnabled()) {
+            message = "MoMo disabled (momo.enabled=false)";
+        } else {
+            message = "Configure momo.partner-code / access-key / secret-key and set momo.stub=false";
+        }
         return new MoMoStatusView(
-                momoProperties.isEnabled(),
+                offered,
                 momoProperties.isConfigured(),
-                momoProperties.isEnabled() && momoProperties.isConfigured()
-                        ? "MoMo stub gateway ready"
-                        : "Configure momo.* and set MOMO_ENABLED=true to enable stub checkout"
+                momoProperties.isStub(),
+                message
         );
     }
 
-    public record MoMoStatusView(boolean enabled, boolean configured, String message) {
+    public record MoMoStatusView(boolean enabled, boolean configured, boolean stub, String message) {
     }
 }

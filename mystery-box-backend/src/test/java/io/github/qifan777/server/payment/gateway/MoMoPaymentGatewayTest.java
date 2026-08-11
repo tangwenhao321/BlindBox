@@ -16,6 +16,7 @@ class MoMoPaymentGatewayTest {
     void prepayThrowsWhenDisabled() {
         MoMoProperties props = new MoMoProperties();
         props.setEnabled(false);
+        props.setStub(false);
         MoMoPaymentGateway gateway = new MoMoPaymentGateway(props);
         BaseOrder order = mock(BaseOrder.class);
         when(order.id()).thenReturn("ord-1");
@@ -26,13 +27,22 @@ class MoMoPaymentGatewayTest {
     }
 
     @Test
-    void prepayReturnsStubDeeplinkWhenConfigured() {
-        MoMoProperties props = new MoMoProperties();
-        props.setEnabled(true);
-        props.setPartnerCode("partner");
-        props.setAccessKey("access");
-        props.setSecretKey("secret");
-        props.setReturnUrl("mysterybox://payment-return");
+    void prepayThrowsWhenStubEvenIfConfigured() {
+        MoMoProperties props = configuredProps();
+        props.setStub(true);
+        MoMoPaymentGateway gateway = new MoMoPaymentGateway(props);
+        BaseOrder order = mock(BaseOrder.class);
+        when(order.id()).thenReturn("ord-1");
+
+        assertThatThrownBy(() -> gateway.prepay(order, 15, "/notify", "127.0.0.1"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("stub");
+    }
+
+    @Test
+    void prepayReturnsDeeplinkWhenLiveReady() {
+        MoMoProperties props = configuredProps();
+        props.setStub(false);
         MoMoPaymentGateway gateway = new MoMoPaymentGateway(props);
         BaseOrder order = mock(BaseOrder.class);
         when(order.id()).thenReturn("ord-42");
@@ -43,5 +53,15 @@ class MoMoPaymentGatewayTest {
         assertThat(view.orderId()).isEqualTo("ord-42");
         assertThat(view.deeplink()).contains("orderId=ord-42");
         assertThat(view.deeplink()).contains("provider=momo");
+    }
+
+    private static MoMoProperties configuredProps() {
+        MoMoProperties props = new MoMoProperties();
+        props.setEnabled(true);
+        props.setPartnerCode("partner");
+        props.setAccessKey("access");
+        props.setSecretKey("secret");
+        props.setReturnUrl("mysterybox://payment-return");
+        return props;
     }
 }

@@ -6,6 +6,7 @@ import { getRuntimeFeatureFlags } from "../utils/runtimeFeatureFlags";
 const VIEW_TO_FEATURE: Partial<Record<AppView, FeatureKey>> = {
   community: FEATURE_KEYS.COMMUNITY,
   marketplace: FEATURE_KEYS.MARKETPLACE,
+  marketplaceChat: FEATURE_KEYS.MARKETPLACE,
   welfare: FEATURE_KEYS.WELFARE,
 };
 

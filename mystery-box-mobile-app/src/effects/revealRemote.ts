@@ -1,6 +1,8 @@
 import type { EffectProfile } from "./config";
 import { isRevealPerformanceDegraded } from "./sessionPerf";
 import type { BatchRevealPreset } from "./revealAdaptiveRhythm";
+import { SUSPENSE_CHARGE_MS } from "./revealHeartbeat";
+import { resolveNetworkTierParticleScale, shouldForceClassicRevealNetwork } from "./revealNetworkTier";
 
 export type ReduceMotionLevel = "light" | "medium" | "heavy";
 export type FeedTickerMinTier = "HIDDEN" | "LEGENDARY";
@@ -19,6 +21,12 @@ export type RevealRemoteConfig = {
   feedTickerEnabled: boolean;
   feedTickerMinTier: FeedTickerMinTier;
   themeId?: string;
+  /** Doc2 weekly / config-center theme alias (adventure|cyberpunk|asmr|party|…). */
+  currentTheme?: string;
+  /** Days per weekly rotation cycle (default 7). */
+  rotationCycle: number;
+  /** Chance to roll a surprise Doc2 theme per open (default 0.05). */
+  randomTriggerRate: number;
   introVideoUri?: string;
   interDrawDelayMs: number;
   finalePauseMs: number;
@@ -89,6 +97,9 @@ const DEFAULTS: RevealRemoteConfig = {
   feedTickerEnabled: true,
   feedTickerMinTier: "HIDDEN",
   themeId: undefined,
+  currentTheme: undefined,
+  rotationCycle: 7,
+  randomTriggerRate: 0.05,
   introVideoUri: undefined,
   interDrawDelayMs: 280,
   finalePauseMs: 420,
@@ -164,6 +175,9 @@ export function setRevealRemoteConfig(
       revealActiveEventTagUri?: string;
       revealFestivalTemplateId?: string;
       revealShareTemplatePriority?: number;
+      revealCurrentTheme?: string;
+      revealRotationCycle?: number;
+      revealRandomTriggerRate?: number;
     }
   > | null,
 ) {
@@ -190,6 +204,11 @@ export function setRevealRemoteConfig(
     feedTickerMinTier:
       config.feedTickerMinTier === "LEGENDARY" ? "LEGENDARY" : "HIDDEN",
     themeId: config.themeId?.trim() || undefined,
+    currentTheme: config.currentTheme?.trim() || config.revealCurrentTheme?.trim() || undefined,
+    rotationCycle: Math.max(1, Math.round(config.rotationCycle ?? config.revealRotationCycle ?? DEFAULTS.rotationCycle)),
+    randomTriggerRate: clampUnit(
+      config.randomTriggerRate ?? config.revealRandomTriggerRate ?? DEFAULTS.randomTriggerRate,
+    ),
     introVideoUri: config.introVideoUri?.trim() || undefined,
     interDrawDelayMs: clampMs(config.interDrawDelayMs ?? DEFAULTS.interDrawDelayMs, 0, MS_STEP_MAX),
     finalePauseMs: clampMs(config.finalePauseMs ?? DEFAULTS.finalePauseMs, 0, MS_STEP_MAX),
@@ -329,6 +348,11 @@ function clampScale(value: number) {
   return Math.min(2, Math.max(0.25, value));
 }
 
+function clampUnit(value: number) {
+  if (!Number.isFinite(value)) return 0.05;
+  return Math.min(1, Math.max(0, value));
+}
+
 /** Clamp remote millisecond values with upper bounds to prevent config abuse. */
 export function clampMs(value: number, min: number, max: number): number {
   if (!Number.isFinite(value)) return min;
@@ -366,15 +390,21 @@ function parseFeedTickerBlocklist(raw?: string | string[]): string[] | undefined
 
 export function applyRemoteRevealProfile(profile: EffectProfile): EffectProfile {
   const remote = getRevealRemoteConfig();
-  const particleScale = remote.particleScale;
-  const confettiScale = remote.confettiScale;
+  const netParticle = resolveNetworkTierParticleScale();
+  const weakClassic = shouldForceClassicRevealNetwork();
+  const particleScale = remote.particleScale * netParticle * (weakClassic ? 0.55 : 1);
+  const confettiScale = remote.confettiScale * (weakClassic ? 0.5 : 1);
+  const chargeMs =
+    profile.chargeMs > 0
+      ? Math.round(Math.max(profile.chargeMs, SUSPENSE_CHARGE_MS) * remote.chargeScale)
+      : 0;
   return {
     ...profile,
     particleCount: Math.min(120, Math.round(profile.particleCount * particleScale)),
     confettiCount: Math.min(64, Math.round(profile.confettiCount * confettiScale)),
     revealDelayMs:
       remote.delayMsOverride > 0 ? remote.delayMsOverride : profile.revealDelayMs,
-    chargeMs: Math.round(profile.chargeMs * remote.chargeScale),
+    chargeMs,
     flashPeak: Math.min(1, profile.flashPeak * remote.flashScale),
   };
 }

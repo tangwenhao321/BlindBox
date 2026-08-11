@@ -1,5 +1,6 @@
 package io.github.qifan777.server.box.order.config;
 
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -17,16 +18,22 @@ public class RedeemProperties {
     private BigDecimal minAmount = BigDecimal.ONE;
 
     public BigDecimal recoveryAmount(BigDecimal productPrice) {
+        return recoveryAmount(productPrice, "CNY");
+    }
+
+    public BigDecimal recoveryAmount(BigDecimal productPrice, String currency) {
+        BigDecimal floor = MoneyRounding.round(minAmount == null ? BigDecimal.ZERO : minAmount.max(BigDecimal.ZERO), currency);
         if (productPrice == null || productPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            return minAmount.max(BigDecimal.ZERO);
+            return floor;
         }
         BigDecimal rate = balanceRate == null || balanceRate.compareTo(BigDecimal.ZERO) <= 0
                 ? new BigDecimal("0.35")
                 : balanceRate;
-        BigDecimal raw = productPrice.multiply(rate).setScale(2, RoundingMode.HALF_UP);
-        if (raw.compareTo(minAmount) < 0) {
-            return minAmount;
+        int scale = MoneyRounding.scaleForCurrency(currency);
+        BigDecimal raw = productPrice.multiply(rate).setScale(scale, RoundingMode.HALF_UP);
+        if (raw.compareTo(floor) < 0) {
+            return floor;
         }
-        return raw;
+        return MoneyRounding.round(raw, currency);
     }
 }

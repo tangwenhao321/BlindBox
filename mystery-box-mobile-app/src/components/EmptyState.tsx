@@ -1,32 +1,44 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemedStyles } from "../hooks/useThemedStyles";
-import { radius, shadows, spacing, typography } from "../styles/tokens";
+import { font, radius, spacing, typography } from "../styles/tokens";
 import { revealVisualTokens } from "../effects/revealVisualTokens";
 import type { ThemeColors } from "../styles/themes";
 
 type Props = {
   title: string;
   description?: string;
+  /** Optional glyph override; when omitted, shows empty shelf bay illustration. */
   icon?: string;
   variant?: "card" | "plain" | "reveal";
   actionLabel?: string;
   onAction?: () => void;
 };
 
-export function EmptyState({ title, description, icon = "✦", variant = "card", actionLabel, onAction }: Props) {
+export function EmptyState({ title, description, icon, variant = "card", actionLabel, onAction }: Props) {
   const styles = useThemedStyles(buildEmptyStateStyles);
   return (
     <View style={[styles.wrap, variant === "plain" ? styles.wrapPlain : null, variant === "reveal" ? styles.wrapReveal : null]}>
-      <View style={styles.iconCircle}>
-        <Text style={styles.icon}>{icon}</Text>
-      </View>
+      {icon ? (
+        <View style={styles.iconCircle}>
+          <Text style={styles.icon}>{icon}</Text>
+        </View>
+      ) : (
+        <View style={styles.emptyBay} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={styles.nicheRow}>
+            <View style={styles.niche} />
+            <View style={styles.niche} />
+            <View style={[styles.niche, styles.nicheNarrow]} />
+          </View>
+          <View style={styles.shelfLip} />
+        </View>
+      )}
       <Text style={styles.title}>{title}</Text>
       {description ? <Text style={styles.desc}>{description}</Text> : null}
       {actionLabel && onAction ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={actionLabel}
-          style={styles.actionBtn}
+          style={({ pressed }) => [styles.actionBtn, pressed ? styles.pressed : null]}
           onPress={onAction}
         >
           <Text style={styles.actionText}>{actionLabel}</Text>
@@ -42,8 +54,6 @@ function buildEmptyStateStyles(colors: ThemeColors) {
       marginVertical: spacing.xxl,
       backgroundColor: "transparent",
       borderWidth: 0,
-      shadowOpacity: 0,
-      elevation: 0,
     },
     wrapReveal: {
       borderRadius: revealVisualTokens.modalRadius,
@@ -62,7 +72,37 @@ function buildEmptyStateStyles(colors: ThemeColors) {
       justifyContent: "center",
       paddingVertical: spacing.xxl,
       paddingHorizontal: spacing.xl,
-      ...shadows.cardSm,
+    },
+    emptyBay: {
+      width: 120,
+      marginBottom: spacing.md,
+      alignItems: "stretch",
+    },
+    nicheRow: {
+      flexDirection: "row",
+      gap: 6,
+      alignItems: "flex-end",
+      paddingHorizontal: 4,
+    },
+    niche: {
+      flex: 1,
+      height: 36,
+      borderRadius: radius.sm,
+      backgroundColor: colors.bgSoft,
+      borderWidth: 1,
+      borderColor: colors.borderSoft,
+    },
+    nicheNarrow: {
+      flex: 0.85,
+      height: 28,
+    },
+    shelfLip: {
+      marginTop: 4,
+      height: 6,
+      borderRadius: 2,
+      backgroundColor: colors.shelfLip,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.brandDark,
     },
     iconCircle: {
       width: 56,
@@ -77,12 +117,14 @@ function buildEmptyStateStyles(colors: ThemeColors) {
     },
     icon: { fontSize: 24, color: colors.brand },
     title: {
+      ...font("bodySemiBold"),
       color: colors.textPrimary,
       fontWeight: "800",
       fontSize: typography.h4,
       textAlign: "center",
     },
     desc: {
+      ...font("body"),
       marginTop: spacing.sm,
       color: colors.textMuted,
       fontSize: typography.body,
@@ -99,6 +141,7 @@ function buildEmptyStateStyles(colors: ThemeColors) {
       borderWidth: 1,
       borderColor: colors.chipBorder,
     },
-    actionText: { color: colors.brand, fontWeight: "800", fontSize: typography.caption },
+    actionText: { ...font("bodySemiBold"), color: colors.brand, fontWeight: "800", fontSize: typography.caption },
+    pressed: { opacity: 0.9 },
   });
 }

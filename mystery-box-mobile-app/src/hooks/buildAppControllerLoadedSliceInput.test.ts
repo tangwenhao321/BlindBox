@@ -71,6 +71,7 @@ describe("buildAppControllerLoadedSliceInput", () => {
         quote: null,
         quotingPrice: false,
         quoteError: null,
+        retryQuote: noop,
         availableCoupons: [],
         selectedCouponUserId: "",
         setSelectedCouponUserId: noop,
@@ -110,6 +111,7 @@ describe("buildAppControllerLoadedSliceInput", () => {
         searchedOrders: [],
         onFilterByStatus: noop,
         ordersLoadError: null,
+        ordersReady: true,
       },
       account: {
         couponCount: 0,

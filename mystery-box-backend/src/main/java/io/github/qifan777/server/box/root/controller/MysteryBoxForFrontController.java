@@ -4,6 +4,7 @@ import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.entity.dto.MysteryBoxSpec;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
 import io.github.qifan777.server.box.root.model.MysteryBoxInsightView;
+import io.github.qifan777.server.box.draw.DynamicProbabilityAdjuster;
 import io.github.qifan777.server.box.draw.model.DrawFeedItemView;
 import io.github.qifan777.server.box.draw.model.DrawFeedPageView;
 import io.github.qifan777.server.box.draw.service.MysteryBoxDrawFeedService;
@@ -27,6 +28,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -35,6 +38,8 @@ import java.util.List;
 @DefaultFetcherOwner(MysteryBoxRepository.class)
 @Transactional
 public class MysteryBoxForFrontController {
+    private static final ZoneId VN_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
+
     private final MysteryBoxRepository mysteryBoxRepository;
     private final NewcomerBoxService newcomerBoxService;
     private final MysteryBoxInsightService mysteryBoxInsightService;
@@ -43,6 +48,7 @@ public class MysteryBoxForFrontController {
     private final MysteryBoxProbabilityHistoryService mysteryBoxProbabilityHistoryService;
     private final PoolDashboardService poolDashboardService;
     private final TrustMetaService trustMetaService;
+    private final DynamicProbabilityAdjuster dynamicProbabilityAdjuster;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") MysteryBox findById(@PathVariable String id) {
@@ -104,17 +110,68 @@ public class MysteryBoxForFrontController {
         return mysteryBoxUserPityService.progress(StpUtil.getLoginIdAsString(), id);
     }
 
+    /**
+     * When pity forceHigh fires but high-tier stock is gone, client presents WAIT|POINTS choice.
+     */
+    @PostMapping("{id}/pity-compensate")
+    public MysteryBoxUserPityService.PityCompensateView pityCompensate(
+            @PathVariable String id,
+            @RequestBody PityCompensateRequest body
+    ) {
+        return mysteryBoxUserPityService.compensate(
+                StpUtil.getLoginIdAsString(),
+                id,
+                body == null ? null : body.choice()
+        );
+    }
+
     @SaIgnore
     @GetMapping("{id}/probability")
-    public MysteryBoxProbabilityView probability(@PathVariable String id) {
+    public MysteryBoxProbabilityView probability(
+            @PathVariable String id,
+            @RequestParam(required = false, defaultValue = "1") Integer drawCount
+    ) {
         MysteryBox box = mysteryBoxRepository.findById(id, MysteryBoxRepository.COMPLEX_FETCHER_FOR_FRONT)
                 .orElseThrow(() -> new BusinessException("数据不存在"));
-        return new MysteryBoxProbabilityView(
-                box.legendaryRate(),
-                box.hiddenRate(),
-                box.generalRate(),
-                box.editedTime()
+        LocalDateTime updatedAt = box.editedTime();
+        var history = mysteryBoxProbabilityHistoryService.list(id, 1);
+        if (!history.isEmpty() && history.get(0).effectiveTime() != null) {
+            updatedAt = history.get(0).effectiveTime();
+        }
+        int baseLegendary = box.legendaryRate();
+        int baseHidden = box.hiddenRate();
+        int baseGeneral = box.generalRate();
+        if (!StpUtil.isLogin()) {
+            return MysteryBoxProbabilityView.ofBase(baseLegendary, baseHidden, baseGeneral, updatedAt);
+        }
+        String userId = StpUtil.getLoginIdAsString();
+        int safeDrawCount = drawCount == null || drawCount < 1 ? 1 : Math.min(drawCount, 100);
+        int hour = LocalDateTime.now(VN_ZONE).getHour();
+        boolean suppressNewbie = newcomerBoxService.qualifiesForNewcomerFirstDrawPrice(userId, box, safeDrawCount);
+        DynamicProbabilityAdjuster.AdjustedRates adjusted = dynamicProbabilityAdjuster.adjust(
+                baseLegendary,
+                baseHidden,
+                baseGeneral,
+                new DynamicProbabilityAdjuster.AdjustContext(
+                        mysteryBoxUserPityService.userDrawCountOnBox(userId, id),
+                        mysteryBoxUserPityService.loseStreak(userId, id),
+                        safeDrawCount,
+                        hour,
+                        suppressNewbie
+                )
         );
+        return MysteryBoxProbabilityView.ofEffective(
+                baseLegendary,
+                baseHidden,
+                baseGeneral,
+                updatedAt,
+                adjusted.legendaryRate(),
+                adjusted.hiddenRate(),
+                adjusted.generalRate()
+        );
+    }
+
+    public record PityCompensateRequest(String choice) {
     }
 
     @GetMapping("{id}/probability/history")

@@ -98,15 +98,17 @@ public class ExpoPushNotificationService {
 
         }
 
-        String token = userPushTokenService.findToken(userId);
+        List<String> tokens = userPushTokenService.findTokens(userId);
 
-        if (token == null || token.isBlank()) {
+        if (tokens.isEmpty()) {
 
             return;
 
         }
 
-        sendBatch(List.of(new PushMessage(userId, title, body, category, refId, token)));
+        sendBatch(tokens.stream()
+                .map(token -> new PushMessage(userId, title, body, category, refId, token))
+                .toList());
 
     }
 

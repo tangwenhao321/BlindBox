@@ -1,6 +1,8 @@
 {
   "spectator": {
     "title": "Xem mở hộp",
+    "liteBadge": "Đang xem · lite",
+    "liteHint": "Nghi thức đầy đủ chạy trên máy người mở — bạn đang xem bản đồng bộ rút gọn.",
     "expired": "Liên kết xem đã hết hạn",
     "phaseUnknown": "Đang chờ",
     "phaseGap": "Lượt rút tiếp theo…",

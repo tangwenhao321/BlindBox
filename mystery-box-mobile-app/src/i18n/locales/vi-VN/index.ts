@@ -15,6 +15,11 @@ import sharePoster from "./sharePoster.json";
 import mobileExtras from "./mobileExtras.json";
 import paymentReturn from "./paymentReturn.json";
 import spectator from "./spectator.json";
+import login from "./login.json";
+import settings from "./settings.json";
+import profile from "./profile.json";
+import revealOverlay from "./revealOverlay.json";
+import teamLottery from "./teamLottery.json";
 
 export default mergeLocaleModules(
   enUS,
@@ -33,4 +38,9 @@ export default mergeLocaleModules(
   paymentReturn,
   spectator,
   appUpdate,
+  login,
+  settings,
+  profile,
+  revealOverlay,
+  teamLottery,
 ) as Record<string, unknown>;

@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { ORDER_STATUS } from "../config/constants";
 import {
   getNewcomerBarPrice,
+  getNewcomerFallbackPrice,
   hasOpenedBlindBox,
-  NEWCOMER_FALLBACK_PRICE,
   shouldShowNewcomerOffer,
 } from "./newcomerOffer";
 import type { MysteryBox, Order } from "../types";
@@ -36,7 +36,7 @@ describe("newcomerOffer", () => {
     ];
     expect(getNewcomerBarPrice(boxes)).toBe(0.01);
     expect(getNewcomerBarPrice([{ id: "3", name: "Regular", price: 50 } as MysteryBox])).toBe(
-      NEWCOMER_FALLBACK_PRICE,
+      getNewcomerFallbackPrice(),
     );
   });
 });

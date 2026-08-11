@@ -1,5 +1,6 @@
 package io.github.qifan777.server.logistics.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -8,43 +9,30 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * GHN address lookup stub — replace with GHN Partner API when credentials are available.
+ * GHN address lookup — Partner API not wired.
+ * Returns empty lists (not hard errors) so mobile cascades degrade gracefully.
  */
 @RestController
 @RequestMapping("front/logistics/ghn")
+@Slf4j
 public class LogisticsGhnForFrontController {
-
-    private static final List<GhnProvince> PROVINCES = List.of(
-            new GhnProvince("HN", "Thành phố Hà Nội"),
-            new GhnProvince("SG", "Thành phố Hồ Chí Minh"),
-            new GhnProvince("DN", "Thành phố Đà Nẵng"),
-            new GhnProvince("HP", "Thành phố Hải Phòng"),
-            new GhnProvince("CT", "Thành phố Cần Thơ")
-    );
 
     @GetMapping("provinces")
     public List<GhnProvince> provinces() {
-        return PROVINCES;
+        log.debug("GHN provinces stub — Partner API not wired");
+        return List.of();
     }
 
     @GetMapping("districts")
     public List<GhnDistrict> districts(@RequestParam String provinceCode) {
-        if ("SG".equalsIgnoreCase(provinceCode)) {
-            return List.of(
-                    new GhnDistrict("Q1", "Quận 1"),
-                    new GhnDistrict("Q3", "Quận 3"),
-                    new GhnDistrict("Q7", "Quận 7")
-            );
-        }
-        return List.of(new GhnDistrict("DEFAULT", "Quận/Huyện"));
+        log.debug("GHN districts stub provinceCode={} — Partner API not wired", provinceCode);
+        return List.of();
     }
 
     @GetMapping("wards")
     public List<GhnWard> wards(@RequestParam String districtCode) {
-        return List.of(
-                new GhnWard("W1", "Phường " + districtCode),
-                new GhnWard("W2", "Phường trung tâm")
-        );
+        log.debug("GHN wards stub districtCode={} — Partner API not wired", districtCode);
+        return List.of();
     }
 
     public record GhnProvince(String code, String name) {

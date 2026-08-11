@@ -89,6 +89,7 @@ export function useBoxDetailsScreenProps(offline: boolean) {
       suggestedCouponApplied: boxViewProps.suggestedCouponApplied,
       quotingPrice: boxViewProps.quotingPrice,
       quoteError: boxViewProps.quoteError,
+      onRetryQuote: boxViewProps.onRetryQuote,
       offline,
       skipOnboardingCoach: boxViewProps.skipOnboardingCoach,
     }),

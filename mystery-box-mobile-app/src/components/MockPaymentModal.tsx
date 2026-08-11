@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { claimAbandonOffer, fetchOrderPaymentMeta } from "../services/orderPaymentService";
-import { setRetentionOrderId } from "../utils/retentionStorage";
+import { fetchOrderPaymentMeta } from "../services/orderPaymentService";
+import { PaymentAbandonPanel } from "./PaymentAbandonPanel";
+import { usePaymentAbandonOffer } from "../hooks/usePaymentAbandonOffer";
 import { usePayCountdown } from "../hooks/usePayCountdown";
 import { useAppTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { trackEvent } from "../utils/analytics";
-import { toast } from "../utils/toast";
 import { formatCurrency } from "../utils/formatCurrency";
 
-type Phase = "confirm" | "paying" | "success" | "abandon";
+type Phase = "confirm" | "paying" | "success";
 
 type Props = {
   visible: boolean;
@@ -22,6 +22,7 @@ type Props = {
   onClose: () => void;
   onConfirmPay: () => Promise<void>;
   onSimulateFail?: () => void;
+  onClaimAndReprepay?: (payload: { orderId: string; payAmount: number }) => void | Promise<void>;
 };
 
 export function MockPaymentModal({
@@ -32,6 +33,7 @@ export function MockPaymentModal({
   onClose,
   onConfirmPay,
   onSimulateFail,
+  onClaimAndReprepay,
 }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -39,55 +41,46 @@ export function MockPaymentModal({
   const [phase, setPhase] = useState<Phase>("confirm");
   const [error, setError] = useState<string | null>(null);
   const [payDeadline, setPayDeadline] = useState<string | null>(null);
+  const [displayPayAmount, setDisplayPayAmount] = useState(payAmount);
   const { label: countdownLabel, expired } = usePayCountdown(payDeadline);
+
+  const {
+    abandonPhase,
+    offerEligible,
+    offerDiscount,
+    claiming,
+    requestClose,
+    continuePay,
+    leaveDirect,
+    claimAndContinue,
+  } = usePaymentAbandonOffer({
+    visible,
+    token,
+    orderId,
+    channel: "mock",
+    onClose,
+    onPayAmountChange: setDisplayPayAmount,
+    onClaimAndReprepay,
+    blockClose: phase === "paying",
+  });
 
   useEffect(() => {
     if (!visible) {
       setPhase("confirm");
       setError(null);
       setPayDeadline(null);
+      setDisplayPayAmount(payAmount);
       return;
     }
-    // New order/session while modal still mounted: reset stale success/paying UI.
     setPhase("confirm");
     setError(null);
     setPayDeadline(null);
+    setDisplayPayAmount(payAmount);
     if (!token || !orderId) return;
     void fetchOrderPaymentMeta(token, orderId).then((meta) => {
       if (meta?.payDeadline) setPayDeadline(meta.payDeadline);
     });
   }, [visible, token, orderId, payAmount]);
-
-  const leaveWithOffer = async () => {
-    if (!token || !orderId) {
-      onClose();
-      return;
-    }
-    try {
-      const res = await claimAbandonOffer(token, orderId);
-      if (res.granted) {
-        await setRetentionOrderId(orderId);
-        toast.success(t("payment.retentionToast", { message: res.message }));
-        toast.info(t("payment.retentionAutoApplyHint"));
-      }
-    } catch {
-      // ignore
-    }
-    onClose();
-  };
-
-  const handleClose = () => {
-    if (phase === "paying") return;
-    if (phase === "abandon") {
-      onClose();
-      return;
-    }
-    if (token && orderId && phase === "confirm") {
-      setPhase("abandon");
-      return;
-    }
-    onClose();
-  };
 
   const startPay = async () => {
     setError(null);
@@ -110,38 +103,21 @@ export function MockPaymentModal({
       transparent
       animationType="fade"
       testID="mockPaymentModal"
-      onRequestClose={phase === "paying" ? () => undefined : handleClose}
+      onRequestClose={phase === "paying" ? () => undefined : requestClose}
     >
-      <Pressable style={styles.mask} onPress={phase === "paying" ? undefined : handleClose}>
+      <Pressable style={styles.mask} onPress={phase === "paying" ? undefined : requestClose}>
         <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-          {phase === "abandon" ? (
-            <>
-              <Text style={styles.wechatTitle}>{t("payment.abandonTitle")}</Text>
-              <Text style={styles.tip}>{t("payment.abandonTip")}</Text>
-              <Pressable style={styles.payBtn} onPress={() => setPhase("confirm")} accessibilityRole="button" accessibilityLabel={t("payment.continuePay")}>
-                <Text style={styles.payBtnText}>{t("payment.continuePay")}</Text>
-              </Pressable>
-              <Pressable
-                style={styles.cancelBtn}
-                onPress={() => {
-                  void leaveWithOffer();
-                }}
-                testID="mockPayLeaveButton"
-                accessibilityRole="button"
-                accessibilityLabel={t("payment.leaveWithCoupon")}
-              >
-                <Text style={[styles.cancelText, styles.destructiveText]}>{t("payment.leaveWithCoupon")}</Text>
-              </Pressable>
-              <Pressable
-                style={styles.cancelBtn}
-                onPress={onClose}
-                testID="mockPayLeaveDirectButton"
-                accessibilityRole="button"
-                accessibilityLabel={t("payment.leaveDirect")}
-              >
-                <Text style={styles.cancelText}>{t("payment.leaveDirect")}</Text>
-              </Pressable>
-            </>
+          {abandonPhase ? (
+            <PaymentAbandonPanel
+              onContinuePay={continuePay}
+              onClaimAndContinue={() => {
+                void claimAndContinue();
+              }}
+              onLeaveDirect={leaveDirect}
+              offerEligible={offerEligible}
+              offerDiscount={offerDiscount}
+              claiming={claiming}
+            />
           ) : (
             <>
               <View style={styles.wechatHeader}>
@@ -149,7 +125,7 @@ export function MockPaymentModal({
                 <Text style={styles.wechatBadge}>{t("payment.mockBadge")}</Text>
               </View>
               <Text style={styles.merchant}>{t("payment.merchant")}</Text>
-              <Text style={styles.amount}>{formatCurrency(payAmount)}</Text>
+              <Text style={styles.amount}>{formatCurrency(displayPayAmount)}</Text>
               <Text style={styles.orderMeta}>{t("payment.orderMeta", { orderId })}</Text>
               {payDeadline && phase === "confirm" ? (
                 <Text style={[styles.countdown, expired ? styles.countdownExpired : null]}>
@@ -183,7 +159,13 @@ export function MockPaymentModal({
                       <Text style={styles.payBtnText}>{t("payment.confirmPay")}</Text>
                     </Pressable>
                   ) : null}
-                  <Pressable style={styles.cancelBtn} onPress={handleClose} testID="mockPayCancelButton" accessibilityRole="button" accessibilityLabel={t("payment.cancelPay")}>
+                  <Pressable
+                    style={styles.cancelBtn}
+                    onPress={requestClose}
+                    testID="mockPayCancelButton"
+                    accessibilityRole="button"
+                    accessibilityLabel={t("payment.cancelPay")}
+                  >
                     <Text style={styles.cancelText}>{t("payment.cancelPay")}</Text>
                   </Pressable>
                   {__DEV__ && onSimulateFail ? (
@@ -255,7 +237,6 @@ function buildMockPaymentStyles(colors: ThemeColors) {
   payBtnText: { color: colors.textOnBrand, fontWeight: "800", fontSize: typography.bodyLg },
   cancelBtn: { marginTop: spacing.md, alignItems: "center", paddingVertical: spacing.sm },
   cancelText: { color: colors.textSecondary, fontWeight: "600" },
-  destructiveText: { color: colors.danger, fontWeight: "700" },
   failBtn: { marginTop: spacing.sm, alignItems: "center", paddingVertical: spacing.sm },
   failText: { color: colors.warning, fontWeight: "600", fontSize: typography.caption },
   centerBlock: { alignItems: "center", paddingVertical: spacing.xl },

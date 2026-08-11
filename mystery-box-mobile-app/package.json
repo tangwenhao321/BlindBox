@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "main": "expo-router/entry",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "expo start --port 8083",
     "start:8081": "expo start --port 8081",
@@ -17,6 +20,7 @@
     "test:coverage": "vitest run --coverage",
     "check": "tsc --noEmit && vitest run && npm run validate:maestro",
     "check:ci": "tsc --noEmit && vitest run --reporter=verbose && npm run a11y:audit && npm run validate:maestro",
+    "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
     "_comment_maestro": "Optional device smoke: MAESTRO_RUN_DEVICE=1 npm run test:e2e (see .maestro/README.md)",
     "a11y:audit": "node scripts/a11y-pressable-audit.mjs && node scripts/a11y-audit.mjs",
     "validate:maestro": "node scripts/validate-maestro-flows.mjs",
@@ -32,6 +36,8 @@
     "android:compile": "cd android && gradlew.bat assembleDebug --no-daemon"
   },
   "dependencies": {
+    "@expo-google-fonts/be-vietnam-pro": "^0.4.1",
+    "@expo/vector-icons": "^15.0.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
     "@react-native-community/datetimepicker": "8.6.0",
     "@react-native-community/netinfo": "^11.4.1",
@@ -47,6 +53,7 @@
     "expo-asset": "~55.0.17",
     "expo-audio": "~55.0.14",
     "expo-file-system": "~55.0.9",
+    "expo-font": "^55.0.8",
     "expo-haptics": "~55.0.8",
     "expo-image": "~55.0.5",
     "expo-image-picker": "~55.0.10",
@@ -64,6 +71,7 @@
     "expo-sharing": "~55.0.20",
     "expo-status-bar": "~55.0.6",
     "expo-system-ui": "~55.0.18",
+    "expo-web-browser": "~55.0.12",
     "i18next": "^26.3.0",
     "lottie-react-native": "~7.3.4",
     "react": "^19.2.0",

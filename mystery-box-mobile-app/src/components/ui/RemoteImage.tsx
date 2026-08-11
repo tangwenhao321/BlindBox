@@ -1,12 +1,21 @@
 import { memo, useEffect, useState } from "react";
 import { Image } from "expo-image";
-import { ActivityIndicator, StyleSheet, View, type ImageStyle, type StyleProp } from "react-native";
+import {
+  ActivityIndicator,
+  PixelRatio,
+  StyleSheet,
+  View,
+  type ImageStyle,
+  type LayoutChangeEvent,
+  type StyleProp,
+} from "react-native";
 import { useAppTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import type { ThemeColors } from "../../styles/themes";
 import { BOX_IMAGE_FALLBACK } from "../../utils/boxImage";
 import { resolveNetworkTierImagePriority, resolveNetworkTierImageUri } from "../../effects/revealNetworkTier";
 import { isRevealImageUriBlocked } from "../../effects/revealRegionCompliance";
+import { PlaceholderCover } from "./PlaceholderCover";
 
 type Props = {
   uri: string;
@@ -30,30 +39,66 @@ function RemoteImageInner({
 }: Props) {
   const styles = useThemedStyles(buildRemoteImageStyles);
   const [failed, setFailed] = useState(false);
+  const [layoutWidth, setLayoutWidth] = useState<number | undefined>();
   const effectivePriority = priority === "normal" ? resolveNetworkTierImagePriority() : priority;
   const blocked = isRevealImageUriBlocked(uri);
-  const tierUri = blocked || !uri ? uri : resolveNetworkTierImageUri(uri);
+  const targetWidth =
+    layoutWidth != null && layoutWidth > 0
+      ? Math.ceil(layoutWidth * PixelRatio.get())
+      : undefined;
+  const tierUri = blocked || !uri ? uri : resolveNetworkTierImageUri(uri, undefined, targetWidth);
+  const useFallback = failed || blocked || !uri;
 
   useEffect(() => {
     setFailed(false);
   }, [uri]);
 
-  const source = failed || blocked || !uri ? BOX_IMAGE_FALLBACK : tierUri;
+  useEffect(() => {
+    if (useFallback && BOX_IMAGE_FALLBACK == null) {
+      onReady?.();
+    }
+  }, [useFallback, onReady]);
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (!(w > 0)) return;
+    setLayoutWidth((prev) => (prev != null && Math.abs(prev - w) < 1 ? prev : w));
+  };
 
   return (
-    <View style={[styles.placeholder, style]} accessibilityLabel={accessibilityLabel}>
-      <Image
-        source={{ uri: source }}
-        style={StyleSheet.absoluteFill}
-        contentFit={contentFit}
-        transition={transitionMs}
-        cachePolicy="memory-disk"
-        recyclingKey={uri || "fallback"}
-        priority={effectivePriority}
-        placeholder={{ blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4" }}
-        onLoad={() => onReady?.()}
-        onError={() => setFailed(true)}
-      />
+    <View style={[styles.placeholder, style]} accessibilityLabel={accessibilityLabel} onLayout={onLayout}>
+      {useFallback ? (
+        <>
+          <PlaceholderCover style={StyleSheet.absoluteFill} />
+          {BOX_IMAGE_FALLBACK != null ? (
+            <Image
+              source={BOX_IMAGE_FALLBACK}
+              style={[StyleSheet.absoluteFill, styles.fallbackIcon]}
+              contentFit="contain"
+              transition={transitionMs}
+              cachePolicy="memory-disk"
+              recyclingKey="local-fallback"
+              priority={effectivePriority}
+              onLoad={() => onReady?.()}
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+            />
+          ) : null}
+        </>
+      ) : (
+        <Image
+          source={{ uri: tierUri }}
+          style={StyleSheet.absoluteFill}
+          contentFit={contentFit}
+          transition={transitionMs}
+          cachePolicy="memory-disk"
+          recyclingKey={uri || "fallback"}
+          priority={effectivePriority}
+          placeholder={{ blurhash: "L6PZfSi_.AyE_3t7t7R**0o#DgR4" }}
+          onLoad={() => onReady?.()}
+          onError={() => setFailed(true)}
+        />
+      )}
     </View>
   );
 }
@@ -79,6 +124,10 @@ function buildRemoteImageStyles(colors: ThemeColors) {
     loading: {
       alignItems: "center",
       justifyContent: "center",
+    },
+    fallbackIcon: {
+      opacity: 0.35,
+      transform: [{ scale: 0.55 }],
     },
   });
 }

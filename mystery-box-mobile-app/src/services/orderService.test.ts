@@ -53,6 +53,26 @@ describe("orderService", () => {
     );
   });
 
+  it("passes recommend variant header from attribution module", async () => {
+    const { setVariant } = await import("../utils/lastRecommendAttribution");
+    setVariant("box-rec", "PERSONALIZED");
+    postMock.mockResolvedValueOnce({
+      data: { code: 1, msg: "ok", result: "order-rec" },
+    });
+
+    await createOrder("token-1", "box-rec", "addr-1", 1);
+    expect(postMock).toHaveBeenCalledWith(
+      "/front/mystery-box-order/create",
+      expect.any(Object),
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "x-recommend-variant": "PERSONALIZED",
+        }),
+        params: { recommendVariant: "PERSONALIZED" },
+      }),
+    );
+  });
+
   it("cancels unpaid order", async () => {
     postMock.mockResolvedValueOnce({
       data: { code: 1, msg: "ok", result: "order-123" },
@@ -164,7 +184,13 @@ describe("orderService", () => {
     expect(postMock).toHaveBeenCalledWith(
       "/front/mystery-box-order/order-123/redeem/balance",
       {},
-      { headers: { token: "token-1" } },
+      {
+        headers: expect.objectContaining({
+          token: "token-1",
+          // Redeem is money-moving, so a retry must not credit the balance twice.
+          "x-idempotency-key": "order-123",
+        }),
+      },
     );
   });
 });

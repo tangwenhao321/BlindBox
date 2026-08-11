@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { DrawQueuePanel } from "./DrawQueuePanel";
 import { DrawQueueRoomSheet } from "./DrawQueueRoomSheet";
@@ -101,8 +101,26 @@ export function BoxDetailsModeSection(props: Props) {
       lineHeight: 18,
       marginBottom: spacing.sm,
     },
-    advancedToggle: { alignSelf: "center", marginBottom: spacing.sm, paddingVertical: spacing.xs },
-    advancedToggleText: { color: colors.link, fontWeight: "700", fontSize: typography.caption },
+    advancedShell: {
+      marginTop: spacing.xs,
+      marginBottom: spacing.sm,
+      borderRadius: radius.md,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      backgroundColor: colors.bgSoft,
+      overflow: "hidden" as const,
+    },
+    advancedToggle: {
+      alignItems: "center" as const,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+    },
+    advancedToggleText: {
+      color: colors.textSecondary,
+      fontWeight: "700",
+      fontSize: typography.caption,
+    },
+    advancedBody: { paddingHorizontal: spacing.md, paddingBottom: spacing.md },
   }));
 
   const showAdvancedModes = advancedOpen || drawMode !== INSTANT_MODE;
@@ -140,83 +158,87 @@ export function BoxDetailsModeSection(props: Props) {
         </View>
       ) : null}
 
-      <View style={styles.modeRow}>
+      <View style={styles.advancedShell}>
         <Pressable
-          testID="drawMode-instant"
-          style={[styles.modeChip, drawMode === INSTANT_MODE ? styles.modeChipOn : null, { flex: showAdvancedModes ? 1 : 2 }]}
-          onPress={() => onDrawModeChange(INSTANT_MODE)}
+          style={styles.advancedToggle}
+          onPress={() => {
+            if (showAdvancedModes && drawMode === INSTANT_MODE) {
+              setAdvancedOpen(false);
+            } else {
+              setAdvancedOpen(true);
+            }
+          }}
           accessibilityRole="button"
-          accessibilityState={{ selected: drawMode === INSTANT_MODE }}
-          accessibilityLabel={t("boxDetails.modeInstant")}
+          accessibilityState={{ expanded: showAdvancedModes }}
+          accessibilityLabel={
+            showAdvancedModes ? t("boxDetails.advancedModesCollapseA11y") : t("boxDetails.advancedModesExpandA11y")
+          }
         >
-          <Text style={[styles.modeText, drawMode === INSTANT_MODE ? styles.modeTextOn : null]}>
-            {t("boxDetails.modeInstant")}
+          <Text style={styles.advancedToggleText}>
+            {showAdvancedModes ? t("boxDetails.advancedModesCollapse") : t("boxDetails.advancedModesExpand")}
           </Text>
         </Pressable>
-        {showAdvancedModes
-          ? ADVANCED_MODES.map((mode) => (
+
+        {showAdvancedModes ? (
+          <View style={styles.advancedBody}>
+            <View style={styles.modeRow}>
               <Pressable
-                key={mode.key}
-                testID={`drawMode-${mode.key}`}
-                style={[styles.modeChip, drawMode === mode.key ? styles.modeChipOn : null]}
-                onPress={() => onDrawModeChange(mode.key)}
+                testID="drawMode-instant"
+                style={[styles.modeChip, drawMode === INSTANT_MODE ? styles.modeChipOn : null]}
+                onPress={() => onDrawModeChange(INSTANT_MODE)}
                 accessibilityRole="button"
-                accessibilityState={{ selected: drawMode === mode.key }}
-                accessibilityLabel={t(mode.labelKey)}
+                accessibilityState={{ selected: drawMode === INSTANT_MODE }}
+                accessibilityLabel={t("boxDetails.modeInstant")}
               >
-                <Text style={[styles.modeText, drawMode === mode.key ? styles.modeTextOn : null]}>
-                  {t(mode.labelKey)}
+                <Text style={[styles.modeText, drawMode === INSTANT_MODE ? styles.modeTextOn : null]}>
+                  {t("boxDetails.modeInstant")}
                 </Text>
               </Pressable>
-            ))
-          : null}
+              {ADVANCED_MODES.map((mode) => (
+                <Pressable
+                  key={mode.key}
+                  testID={`drawMode-${mode.key}`}
+                  style={[styles.modeChip, drawMode === mode.key ? styles.modeChipOn : null]}
+                  onPress={() => onDrawModeChange(mode.key)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: drawMode === mode.key }}
+                  accessibilityLabel={t(mode.labelKey)}
+                >
+                  <Text style={[styles.modeText, drawMode === mode.key ? styles.modeTextOn : null]}>
+                    {t(mode.labelKey)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {!queueBlocked && !buyoutBlocked && !cabinetBlocked ? (
+              <Text style={styles.modeHint}>{t(MODE_HINT_KEYS[drawMode])}</Text>
+            ) : null}
+
+            {drawMode === "cabinet" && authToken && boxId && onSelectSlot ? (
+              <BoxCabinetPicker
+                token={authToken}
+                boxId={boxId}
+                selectedSlotNo={selectedSlotNo}
+                onSelectSlot={onSelectSlot}
+                excludedQualityTypes={excludedQualityTypes}
+                onExcludedQualityTypesChange={setExcludedQualityTypes}
+                onOpenShake={() => setShakeVisible(true)}
+              />
+            ) : null}
+
+            <DrawQueuePanel
+              mode={drawMode}
+              authToken={authToken}
+              queueStatus={queueStatus}
+              buyoutLockTtl={buyoutLockTtl || queueStatus?.lockTtlSeconds || 0}
+              buyoutLockHeld={buyoutLockHeld}
+              poolRemaining={poolRemaining}
+              onOpenQueueRoom={drawMode === "queue" ? () => setQueueRoomVisible(true) : undefined}
+            />
+          </View>
+        ) : null}
       </View>
-
-      {!showAdvancedModes ? (
-        <Pressable
-          style={styles.advancedToggle}
-          onPress={() => setAdvancedOpen(true)}
-          accessibilityRole="button"
-          accessibilityLabel={t("boxDetails.advancedModesExpandA11y")}
-        >
-          <Text style={styles.advancedToggleText}>{t("boxDetails.advancedModesExpand")}</Text>
-        </Pressable>
-      ) : drawMode === INSTANT_MODE ? (
-        <Pressable
-          style={styles.advancedToggle}
-          onPress={() => setAdvancedOpen(false)}
-          accessibilityRole="button"
-          accessibilityLabel={t("boxDetails.advancedModesCollapseA11y")}
-        >
-          <Text style={styles.advancedToggleText}>{t("boxDetails.advancedModesCollapse")}</Text>
-        </Pressable>
-      ) : null}
-
-      {!queueBlocked && !buyoutBlocked && !cabinetBlocked ? (
-        <Text style={styles.modeHint}>{t(MODE_HINT_KEYS[drawMode])}</Text>
-      ) : null}
-
-      {drawMode === "cabinet" && authToken && boxId && onSelectSlot ? (
-        <BoxCabinetPicker
-          token={authToken}
-          boxId={boxId}
-          selectedSlotNo={selectedSlotNo}
-          onSelectSlot={onSelectSlot}
-          excludedQualityTypes={excludedQualityTypes}
-          onExcludedQualityTypesChange={setExcludedQualityTypes}
-          onOpenShake={() => setShakeVisible(true)}
-        />
-      ) : null}
-
-      <DrawQueuePanel
-        mode={drawMode}
-        authToken={authToken}
-        queueStatus={queueStatus}
-        buyoutLockTtl={buyoutLockTtl || queueStatus?.lockTtlSeconds || 0}
-        buyoutLockHeld={buyoutLockHeld}
-        poolRemaining={poolRemaining}
-        onOpenQueueRoom={drawMode === "queue" ? () => setQueueRoomVisible(true) : undefined}
-      />
 
       <DrawQueueRoomSheet
         visible={queueRoomVisible}

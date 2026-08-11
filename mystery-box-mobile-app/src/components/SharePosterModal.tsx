@@ -7,12 +7,18 @@ import QRCode from "react-native-qrcode-svg";
 import { formatOrderIdShort } from "../order-utils";
 import { fetchDrawFeed } from "../services/drawFeedService";
 import { useThemedStyles } from "../hooks/useThemedStyles";
-import { radius, spacing, typography } from "../styles/tokens";
+import { radius, spacing, typography, nightColors } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { buildInviteUrl } from "../utils/inviteUrl";
 import { resolveSpectatorPosterLink } from "../utils/sharePosterSpectator";
 import { shareViaZalo } from "../utils/shareZalo";
 import { toast } from "../utils/toast";
+
+/** Night Cabinet ink poster grounds (no indigo/slate-blue). */
+const POSTER_INK = nightColors.bgPage;
+const POSTER_INK_DEEP = "#0E0C0A";
+const POSTER_INK_SOFT = nightColors.bgSoft;
+const POSTER_INK_CARD = nightColors.bgCard;
 
 function buildInviteQrValue(inviteCode: string | undefined, orderId: string) {
   if (inviteCode) {
@@ -204,9 +210,9 @@ export function SharePosterModal({
               await shareViaZalo(message, zaloOaId, inviteLink);
             }}
             accessibilityRole="button"
-            accessibilityLabel={t("sharePoster.shareZaloA11y", { defaultValue: t("community.shareZalo") })}
+            accessibilityLabel={t("sharePoster.shareZaloA11y")}
           >
-            <Text style={styles.btnGhostText}>{t("sharePoster.shareZalo", { defaultValue: t("community.shareZalo") })}</Text>
+            <Text style={styles.btnGhostText}>{t("sharePoster.shareZalo")}</Text>
           </Pressable>
           <Pressable
             style={[styles.btn, styles.btnGhost]}
@@ -256,13 +262,13 @@ function buildSharePosterStyles(colors: ThemeColors) {
     templateChipText: { fontWeight: "700", color: colors.textSecondary, fontSize: typography.caption },
     templateChipTextOn: { color: colors.textOnBrand },
     poster: {
-      backgroundColor: "#1a1a2e",
+      backgroundColor: POSTER_INK_CARD,
       borderRadius: radius.lg,
       padding: spacing.lg,
       marginBottom: spacing.lg,
     },
     posterTikTok: {
-      backgroundColor: "#0f172a",
+      backgroundColor: POSTER_INK,
       borderRadius: radius.lg,
       padding: spacing.xl,
       marginBottom: spacing.lg,
@@ -270,7 +276,7 @@ function buildSharePosterStyles(colors: ThemeColors) {
       justifyContent: "space-between",
     },
     posterSquare: {
-      backgroundColor: "#111827",
+      backgroundColor: POSTER_INK_SOFT,
       borderRadius: radius.lg,
       padding: spacing.lg,
       marginBottom: spacing.lg,
@@ -278,21 +284,21 @@ function buildSharePosterStyles(colors: ThemeColors) {
       justifyContent: "space-between",
     },
     posterLong: {
-      backgroundColor: "#0b1220",
+      backgroundColor: POSTER_INK_DEEP,
       borderRadius: radius.lg,
       padding: spacing.xl,
       marginBottom: spacing.lg,
       minHeight: 520,
       justifyContent: "space-between",
     },
-    posterBrand: { color: "#fbbf24", fontWeight: "900", fontSize: typography.caption },
-    posterBox: { color: "#fff", fontWeight: "900", fontSize: typography.h2, marginTop: spacing.sm },
+    posterBrand: { color: nightColors.brand, fontWeight: "900", fontSize: typography.caption },
+    posterBox: { color: nightColors.textPrimary, fontWeight: "900", fontSize: typography.h2, marginTop: spacing.sm },
     posterBoxTikTok: { fontSize: typography.h1, lineHeight: 36 },
     posterBoxSquare: { fontSize: typography.h3, lineHeight: 28 },
-    posterPrize: { color: "#fde68a", fontWeight: "800", marginTop: spacing.sm },
-    posterMeta: { color: "#94a3b8", marginTop: spacing.sm },
+    posterPrize: { color: nightColors.brandText, fontWeight: "800", marginTop: spacing.sm },
+    posterMeta: { color: nightColors.textMuted, marginTop: spacing.sm },
     qrWrap: { alignItems: "center", marginTop: spacing.lg, gap: spacing.xs },
-    qrHint: { color: "#94a3b8", fontSize: typography.caption, textAlign: "center" },
+    qrHint: { color: nightColors.textMuted, fontSize: typography.caption, textAlign: "center" },
     btn: {
       backgroundColor: colors.brand,
       borderRadius: radius.pill,

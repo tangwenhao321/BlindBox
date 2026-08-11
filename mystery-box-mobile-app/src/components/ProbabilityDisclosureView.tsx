@@ -14,6 +14,7 @@ import {
   fetchBoxProbability,
   fetchProbabilityHistory,
   rateToPercent,
+  resolveDisplayRates,
   type ProbabilityHistoryItem,
 } from "../services/probabilityService";
 import { fetchTrustMeta } from "../services/trustMetaService";
@@ -31,6 +32,8 @@ export function ProbabilityDisclosureView({ box, onBack }: Props) {
   const styles = useThemedStyles(buildProbabilityStyles);
   const [updatedAt, setUpdatedAt] = useState("");
   const [rates, setRates] = useState({ legendary: "0%", hidden: "0%", general: "0%" });
+  const [baseRates, setBaseRates] = useState<{ legendary: string; hidden: string; general: string } | null>(null);
+  const [adjusted, setAdjusted] = useState(false);
   const [history, setHistory] = useState<ProbabilityHistoryItem[]>([]);
   const [trustMeta, setTrustMeta] = useState<Awaited<ReturnType<typeof fetchTrustMeta>>>(null);
   const [hasRates, setHasRates] = useState(false);
@@ -39,18 +42,32 @@ export function ProbabilityDisclosureView({ box, onBack }: Props) {
   const reload = useCallback(async () => {
     await runLoad(async () => {
       const [data, hist, trust] = await Promise.all([
-        fetchBoxProbability(box.id),
+        fetchBoxProbability(box.id, { token: authToken || undefined, drawCount: 1 }),
         fetchProbabilityHistory(box.id, 10),
         fetchTrustMeta(authToken, box.id),
       ]);
       if (!data) {
         throw new Error(t("probability.noConfig"));
       }
+      const display = resolveDisplayRates(data);
+      if (!display) {
+        throw new Error(t("probability.noConfig"));
+      }
       setRates({
-        legendary: rateToPercent(data.legendaryRate),
-        hidden: rateToPercent(data.hiddenRate),
-        general: rateToPercent(data.generalRate),
+        legendary: rateToPercent(display.legendaryRate),
+        hidden: rateToPercent(display.hiddenRate),
+        general: rateToPercent(display.generalRate),
       });
+      setAdjusted(display.adjusted);
+      if (display.adjusted) {
+        setBaseRates({
+          legendary: rateToPercent(data.legendaryRate),
+          hidden: rateToPercent(data.hiddenRate),
+          general: rateToPercent(data.generalRate),
+        });
+      } else {
+        setBaseRates(null);
+      }
       setUpdatedAt(data.updatedAt || "");
       setHasRates(true);
       setHistory(hist);
@@ -75,10 +92,22 @@ export function ProbabilityDisclosureView({ box, onBack }: Props) {
           <Text style={styles.boxName}>{box.name}</Text>
           <TrustComplianceStrip meta={trustMeta} />
           <View style={styles.card}>
+            {adjusted ? (
+              <Text style={styles.badge}>{t("probability.effectiveRatesTitle")}</Text>
+            ) : null}
             <Text style={styles.row}>{t("probability.legendary", { rate: rates.legendary })}</Text>
             <Text style={styles.row}>{t("probability.hidden", { rate: rates.hidden })}</Text>
             <Text style={styles.row}>{t("probability.general", { rate: rates.general })}</Text>
           </View>
+          {baseRates ? (
+            <View style={styles.baseCard}>
+              <Text style={styles.badge}>{t("probability.baseRatesTitle")}</Text>
+              <Text style={styles.baseRow}>{t("probability.legendary", { rate: baseRates.legendary })}</Text>
+              <Text style={styles.baseRow}>{t("probability.hidden", { rate: baseRates.hidden })}</Text>
+              <Text style={styles.baseRow}>{t("probability.general", { rate: baseRates.general })}</Text>
+            </View>
+          ) : null}
+          <Text style={styles.meta}>{t("probability.dynamicNote")}</Text>
           {updatedAt ? <Text style={styles.meta}>{t("probability.updatedAt", { time: updatedAt })}</Text> : null}
           {history.length ? (
             <View style={styles.historyBlock}>
@@ -115,7 +144,18 @@ function buildProbabilityStyles(colors: ThemeColors) {
       borderWidth: 1,
       borderColor: colors.border,
     },
+    baseCard: {
+      marginTop: spacing.md,
+      backgroundColor: colors.bgSoft,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.xs,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.borderSoft,
+    },
+    badge: { fontSize: typography.caption, fontWeight: "700", color: colors.brandText, marginBottom: spacing.xs },
     row: { fontSize: typography.body, fontWeight: "700", color: colors.textPrimary },
+    baseRow: { fontSize: typography.caption, fontWeight: "600", color: colors.textSecondary },
     meta: { marginTop: spacing.md, color: colors.textMuted, fontSize: typography.caption },
     historyBlock: { marginTop: spacing.lg, gap: spacing.xs },
     historyTitle: { fontWeight: "800", fontSize: typography.body, color: colors.textPrimary },

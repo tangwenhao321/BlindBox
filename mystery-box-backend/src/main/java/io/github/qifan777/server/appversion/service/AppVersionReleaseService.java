@@ -54,12 +54,13 @@ public class AppVersionReleaseService {
     }
 
     private Release queryPublished(String platform, String channel) {
-        // Fall back to the default channel so a release published once reaches side channels too.
+        // Prefer the highest versionCode across the requested channel and production so a stale
+        // side-channel release (e.g. old "test") cannot shadow a newer production binary.
         List<Release> rows = jdbcTemplate.query(
                 "SELECT " + COLUMNS + """
                         FROM app_version_release
                         WHERE platform = ? AND status = ? AND channel IN (?, ?)
-                        ORDER BY FIELD(channel, ?, ?), version_code DESC
+                        ORDER BY version_code DESC, FIELD(channel, ?, ?)
                         LIMIT 1
                         """,
                 MAPPER,

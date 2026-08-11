@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { registerExpoPushToken } from "../services/pushTokenService";
 import { fetchNotificationPrefs } from "../services/notificationPrefsService";
+import type { ZaloLoginPayload } from "../services/authService";
 import { useAppAuthHandlers } from "./useAppAuthHandlers";
 import { followNotificationDeepLink } from "./followNotificationDeepLink";
 import { useAppUrlDeepLink } from "./useAppUrlDeepLink";
@@ -14,10 +15,13 @@ type Params = {
   setPhone: (v: string) => void;
   setPassword: (v: string) => void;
   login: () => Promise<string>;
-  register: (inviteCode?: string) => Promise<string>;
+  loginWithSms: (smsCode: string) => Promise<string>;
+  loginWithZalo: (payload: ZaloLoginPayload) => Promise<string>;
+  register: (inviteCode?: string, smsCode?: string) => Promise<string>;
   confirmPassword: string;
   inviteCode: string;
   setInviteCode: (code: string) => void;
+  clearInviteCode?: () => void;
   setLoginVisible: (v: boolean) => void;
   token: string;
   navigate: (view: AppView) => void;
@@ -36,10 +40,13 @@ export function useAppAuthEffects(params: Params) {
     setPhone,
     setPassword,
     login,
+    loginWithSms,
+    loginWithZalo,
     register,
     confirmPassword,
     inviteCode,
     setInviteCode,
+    clearInviteCode,
     setLoginVisible,
     token,
     navigate,
@@ -62,9 +69,10 @@ export function useAppAuthEffects(params: Params) {
   );
 
   const authHandlers = useAppAuthHandlers({
-    auth: { phone, password, setPhone, setPassword, login, register },
+    auth: { phone, password, setPhone, setPassword, login, loginWithSms, loginWithZalo, register },
     confirmPassword,
     inviteCode,
+    clearInviteCode,
     setLoginVisible,
     onAuthSuccess,
     newcomerClearSession,

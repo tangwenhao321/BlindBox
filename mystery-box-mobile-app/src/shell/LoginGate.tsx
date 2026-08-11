@@ -1,6 +1,8 @@
 import { Modal } from "react-native";
 import { LoginScreen } from "../components/LoginScreen";
 import { ForgotPasswordModal } from "../components/ForgotPasswordModal";
+import type { ZaloLoginPayload } from "../services/authService";
+import type { SendAuthSmsResult } from "../utils/sendAuthSmsCode";
 
 type Props = {
   visible: boolean;
@@ -16,6 +18,8 @@ type Props = {
   forgotPassword: string;
   forgotSubmitting: boolean;
   registerCode: string;
+  loginSmsCode: string;
+  termsAccepted: boolean;
   authError?: string | null;
   onPhoneChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
@@ -23,15 +27,20 @@ type Props = {
   onInviteCodeChange: (v: string) => void;
   onClose: () => void;
   onLogin: () => void;
+  onSmsLogin: () => void;
+  onZaloLogin?: (payload: ZaloLoginPayload) => void | Promise<void>;
   onRegister: () => void;
   onForgotOpen: () => void;
   onForgotPhoneChange: (v: string) => void;
   onForgotCodeChange: (v: string) => void;
   onRegisterCodeChange: (v: string) => void;
+  onLoginSmsCodeChange: (v: string) => void;
   onForgotPasswordChange: (v: string) => void;
+  onTermsToggle: () => void;
   onForgotClose: () => void;
-  onForgotSendCode: () => void | Promise<void>;
-  onRegisterSendCode: () => void | Promise<void>;
+  onForgotSendCode: () => void | Promise<SendAuthSmsResult>;
+  onRegisterSendCode: () => void | Promise<SendAuthSmsResult>;
+  onLoginSmsSendCode: () => void | Promise<SendAuthSmsResult>;
   onForgotSubmit: () => void;
   onClearAuthError?: () => void;
   biometricUnlockAvailable?: boolean;
@@ -55,10 +64,17 @@ export function LoginGate(props: Props) {
         onInviteCodeChange={props.onInviteCodeChange}
         onConfirmPasswordChange={props.onConfirmPasswordChange}
         onLogin={props.onLogin}
+        onSmsLogin={props.onSmsLogin}
+        onZaloLogin={props.onZaloLogin}
         onRegister={props.onRegister}
         smsCode={props.registerCode}
         onSmsCodeChange={props.onRegisterCodeChange}
         onSendSmsCode={props.onRegisterSendCode}
+        loginSmsCode={props.loginSmsCode}
+        onLoginSmsCodeChange={props.onLoginSmsCodeChange}
+        onSendLoginSmsCode={props.onLoginSmsSendCode}
+        termsAccepted={props.termsAccepted}
+        onTermsToggle={props.onTermsToggle}
         onClose={props.onClose}
         onForgotPassword={props.onForgotOpen}
         onClearAuthError={props.onClearAuthError}

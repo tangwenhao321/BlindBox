@@ -70,6 +70,7 @@ security:
   risk-control:
     enabled: true
     confirm-threshold: 80
+    device-user-limit: 5
 
 management:
   endpoint:

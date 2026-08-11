@@ -10,6 +10,7 @@ import {
   subscribeRevealSocialRoom,
 } from "../effects/revealSocialRoom";
 import { useSpectatorSnapshotRefresh } from "../hooks/useSpectatorSnapshotRefresh";
+import { nightColors, radius, spacing } from "../styles/tokens";
 import { RevealSpectatorPlayer } from "./ui/RevealSpectatorPlayer";
 import { RevealReactionTicker } from "./ui/RevealReactionTicker";
 
@@ -52,7 +53,7 @@ export function RevealSpectatorScreen({ token, orderId, authToken }: Props) {
   if (status === "loading") {
     return (
       <View style={styles.center}>
-        <ActivityIndicator />
+        <ActivityIndicator color={nightColors.brand} />
       </View>
     );
   }
@@ -88,7 +89,13 @@ export function RevealSpectatorScreen({ token, orderId, authToken }: Props) {
 
   return (
     <View style={styles.host} testID="spectatorScreen">
-      <Text style={styles.title}>{t("spectator.title")}</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{t("spectator.title")}</Text>
+        <View style={styles.liteBadge} accessibilityRole="text" testID="spectatorLiteBadge">
+          <Text style={styles.liteBadgeText}>{t("spectator.liteBadge")}</Text>
+        </View>
+      </View>
+      <Text style={styles.liteHint}>{t("spectator.liteHint")}</Text>
       {roomState === "synced" ? (
         <Text style={styles.sync} testID="spectatorRoomSync">
           {t("spectator.roomSynced")}
@@ -105,17 +112,53 @@ export function RevealSpectatorScreen({ token, orderId, authToken }: Props) {
 }
 
 const styles = StyleSheet.create({
-  host: { flex: 1, padding: 24, backgroundColor: "#0b0a14" },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#0b0a14", gap: 12 },
-  title: { color: "#fff", fontSize: 22, fontWeight: "700", marginBottom: 8 },
-  sync: { color: "#7dffb2", fontSize: 13, marginBottom: 12 },
-  text: { color: "#fff", textAlign: "center" },
-  retryButton: {
-    marginTop: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    backgroundColor: "rgba(255,255,255,0.12)",
+  host: { flex: 1, padding: spacing.lg, backgroundColor: nightColors.bgPage },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: nightColors.bgPage,
+    gap: spacing.sm,
   },
-  retryText: { color: "#fff", fontWeight: "700" },
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  title: { color: nightColors.textPrimary, fontSize: 22, fontWeight: "700" },
+  liteBadge: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: nightColors.brassPanelBorder,
+    backgroundColor: nightColors.bgBrandSoft,
+  },
+  liteBadgeText: {
+    color: nightColors.brandText,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  liteHint: {
+    color: nightColors.textMuted,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: spacing.sm,
+  },
+  sync: { color: nightColors.successText, fontSize: 13, marginBottom: spacing.sm },
+  text: { color: nightColors.textPrimary, textAlign: "center" },
+  retryButton: {
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    backgroundColor: nightColors.bgBrandSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: nightColors.brassPanelBorder,
+  },
+  retryText: { color: nightColors.brandText, fontWeight: "700" },
 });

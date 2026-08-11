@@ -1,12 +1,14 @@
 {
   "welfare": {
-    "checkInToday": "立即签到",
-    "checkInDone": "今日已签到",
+    "checkInToday": "点亮今日灯笼",
+    "checkInDone": "今日已点亮",
     "openCoupons": "查看我的优惠券",
-    "heroTitle": "每日福利",
-    "dailyCheckIn": "每日签到",
-    "streakMeta": "连续 {{days}} 天 · 签到可得 {{coins}} 幸运币",
-    "checkInSuccess": "签到成功，+{{coins}} 幸运币",
+    "heroTitle": "晚间点灯",
+    "heroSub": "每天一点小仪式，把连续签到暖着。",
+    "dailyCheckIn": "今日签到",
+    "lanternDaysLabel": "点灯天数",
+    "streakMeta": "已点灯 {{days}} 天 · 今晚 +{{coins}} 幸运币",
+    "checkInSuccess": "灯笼已亮 · +{{coins}} 幸运币",
     "pageTitle": "福利中心"
   }
 }

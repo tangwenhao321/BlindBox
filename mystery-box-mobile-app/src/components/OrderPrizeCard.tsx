@@ -73,7 +73,10 @@ export function OrderPrizeCard({ product, duplicateIndex, duplicateCount, onLong
             {product.name}
           </Text>
           <View style={styles.badgeRow}>
-            <LinearGradient colors={["#FF6B8A", "#FF8A3D"]} style={styles.qualityBadge}>
+            <LinearGradient
+              colors={[themeColors.brand, themeColors.brandGradientEnd]}
+              style={styles.qualityBadge}
+            >
               <Text style={styles.qualityText}>{qualityLabel}</Text>
             </LinearGradient>
             {duplicateCount != null && duplicateCount > 1 && duplicateIndex != null ? (
@@ -85,12 +88,12 @@ export function OrderPrizeCard({ product, duplicateIndex, duplicateCount, onLong
             ) : null}
             {isDiscontinued ? (
               <View style={styles.tagBadge}>
-                <Text style={styles.tagText}>{t("orderDetails.tagDiscontinued", { defaultValue: "Discontinued" })}</Text>
+                <Text style={styles.tagText}>{t("orderDetails.tagDiscontinued")}</Text>
               </View>
             ) : null}
             {isEventLimited ? (
               <View style={styles.tagBadge}>
-                <Text style={styles.tagText}>{t("orderDetails.tagEventLimited", { defaultValue: "Event" })}</Text>
+                <Text style={styles.tagText}>{t("orderDetails.tagEventLimited")}</Text>
               </View>
             ) : null}
           </View>
@@ -111,7 +114,7 @@ function buildStyles(colors: ThemeColors) {
       marginBottom: spacing.sm,
     },
     wrapStacked: {
-      shadowColor: "#FFD54F",
+      shadowColor: colors.brand,
       shadowOpacity: 0.35,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 4 },

@@ -10,9 +10,9 @@ import java.util.Optional;
 public interface PaymentGateway {
     PayType payType();
 
-    /** Provider-specific prepay payload for the mobile client. */
+    /** Provider-specific prepay payload for the mobile client. Prefer {@link #prepay(BaseOrder, int, String, String)}. */
     default Object prepay(BaseOrder baseOrder, int expiredMinutes, String notifyPath) {
-        return prepay(baseOrder, expiredMinutes, notifyPath, "127.0.0.1");
+        throw new UnsupportedOperationException("clientIp is required — use prepay(..., clientIp)");
     }
 
     Object prepay(BaseOrder baseOrder, int expiredMinutes, String notifyPath, String clientIp);
@@ -20,9 +20,9 @@ public interface PaymentGateway {
     /** Parse IPN/notify body and return order id + gateway transaction id when paid. */
     Optional<PaymentNotifyResult> parsePaymentNotify(String body, Map<String, String> params);
 
-    /** Query gateway for payment status; empty if unknown or unpaid. */
+    /** Query gateway for payment status; empty if unknown or unpaid. Prefer {@link #queryPaid(String, String)}. */
     default Optional<PaymentNotifyResult> queryPaid(String orderId) {
-        return queryPaid(orderId, "127.0.0.1");
+        throw new UnsupportedOperationException("clientIp is required — use queryPaid(orderId, clientIp)");
     }
 
     Optional<PaymentNotifyResult> queryPaid(String orderId, String clientIp);

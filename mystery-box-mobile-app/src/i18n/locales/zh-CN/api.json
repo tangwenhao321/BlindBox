@@ -22,7 +22,24 @@
       "outOfStock": "库存不足",
       "accountBanned": "账号已被封禁",
       "systemError": "服务繁忙，请稍后重试",
-      "paramInvalid": "请求参数有误"
+      "paramInvalid": "请求参数有误",
+      "pityCompensateDenied": "当前无法领取保底补偿，请稍后再试或联系客服",
+      "pityStockExhausted": "保底奖池库存不足，请选择等待补货或积分补偿",
+      "generalPoolSoldOut": "普通款已售罄，已暂停开售以保持公示概率，请等待补货",
+      "evGateRejected": "该盲盒未通过毛利闸门校验，请调整概率或奖品价值",
+      "refundInProgress": "该订单已有退款申请处理中",
+      "refundDenied": "当前订单状态不可申请退款",
+      "paymentAmountMismatch": "支付或退款金额不匹配",
+      "orderOwnershipDenied": "非本人订单，无法操作",
+      "stockConflict": "库存发生并发冲突，请重试",
+      "teamLotteryUnpaid": "请先完成盲盒订单支付后再抽奖",
+      "teamLotteryError": "组队抽奖暂不可用，请稍后重试",
+      "marketplaceGatewayNotReady": "集市打款通道未就绪，请稍后重试或联系客服",
+      "marketplaceListingUnavailable": "该挂牌已下架或已售出",
+      "marketplaceInsufficientBalance": "余额不足，无法购买",
+      "marketplaceCooling": "交易处于冷却期或冷却状态异常",
+      "marketplaceUnauthorized": "无权执行该集市操作",
+      "marketplaceError": "集市操作失败，请稍后重试"
     }
   }
 }

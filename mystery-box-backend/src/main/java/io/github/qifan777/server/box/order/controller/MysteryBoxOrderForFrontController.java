@@ -18,6 +18,7 @@ import io.github.qifan777.server.logistics.service.OrderLogisticsService;
 import io.github.qifan777.server.box.root.entity.dto.MysteryBoxInput;
 import io.github.qifan777.server.infrastructure.aop.NotRepeat;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import io.github.qifan777.server.payment.gateway.PaymentGatewayRegistry;
 import io.github.qifan777.server.payment.gateway.MoMoPrepayView;
@@ -56,14 +57,17 @@ public class MysteryBoxOrderForFrontController {
     private final OrderDrawIntegrityService orderDrawIntegrityService;
     private final OrderIdLookupService orderIdLookupService;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
+    private final ClientIpResolver clientIpResolver;
 
     @Value("${payment.mock-enabled:false}")
     private boolean mockPaymentEnabled;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") MysteryBoxOrder findById(@PathVariable String id) {
-        return mysteryBoxOrderRepository.findById(resolveOrderId(id), MysteryBoxOrderRepository.COMPLEX_FETCHER_FOR_FRONT)
+        MysteryBoxOrder order = mysteryBoxOrderRepository.findById(resolveOrderId(id), MysteryBoxOrderRepository.COMPLEX_FETCHER_FOR_FRONT)
                 .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(order.creator().id());
+        return order;
     }
 
     @GetMapping("{id}/payment-meta")
@@ -105,9 +109,18 @@ public class MysteryBoxOrderForFrontController {
                          @RequestHeader(value = "x-risk-confirm", required = false) String riskConfirm,
                          @RequestHeader(value = "x-device-id", required = false) String deviceId,
                          @RequestHeader(value = "x-draw-mode", defaultValue = "instant") String drawMode,
-                         @RequestHeader(value = "x-slot-no", required = false) Integer slotNo) {
+                         @RequestHeader(value = "x-slot-no", required = false) Integer slotNo,
+                         @RequestHeader(value = "x-recommend-variant", required = false) String recommendVariantHeader,
+                         @RequestParam(value = "recommendVariant", required = false) String recommendVariantParam) {
         riskCheck(request, riskConfirm, deviceId);
-        return mysteryBoxOrderService.create(mysteryBoxOrderInput, drawMode, slotNo);
+        String recommendVariant = firstNonBlank(recommendVariantHeader, recommendVariantParam);
+        return mysteryBoxOrderService.create(mysteryBoxOrderInput, drawMode, slotNo, recommendVariant);
+    }
+
+    private static String firstNonBlank(String a, String b) {
+        if (a != null && !a.isBlank()) return a.trim();
+        if (b != null && !b.isBlank()) return b.trim();
+        return null;
     }
 
     @PostMapping("{id}/prepay/wechat")
@@ -153,7 +166,7 @@ public class MysteryBoxOrderForFrontController {
                                        @RequestHeader(value = "x-device-id", required = false) String deviceId) {
         paymentGatewayRegistry.assertMarketProvider("vnpay");
         riskCheck(request, riskConfirm, deviceId);
-        return mysteryBoxOrderService.prepayVNPay(resolveOrderId(id), ClientIpResolver.resolve(request));
+        return mysteryBoxOrderService.prepayVNPay(resolveOrderId(id), clientIpResolver.resolve(request));
     }
 
     @PostMapping("{id}/prepay/vnpay/retry")
@@ -164,7 +177,7 @@ public class MysteryBoxOrderForFrontController {
                                             @RequestHeader(value = "x-device-id", required = false) String deviceId) {
         paymentGatewayRegistry.assertMarketProvider("vnpay");
         riskCheck(request, riskConfirm, deviceId);
-        return mysteryBoxOrderService.prepayVNPay(resolveOrderId(id), ClientIpResolver.resolve(request));
+        return mysteryBoxOrderService.prepayVNPay(resolveOrderId(id), clientIpResolver.resolve(request));
     }
 
     @PostMapping("{id}/prepay/momo")
@@ -175,7 +188,7 @@ public class MysteryBoxOrderForFrontController {
                                      @RequestHeader(value = "x-device-id", required = false) String deviceId) {
         paymentGatewayRegistry.assertMarketOrSecondaryWallet("momo");
         riskCheck(request, riskConfirm, deviceId);
-        return mysteryBoxOrderService.prepayMoMo(resolveOrderId(id), ClientIpResolver.resolve(request));
+        return mysteryBoxOrderService.prepayMoMo(resolveOrderId(id), clientIpResolver.resolve(request));
     }
 
     @PostMapping("{id}/prepay/momo/retry")
@@ -186,7 +199,7 @@ public class MysteryBoxOrderForFrontController {
                                           @RequestHeader(value = "x-device-id", required = false) String deviceId) {
         paymentGatewayRegistry.assertMarketOrSecondaryWallet("momo");
         riskCheck(request, riskConfirm, deviceId);
-        return mysteryBoxOrderService.prepayMoMo(resolveOrderId(id), ClientIpResolver.resolve(request));
+        return mysteryBoxOrderService.prepayMoMo(resolveOrderId(id), clientIpResolver.resolve(request));
     }
 
     @GetMapping("notify/pay/vnpay")
@@ -199,6 +212,18 @@ public class MysteryBoxOrderForFrontController {
     @ApiIgnore
     public String paymentNotifyVNPayPost(@RequestParam Map<String, String> params) {
         return mysteryBoxOrderService.paymentNotifyVNPay(new HashMap<>(params));
+    }
+
+    @GetMapping("notify/pay/momo")
+    @ApiIgnore
+    public String paymentNotifyMoMoGet(@RequestParam Map<String, String> params) {
+        return mysteryBoxOrderService.paymentNotifyMoMo(new HashMap<>(params));
+    }
+
+    @PostMapping("notify/pay/momo")
+    @ApiIgnore
+    public String paymentNotifyMoMoPost(@RequestParam Map<String, String> params) {
+        return mysteryBoxOrderService.paymentNotifyMoMo(new HashMap<>(params));
     }
 
     @PostMapping("notify/pay/wechat")
@@ -268,7 +293,12 @@ public class MysteryBoxOrderForFrontController {
 
     private void riskCheck(HttpServletRequest request, String riskConfirm, String deviceId) {
         String userId = StpUtil.getLoginIdAsString();
-        RiskControlService.RiskDecision decision = riskControlService.evaluateOrderAction(userId, deviceId, request.getRemoteAddr());
+        riskControlService.touchDeviceLink(userId, deviceId);
+        RiskControlService.RiskDecision decision = riskControlService.evaluateOrderAction(
+                userId, deviceId, clientIpResolver.resolve(request));
+        if (decision.blocked()) {
+            throw new BusinessException("操作过于频繁，请稍后再试");
+        }
         if (decision.requireConfirm() && !"CONFIRM".equalsIgnoreCase(riskConfirm)) {
             throw new BusinessException("检测到高风险请求，请携带 x-risk-confirm=CONFIRM 后重试");
         }

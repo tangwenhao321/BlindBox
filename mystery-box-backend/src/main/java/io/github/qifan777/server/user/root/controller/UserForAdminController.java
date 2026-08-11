@@ -12,6 +12,7 @@ import io.github.qifan777.server.user.root.entity.dto.UserCreateInput;
 import io.github.qifan777.server.user.root.entity.dto.UserSpec;
 import io.github.qifan777.server.user.root.entity.dto.UserUpdateInput;
 import io.github.qifan777.server.user.root.repository.UserRepository;
+import io.github.qifan777.server.user.root.service.UserWalletService;
 import lombok.AllArgsConstructor;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
@@ -32,10 +33,16 @@ import java.util.List;
 @Transactional
 public class UserForAdminController {
     private final UserRepository userRepository;
+    private final UserWalletService userWalletService;
 
     @GetMapping("{id}")
     public @FetchBy(value = "USER_ROLE_FETCHER") User findById(@PathVariable String id) {
         return userRepository.findById(id, UserRepository.USER_ROLE_FETCHER).orElseThrow(() -> new BusinessException("数据不存在"));
+    }
+
+    @GetMapping("{id}/wallet/reconcile")
+    public UserWalletService.WalletReconcileResult reconcileWallet(@PathVariable String id) {
+        return userWalletService.reconcileBalanceVsLogs(id);
     }
 
     @PostMapping("query")
@@ -47,7 +54,6 @@ public class UserForAdminController {
     public String create(@RequestBody @Validated UserCreateInput userInput) {
         User user = userInput.toEntity();
         return userRepository.insert(beforeSave(user, userInput.getRoleIds())).id();
-
     }
 
     @PutMapping

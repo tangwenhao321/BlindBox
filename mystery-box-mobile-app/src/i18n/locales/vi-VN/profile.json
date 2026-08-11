@@ -1,0 +1,13 @@
+{
+  "profile": {
+    "moreTools": "Thêm",
+    "moreToolsHint": "Mời bạn, yêu thích, địa chỉ, trạng thái đơn hàng và hơn thế",
+    "toolCouponsWallet": "Phiếu & ví",
+    "toolSettings": "Cài đặt",
+    "collectorLineDefault": "Tủ sưu tầm của bạn",
+    "collectorExpert": "Chuyên gia sưu tầm",
+    "collectorAdvanced": "Người sưu tầm nâng cao",
+    "collectorIntermediate": "Người sưu tầm trung cấp",
+    "collectorBeginner": "Người sưu tầm mới"
+  }
+}

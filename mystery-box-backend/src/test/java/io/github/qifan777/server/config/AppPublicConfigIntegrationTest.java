@@ -62,6 +62,10 @@ class AppPublicConfigIntegrationTest {
         assertThat(view.revealSessionIdleResetMs()).isGreaterThan(0);
         assertThat(view.paymentProvider()).isNotNull();
         assertThat(view.currency()).isNotNull();
+        assertThat(view.marketplaceFeeRate()).isNotNull();
+        assertThat(view.marketplaceFeeRate().compareTo(java.math.BigDecimal.ZERO)).isGreaterThanOrEqualTo(0);
+        assertThat(view.momoEnabled()).isFalse();
+        assertThat(view.zaloLoginEnabled()).isFalse();
         assertThat(view.featureFlags()).isNotNull();
     }
 

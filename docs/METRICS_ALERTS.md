@@ -63,6 +63,10 @@ No dedicated Micrometer counter yet. Reconciliation job logs `draw integrity mis
 
 See `docs/OPS_RUNBOOK.md` and `docs/REVEAL_AND_OPS.md`.
 
+## Refund reconcile
+
+`RefundReconciliationJob` (`app.jobs.refund-reconcile`). When Micrometer gauges/counters land, wire alert `MysteryBoxRefundReconcileStuck` (stuck/aging refunds) into `infra/prometheus/alerts.yml`.
+
 ## Mobile crash / UX (client)
 
 - **Sentry**: set `EXPO_PUBLIC_SENTRY_DSN` and ship a Dev Client / EAS build with `@sentry/react-native`.

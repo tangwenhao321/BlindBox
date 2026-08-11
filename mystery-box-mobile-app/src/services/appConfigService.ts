@@ -14,6 +14,9 @@ export type AppPublicConfig = {
   revealLustreBoxOverrides?: string;
   revealFeedTickerEnabled: boolean;
   revealThemeId?: string;
+  revealCurrentTheme?: string;
+  revealRotationCycle?: number;
+  revealRandomTriggerRate?: number;
   revealIntroVideoUri?: string;
   revealInterDrawDelayMs: number;
   revealFinalePauseMs: number;
@@ -76,6 +79,11 @@ export type AppPublicConfig = {
   supportZaloOaId?: string;
   defaultLocale?: string;
   logisticsMode?: string;
+  marketplaceFeeRate?: number;
+  /** Live MoMo checkout offered by server (false while stub). */
+  momoEnabled?: boolean;
+  /** Feature flag for Zalo login UI gate (coming soon / hide). */
+  zaloLoginEnabled?: boolean;
   featureFlags?: Record<string, boolean>;
 };
 
@@ -144,6 +152,9 @@ export async function fetchAppPublicConfig(opts?: {
       revealLustreBoxOverrides?: string;
       revealFeedTickerEnabled?: boolean;
       revealThemeId?: string;
+      revealCurrentTheme?: string;
+      revealRotationCycle?: number;
+      revealRandomTriggerRate?: number;
       revealIntroVideoUri?: string;
       revealInterDrawDelayMs?: number;
       revealFinalePauseMs?: number;
@@ -206,10 +217,14 @@ export async function fetchAppPublicConfig(opts?: {
       supportZaloOaId?: string;
       defaultLocale?: string;
       logisticsMode?: string;
+      marketplaceFeeRate?: number;
+      momoEnabled?: boolean;
+      zaloLoginEnabled?: boolean;
       featureFlags?: string | Record<string, boolean>;
     };
   }>("/front/app/config", { params: opts });
   const row = response.data.result;
+  const parsedFeeRate = Number(row?.marketplaceFeeRate);
   return {
     supportHotline: row?.supportHotline?.trim() ?? "",
     enterpriseWechat: row?.enterpriseWechat?.trim() ?? "",
@@ -223,6 +238,9 @@ export async function fetchAppPublicConfig(opts?: {
     revealLustreBoxOverrides: row?.revealLustreBoxOverrides?.trim() || undefined,
     revealFeedTickerEnabled: row?.revealFeedTickerEnabled !== false,
     revealThemeId: row?.revealThemeId?.trim() || undefined,
+    revealCurrentTheme: row?.revealCurrentTheme?.trim() || row?.revealThemeId?.trim() || undefined,
+    revealRotationCycle: Number(row?.revealRotationCycle ?? 7) || 7,
+    revealRandomTriggerRate: Number(row?.revealRandomTriggerRate ?? 0.05) || 0.05,
     revealIntroVideoUri: row?.revealIntroVideoUri?.trim() || undefined,
     revealInterDrawDelayMs: Number(row?.revealInterDrawDelayMs ?? 450) || 450,
     revealFinalePauseMs: Number(row?.revealFinalePauseMs ?? 600) || 600,
@@ -285,6 +303,9 @@ export async function fetchAppPublicConfig(opts?: {
     supportZaloOaId: row?.supportZaloOaId?.trim() || undefined,
     defaultLocale: row?.defaultLocale?.trim() || undefined,
     logisticsMode: row?.logisticsMode?.trim() || undefined,
+    marketplaceFeeRate: Number.isFinite(parsedFeeRate) && parsedFeeRate >= 0 ? parsedFeeRate : 0.05,
+    momoEnabled: row?.momoEnabled === true,
+    zaloLoginEnabled: row?.zaloLoginEnabled === true,
     featureFlags: parseFeatureFlags(row?.featureFlags),
   };
 }

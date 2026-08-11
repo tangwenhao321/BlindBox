@@ -11,6 +11,7 @@ import io.github.qifan777.server.user.root.entity.UserDraft;
 import io.github.qifan777.server.user.root.entity.UserFetcher;
 import io.github.qifan777.server.user.root.entity.UserTable;
 import io.github.qifan777.server.referral.service.ReferralService;
+import io.github.qifan777.server.risk.service.RiskControlService;
 import io.github.qifan777.server.user.root.repository.UserRepository;
 import io.github.qifan777.server.user.wechat.entity.UserWeChat;
 import io.github.qifan777.server.user.wechat.entity.UserWeChatDraft;
@@ -38,9 +39,15 @@ public class UserWeChatService {
     private final WxMaService wxMaService;
     private final ApplicationEventPublisher eventPublisher;
     private final ReferralService referralService;
+    private final RiskControlService riskControlService;
 
     @SneakyThrows
     public SaTokenInfo register(UserWeChatRegisterInput registerInput) {
+        return register(registerInput, null);
+    }
+
+    @SneakyThrows
+    public SaTokenInfo register(UserWeChatRegisterInput registerInput, String deviceId) {
         UserWeChatTable t1 = UserWeChatTable.$;
         WxMaJscode2SessionResult session = wxMaService.getUserService()
                 .getSessionInfo(registerInput.getLoginCode());
@@ -75,18 +82,22 @@ public class UserWeChatService {
         StpUtil.login(userWeChat.user().id(), new SaLoginModel().setDevice(LoginDevice.MP_WECHAT)
                 .setTimeout(60 * 60 * 24 * 30 * 36));
         referralService.bindInviterOnRegister(userWeChat.user().id(), registerInput.getInviteCode());
+        riskControlService.touchDeviceLink(userWeChat.user().id(), deviceId);
         return StpUtil.getTokenInfo();
     }
 
     @SneakyThrows
     public SaTokenInfo registerV2(UserWeChatRegisterInputV2 registerInputV2) {
+        return registerV2(registerInputV2, null);
+    }
+
+    @SneakyThrows
+    public SaTokenInfo registerV2(UserWeChatRegisterInputV2 registerInputV2, String deviceId) {
         String phoneNumber = wxMaService.getUserService().getPhoneNoInfo(registerInputV2.getPhoneCode()).getPhoneNumber();
         UserWeChatRegisterInput userWeChatRegisterInput = new UserWeChatRegisterInput();
         userWeChatRegisterInput.setPhone(phoneNumber);
         userWeChatRegisterInput.setInviteCode(registerInputV2.getInviteCode());
         userWeChatRegisterInput.setLoginCode(registerInputV2.getLoginCode());
-        return register(userWeChatRegisterInput);
-
-
+        return register(userWeChatRegisterInput, deviceId);
     }
 }

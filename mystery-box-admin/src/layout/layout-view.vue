@@ -14,8 +14,8 @@ const homeStore = useHomeStore()
 
 homeStore.init()
 const { userInfo } = storeToRefs(homeStore)
-const handleLogout = () => {
-  homeStore.logout()
+const handleLogout = async () => {
+  await homeStore.logout()
   router.push('/login')
 }
 onMounted(() => {

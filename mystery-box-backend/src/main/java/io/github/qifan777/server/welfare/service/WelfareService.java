@@ -1,8 +1,8 @@
 package io.github.qifan777.server.welfare.service;
 
 import io.github.qifan777.server.user.root.entity.User;
-import io.github.qifan777.server.user.root.entity.UserDraft;
 import io.github.qifan777.server.user.root.repository.UserRepository;
+import io.github.qifan777.server.user.root.service.UserCoinLedgerService;
 import io.github.qifan777.server.welfare.entity.UserCheckIn;
 import io.github.qifan777.server.welfare.entity.UserCheckInDraft;
 import io.github.qifan777.server.welfare.entity.UserFavorite;
@@ -32,6 +32,7 @@ public class WelfareService {
     private final UserCheckInRepository userCheckInRepository;
     private final UserFavoriteRepository userFavoriteRepository;
     private final UserRepository userRepository;
+    private final UserCoinLedgerService userCoinLedgerService;
 
     public CheckInStatusView checkInStatus(String userId) {
         LocalDate today = LocalDate.now();
@@ -50,11 +51,16 @@ public class WelfareService {
                 .setCheckInDate(today)
                 .setRewardCoins(CHECK_IN_REWARD_COINS)
                 .setCreatedTime(LocalDateTime.now())));
+        userCoinLedgerService.credit(
+                userId,
+                UserCoinLedgerService.COIN_TYPE_LUCKY,
+                CHECK_IN_REWARD_COINS,
+                "CHECK_IN",
+                "checkin:" + today
+        );
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "用户不存在"));
-        int nextCoins = user.luckyCoins() + CHECK_IN_REWARD_COINS;
-        userRepository.update(UserDraft.$.produce(draft -> draft.setId(userId).setLuckyCoins(nextCoins)));
-        return buildStatusView(true, nextCoins, user.starStones(), userId);
+        return buildStatusView(true, user.luckyCoins(), user.starStones(), userId);
     }
 
     private CheckInStatusView buildStatusView(boolean checkedToday, int luckyCoins, int starStones, String userId) {

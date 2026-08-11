@@ -39,12 +39,16 @@
 - [ ] Run preflight script: `powershell -ExecutionPolicy Bypass -File .\scripts\release-preflight.ps1 -RunBuild`
 - [ ] Optional E2E preflight: add `-RunE2E` (Admin Playwright smoke + Maestro inventory)
 - [x] EAS profiles: `eas.json` (development / preview / production / production-sentry)
+- [ ] EAS: `EXPO_PUBLIC_EAS_PROJECT_ID` must be a real project UUID for `production` / `production-vn` push (not placeholder `your-eas-project-uuid`)
 - [x] Order ID migration tooling: Admin preflight API, audit log, `scripts/staging-order-id-migration.ps1`
+- [ ] Flyway gate: migrations through latest money-security waves applied on deploy. Key versions: `V20260571` draw audit/pity, `V20260575` marketplace payout safety, `V20260576` privacy deleted_at, `V20260577` wallet ledger idempotency, `V20260582` payment notify unique. Newest ~8 under `db/migration`: `V20260575`–`V20260582` (`V20260575_01`, `V20260576_01`, `V20260577_01`, `V20260578_01`, `V20260579_01`, `V20260580_01`, `V20260581_01`, `V20260582_01`). No newer dedicated refund schema in this wave (refund menus/indexes earlier, e.g. `V20260527` / `V20260532`).
+- [ ] Admin cookie auth (optional): set `VITE_ADMIN_COOKIE_AUTH=true` and serve admin+API same-origin (see `docs/ADMIN_SECURITY.md`)
 
 ## 5) Operations & Monitoring
 
 - [ ] Error monitoring enabled (backend + admin + mobile).
 - [ ] Alerts configured for payment failure spikes, warehouse SQL fallback, notify rejected, draw integrity, and push failures (see `docs/METRICS_ALERTS.md`, `infra/prometheus/alerts.yml`).
+- [ ] Refund reconcile job enabled (`app.jobs.refund-reconcile.enabled` in prod); alert `MysteryBoxRefundReconcileStuck` after refund metrics land.
 - [ ] Grafana dashboard imported (`infra/grafana/dashboard-mystery-box.json`).
 - [ ] Ops runbooks reviewed: `docs/OPS_RUNBOOK.md`, `docs/VN_LAUNCH_RUNBOOK.md` (VN market).
 - [x] Analytics retention job purges events older than `security.analytics.retention-days` (`AnalyticsRetentionJob`).
@@ -65,5 +69,8 @@
 - [ ] Backend profile `prod-vn` validated in staging (`ProductionSafetyValidator`, sandbox pay → paid order).
 - [ ] `mystery_box.payment.notify.rejected` flat after successful sandbox IPN test.
 - [ ] Mobile EAS env: `EXPO_PUBLIC_PAYMENT_MODE=vnpay`, `EXPO_PUBLIC_CURRENCY=VND`, `EXPO_PUBLIC_DEFAULT_LOCALE=vi-VN` (see `mystery-box-mobile-app/.env.vn.example`).
+- [ ] EAS: `EXPO_PUBLIC_EAS_PROJECT_ID` real UUID for production-vn push builds.
+- [ ] Flyway gate (same as Build & Deploy): money-security waves through `V20260582` applied on VN DB.
+- [ ] Admin cookie auth: `VITE_ADMIN_COOKIE_AUTH` + same-origin proxy when enabling cookie-primary for VN admin.
 - [ ] Legal templates counsel-reviewed and published: `docs/legal/privacy-vi-VN.template.md`, `docs/legal/terms-vi-VN.template.md`.
 - [ ] Staging E2E: checkout → VNPay → return deep link → reveal → warehouse (see `docs/VN_LAUNCH_RUNBOOK.md`).

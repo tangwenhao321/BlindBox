@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { OptimizedFlatList } from "./ui/OptimizedFlatList";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { ListSkeleton } from "./ListSkeleton";
+import { EmptyState } from "./EmptyState";
 import { shouldShowListSkeleton } from "./ui/listScreenHelpers";
 import { useListLoad } from "../hooks/useListLoad";
 import { useThemedStyles } from "../hooks/useThemedStyles";
@@ -124,6 +125,7 @@ export function ActivityDetailView({ activity, catalogBoxes = [], onBack, onOpen
                 <RemoteImage
                   uri={resolveBoxImageUrl({ id: item.id, name: item.name, cover: item.cover })}
                   style={styles.boxCover}
+                  priority="low"
                 />
                 <Text style={styles.boxName} numberOfLines={2}>
                   {item.name}
@@ -134,7 +136,13 @@ export function ActivityDetailView({ activity, catalogBoxes = [], onBack, onOpen
             )}
           />
         ) : !loadError ? (
-          <Text style={styles.empty}>{t("activity.emptyBoxes")}</Text>
+          <EmptyState
+            title={t("activity.emptyBoxes")}
+            description={t("activity.emptyBoxesDesc")}
+            variant="plain"
+            actionLabel={t("common.retry")}
+            onAction={() => void reloadDetail()}
+          />
         ) : null}
       </ScrollView>
     </View>
@@ -165,6 +173,5 @@ function buildActivityStyles(colors: ThemeColors) {
     boxName: { fontWeight: "700", fontSize: typography.caption, minHeight: 36, color: colors.textPrimary },
     boxPrice: { color: colors.brand, fontWeight: "800" },
     link: { color: colors.brand, fontWeight: "800", fontSize: typography.caption },
-    empty: { color: colors.textMuted, textAlign: "center", paddingVertical: spacing.xl },
   });
 }

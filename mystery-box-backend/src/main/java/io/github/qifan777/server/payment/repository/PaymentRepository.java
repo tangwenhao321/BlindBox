@@ -44,4 +44,20 @@ public interface PaymentRepository extends JRepository<Payment, String> {
                 .set(t.tradeNo(), tradNo)
                 .execute();
     }
+
+    /**
+     * CAS: set pay_time/trade_no only when still unpaid. Returns true if this caller won.
+     */
+    default boolean claimPayTime(String id, String tradeNo, LocalDateTime payTime) {
+        LocalDateTime normalizedPayTime = payTime == null
+                ? LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
+                : payTime.truncatedTo(ChronoUnit.SECONDS);
+        int updated = sql().createUpdate(t)
+                .where(t.id().eq(id))
+                .where(t.payTime().isNull())
+                .set(t.payTime(), normalizedPayTime)
+                .set(t.tradeNo(), tradeNo)
+                .execute();
+        return updated > 0;
+    }
 }

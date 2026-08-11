@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SUPPORT_HOTLINE } from "../../config/constants";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { radius, spacing, typography } from "../../styles/tokens";
+import { font, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 
 export function BoxDetailsComplianceCard() {
@@ -23,14 +23,24 @@ export function BoxDetailsComplianceCard() {
 function buildComplianceStyles(colors: ThemeColors) {
   return StyleSheet.create({
     complianceCard: {
-      marginTop: spacing.lg,
-      padding: spacing.md,
-      borderRadius: radius.md,
-      backgroundColor: colors.bgSoft,
-      borderWidth: 1,
+      marginTop: spacing.md,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.xs,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
     },
-    complianceTitle: { fontWeight: "800", color: colors.textPrimary, marginBottom: spacing.xs },
-    complianceText: { color: colors.textMuted, fontSize: typography.micro, lineHeight: 18 },
+    complianceTitle: {
+      ...font("bodyMedium"),
+      color: colors.textMuted,
+      marginBottom: spacing.xs,
+      fontSize: typography.caption,
+    },
+    complianceText: {
+      ...font("body"),
+      color: colors.textMuted,
+      fontSize: typography.micro,
+      lineHeight: 18,
+    },
   });
 }

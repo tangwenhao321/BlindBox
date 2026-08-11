@@ -100,4 +100,32 @@ public interface MysteryBoxOrderRepository extends JRepository<MysteryBoxOrder, 
                 .execute();
     }
 
+    /**
+     * Compare-and-swap status. Returns {@code true} if exactly one row was updated.
+     */
+    default boolean changeStatusIf(
+            String id,
+            DictConstants.ProductOrderStatus from,
+            DictConstants.ProductOrderStatus to
+    ) {
+        int updated = sql().createUpdate(t)
+                .where(t.id().eq(id))
+                .where(t.status().eq(from))
+                .set(t.status(), to)
+                .execute();
+        return updated > 0;
+    }
+
+    /**
+     * Claim an unpaid order for payment completion (before draw/pool mutation).
+     * CAS {@link DictConstants.ProductOrderStatus#TO_BE_PAID} → {@link DictConstants.ProductOrderStatus#TO_BE_DELIVERED}.
+     */
+    default boolean claimPaid(String orderId) {
+        return changeStatusIf(
+                orderId,
+                DictConstants.ProductOrderStatus.TO_BE_PAID,
+                DictConstants.ProductOrderStatus.TO_BE_DELIVERED
+        );
+    }
+
 }

@@ -11,7 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.List;
+import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -45,7 +47,7 @@ class UserNotificationServiceTest {
     void push_sendsExpoWhenPrefAllows() {
         when(userNotificationPrefService.get("u1"))
                 .thenReturn(new NotificationPrefView(true, true, true, true, true));
-        when(userPushTokenService.findToken("u1")).thenReturn("ExponentPushToken[abc]");
+        when(userPushTokenService.findTokens("u1")).thenReturn(List.of("ExponentPushToken[abc]"));
 
         userNotificationService.push("u1", "QUEUE", "轮到您", "请开盒", "box-1");
 
@@ -53,6 +55,43 @@ class UserNotificationServiceTest {
                 messages.size() == 1
                         && "u1".equals(messages.get(0).userId())
                         && "ExponentPushToken[abc]".equals(messages.get(0).token())
+        ));
+    }
+
+    @Test
+    void push_fansOutToEveryRegisteredDevice() {
+        when(userNotificationPrefService.get("u1"))
+                .thenReturn(new NotificationPrefView(true, true, true, true, true));
+        when(userPushTokenService.findTokens("u1"))
+                .thenReturn(List.of("ExponentPushToken[phone]", "ExponentPushToken[tablet]"));
+
+        userNotificationService.push("u1", "QUEUE", "轮到您", "请开盒", "box-1");
+
+        verify(expoPushNotificationService).sendBatch(argThat(messages ->
+                messages.size() == 2
+                        && "ExponentPushToken[phone]".equals(messages.get(0).token())
+                        && "ExponentPushToken[tablet]".equals(messages.get(1).token())
+        ));
+    }
+
+    @Test
+    void pushBulk_batchesInsertsAndRespectsPerUserPrefs() {
+        when(userNotificationPrefService.findAll(List.of("u1", "u2"))).thenReturn(Map.of(
+                "u1", new NotificationPrefView(true, true, true, true, true),
+                "u2", new NotificationPrefView(true, true, true, true, false)
+        ));
+        when(userPushTokenService.findTargets(List.of("u1", "u2"))).thenReturn(List.of(
+                new UserPushTokenService.PushTarget("u1", "ExponentPushToken[a]"),
+                new UserPushTokenService.PushTarget("u2", "ExponentPushToken[b]")
+        ));
+
+        int persisted = userNotificationService.pushBulk(
+                List.of("u1", "u2", "u1"), "OPS_MESSAGE", "活动", "body", "task-1");
+
+        assertEquals(2, persisted);
+        verify(jdbcTemplate).batchUpdate(anyString(), anyList());
+        verify(expoPushNotificationService).sendBatch(argThat(messages ->
+                messages.size() == 1 && "u1".equals(messages.get(0).userId())
         ));
     }
 

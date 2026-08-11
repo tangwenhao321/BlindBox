@@ -16,6 +16,8 @@ import java.util.Map;
 public class UserComplianceForFrontController {
     private final UserComplianceService userComplianceService;
     private final UserSpendLimitService userSpendLimitService;
+    private final UserIdentityVerificationService userIdentityVerificationService;
+    private final MinorProtectionService minorProtectionService;
 
     @GetMapping("age")
     public Map<String, Boolean> ageStatus() {
@@ -39,5 +41,55 @@ public class UserComplianceForFrontController {
                 StpUtil.getLoginIdAsString(),
                 body.dailyLimit(),
                 body.monthlyLimit());
+    }
+
+    /**
+     * Canonical identity verify path for mobile.
+     * Accepts either document-only ({@code documentNumber}/{@code fullName}) or full
+     * ({@code realName}/{@code idNumber}/{@code birthDate}) payloads.
+     */
+    @PostMapping("identity/verify")
+    public UserIdentityVerificationService.VerificationResult verifyIdentity(@RequestBody IdentityVerifyRequest body) {
+        String userId = StpUtil.getLoginIdAsString();
+        String name = firstNonBlank(body == null ? null : body.realName(), body == null ? null : body.fullName());
+        String idNumber = firstNonBlank(body == null ? null : body.idNumber(), body == null ? null : body.documentNumber());
+        if (body != null && body.birthDate() != null) {
+            return userIdentityVerificationService.verify(userId, name, idNumber, body.birthDate());
+        }
+        return userIdentityVerificationService.verifyFromDocument(userId, name, idNumber);
+    }
+
+    private static String firstNonBlank(String primary, String fallback) {
+        if (primary != null && !primary.isBlank()) {
+            return primary;
+        }
+        return fallback;
+    }
+
+    @GetMapping("identity")
+    public Map<String, Object> identityStatus() {
+        String userId = StpUtil.getLoginIdAsString();
+        MinorProtectionService.MinorPolicy policy = minorProtectionService.resolvePolicy(userId);
+        var identity = userIdentityVerificationService.find(userId);
+        return Map.of(
+                "verified", policy.verified(),
+                "ageTier", policy.ageTier().name(),
+                "purchaseAllowed", policy.purchaseAllowed(),
+                "audioVolumeScale", policy.audioVolumeScale(),
+                "muteHiddenBgm", minorProtectionService.shouldMuteHiddenBgm(policy),
+                "muteAllCeremonyAudio", minorProtectionService.shouldMuteAllCeremonyAudio(policy),
+                "minor", policy.minor(),
+                "maskedIdNumber", identity.map(UserIdentityVerificationService.VerifiedIdentity::maskedIdNumber).orElse(""),
+                "hardDailyCapMinor", policy.hardDailyCapMinor() == null ? "" : policy.hardDailyCapMinor().toPlainString()
+        );
+    }
+
+    public record IdentityVerifyRequest(
+            String realName,
+            String idNumber,
+            java.time.LocalDate birthDate,
+            String fullName,
+            String documentNumber
+    ) {
     }
 }

@@ -6,6 +6,7 @@ import io.github.qifan777.server.feedback.entity.dto.FeedbackInput;
 import io.github.qifan777.server.feedback.entity.dto.FeedbackSpec;
 import io.github.qifan777.server.feedback.repository.FeedbackRepository;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import org.babyfish.jimmer.client.FetchBy;
@@ -28,7 +29,10 @@ public class FeedbackForFrontController {
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") Feedback findById(@PathVariable String id) {
-        return feedbackRepository.findById(id, FeedbackRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
+        Feedback feedback = feedbackRepository.findById(id, FeedbackRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(feedback.creator().id());
+        return feedback;
     }
 
     @PostMapping("query")

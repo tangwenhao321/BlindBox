@@ -5,6 +5,7 @@ import { CommissionDetailsView } from "./CommissionDetailsView";
 import { PromotionView } from "./PromotionView";
 import { TeamView } from "./TeamView";
 import { SubPageHeader } from "./ui/SubPageHeader";
+import { SubPageShelfAccent } from "./ui/SubPageShelfAccent";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { useReferralStats } from "../hooks/useReferralStats";
@@ -36,6 +37,7 @@ export function InviteCenterView({ initialTab = "promotion", onBack }: Props) {
   return (
     <View style={styles.root}>
       <SubPageHeader title={t("invite.title")} onBack={onBack} />
+      <SubPageShelfAccent />
       {statsError ? (
         <ListErrorBanner message={statsError} onRetry={() => void refreshStats()} />
       ) : null}

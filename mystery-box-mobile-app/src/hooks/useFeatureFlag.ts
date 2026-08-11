@@ -1,4 +1,5 @@
 import type { AppPublicConfig } from "../services/appConfigService";
+import { getRuntimeFeatureFlags } from "../utils/runtimeFeatureFlags";
 
 const FLAG_BY_FEATURE: Partial<Record<string, string>> = {
   community: "mobile.community.enabled",
@@ -6,14 +7,20 @@ const FLAG_BY_FEATURE: Partial<Record<string, string>> = {
   welfare: "mobile.welfare.enabled",
 };
 
-/** Returns true when remote flag is absent (default on) or explicitly enabled. */
+/**
+ * Remote feature / kill-switch helper.
+ * Prefers passed flags, then in-memory runtime flags (from last public config / cache)
+ * so a disabled flag stays off across remounts before the next network fetch.
+ * Absent keys stay on (opt-out) so unseeded DB rows do not blank the shell.
+ */
 export function isRemoteFeatureEnabled(
   flagKey: string,
   featureFlags?: AppPublicConfig["featureFlags"],
   defaultValue = true,
 ): boolean {
-  if (!featureFlags || !(flagKey in featureFlags)) return defaultValue;
-  return featureFlags[flagKey] !== false;
+  const flags = featureFlags ?? getRuntimeFeatureFlags();
+  if (!flags || !(flagKey in flags)) return defaultValue;
+  return flags[flagKey] !== false;
 }
 
 export function isFeatureFlagEnabled(

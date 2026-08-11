@@ -36,6 +36,36 @@ public class AnalyticsEventService {
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Server-side analytics insert (order create attribution, payment reliability, etc.).
+     * Best-effort: failures are logged and do not fail the business transaction.
+     */
+    public void recordServerEvent(String eventName, String actorId, Map<String, Object> payload) {
+        if (eventName == null || eventName.isBlank()) {
+            return;
+        }
+        String name = eventName.trim();
+        if (name.length() > MAX_EVENT_NAME_LENGTH) {
+            name = name.substring(0, MAX_EVENT_NAME_LENGTH);
+        }
+        try {
+            String payloadJson = objectMapper.writeValueAsString(payload == null ? Map.of() : payload);
+            if (payloadJson.length() > MAX_PAYLOAD_JSON_LENGTH) {
+                log.warn("recordServerEvent skipped oversized payload: event={}, actorId={}", name, actorId);
+                return;
+            }
+            jdbcTemplate.update(
+                    "INSERT INTO analytics_event(event_name, actor_id, payload_json, event_at) VALUES (?, ?, ?, ?)",
+                    name,
+                    actorId == null ? "" : actorId,
+                    payloadJson,
+                    LocalDateTime.now()
+            );
+        } catch (Exception ex) {
+            log.warn("recordServerEvent failed event={} actorId={}", name, actorId, ex);
+        }
+    }
+
     public int ingest(List<AnalyticsEventInput> payload, String actorId) {
         if (payload == null || payload.isEmpty()) {
             return 0;

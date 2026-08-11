@@ -63,6 +63,10 @@ export async function executePersistedOfflineMutation(item: PersistedOfflineMuta
           riskConfirm: Boolean(payload.riskConfirm),
           couponUserId: payload.couponUserId as string | undefined,
           drawMode: (payload.drawMode as "instant" | "queue" | "buyout") ?? "instant",
+          slotNo:
+            payload.slotNo != null && Number(payload.slotNo) > 0
+              ? Number(payload.slotNo)
+              : undefined,
         },
       );
       invalidateOrderQueries(token);
@@ -139,7 +143,12 @@ export async function executePersistedOfflineMutation(item: PersistedOfflineMuta
       invalidateOrderQueries(token);
       return;
     case "exchangeFragment":
-      await exchangeFragmentSku(token, String(payload.skuId));
+      await exchangeFragmentSku(token, String(payload.skuId), {
+        idempotencySeed:
+          typeof payload.idempotencySeed === "string" && payload.idempotencySeed
+            ? payload.idempotencySeed
+            : String(payload.skuId),
+      });
       return;
     case "decomposeOrderItem":
       await decomposeOrderItem(token, String(payload.orderItemId), String(payload.productId));

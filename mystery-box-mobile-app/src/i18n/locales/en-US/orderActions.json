@@ -3,6 +3,7 @@
     "paySuccessRevealed": "Payment successful — prizes revealed",
     "autoRefreshFailed": "Order auto-refresh failed: {{message}}",
     "pendingPayment": "Pending payment {{orderId}}… — pay from home",
+    "pendingPaymentRetention": "Pending {{orderId}}… retention applied, pay {{amount}}",
     "retryNeedsBox": "Cannot buy again — return to box details and retry",
     "invalidDrawCount": "Invalid draw count — return to box details and retry"
   }

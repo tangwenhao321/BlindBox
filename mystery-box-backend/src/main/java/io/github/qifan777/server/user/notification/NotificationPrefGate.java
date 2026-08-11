@@ -23,6 +23,9 @@ public final class NotificationPrefGate {
             // Running an outdated client can break against a newer API, so update notices are
             // delivered regardless of marketing preferences.
             case "APP_UPDATE" -> true;
+            case "PITY", "PROBABILITY_CHANGE" -> true;
+            // Restock alerts for users waiting on pity high-tier stock.
+            case "RESTOCK" -> pref.orderEnabled();
             default -> true;
         };
     }

@@ -3,8 +3,8 @@ package io.github.qifan777.server.newcomer.service;
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.user.hint.UserHintCardService;
 import io.github.qifan777.server.user.root.entity.User;
-import io.github.qifan777.server.user.root.entity.UserDraft;
 import io.github.qifan777.server.user.root.repository.UserRepository;
+import io.github.qifan777.server.user.root.service.UserCoinLedgerService;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,6 +35,7 @@ public class NewcomerMissionService {
     private final JdbcTemplate jdbcTemplate;
     private final UserRepository userRepository;
     private final UserHintCardService userHintCardService;
+    private final UserCoinLedgerService userCoinLedgerService;
 
     @Transactional
     public List<MissionView> listMissions(String userId) {
@@ -123,11 +124,13 @@ public class NewcomerMissionService {
                 userId
         );
         if (template.rewardCoins() > 0) {
-            User current = userRepository.findById(userId)
-                    .orElseThrow(() -> new BusinessException("用户不存在"));
-            userRepository.update(UserDraft.$.produce(draft -> draft
-                    .setId(userId)
-                    .setLuckyCoins(current.luckyCoins() + template.rewardCoins())));
+            userCoinLedgerService.credit(
+                    userId,
+                    UserCoinLedgerService.COIN_TYPE_LUCKY,
+                    template.rewardCoins(),
+                    "NEWCOMER_MISSION",
+                    "newcomer_mission:" + missionId
+            );
         }
         if (template.rewardHintCards() > 0) {
             userHintCardService.grant(userId, template.rewardHintCards());

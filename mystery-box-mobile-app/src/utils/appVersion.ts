@@ -11,6 +11,10 @@ export type LocalAppVersion = {
 export function getAppReleaseChannel(): string {
   const variant = process.env.EXPO_PUBLIC_APP_VARIANT?.trim();
   if (variant) return variant;
+  const fromExtra = (
+    Constants.expoConfig?.extra as { appVariant?: string } | undefined
+  )?.appVariant?.trim();
+  if (fromExtra) return fromExtra;
   return __DEV__ ? "dev" : "production";
 }
 

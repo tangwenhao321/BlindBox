@@ -11,11 +11,16 @@ import { RemoteImage } from "./ui/RemoteImage";
 import type { Product } from "../types";
 import { resolveProductImageUrl } from "../utils/boxImage";
 import { normalizeQualityTier } from "../utils/quality";
-import { radius, spacing, typography } from "../styles/tokens";
+import { nightColors, radius, spacing, typography } from "../styles/tokens";
 
 const CARD_W = 320;
 const SHARE_W = 360;
 const SHARE_H = 640;
+
+/** Night Cabinet ink panels - no purple/indigo share gradients. */
+const INNER_LEGEND = "#2A1810";
+const INNER_HIDDEN = nightColors.bgMuted;
+const INNER_DEFAULT = nightColors.bgPage;
 
 type Props = {
   boxName: string;
@@ -47,7 +52,7 @@ export const RevealShareCard = forwardRef<View, Props>(function RevealShareCard(
   const isHidden = tier === "HIDDEN" || tier === "EPIC";
   const lustreTier = isLegend ? "TREASURE_LEGEND" : isHidden ? "HIDDEN" : "GENERAL";
   const lustre = useMemo(() => resolveThemedLustre(lustreTier, revealTheme, boxId), [lustreTier, revealTheme, boxId]);
-  const innerBg = isLegend ? "#451A03" : isHidden ? "#2E1065" : "#1E1B4B";
+  const innerBg = isLegend ? INNER_LEGEND : isHidden ? INNER_HIDDEN : INNER_DEFAULT;
   const showLustreFrame = burstFrame && (isLegend || isHidden);
   const isShareExport = exportAspect === "share";
   const canvasW = isShareExport ? SHARE_W : CARD_W;
@@ -116,7 +121,7 @@ export const RevealShareCard = forwardRef<View, Props>(function RevealShareCard(
 
 const styles = StyleSheet.create({
   shareCanvas: {
-    backgroundColor: "#0b0a14",
+    backgroundColor: nightColors.bgPage,
     paddingTop: "10%",
     paddingBottom: "15%",
     paddingHorizontal: 16,
@@ -153,15 +158,15 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     transform: [{ rotate: "12deg" }],
   },
-  brand: { fontSize: typography.caption, color: "#A5B4FC" },
-  box: { fontSize: typography.body, color: "#E0E7FF" },
+  brand: { fontSize: typography.caption, color: nightColors.brand },
+  box: { fontSize: typography.body, color: nightColors.textTitleSoft },
   imageWrap: {
     borderRadius: radius.md,
     overflow: "hidden",
     position: "relative",
   },
   imageWrapRare: {
-    shadowColor: "#F59E0B",
+    shadowColor: nightColors.brand,
     shadowOpacity: 0.55,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
@@ -173,13 +178,13 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   image: { width: 160, height: 160, borderRadius: radius.md },
-  name: { fontSize: typography.h3, fontWeight: "800", color: "#fff", textAlign: "center" },
-  footer: { fontSize: typography.caption, color: "#94A3B8", marginTop: spacing.md },
+  name: { fontSize: typography.h3, fontWeight: "800", color: nightColors.textPrimary, textAlign: "center" },
+  footer: { fontSize: typography.caption, color: nightColors.textMuted, marginTop: spacing.md },
   watermarkWrap: {
     marginTop: spacing.md,
     alignItems: "center",
     gap: 2,
   },
-  watermarkText: { fontSize: 11, color: "rgba(255,255,255,0.85)", fontWeight: "600" },
-  watermarkCode: { fontSize: 10, color: "rgba(255,255,255,0.55)", letterSpacing: 1 },
+  watermarkText: { fontSize: 11, color: "rgba(245,240,232,0.85)", fontWeight: "600" },
+  watermarkCode: { fontSize: 10, color: "rgba(245,240,232,0.55)", letterSpacing: 1 },
 });

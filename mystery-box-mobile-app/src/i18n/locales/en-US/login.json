@@ -1,12 +1,13 @@
 {
   "login": {
-    "brandMark": "MYSTERY BOX",
-    "heroTitle": "Unbox the surprise",
-    "heroSub": "Smooth checkout · Instant reveal · Unified orders",
+    "brandMark": "Night Cabinet",
+    "heroTitle": "Tonight's treasure cabinet",
+    "heroSub": "Open the unknown · A stall under night-market light",
     "tabLogin": "Sign in",
     "tabRegister": "Register",
     "phoneLabel": "Phone",
     "phonePlaceholder": "Enter phone number",
+    "phonePlaceholderVn": "e.g. 0901234567",
     "passwordLabel": "Password",
     "passwordPlaceholder": "Enter password",
     "confirmPasswordLabel": "Confirm password",
@@ -28,6 +29,13 @@
     "biometricFailed": "Biometric verification failed",
     "biometricSuccess": "Signed in",
     "biometricNoSession": "No saved session — sign in with password",
+    "zaloComingSoon": "Zalo login — coming soon",
+    "zaloLogin": "Continue with Zalo",
+    "zaloConfigMissing": "Zalo login is not configured — contact support",
+    "zaloFailed": "Zalo sign-in failed — try again",
+    "zaloPasteHint": "Paste the Zalo authorization code from the browser to finish sign-in",
+    "zaloPastePlaceholder": "Authorization code",
+    "zaloPasteSubmit": "Complete Zalo sign-in",
     "localhostWarn": "Devices cannot reach 127.0.0.1. Set your LAN IP in .env and restart Expo.",
     "endpoint": "API · {{url}}",
     "devAccountHint": "Local dev: sign in with {{phone}} / {{password}}; register OTP {{code}}",
@@ -39,7 +47,15 @@
     "resendIn": "{{seconds}}s",
     "resendCodeA11y": "Resend verification code",
     "resendCodeWaitA11y": "Wait {{seconds}} seconds before resending",
-    "newPasswordPlaceholder": "New password (min 6 chars)",
-    "confirmReset": "Reset password"
+    "newPasswordPlaceholder": "New password (min 8 chars, letters + numbers)",
+    "confirmReset": "Reset password",
+    "methodPassword": "Password",
+    "methodSms": "SMS code",
+    "passwordStrength_weak": "Strength: weak",
+    "passwordStrength_fair": "Strength: fair",
+    "passwordStrength_strong": "Strength: strong",
+    "agreeTerms": "I agree to the Terms of Service and Privacy Policy",
+    "openTerms": "Terms",
+    "openPrivacy": "Privacy"
   }
 }

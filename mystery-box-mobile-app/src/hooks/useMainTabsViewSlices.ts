@@ -140,6 +140,8 @@ export function useProfileTabScreenProps() {
       orderBadges: shell.orderBadges,
       orderTabCounts: shell.orderTabCounts,
       onFilterOrders: orderViewProps.onFilterByStatus,
+      onOpenWarehouse: () => shell.setView("warehouse"),
+      onGoHome: () => shell.resetTab("home"),
       onOpenAddressManage: profileViewProps.onOpenAddressManage,
       onOpenMessages: profileViewProps.onOpenMessages,
       onOpenFeedback: profileViewProps.onOpenFeedback,

@@ -33,8 +33,11 @@ public class FragmentForFrontController {
     }
 
     @PostMapping("exchange/{skuId}")
-    public void exchange(@PathVariable String skuId) {
-        userFragmentService.exchangeSku(StpUtil.getLoginIdAsString(), skuId);
+    public void exchange(
+            @PathVariable String skuId,
+            @RequestHeader(value = "x-idempotency-key", required = false) String idempotencyKey
+    ) {
+        userFragmentService.exchangeSku(StpUtil.getLoginIdAsString(), skuId, idempotencyKey);
     }
 
     @PostMapping("decompose")

@@ -1,23 +1,80 @@
 # Vietnam production profile — copy to application-prod-vn.yml and fill secrets.
 # Activate with: spring.profiles.active=prod-vn
 
+# Each login gets its own token in VN production.
+# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.37 SaCookieConfig (sa-token.cookie.*).
+sa-token:
+  is-share: false
+  is-read-header: true
+  is-read-cookie: true
+  cookie:
+    httpOnly: true
+    secure: true
+    sameSite: Strict
+
 app:
   market:
     payment-provider: vnpay
     currency: VND
     logistics-mode: local-only
+  # local | ghn | ghtk | viettel — switch when carrier API tokens exist
+  logistics:
+    provider: local
+    ghn:
+      token: ${LOGISTICS_GHN_TOKEN:}
+    ghtk:
+      token: ${LOGISTICS_GHTK_TOKEN:}
+    viettel:
+      token: ${LOGISTICS_VIETTEL_TOKEN:}
   default-locale: vi-VN
+  marketplace:
+    payout-gateway: ${MARKETPLACE_PAYOUT_GATEWAY:wallet}
+    external-payout-timeout-hours: ${MARKETPLACE_EXTERNAL_PAYOUT_TIMEOUT_HOURS:24}
+  # local | ekyc_vendor — prefer ekyc_vendor once vendor is wired
+  identity:
+    provider: ${APP_IDENTITY_PROVIDER:local}
   support:
     zalo-oa-id: ${APP_SUPPORT_ZALO_OA_ID:}
+  auth:
+    zalo-enabled: ${APP_AUTH_ZALO_ENABLED:false}
+    allow-mock-otp: false
 
 security:
   compliance:
     spend-limit:
       daily: 2000000
       monthly: 10000000
+    minor:
+      # KYC / identity verification required for VN production
+      verification-required: true
+    identity:
+      hash-secret: ${IDENTITY_HASH_SECRET:CHANGE_ME_IDENTITY_HASH_SECRET}
+  rate-limit:
+    distributed: true
+    trusted-proxy: true
+
+# Public management surface: health + info only.
+# Optional: management.server.port=9913 with include=health,info,prometheus for scrapers.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
 
 payment:
   mock-enabled: false
+
+# Disable Jimmer OpenAPI / TS zip endpoints in production
+jimmer:
+  client:
+    ts:
+      path:
+    openapi:
+      path:
+      ui-path:
 
 vnpay:
   tmn-code: ${VNPAY_TMN_CODE:your-tmn-code}
@@ -29,13 +86,29 @@ vnpay:
   query-url: ${VNPAY_QUERY_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
   refund-url: ${VNPAY_REFUND_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
 
-# Secondary wallet — set MOMO_ENABLED=true when partner credentials are ready
+# MoMo hard-disabled while checkout gateway is stub. Do not set enabled=true until Partner API + momo.stub=false.
 momo:
-  enabled: ${MOMO_ENABLED:false}
+  enabled: false
+  stub: true
   partner-code: ${MOMO_PARTNER_CODE:}
   access-key: ${MOMO_ACCESS_KEY:}
   secret-key: ${MOMO_SECRET_KEY:}
   return-url: ${MOMO_RETURN_URL:mysterybox://payment-return}
 
+zalopay:
+  enabled: ${ZALOPAY_ENABLED:false}
+  app-id: ${ZALOPAY_APP_ID:}
+  key1: ${ZALOPAY_KEY1:}
+  key2: ${ZALOPAY_KEY2:}
+
+zalo:
+  client-id: ${ZALO_CLIENT_ID:}
+  client-secret: ${ZALO_CLIENT_SECRET:}
+
 sms:
+  # ali_yun | vn_esms — prefer vn_esms when eSMS credentials exist
   provider: ${SMS_PROVIDER:ali_yun}
+  vn-esms:
+    api-key: ${SMS_VN_ESMS_API_KEY:}
+    secret-key: ${SMS_VN_ESMS_SECRET_KEY:}
+    brandname: ${SMS_VN_ESMS_BRANDNAME:}

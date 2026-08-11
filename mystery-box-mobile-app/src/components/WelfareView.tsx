@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { parseError } from "../api";
 import { checkIn, getCheckInStatus } from "../services/welfareService";
 import { useAuthToken } from "../hooks/useAuthToken";
+import { useAppTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { toast } from "../utils/toast";
 import { trackEvent } from "../utils/analytics";
+import { AppGradient } from "./ui/AppGradient";
 import { PrimaryButton } from "./ui/PrimaryButton";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { ListSkeleton } from "./ListSkeleton";
-import { layout, radius, shadows, spacing, typography } from "../styles/tokens";
+import { font, layout, radius, shadows, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
+import { AnimatedRevealCard } from "./AnimatedRevealCard";
 
 type Props = {
   onOpenCoupons: () => void;
@@ -21,6 +23,7 @@ type Props = {
 export function WelfareView({ onOpenCoupons }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
+  const { colors: themeColors } = useAppTheme();
   const styles = useThemedStyles(buildWelfareStyles);
   const [status, setStatus] = useState<import("../services/welfareService").CheckInStatus>({
     checkedToday: false,
@@ -57,61 +60,78 @@ export function WelfareView({ onOpenCoupons }: Props) {
         <ListSkeleton rows={3} />
       ) : error ? null : (
         <>
-          <LinearGradient colors={["#5B4DFF", "#8B5CF6"]} style={styles.hero}>
-            <Text style={styles.heroTitle}>{t("welfare.heroTitle")}</Text>
-            <View style={styles.statsRow}>
-              <View style={styles.stat}>
-                <Text style={styles.statValue}>{status.luckyCoins}</Text>
-                <Text style={styles.statLabel}>{t("profile.luckyCoins")}</Text>
-              </View>
-            </View>
-          </LinearGradient>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t("welfare.dailyCheckIn")}</Text>
-            <Text style={styles.meta}>
-              {t("welfare.streakMeta", {
-                days: status.streakDays ?? 0,
-                coins: status.todayRewardCoins,
-              })}
-            </Text>
-            <View style={styles.weekRow}>
-              {(status.weekCalendar ?? []).map((day) => (
-                <View key={day.date} style={[styles.dayCell, day.checked ? styles.dayChecked : null]}>
-                  <Text style={styles.dayText}>{day.date.slice(5)}</Text>
-                  <Text style={styles.dayMark}>{day.checked ? "✓" : "·"}</Text>
+          <AnimatedRevealCard delay={0}>
+            <AppGradient
+              colors={[themeColors.bgPage, themeColors.bgBrandSoft, themeColors.brandDark]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.hero}
+            >
+              <Text style={styles.heroTitle}>{t("welfare.heroTitle")}</Text>
+              <Text style={styles.heroSub}>{t("welfare.heroSub")}</Text>
+              <View style={styles.statsRow}>
+                <View style={styles.stat}>
+                  <Text style={styles.statValue}>{status.luckyCoins}</Text>
+                  <Text style={styles.statLabel}>{t("profile.luckyCoins")}</Text>
                 </View>
-              ))}
+                <View style={styles.statDivider} />
+                <View style={styles.stat}>
+                  <Text style={styles.statValue}>{status.streakDays ?? 0}</Text>
+                  <Text style={styles.statLabel}>{t("welfare.lanternDaysLabel")}</Text>
+                </View>
+              </View>
+            </AppGradient>
+          </AnimatedRevealCard>
+          <AnimatedRevealCard delay={60}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>{t("welfare.dailyCheckIn")}</Text>
+              <Text style={styles.meta}>
+                {t("welfare.streakMeta", {
+                  days: status.streakDays ?? 0,
+                  coins: status.todayRewardCoins,
+                })}
+              </Text>
+              <View style={styles.weekRow}>
+                {(status.weekCalendar ?? []).map((day) => (
+                  <View key={day.date} style={[styles.dayCell, day.checked ? styles.dayChecked : null]}>
+                    <Text style={styles.dayText}>{day.date.slice(5)}</Text>
+                    <Text style={styles.dayMark}>{day.checked ? "✓" : "·"}</Text>
+                  </View>
+                ))}
+              </View>
+              <PrimaryButton
+                testID="welfareCheckInButton"
+                label={status.checkedToday ? t("welfare.checkInDone") : t("welfare.checkInToday")}
+                accessibilityLabel={status.checkedToday ? t("welfare.checkInDone") : t("welfare.checkInToday")}
+                disabled={status.checkedToday || loading}
+                loading={loading}
+                onPress={async () => {
+                  setLoading(true);
+                  try {
+                    const next = await checkIn(token);
+                    setStatus(next);
+                    trackEvent("check_in", { streakDays: next.streakDays, reward: next.todayRewardCoins });
+                    toast.success(t("welfare.checkInSuccess", { coins: next.todayRewardCoins }));
+                  } catch (err) {
+                    toast.error(parseError(err));
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                style={styles.checkBtn}
+              />
             </View>
-            <PrimaryButton
-              testID="welfareCheckInButton"
-              label={status.checkedToday ? t("welfare.checkInDone") : t("welfare.checkInToday")}
-              accessibilityLabel={status.checkedToday ? t("welfare.checkInDone") : t("welfare.checkInToday")}
-              disabled={status.checkedToday || loading}
-              loading={loading}
-              onPress={async () => {
-                setLoading(true);
-                try {
-                  const next = await checkIn(token);
-                  setStatus(next);
-                  trackEvent("check_in", { streakDays: next.streakDays, reward: next.todayRewardCoins });
-                  toast.success(t("welfare.checkInSuccess", { coins: next.todayRewardCoins }));
-                } catch (err) {
-                  toast.error(parseError(err));
-                } finally {
-                  setLoading(false);
-                }
-              }}
-              style={styles.checkBtn}
-            />
-          </View>
-          <Pressable
-            style={styles.linkCard}
-            onPress={onOpenCoupons}
-            accessibilityRole="button"
-            accessibilityLabel={t("welfare.openCoupons")}
-          >
-            <Text style={styles.linkText}>{t("welfare.openCoupons")} →</Text>
-          </Pressable>
+          </AnimatedRevealCard>
+          <AnimatedRevealCard delay={120}>
+            <Pressable
+              style={styles.linkCard}
+              onPress={onOpenCoupons}
+              accessibilityRole="button"
+              accessibilityLabel={t("welfare.openCoupons")}
+            >
+              <Text style={styles.linkText}>{t("welfare.openCoupons")} →</Text>
+            </Pressable>
+          </AnimatedRevealCard>
         </>
       )}
     </View>
@@ -126,14 +146,33 @@ function buildWelfareStyles(colors: ThemeColors) {
       borderRadius: radius.xl,
       padding: spacing.xl,
       marginBottom: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.profileHeroGlassBorder,
       ...shadows.card,
     },
-    heroTitle: { color: colors.textOnBrand, fontSize: typography.h4, fontWeight: "900", marginBottom: spacing.lg },
+    heroTitle: {
+      ...font("bodySemiBold"),
+      color: colors.brandText,
+      fontSize: typography.h3,
+      marginBottom: spacing.xs,
+    },
+    heroSub: {
+      ...font("body"),
+      color: colors.profileHeroSubtext,
+      fontSize: typography.caption,
+      lineHeight: 18,
+      marginBottom: spacing.lg,
+    },
     statsRow: { flexDirection: "row", alignItems: "center" },
     stat: { flex: 1, alignItems: "center" },
-    statValue: { color: colors.textOnBrand, fontSize: typography.h2, fontWeight: "900" },
-    statLabel: { color: "rgba(255,255,255,0.85)", fontSize: typography.caption, marginTop: 4 },
-    statDivider: { width: 1, height: 36, backgroundColor: "rgba(255,255,255,0.25)" },
+    statValue: {
+      ...font("numeral"),
+      color: colors.textPrimary,
+      fontSize: typography.h2,
+      fontWeight: "900",
+    },
+    statLabel: { color: colors.profileHeroSubtext, fontSize: typography.caption, marginTop: 4 },
+    statDivider: { width: 1, height: 36, backgroundColor: colors.profileHeroGlassBorder },
     card: {
       backgroundColor: colors.bgCard,
       borderRadius: radius.lg,
@@ -144,7 +183,7 @@ function buildWelfareStyles(colors: ThemeColors) {
       ...shadows.cardSm,
     },
     cardTitle: { fontWeight: "800", fontSize: typography.bodyLg, color: colors.textPrimary },
-    meta: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: typography.caption },
+    meta: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: typography.caption, lineHeight: 18 },
     checkBtn: { marginTop: spacing.md },
     weekRow: { flexDirection: "row", justifyContent: "space-between", marginTop: spacing.md, marginBottom: spacing.sm },
     dayCell: {
@@ -154,7 +193,7 @@ function buildWelfareStyles(colors: ThemeColors) {
       backgroundColor: colors.bgSoft,
       minWidth: 40,
     },
-    dayChecked: { backgroundColor: colors.successSoft },
+    dayChecked: { backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: colors.chipBorder },
     dayText: { fontSize: 10, color: colors.textSecondary },
     dayMark: { fontWeight: "700", color: colors.brand },
     linkCard: {

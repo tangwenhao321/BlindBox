@@ -37,6 +37,7 @@ type BoxSlice = Pick<
   | "quote"
   | "quotingPrice"
   | "quoteError"
+  | "retryQuote"
   | "openLoginPage"
   | "goBack"
   | "availableCoupons"
@@ -93,6 +94,7 @@ export function buildBoxViewProps(input: BoxSlice) {
     quote,
     quotingPrice,
     quoteError,
+    retryQuote,
     openLoginPage,
     goBack,
     availableCoupons,
@@ -160,13 +162,15 @@ export function buildBoxViewProps(input: BoxSlice) {
     quoteProductAmount: quote?.productAmount ?? null,
     quoteDeliveryFee: quote?.deliveryFee ?? 0,
     quoteCouponAmount: quote?.couponAmount ?? 0,
-    quoteRetentionDiscount: quote?.retentionDiscount ?? 0,
+    quoteRetentionDiscount: 0,
     quoteSavingsAmount: quote?.savingsAmount ?? 0,
     suggestedCouponApplied: Boolean(
       quote?.suggestedCouponUserId && selectedCouponUserId === quote.suggestedCouponUserId,
     ),
+    suggestedCouponUserId: quote?.suggestedCouponUserId ?? undefined,
     quotingPrice,
     quoteError,
+    onRetryQuote: retryQuote,
     isLoggedIn: !!token,
     onRequireLogin: openLoginPage,
     onBackBoxList: () => {

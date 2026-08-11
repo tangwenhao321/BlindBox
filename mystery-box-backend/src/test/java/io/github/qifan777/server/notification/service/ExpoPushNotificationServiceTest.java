@@ -91,7 +91,7 @@ class ExpoPushNotificationServiceTest {
 
         ReflectionTestUtils.setField(expoPushNotificationService, "enabled", true);
 
-        when(userPushTokenService.findToken("u1")).thenReturn("ExponentPushToken[abc]");
+        when(userPushTokenService.findTokens("u1")).thenReturn(List.of("ExponentPushToken[abc]"));
 
         when(restTemplate.postForEntity(eq("https://exp.host/--/api/v2/push/send"), any(), eq(String.class)))
 

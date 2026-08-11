@@ -18,7 +18,7 @@ type Props = {
   onPasswordChange: (v: string) => void;
   onClose: () => void;
   onSubmit: () => void;
-  onSendCode: () => void | Promise<void>;
+  onSendCode: () => void | Promise<unknown>;
 };
 
 export function ForgotPasswordModal(props: Props) {

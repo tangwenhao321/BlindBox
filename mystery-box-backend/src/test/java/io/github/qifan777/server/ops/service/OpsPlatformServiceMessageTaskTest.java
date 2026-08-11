@@ -65,15 +65,23 @@ class OpsPlatformServiceMessageTaskTest {
                 eq("seg-1")
         )).thenReturn("{\"all\":true}");
         when(jdbcTemplate.queryForList(
-                eq("SELECT id FROM user ORDER BY created_time DESC LIMIT ?"),
+                eq("SELECT id FROM user ORDER BY id LIMIT ? OFFSET ?"),
                 eq(String.class),
-                eq(500)
+                eq(500),
+                eq(0)
         )).thenReturn(List.of("user-a", "user-b"));
+        when(userNotificationService.pushBulk(
+                eq(List.of("user-a", "user-b")),
+                eq("OPS_MESSAGE"),
+                eq("活动通知"),
+                anyString(),
+                eq(taskId)
+        )).thenReturn(2);
 
         service.runMessageTask("admin-1", taskId, "trace-1");
 
-        verify(userNotificationService, times(2)).push(
-                anyString(),
+        verify(userNotificationService).pushBulk(
+                eq(List.of("user-a", "user-b")),
                 eq("OPS_MESSAGE"),
                 eq("活动通知"),
                 anyString(),

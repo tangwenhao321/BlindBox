@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { subscribeRevealRoomReactions } from "../../effects/revealSocialRoom";
 import { getRuntimeRevealDanmakuEnabled } from "../../utils/revealSettings";
 import { revealLayerZIndex } from "../../effects/revealLayerZIndex";
 
 const PRESET_KEYS = ["nice", "wow", "again", "lucky"] as const;
+const DRIFT_PX = 28;
 
 type Props = {
   visible: boolean;
@@ -17,7 +18,19 @@ export function RevealLocalDanmaku({ visible, replayOnly = true, useRoomReaction
   const { t } = useTranslation();
   const [tick, setTick] = useState(0);
   const [roomEmoji, setRoomEmoji] = useState<string | null>(null);
+  const [reduceMotion, setReduceMotion] = useState(false);
+  const driftX = useRef(new Animated.Value(0)).current;
   const enabled = getRuntimeRevealDanmakuEnabled();
+
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled()
+      .then(setReduceMotion)
+      .catch(() => setReduceMotion(false));
+    const sub = AccessibilityInfo.addEventListener?.("reduceMotionChanged", setReduceMotion);
+    return () => {
+      sub?.remove?.();
+    };
+  }, []);
 
   useEffect(() => {
     if (!visible || !enabled || !useRoomReactions) return undefined;
@@ -32,19 +45,52 @@ export function RevealLocalDanmaku({ visible, replayOnly = true, useRoomReaction
     return () => clearInterval(id);
   }, [visible, enabled, replayOnly]);
 
+  useEffect(() => {
+    if (!visible || !enabled || reduceMotion) {
+      driftX.stopAnimation();
+      driftX.setValue(0);
+      return undefined;
+    }
+    driftX.setValue(-DRIFT_PX);
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(driftX, {
+          toValue: DRIFT_PX,
+          duration: 3200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(driftX, {
+          toValue: -DRIFT_PX,
+          duration: 3200,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => {
+      loop.stop();
+      driftX.setValue(0);
+    };
+  }, [visible, enabled, reduceMotion, driftX]);
+
   const line = useMemo(() => {
     if (useRoomReactions && roomEmoji) return roomEmoji;
     const key = PRESET_KEYS[tick % PRESET_KEYS.length];
-    return t(`revealDanmaku.${key}`, { defaultValue: key });
+    return t(`revealDanmaku.${key}`);
   }, [tick, t, useRoomReactions, roomEmoji]);
 
   if (!visible || !enabled) return null;
 
   return (
     <View style={styles.host} pointerEvents="none" testID="revealLocalDanmaku">
-      <Text style={styles.text} numberOfLines={1}>
+      <Animated.Text
+        style={[styles.text, reduceMotion ? null : { transform: [{ translateX: driftX }] }]}
+        numberOfLines={1}
+      >
         {line}
-      </Text>
+      </Animated.Text>
     </View>
   );
 }

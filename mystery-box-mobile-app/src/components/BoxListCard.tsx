@@ -28,7 +28,10 @@ function BoxListCardInner({ item, index, onPress }: Props) {
         style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
         onPress={() => onPress(item.id)}
       >
-        <RemoteImage uri={resolveBoxImageUrl(item)} style={styles.cardImage} priority="low" />
+        <View style={styles.coverWrap}>
+          <RemoteImage uri={resolveBoxImageUrl(item)} style={styles.cardImage} priority="low" />
+          <View style={styles.shelfLip} />
+        </View>
         <View style={styles.cardBody}>
           <View style={styles.row}>
             <Text style={styles.cardTitle} numberOfLines={1}>
@@ -62,7 +65,23 @@ function buildBoxListCardStyles(colors: ThemeColors) {
       ...shadows.cardSm,
     },
     cardPressed: { opacity: 0.94 },
-    cardImage: { width: "100%", height: 168 },
+    coverWrap: {
+      width: "100%",
+      height: 168,
+      backgroundColor: colors.bgMuted,
+      position: "relative",
+    },
+    cardImage: { width: "100%", height: "100%" },
+    shelfLip: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 10,
+      backgroundColor: colors.shelfLip,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.brandDark,
+    },
     cardBody: { padding: spacing.lg },
     row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: spacing.xs },
     cardTitle: { flex: 1, fontWeight: "800", fontSize: typography.bodyLg, color: colors.textPrimary, marginRight: spacing.sm },

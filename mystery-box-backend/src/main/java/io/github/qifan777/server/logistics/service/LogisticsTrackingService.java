@@ -1,39 +1,24 @@
 package io.github.qifan777.server.logistics.service;
 
-import io.github.qifan777.server.payment.config.MarketProperties;
+import io.github.qifan777.server.logistics.provider.LogisticsProvider;
+import io.github.qifan777.server.logistics.provider.LogisticsProviderRegistry;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Local logistics events plus optional Kuaidi100 poll API (configure key in application-private.yml).
+ * Local logistics events plus optional live carrier poll via {@link LogisticsProvider}.
  */
 @Service
 @RequiredArgsConstructor
 public class LogisticsTrackingService {
     private final OrderLogisticsService orderLogisticsService;
     private final JdbcTemplate jdbcTemplate;
-    private final MarketProperties marketProperties;
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    @Value("${logistics.kuaidi100.customer:}")
-    private String kuaidiCustomer;
-
-    @Value("${logistics.kuaidi100.key:}")
-    private String kuaidiKey;
-
-    @Value("${logistics.kuaidi100.enabled:false}")
-    private boolean kuaidiEnabled;
+    private final LogisticsProviderRegistry logisticsProviderRegistry;
 
     public TrackingResult trackOrder(String userId, String orderId) {
         verifyOrderOwner(userId, orderId);
@@ -83,64 +68,28 @@ public class LogisticsTrackingService {
         }
         boolean live = false;
         String state = trackingNumber == null || trackingNumber.isBlank() ? "NO_TRACKING" : "LOCAL_ONLY";
-        boolean localOnlyLogistics = "local-only".equalsIgnoreCase(marketProperties.getLogisticsMode());
-        if (!localOnlyLogistics && kuaidiEnabled && trackingNumber != null && !trackingNumber.isBlank()
-                && kuaidiCustomer != null && !kuaidiCustomer.isBlank()
-                && kuaidiKey != null && !kuaidiKey.isBlank()) {
+        LogisticsProvider provider = logisticsProviderRegistry.resolve();
+        if (trackingNumber != null && !trackingNumber.isBlank()) {
             try {
-                List<TrackingEvent> remote = pollKuaidi100(trackingNumber, carrierCode);
+                List<LogisticsProvider.RemoteTrackingEvent> remote =
+                        provider.fetchTracking(trackingNumber, carrierCode);
                 if (!remote.isEmpty()) {
-                    events.addAll(remote);
-                    live = true;
+                    for (var r : remote) {
+                        events.add(new TrackingEvent(r.status(), r.description(), r.eventTime(), r.source()));
+                    }
+                    live = !"local".equalsIgnoreCase(provider.provider());
                     state = remote.get(remote.size() - 1).status();
+                    // Kuaidi100 (local provider) still counts as live when it returned rows
+                    if ("local".equalsIgnoreCase(provider.provider())
+                            && remote.stream().anyMatch(e -> "KUAIDI100".equalsIgnoreCase(e.source()))) {
+                        live = true;
+                    }
                 }
             } catch (Exception ignored) {
                 // keep local events only
             }
         }
         return new TrackingResult(refId, trackingNumber, carrierCode, events, state, live);
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<TrackingEvent> pollKuaidi100(String trackingNumber, String carrierCode) {
-        String com = carrierCode == null || "auto".equalsIgnoreCase(carrierCode) ? "yuantong" : carrierCode;
-        String param = "{\"com\":\"" + com + "\",\"num\":\"" + trackingNumber + "\"}";
-        String sign = md5Hex(param + kuaidiKey + kuaidiCustomer).toUpperCase();
-        String body = "customer=" + kuaidiCustomer + "&sign=" + sign + "&param=" + param;
-        Map<String, Object> resp = restTemplate.postForObject(
-                "https://poll.kuaidi100.com/poll/query.do",
-                body,
-                Map.class
-        );
-        if (resp == null || !"200".equals(String.valueOf(resp.get("status")))) {
-            return List.of();
-        }
-        Object dataObj = resp.get("data");
-        if (!(dataObj instanceof List<?> data)) {
-            return List.of();
-        }
-        List<TrackingEvent> events = new ArrayList<>();
-        for (Object row : data) {
-            if (row instanceof Map<?, ?> map) {
-                events.add(new TrackingEvent(
-                        String.valueOf(map.get("status")),
-                        String.valueOf(map.get("context")),
-                        LocalDateTime.now(),
-                        "KUAIDI100"
-                ));
-            }
-        }
-        return events;
-    }
-
-    private static String md5Hex(String input) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        } catch (Exception e) {
-            throw new IllegalStateException("MD5 unavailable", e);
-        }
     }
 
     private void verifyOrderOwner(String userId, String orderId) {
@@ -155,7 +104,7 @@ public class LogisticsTrackingService {
         }
     }
 
-    public record TrackingEvent(String status, String description, LocalDateTime eventTime, String source) {
+    public record TrackingEvent(String status, String description, java.time.LocalDateTime eventTime, String source) {
     }
 
     public record TrackingResult(

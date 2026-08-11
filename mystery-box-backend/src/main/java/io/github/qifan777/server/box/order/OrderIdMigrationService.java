@@ -103,7 +103,7 @@ public class OrderIdMigrationService {
         rows += updateRef("mystery_box_order_item", "mystery_box_order_id", mapping);
         rows += updateRef("order_logistics_event", "order_id", mapping);
         rows += updateRef("community_post", "order_id", mapping);
-        rows += updateRef("order_retention_claim", "order_id", mapping);
+        rows += updateRef("order_payment_retention_claim", "order_id", mapping);
         rows += updateRef("mystery_box_pool_slot", "order_id", mapping);
         rows += updateNotificationRef(mapping);
         rows += updateRef("referral_commission_record", "order_id", mapping);
@@ -245,7 +245,7 @@ public class OrderIdMigrationService {
         refs.put("mystery_box_order_item", "mystery_box_order_id");
         refs.put("order_logistics_event", "order_id");
         refs.put("community_post", "order_id");
-        refs.put("order_retention_claim", "order_id");
+        refs.put("order_payment_retention_claim", "order_id");
         refs.put("mystery_box_pool_slot", "order_id");
         refs.put("referral_commission_record", "order_id");
         refs.put("payment", "id");

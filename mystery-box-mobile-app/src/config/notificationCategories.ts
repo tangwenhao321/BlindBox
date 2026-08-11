@@ -11,6 +11,7 @@ export const NOTIFICATION_CATEGORIES = {
   MESSAGES: "MESSAGES",
   RESTOCK: "RESTOCK",
   PITY: "PITY",
+  PROBABILITY_CHANGE: "PROBABILITY_CHANGE",
   APP_UPDATE: "APP_UPDATE",
 } as const;
 
@@ -20,6 +21,7 @@ export type NotificationCategory = (typeof NOTIFICATION_CATEGORIES)[keyof typeof
 export const MESSAGE_CENTER_EXTRA_FILTERS: { key: NotificationCategory; labelKey: string }[] = [
   { key: NOTIFICATION_CATEGORIES.RESTOCK, labelKey: "messages.filterRestock" },
   { key: NOTIFICATION_CATEGORIES.PITY, labelKey: "messages.filterPity" },
+  { key: NOTIFICATION_CATEGORIES.PROBABILITY_CHANGE, labelKey: "messages.filterProbability" },
   { key: NOTIFICATION_CATEGORIES.MARKETPLACE, labelKey: "messages.filterMarketplace" },
 ];
 
@@ -27,5 +29,6 @@ export const MESSAGE_CENTER_EXTRA_FILTERS: { key: NotificationCategory; labelKey
 export const PUSH_TOKEN_INTEREST_CATEGORIES: NotificationCategory[] = [
   NOTIFICATION_CATEGORIES.RESTOCK,
   NOTIFICATION_CATEGORIES.PITY,
+  NOTIFICATION_CATEGORIES.PROBABILITY_CHANGE,
   NOTIFICATION_CATEGORIES.MARKETPLACE,
 ];

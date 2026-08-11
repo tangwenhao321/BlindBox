@@ -21,7 +21,13 @@ import { updateRevealRefreshRateFromFps } from "../effects/revealRefreshRate";
 import { setRevealPrefetchFpsHealthy } from "../effects/revealPrefetchGate";
 import { getRevealRemoteConfig, type ReduceMotionLevel } from "../effects/revealRemote";
 import { detectLowPerfDevice, isEmulatorOrLegacyOs, resolveEmulatorDegradeLevel } from "../effects/deviceProfile";
-import { setRevealMinorModeActive } from "../effects/revealMinorMode";
+import {
+  applyAgeTierToRevealMinorMode,
+  setMinorAudioScale,
+  setRevealMinorModeActive,
+} from "../effects/revealMinorMode";
+import { isRevealPowerSaverActive, refreshRevealPowerAdapt } from "../effects/revealPowerAdapt";
+import { fetchIdentityStatus } from "../services/complianceService";
 import {
   getRevealAnimationsEnabled,
   getRevealTextOnlyMode,
@@ -33,7 +39,7 @@ import { getRuntimeFeatureFlags } from "../utils/runtimeFeatureFlags";
 const FPS_SAMPLE_MS = 2000;
 const LOW_FPS_THRESHOLD = 45;
 
-export function useRevealDevice() {
+export function useRevealDevice(authToken?: string | null) {
   const [osReduceMotion, setOsReduceMotion] = useState(false);
   const [animationsEnabled, setAnimationsEnabledState] = useState(true);
   const [textOnlyMode, setTextOnlyModeState] = useState(false);
@@ -41,10 +47,12 @@ export function useRevealDevice() {
   const [degradeLevel, setDegradeLevel] = useState(() =>
     Math.max(getRevealDegradeLevel(), resolveEmulatorDegradeLevel()),
   );
+  const [powerSaver, setPowerSaver] = useState(false);
   const fpsMonitorRef = useRef<{ rafId: number; last: number; frames: number; startedAt: number } | null>(null);
 
   const refreshPerf = useCallback(() => {
     setDegradeLevel(getRevealDegradeLevel());
+    setPowerSaver(isRevealPowerSaverActive());
   }, []);
 
   const stopFpsMonitor = useCallback(() => {
@@ -89,6 +97,11 @@ export function useRevealDevice() {
     if (isEmulatorOrLegacyOs()) {
       markRevealPerformanceDegraded();
     }
+    void refreshRevealPowerAdapt().then((active) => {
+      setPowerSaver(active);
+      if (active) setDegradeLevel((level) => Math.max(level, 1));
+    });
+    // Feature flag is a fallback until identity status loads.
     setRevealMinorModeActive(getRuntimeFeatureFlags()?.minorMode === true);
     AccessibilityInfo.isReduceMotionEnabled().then(setOsReduceMotion).catch(() => setOsReduceMotion(false));
     void getRevealAnimationsEnabled().then(setAnimationsEnabledState);
@@ -107,6 +120,25 @@ export function useRevealDevice() {
       stopFpsMonitor();
     };
   }, [stopFpsMonitor]);
+
+  useEffect(() => {
+    if (!authToken) return;
+    let cancelled = false;
+    void fetchIdentityStatus(authToken)
+      .then((status) => {
+        if (cancelled || !status) return;
+        applyAgeTierToRevealMinorMode(status.ageTier, status.minor);
+        if (typeof status.audioVolumeScale === "number") {
+          setMinorAudioScale(status.audioVolumeScale);
+        }
+      })
+      .catch(() => {
+        /* keep feature-flag fallback */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken]);
 
   const setAnimationsEnabled = useCallback(async (enabled: boolean) => {
     await setRevealAnimationsEnabled(enabled);
@@ -133,7 +165,12 @@ export function useRevealDevice() {
     !animationsEnabled ||
     textOnlyMode;
 
-  const lowPerfMode = isRevealPerformanceDegraded() || skipAnimations || degradeLevel >= 1;
+  const lowPerfMode =
+    isRevealPerformanceDegraded() ||
+    skipAnimations ||
+    degradeLevel >= 1 ||
+    powerSaver ||
+    detectLowPerfDevice();
   const { isDark } = useAppTheme();
   const remote = getRevealRemoteConfig();
   const a11yFlashScale = useMemo(

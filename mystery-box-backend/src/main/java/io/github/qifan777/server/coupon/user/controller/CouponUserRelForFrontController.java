@@ -7,6 +7,7 @@ import io.github.qifan777.server.coupon.user.entity.dto.CouponUserRelSpec;
 import io.github.qifan777.server.coupon.user.repository.CouponUserRelRepository;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import org.babyfish.jimmer.client.FetchBy;
@@ -28,7 +29,10 @@ public class CouponUserRelForFrontController {
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") CouponUserRel findById(@PathVariable String id) {
-        return couponUserRelRepository.findById(id, CouponUserRelRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
+        CouponUserRel rel = couponUserRelRepository.findById(id, CouponUserRelRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(rel.user().id());
+        return rel;
     }
 
     @PostMapping("query")

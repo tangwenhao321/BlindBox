@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { useAppTheme } from "../../context/ThemeContext";
@@ -26,7 +27,14 @@ export function MallSearchBar({ value, onChangeText, onSubmit, onClear, loading,
   return (
     <View style={styles.row}>
       <View style={styles.inputWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Ionicons
+          name="search-outline"
+          size={16}
+          color={themeColors.textMuted}
+          style={styles.searchIcon}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -82,7 +90,7 @@ function buildMallSearchBarStyles(colors: ThemeColors) {
       borderColor: colors.border,
       ...shadows.cardSm,
     },
-    searchIcon: { fontSize: 15, marginEnd: spacing.xs },
+    searchIcon: { marginEnd: spacing.xs },
     input: { flex: 1, fontSize: typography.body, color: colors.textPrimary, paddingVertical: spacing.sm },
     clearBtn: {
       width: 22,
@@ -95,7 +103,7 @@ function buildMallSearchBarStyles(colors: ThemeColors) {
     },
     clearText: { fontSize: 16, lineHeight: 18, color: colors.textMuted, fontWeight: "700" },
     searchBtn: {
-      backgroundColor: colors.textPrimary,
+      backgroundColor: colors.brand,
       borderRadius: radius.pill,
       paddingHorizontal: layout.screenPaddingX,
       minHeight: 44,

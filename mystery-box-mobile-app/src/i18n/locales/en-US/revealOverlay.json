@@ -67,6 +67,10 @@
     "progressLong_progressRare0": "Rare energy is building — hold on…",
     "progressLong_progressFinalePool0": "The finale is approaching — don't blink…",
     "storyFragmentUnlocked": "Story fragment unlocked: {{name}}",
-    "atmosphereRibbonA11y": "Limited-time atmosphere boost"
+    "atmosphereRibbonA11y": "Limited-time atmosphere boost",
+    "recordingLongHint": "Long screen recording may affect smooth playback.",
+    "productStoryTitle": "Style story",
+    "guestReplayLimited": "Sign in to unlock full reveal replay",
+    "guestSnapshotLimited": "Sign in to save reveal snapshots"
   }
 }

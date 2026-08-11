@@ -12,6 +12,7 @@ import io.github.qifan777.server.address.entity.dto.AddressSpec;
 import io.github.qifan777.server.address.repository.AddressRepository;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.infrastructure.model.TenantMapProperty;
+import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.github.qifan777.server.payment.config.MarketProperties;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
@@ -41,7 +42,10 @@ public class AddressForFrontController {
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") Address findById(@PathVariable String id) {
-        return addressRepository.findById(id, AddressRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
+        Address address = addressRepository.findById(id, AddressRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(address.creator().id());
+        return address;
     }
 
     @PostMapping("query")
@@ -110,17 +114,26 @@ public class AddressForFrontController {
 
     @PostMapping("top")
     public Boolean top(@RequestParam String id) {
+        Address address = addressRepository.findById(id, AddressRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        String loginId = StpUtil.getLoginIdAsString();
+        FrontOwnership.assertSelf(address.creator().id());
         AddressTable t = AddressTable.$;
         // 设置该用户的其他地址为非默认
         addressRepository.sql().createUpdate(t)
                 .set(t.top(), false)
-                .where(t.creator().id().eq(StpUtil.getLoginIdAsString()))
+                .where(t.creator().id().eq(loginId))
                 .execute();
-        // 设置传入的地址为默认
-        addressRepository.update(AddressDraft.$.produce(draft -> draft.setId(id)
-                .setTop(true)));
+        // 仅将本人地址设为默认（带 ownership WHERE，防 IDOR）
+        int updated = addressRepository.sql().createUpdate(t)
+                .set(t.top(), true)
+                .where(t.id().eq(id))
+                .where(t.creator().id().eq(loginId))
+                .execute();
+        if (updated == 0) {
+            throw new BusinessException("只能修改自己的数据");
+        }
         return true;
-
     }
 
     private static String nullableField(String value) {

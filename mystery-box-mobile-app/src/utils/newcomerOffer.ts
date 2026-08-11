@@ -1,10 +1,22 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ORDER_STATUS } from "../config/constants";
 import type { MysteryBox, Order } from "../types";
+import { getAppCurrency } from "./formatCurrency";
 
 const SESSION_DISMISSED_KEY = "newcomer_offer_session_dismissed_v1";
 const PURCHASED_BOX_KEY = "user_has_purchased_box_v1";
-export const NEWCOMER_FALLBACK_PRICE = 0.01;
+
+/** CNY-scale demo price when exclusive box is missing. */
+export const NEWCOMER_FALLBACK_PRICE_CNY = 0.01;
+/** VND-scale demo price when exclusive box is missing (~token amount). */
+export const NEWCOMER_FALLBACK_PRICE_VND = 1000;
+
+/** @deprecated Prefer {@link getNewcomerFallbackPrice} — kept for tests that assert CNY default. */
+export const NEWCOMER_FALLBACK_PRICE = NEWCOMER_FALLBACK_PRICE_CNY;
+
+export function getNewcomerFallbackPrice(locale?: string): number {
+  return getAppCurrency(locale) === "VND" ? NEWCOMER_FALLBACK_PRICE_VND : NEWCOMER_FALLBACK_PRICE_CNY;
+}
 
 const OPENED_STATUSES = new Set<string>([
   ORDER_STATUS.TO_BE_DELIVERED,
@@ -80,5 +92,5 @@ export function findNewcomerExclusiveBox(boxes: MysteryBox[]): MysteryBox | unde
 }
 
 export function getNewcomerBarPrice(boxes: MysteryBox[]): number {
-  return findNewcomerExclusiveBox(boxes)?.price ?? NEWCOMER_FALLBACK_PRICE;
+  return findNewcomerExclusiveBox(boxes)?.price ?? getNewcomerFallbackPrice();
 }

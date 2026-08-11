@@ -21,7 +21,8 @@ import java.util.Map;
 @Slf4j
 @Transactional(readOnly = true)
 public class MysteryBoxPoolSlotService {
-    private static final int DEFAULT_SLOT_COUNT = 12;
+    private static final int MIN_SLOT_COUNT = 1;
+    private static final int MAX_SLOT_COUNT = 200;
     private static final int RESERVE_SECONDS = 60;
 
     private final JdbcTemplate jdbcTemplate;
@@ -30,6 +31,9 @@ public class MysteryBoxPoolSlotService {
     @Transactional(readOnly = false)
     public SlotGridView listSlots(String mysteryBoxId) {
         ensureSlotsInitialized(mysteryBoxId);
+        MysteryBox mysteryBox = mysteryBoxRepository.findById(mysteryBoxId)
+                .orElseThrow(() -> new BusinessException("盲盒不存在"));
+        int slotCount = resolveSlotCount(mysteryBox);
         List<SlotView> slots = jdbcTemplate.query(
                 """
                         SELECT slot_no, status, reserved_by_user_id, reserved_until
@@ -47,7 +51,7 @@ public class MysteryBoxPoolSlotService {
                                 : rs.getTimestamp("reserved_until").toLocalDateTime()
                 ),
                 mysteryBoxId,
-                DEFAULT_SLOT_COUNT
+                slotCount
         );
         return new SlotGridView(mysteryBoxId, slots);
     }
@@ -122,8 +126,8 @@ public class MysteryBoxPoolSlotService {
     }
 
     @Transactional
-    public void markSold(String mysteryBoxId, int slotNo, String orderId) {
-        jdbcTemplate.update(
+    public void markSold(String mysteryBoxId, int slotNo, String orderId, String userId) {
+        int updated = jdbcTemplate.update(
                 """
                         UPDATE mystery_box_pool_slot
                         SET status = 'SOLD',
@@ -131,12 +135,19 @@ public class MysteryBoxPoolSlotService {
                             reserved_until = NULL,
                             order_id = ?,
                             edited_time = NOW(6)
-                        WHERE mystery_box_id = ? AND slot_no = ?
+                        WHERE mystery_box_id = ?
+                          AND slot_no = ?
+                          AND status = 'RESERVED'
+                          AND reserved_by_user_id = ?
                         """,
                 orderId,
                 mysteryBoxId,
-                slotNo
+                slotNo,
+                userId
         );
+        if (updated == 0) {
+            throw new BusinessException("柜位状态异常，无法标记售出");
+        }
     }
 
     public void assertReservedByUser(String mysteryBoxId, int slotNo, String userId) {
@@ -260,24 +271,13 @@ public class MysteryBoxPoolSlotService {
         if (mismatches == null || mismatches.isEmpty()) {
             return 0;
         }
-        int repaired = 0;
-        for (PoolMismatch mismatch : mismatches) {
-            int updated = jdbcTemplate.update(
-                    """
-                            UPDATE mystery_box
-                            SET pool_remaining = ?, edited_time = NOW(6)
-                            WHERE id = ?
-                              AND pool_remaining <> ?
-                            """,
-                    mismatch.openSlotCount(),
-                    mismatch.mysteryBoxId(),
-                    mismatch.openSlotCount()
-            );
-            if (updated > 0) {
-                repaired++;
-            }
-        }
-        return repaired;
+        // Do not auto-write pool_remaining — mismatches need manual ops review.
+        log.warn(
+                "pool slot repairMismatches disabled; refusing auto-write of pool_remaining count={} sample={}",
+                mismatches.size(),
+                mismatches.stream().limit(5).toList()
+        );
+        return 0;
     }
 
     public Map<String, Object> reconcileAuditPayload(ReconcileResult result) {
@@ -310,9 +310,9 @@ public class MysteryBoxPoolSlotService {
         if (count != null && count > 0) {
             return;
         }
-        mysteryBoxRepository.findById(mysteryBoxId)
+        MysteryBox mysteryBox = mysteryBoxRepository.findById(mysteryBoxId)
                 .orElseThrow(() -> new BusinessException("盲盒不存在"));
-        int slotCount = DEFAULT_SLOT_COUNT;
+        int slotCount = resolveSlotCount(mysteryBox);
         LocalDateTime now = LocalDateTime.now();
         List<Object[]> batch = new ArrayList<>(slotCount);
         for (int slotNo = 1; slotNo <= slotCount; slotNo++) {
@@ -333,6 +333,12 @@ public class MysteryBoxPoolSlotService {
                         """,
                 batch
         );
+    }
+
+    /** Prefer poolTotal when set; otherwise poolRemaining; clamp to [1, 200]. */
+    static int resolveSlotCount(MysteryBox mysteryBox) {
+        int raw = mysteryBox.poolTotal() > 0 ? mysteryBox.poolTotal() : mysteryBox.poolRemaining();
+        return Math.max(MIN_SLOT_COUNT, Math.min(MAX_SLOT_COUNT, raw));
     }
 
     public record SlotView(

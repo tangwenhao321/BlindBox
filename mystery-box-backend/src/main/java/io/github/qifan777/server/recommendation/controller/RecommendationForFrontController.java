@@ -5,8 +5,8 @@ import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
 import io.github.qifan777.server.recommendation.service.RecommendationService;
+import io.github.qifan777.server.recommendation.service.RecommendationService.RecommendationResult;
 import lombok.RequiredArgsConstructor;
-import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Front recommendation APIs.
+ * <p>
+ * Clients should include {@code variant} when tracking {@code RECOMMEND_IMPRESSION}
+ * / {@code RECOMMEND_CLICK} so A/B results are attributable.
+ */
 @RestController
 @RequestMapping("front/recommendation")
 @RequiredArgsConstructor
@@ -25,14 +31,20 @@ public class RecommendationForFrontController {
     private final MysteryBoxRepository mysteryBoxRepository;
 
     @GetMapping("mystery-box")
-    public List<@FetchBy("COMPLEX_FETCHER_FOR_FRONT") MysteryBox> recommendMysteryBoxes(
+    public Map<String, Object> recommendMysteryBoxes(
             @RequestParam(defaultValue = "8") int limit,
             @RequestParam(required = false) String variant
     ) {
         String userId = String.valueOf(StpUtil.getLoginIdDefaultNull());
-        String useVariant = (variant == null || variant.isBlank()) ? recommendationService.variantForUser(userId) : variant;
-        List<String> boxIds = recommendationService.recommendBoxIds(userId, limit, useVariant);
-        return mysteryBoxRepository.findByIds(boxIds, MysteryBoxRepository.COMPLEX_FETCHER_FOR_FRONT);
+        RecommendationResult recommendation = recommendationService.recommend(userId, limit, variant);
+        List<MysteryBox> items = mysteryBoxRepository.findByIds(
+                recommendation.boxIds(),
+                MysteryBoxRepository.COMPLEX_FETCHER_FOR_FRONT
+        );
+        return Map.of(
+                "variant", recommendation.variant(),
+                "items", items
+        );
     }
 
     @GetMapping("debug")

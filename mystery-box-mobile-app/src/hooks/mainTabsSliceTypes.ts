@@ -78,6 +78,7 @@ export type MainTabsCheckoutSlice = Pick<
   | "quote"
   | "quotingPrice"
   | "quoteError"
+  | "retryQuote"
   | "availableCoupons"
   | "selectedCouponUserId"
   | "setSelectedCouponUserId"

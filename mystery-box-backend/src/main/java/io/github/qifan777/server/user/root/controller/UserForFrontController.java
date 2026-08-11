@@ -17,6 +17,7 @@ import io.github.qifan777.server.user.root.entity.dto.UserInfoInput;
 import io.github.qifan777.server.user.root.entity.dto.UserLoginInput;
 import io.github.qifan777.server.user.root.entity.dto.UserRegisterInput;
 import io.github.qifan777.server.user.root.entity.dto.UserResetPasswordInput;
+import io.github.qifan777.server.user.root.entity.dto.UserSmsLoginInput;
 import io.github.qifan777.server.user.root.repository.UserRepository;
 import io.github.qifan777.server.user.root.repository.UserBalanceLogRepository;
 import io.github.qifan777.server.user.root.service.UserService;
@@ -79,14 +80,21 @@ public class UserForFrontController {
 
     @SaIgnore
     @PostMapping("register")
-    public SaTokenInfo register(@RequestBody @Validated UserRegisterInput registerInput) {
-        return userService.register(registerInput);
+    public SaTokenInfo register(@RequestBody @Validated UserRegisterInput registerInput,
+                                @RequestHeader(value = "x-device-id", required = false) String deviceId) {
+        return userService.register(registerInput, deviceId);
     }
 
     @SaIgnore
     @PostMapping("login")
     public SaTokenInfo login(@RequestBody @Validated UserLoginInput loginInput) {
         return userService.login(loginInput);
+    }
+
+    @SaIgnore
+    @PostMapping("login/sms")
+    public SaTokenInfo loginBySms(@RequestBody @Validated UserSmsLoginInput loginInput) {
+        return userService.loginBySms(loginInput);
     }
 
     @SaIgnore
@@ -105,12 +113,22 @@ public class UserForFrontController {
         userPushTokenService.upsert(
                 StpUtil.getLoginIdAsString(),
                 input.expoPushToken(),
-                input.platform()
+                input.platform(),
+                input.releaseChannel()
         );
     }
 
+    /**
+     * Prefer deleting by token so logging out one device does not wipe every other device's
+     * registration for the same account. Falls back to user-wide delete only when the client
+     * cannot supply a token (legacy builds).
+     */
     @DeleteMapping("push-token")
-    public void unregisterPushToken() {
+    public void unregisterPushToken(@RequestParam(required = false) String expoPushToken) {
+        if (expoPushToken != null && !expoPushToken.isBlank()) {
+            userPushTokenService.deleteByToken(expoPushToken);
+            return;
+        }
         userPushTokenService.deleteByUserId(StpUtil.getLoginIdAsString());
     }
 

@@ -42,6 +42,16 @@ describe("routeRegistry", () => {
     expect(resolveDeepLinkFromPush("COMMUNITY", null)).toEqual({ view: "community" });
     expect(resolveDeepLinkFromPush("WELFARE", null)).toEqual({ view: "welfare" });
     expect(resolveDeepLinkFromPush("MESSAGES", null)).toEqual({ view: "messages" });
+    expect(resolveDeepLinkFromPush("RESTOCK", "box-1")).toEqual({
+      view: "boxDetails",
+      boxId: "box-1",
+    });
+    expect(resolveDeepLinkFromPush("PITY", "box-2")).toEqual({
+      view: "boxDetails",
+      boxId: "box-2",
+    });
+    expect(resolveDeepLinkFromPush("RESTOCK", null)).toBeNull();
+    expect(resolveDeepLinkFromPush("PITY", null)).toBeNull();
   });
 
   it("resolves box detail paths", () => {

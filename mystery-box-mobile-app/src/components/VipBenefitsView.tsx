@@ -69,6 +69,7 @@ export function VipBenefitsView({ onBack }: Props) {
         ) : (
           <>
             <View style={styles.hero}>
+              <View style={styles.heroShelf} />
               <Text style={styles.heroLabel}>{active ? t("vip.vipActive") : t("vip.regularUser")}</Text>
               <Text style={styles.heroTitle}>
                 {t("vip.levelTitle", { level: levelProgress.level, title: levelProgress.title })}
@@ -88,7 +89,7 @@ export function VipBenefitsView({ onBack }: Props) {
             <Text style={styles.sectionTitle}>{t("vip.benefitsTitle")}</Text>
             {BENEFIT_KEYS.map((key) => (
               <View key={key} style={styles.row}>
-                <Text style={styles.bullet}>✦</Text>
+                <View style={styles.bulletDot} />
                 <Text style={styles.rowText}>{t(key)}</Text>
               </View>
             ))}
@@ -105,11 +106,23 @@ function buildVipStyles(colors: ThemeColors) {
     root: { flex: 1, backgroundColor: colors.bgPage },
     content: { paddingBottom: layout.screenPaddingBottom, gap: spacing.md },
     hero: {
-      backgroundColor: colors.bgCard,
+      backgroundColor: colors.bgBrandSoft,
       borderRadius: radius.lg,
       padding: spacing.lg,
+      paddingTop: spacing.lg + 4,
       borderWidth: 1,
-      borderColor: colors.violetPanelBorder,
+      borderColor: colors.chipBorder,
+      overflow: "hidden",
+    },
+    heroShelf: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      top: 0,
+      height: 8,
+      backgroundColor: colors.shelfLip,
+      borderBottomWidth: 2,
+      borderBottomColor: colors.brandDark,
     },
     heroLabel: { color: colors.brand, fontWeight: "800", fontSize: typography.caption },
     heroTitle: { marginTop: spacing.xs, fontSize: typography.h3, fontWeight: "900", color: colors.textPrimary },
@@ -124,7 +137,13 @@ function buildVipStyles(colors: ThemeColors) {
     levelBarFill: { height: "100%", backgroundColor: colors.brand, borderRadius: 4 },
     sectionTitle: { fontWeight: "900", fontSize: typography.bodyLg, color: colors.textPrimary },
     row: { flexDirection: "row", gap: spacing.sm, alignItems: "flex-start" },
-    bullet: { color: colors.brand, fontWeight: "900" },
+    bulletDot: {
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: colors.brand,
+      marginTop: 7,
+    },
     rowText: { flex: 1, color: colors.textSecondary, lineHeight: 22 },
     legal: { marginTop: spacing.md, color: colors.textMuted, fontSize: typography.micro, lineHeight: 18 },
   });

@@ -5,6 +5,7 @@ import { resolveProductImageUrl } from "../utils/boxImage";
 import { useTranslation } from "react-i18next";
 import { ListSkeleton } from "./ListSkeleton";
 import { SubPageHeader } from "./ui/SubPageHeader";
+import { SubPageShelfAccent } from "./ui/SubPageShelfAccent";
 import { EmptyState } from "./EmptyState";
 import { OptimizedFlatList } from "./ui/OptimizedFlatList";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
@@ -72,6 +73,7 @@ export function ExchangeMallView({ onBack, onGoWarehouse }: Props) {
   return (
     <View style={styles.page}>
       <SubPageHeader title={t("exchangeMall.titleAdvanced")} onBack={onBack} />
+      <SubPageShelfAccent />
       <Text style={styles.balance}>
         {t("exchangeMall.balanceSummary", {
           balance,
@@ -128,8 +130,9 @@ export function ExchangeMallView({ onBack, onGoWarehouse }: Props) {
                 accessibilityRole="button"
                 accessibilityLabel={t("exchangeMall.exchangeA11y", { name: sku.name })}
                 onPress={async () => {
+                  const idempotencySeed = `${sku.id}:${Date.now()}`;
                   const perform = async () => {
-                    await exchangeFragmentSku(token, sku.id);
+                    await exchangeFragmentSku(token, sku.id, { idempotencySeed });
                     toast.success(t("exchangeMall.exchangeSuccess"));
                     await reload();
                   };
@@ -137,7 +140,7 @@ export function ExchangeMallView({ onBack, onGoWarehouse }: Props) {
                     queueIfOffline(t("offline.actionExchange"), perform, {
                       kind: "exchangeFragment",
                       token,
-                      payload: { skuId: sku.id },
+                      payload: { skuId: sku.id, idempotencySeed },
                     })
                   )
                     return;

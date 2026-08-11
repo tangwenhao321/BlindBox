@@ -4,6 +4,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.ops.service.AppRevealConfigService;
 import io.github.qifan777.server.ops.service.FeatureFlagService;
 import io.github.qifan777.server.payment.config.MarketProperties;
+import io.github.qifan777.server.payment.config.MoMoProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @RestController
@@ -18,8 +20,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AppPublicConfigController {
     private final MarketProperties marketProperties;
+    private final MoMoProperties moMoProperties;
     private final FeatureFlagService featureFlagService;
     private final AppRevealConfigService appRevealConfigService;
+
+    @Value("${app.auth.zalo-enabled:false}")
+    private boolean zaloLoginEnabled;
+
+    @Value("${app.marketplace.fee-rate:0.05}")
+    private BigDecimal marketplaceFeeRate;
 
     @Value("${app.support.hotline:}")
     private String supportHotline;
@@ -312,6 +321,10 @@ public class AppPublicConfigController {
                 marketProperties.getSupportZaloOaId(),
                 marketProperties.getDefaultLocale(),
                 marketProperties.getLogisticsMode(),
+                marketplaceFeeRate == null ? new BigDecimal("0.05") : marketplaceFeeRate,
+                // Stub MoMo must never advertise as ready/offered
+                moMoProperties.isCheckoutOffered(),
+                zaloLoginEnabled,
                 featureFlagService.allAsMap()
         );
     }
@@ -464,6 +477,9 @@ public class AppPublicConfigController {
             String supportZaloOaId,
             String defaultLocale,
             String logisticsMode,
+            BigDecimal marketplaceFeeRate,
+            boolean momoEnabled,
+            boolean zaloLoginEnabled,
             Map<String, Boolean> featureFlags
     ) {
     }

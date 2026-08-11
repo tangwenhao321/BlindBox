@@ -6,6 +6,8 @@ import com.github.binarywang.wxpay.bean.notify.WxPayNotifyV3Result;
 import com.github.binarywang.wxpay.service.WxPayService;
 import io.github.qifan777.server.box.order.OrderIds;
 import io.github.qifan777.server.dict.model.DictConstants;
+import io.github.qifan777.server.infrastructure.error.MoneyPathErrorCode;
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.payment.config.MarketProperties;
 import io.github.qifan777.server.payment.entity.Payment;
 import io.github.qifan777.server.payment.entity.PaymentDraft;
@@ -13,6 +15,8 @@ import io.github.qifan777.server.payment.gateway.PaymentGateway;
 import io.github.qifan777.server.payment.gateway.PaymentGatewayRegistry;
 import io.github.qifan777.server.payment.gateway.PaymentNotifyResult;
 import io.github.qifan777.server.payment.gateway.VNPayPaymentGateway;
+import io.github.qifan777.server.payment.repository.PaymentRepository;
+import io.github.qifan777.server.payment.service.PaymentNotifyLogService;
 import io.github.qifan777.server.vip.order.entity.VipOrder;
 import io.github.qifan777.server.vip.order.entity.VipOrderDraft;
 import io.github.qifan777.server.vip.order.entity.dto.VipOrderInput;
@@ -29,6 +33,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -50,20 +55,23 @@ public class VipOrderService {
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final MarketProperties marketProperties;
     private final VNPayPaymentGateway vnpayPaymentGateway;
+    private final PaymentNotifyLogService paymentNotifyLogService;
+    private final PaymentRepository paymentRepository;
 
     private Payment initPayment(BigDecimal price, String id) {
+        BigDecimal rounded = MoneyRounding.round(price, marketProperties.getCurrency());
         return PaymentDraft.$.produce(draft -> {
-            draft.setProductAmount(price)
+            draft.setProductAmount(rounded)
                     .setPayType(paymentGatewayRegistry.resolveForMarket().payType())
                     .setCouponAmount(BigDecimal.ZERO)
                     .setVipAmount(BigDecimal.ZERO)
                     .setDeliveryFee(BigDecimal.ZERO)
-                    .setPayAmount(price)
+                    .setPayAmount(rounded)
                     .setId(id);
         });
     }
 
-    public Object save(VipOrderInput vipOrderInput) {
+    public Object save(VipOrderInput vipOrderInput, String clientIp) {
         VipPackage vipPackage = vipPackageRepository.findById(vipOrderInput.getVipPackageId()).orElseThrow(() -> new BusinessException(ResultCode.NotFindError));
         String orderId = OrderIds.next();
         VipOrder produce = VipOrderDraft.$.produce(vipOrderInput.toEntity(), draft -> {
@@ -79,14 +87,16 @@ public class VipOrderService {
         });
         VipOrder activityOrder = vipOrderRepository.save(produce);
         PaymentGateway gateway = paymentGatewayRegistry.resolveForMarket();
-        return gateway.prepay(activityOrder.baseOrder(), 5, notifyPathForMarket(), "127.0.0.1");
+        return gateway.prepay(activityOrder.baseOrder(), 5, notifyPathForMarket(), clientIp);
     }
 
     public Object prepay(String orderId, String clientIp) {
         VipOrder vipOrder = vipOrderRepository.findById(orderId, VipOrderRepository.COMPLEX_FETCHER_FOR_ADMIN)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单不存在"));
         if (!vipOrder.creator().id().equals(StpUtil.getLoginIdAsString())) {
-            throw new BusinessException("无权操作该订单");
+            throw new BusinessException(
+                    MoneyPathErrorCode.ORDER_OWNERSHIP_DENIED,
+                    MoneyPathErrorCode.ORDER_OWNERSHIP_DENIED.tokenMessage("无权操作该订单"));
         }
         if (vipOrder.baseOrder().payment().payTime() != null) {
             throw new BusinessException("订单已支付");
@@ -101,7 +111,36 @@ public class VipOrderService {
                         body, signatureHeader)
                 .getResult();
         log.info("收到 VIP 微信支付回调通知，订单号：{}", notifyResult);
-        completeAfterPayment(notifyResult.getOutTradeNo(), notifyResult.getOutTradeNo());
+        String outTradeNo = notifyResult.getOutTradeNo();
+        String transactionId = StringUtils.hasText(notifyResult.getTransactionId())
+                ? notifyResult.getTransactionId()
+                : outTradeNo;
+        Long amountMinor = null;
+        if (notifyResult.getAmount() != null && notifyResult.getAmount().getTotal() != null) {
+            amountMinor = notifyResult.getAmount().getTotal().longValue();
+        }
+        if (amountMinor == null) {
+            log.warn("WeChat VIP IPN missing amount orderId={}", outTradeNo);
+            throw new BusinessException("微信支付金额缺失");
+        }
+        VipOrder vipOrder = vipOrderRepository.findById(outTradeNo, VipOrderRepository.COMPLEX_FETCHER_FOR_ADMIN)
+                .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单不存在"));
+        if (!MoneyRounding.matchesGatewayMinor(amountMinor, vipOrder.baseOrder().payment().payAmount())) {
+            log.warn("WeChat VIP IPN amount mismatch orderId={} amountMinor={}", outTradeNo, amountMinor);
+            throw new BusinessException("微信支付金额不匹配");
+        }
+        if (!paymentNotifyLogService.tryBegin(outTradeNo, transactionId, "vip-wechat", body)) {
+            log.info("重复 VIP 微信回调已忽略 orderId={}", outTradeNo);
+            return WECHAT_NOTIFY_SUCCESS;
+        }
+        try {
+            completeAfterPayment(outTradeNo, transactionId);
+            paymentNotifyLogService.markProcessed(outTradeNo, "vip-wechat", body);
+        } catch (Exception ex) {
+            paymentNotifyLogService.markFailed(outTradeNo, "vip-wechat");
+            log.error("VIP WeChat notify failed orderId={}", outTradeNo, ex);
+            throw ex;
+        }
         return WECHAT_NOTIFY_SUCCESS;
     }
 
@@ -111,15 +150,38 @@ public class VipOrderService {
             return "RspCode=97&Message=Invalid signature";
         }
         PaymentNotifyResult result = parsed.get();
-        completeAfterPayment(result.orderId(), result.transactionId());
+        VipOrder vipOrder = vipOrderRepository.findById(result.orderId(), VipOrderRepository.COMPLEX_FETCHER_FOR_ADMIN)
+                .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单不存在"));
+        if (!vnpayPaymentGateway.matchesPayAmount(result.amountMinor(), vipOrder.baseOrder().payment().payAmount())) {
+            log.warn("VNPay VIP IPN amount mismatch orderId={} amountMinor={}", result.orderId(), result.amountMinor());
+            return "RspCode=04&Message=Invalid amount";
+        }
+        String body = params.toString();
+        if (!paymentNotifyLogService.tryBegin(result.orderId(), result.transactionId(), "vip-vnpay", body)) {
+            log.info("重复 VIP VNPay 回调已忽略 orderId={}", result.orderId());
+            return VNPAY_NOTIFY_SUCCESS;
+        }
+        try {
+            completeAfterPayment(result.orderId(), result.transactionId());
+            paymentNotifyLogService.markProcessed(result.orderId(), "vip-vnpay", body);
+        } catch (Exception ex) {
+            paymentNotifyLogService.markFailed(result.orderId(), "vip-vnpay");
+            log.error("VIP VNPay notify failed orderId={}", result.orderId(), ex);
+            throw ex;
+        }
         return VNPAY_NOTIFY_SUCCESS;
+    }
+
+    /** Idempotent VIP payment completion for reconciliation jobs (missed IPN). */
+    public void reconcilePayment(String orderId, String transactionId) {
+        completeAfterPayment(orderId, transactionId == null ? orderId : transactionId);
     }
 
     private void completeAfterPayment(String outTradeNo, String tradeNo) {
         VipOrder vipOrder = vipOrderRepository.findById(outTradeNo, VipOrderRepository.COMPLEX_FETCHER_FOR_ADMIN)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单不存在"));
-        if (vipOrder.baseOrder().payment().payTime() != null) {
-            log.info("重复支付回调，忽略后续处理，vipOrderId={}", vipOrder.id());
+        if (!paymentRepository.claimPayTime(outTradeNo, tradeNo == null ? outTradeNo : tradeNo, LocalDateTime.now())) {
+            log.info("重复支付回调，CAS 忽略，vipOrderId={}", vipOrder.id());
             return;
         }
         StpUtil.switchTo(vipOrder.creator().id());
@@ -133,12 +195,6 @@ public class VipOrderService {
             LocalDateTime endTime = LocalDateTime.now().isAfter(vip.endTime()) ? LocalDateTime.now() : vip.endTime();
             draft.setEndTime(endTime.plusDays(vipOrder.vipPackage().days()));
         }));
-        vipOrderRepository.save(VipOrderDraft.$.produce(vipOrder, draft -> draft
-                        .baseOrder()
-                        .payment()
-                        .setPayTime(LocalDateTime.now())
-                        .setTradeNo(tradeNo == null ? outTradeNo : tradeNo)))
-                .id();
     }
 
     private String notifyPathForMarket() {

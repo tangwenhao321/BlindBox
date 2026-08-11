@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { OptimizedFlatList } from "../ui/OptimizedFlatList";
 import { QualityBadge } from "../ui/QualityBadge";
 import { RemoteImage } from "../ui/RemoteImage";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { layout, radius, spacing, typography } from "../../styles/tokens";
+import { useAppTheme } from "../../context/ThemeContext";
+import { font, layout, spacing, typography, withAlpha } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 import type { MysteryBox, Product } from "../../types";
 import { uniqueProducts } from "../../utils/boxDisplay";
@@ -13,7 +15,7 @@ import { resolveBoxImageUrl, resolveProductImageUrl } from "../../utils/boxImage
 import { formatCurrency } from "../../utils/formatCurrency";
 
 const { width: SCREEN_W } = Dimensions.get("window");
-const CAROUSEL_W = SCREEN_W - layout.screenPaddingX * 2;
+const STAGE_H = 328;
 
 type Props = {
   activeBox: MysteryBox;
@@ -23,6 +25,7 @@ type Props = {
 
 export function BoxProductCarousel({ activeBox, items, onIndexChange }: Props) {
   const styles = useThemedStyles(buildBoxProductCarouselStyles);
+  const { colors } = useAppTheme();
   const [carouselIndex, setCarouselIndex] = useState(0);
   const slides = uniqueProducts(items);
 
@@ -50,7 +53,7 @@ export function BoxProductCarousel({ activeBox, items, onIndexChange }: Props) {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id || item.name}
         onMomentumScrollEnd={(e) => {
-          const idx = Math.round(e.nativeEvent.contentOffset.x / CAROUSEL_W);
+          const idx = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W);
           setIndex(idx);
         }}
         renderItem={({ item }) => (
@@ -59,11 +62,21 @@ export function BoxProductCarousel({ activeBox, items, onIndexChange }: Props) {
               uri={resolveProductImageUrl(item.id, item.name) || resolveBoxImageUrl(activeBox)}
               style={styles.carouselImage}
             />
+            <LinearGradient
+              colors={[
+                "transparent",
+                withAlpha(colors.bgPage, 0.35),
+                withAlpha(colors.bgPage, 0.92),
+              ]}
+              locations={[0.35, 0.65, 1]}
+              style={styles.vignette}
+              pointerEvents="none"
+            />
             <View style={styles.carouselBadge}>
               <QualityBadge tier={item.qualityType || "LEGEND"} compact />
             </View>
             <View style={styles.carouselCaption}>
-              <Text style={styles.carouselName} numberOfLines={1}>
+              <Text style={styles.carouselName} numberOfLines={2}>
                 {item.name}
               </Text>
               <Text style={styles.carouselPrice}>{formatCurrency(item.price ?? activeBox.price)}</Text>
@@ -85,28 +98,40 @@ export function BoxProductCarousel({ activeBox, items, onIndexChange }: Props) {
 
 function buildBoxProductCarouselStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    carouselWrap: { marginBottom: spacing.lg },
-    carouselSlide: {
-      width: CAROUSEL_W,
-      borderRadius: radius.lg,
-      overflow: "hidden",
-      backgroundColor: colors.bgCard,
-      borderWidth: 1,
-      borderColor: colors.border,
+    carouselWrap: {
+      marginHorizontal: -layout.screenPaddingX,
+      marginBottom: spacing.lg,
+      width: SCREEN_W,
     },
-    carouselImage: { width: "100%", height: 220 },
-    carouselBadge: { position: "absolute", top: spacing.sm, start: spacing.sm },
+    carouselSlide: {
+      width: SCREEN_W,
+      overflow: "hidden",
+      backgroundColor: colors.bgSoft,
+    },
+    carouselImage: { width: "100%", height: STAGE_H },
+    vignette: {
+      ...StyleSheet.absoluteFillObject,
+      top: STAGE_H * 0.35,
+    },
+    carouselBadge: { position: "absolute", top: spacing.md, start: spacing.lg },
     carouselCaption: {
       position: "absolute",
-      start: spacing.md,
-      end: spacing.md,
-      bottom: spacing.md,
-      backgroundColor: "rgba(0,0,0,0.45)",
-      borderRadius: radius.md,
-      padding: spacing.sm,
+      start: spacing.lg,
+      end: spacing.lg,
+      bottom: spacing.lg,
     },
-    carouselName: { color: "#fff", fontWeight: "800", fontSize: typography.body },
-    carouselPrice: { color: "#fff", fontWeight: "800", marginTop: 4, fontSize: typography.h4 },
+    carouselName: {
+      ...font("bodySemiBold"),
+      color: colors.textPrimary,
+      fontSize: typography.h2,
+      letterSpacing: 0.4,
+    },
+    carouselPrice: {
+      ...font("numeral"),
+      color: colors.brandText,
+      marginTop: 4,
+      fontSize: typography.h4,
+    },
     dots: { flexDirection: "row", justifyContent: "center", gap: 6, marginTop: spacing.sm },
     dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.border },
     dotActive: { width: 18, backgroundColor: colors.brand },

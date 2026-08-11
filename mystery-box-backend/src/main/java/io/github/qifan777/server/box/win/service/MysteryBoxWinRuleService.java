@@ -15,7 +15,8 @@ import io.github.qifan777.server.product.root.entity.Product;
 import io.github.qifan777.server.product.root.repository.ProductRepository;
 import io.qifan.infrastructure.common.constants.ResultCode;
 import io.qifan.infrastructure.common.exception.BusinessException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class MysteryBoxWinRuleService {
 
@@ -38,11 +39,15 @@ public class MysteryBoxWinRuleService {
     private final MysteryBoxRepository mysteryBoxRepository;
     private final Map<String, Long> opCounters = new LinkedHashMap<>();
 
+    @Value("${app.fairness.allow-win-rule-override:false}")
+    private boolean allowWinRuleOverride = false;
+
     public String createRule(String userId,
                              String mysteryBoxId,
                              String productId,
                              int remainingCount,
                              String remark) {
+        assertOverrideAllowed("CREATE");
         if (!StringUtils.hasText(userId) || !StringUtils.hasText(mysteryBoxId) || !StringUtils.hasText(productId)) {
             throw new BusinessException(ResultCode.ParamSetIllegal, "用户、盲盒、商品不能为空");
         }
@@ -77,10 +82,20 @@ public class MysteryBoxWinRuleService {
     }
 
     public void consumeOne(MysteryBoxWinRule rule) {
-        mysteryBoxWinRuleRepository.consumeOne(rule.id(), rule.remainingCount());
+        if (!consumeOneAtomic(rule)) {
+            throw new BusinessException(ResultCode.ParamSetIllegal, "指定中奖次数已用尽");
+        }
+    }
+
+    /** CAS decrement remaining_count; false when concurrent consume emptied the rule. */
+    public boolean consumeOneAtomic(MysteryBoxWinRule rule) {
+        return mysteryBoxWinRuleRepository.consumeOneAtomic(rule.id());
     }
 
     public void setEnabled(String id, boolean enabled) {
+        if (enabled) {
+            assertOverrideAllowed("ENABLE");
+        }
         MysteryBoxWinRule rule = mysteryBoxWinRuleRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "规则不存在"));
         if (!rule.approved()) {
@@ -92,6 +107,7 @@ public class MysteryBoxWinRuleService {
     }
 
     public void approveRule(String id) {
+        assertOverrideAllowed("APPROVE");
         MysteryBoxWinRule rule = mysteryBoxWinRuleRepository.findById(id)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "规则不存在"));
         if (rule.approved()) {
@@ -131,15 +147,15 @@ public class MysteryBoxWinRuleService {
         mysteryBoxWinHitLogRepository.save(log);
     }
 
-    public java.util.List<MysteryBoxWinHitLog> queryLatestLogs(int limit) {
+    public List<MysteryBoxWinHitLog> queryLatestLogs(int limit) {
         return mysteryBoxWinHitLogRepository.findLatest(limit <= 0 ? 50 : Math.min(limit, 500));
     }
 
-    public java.util.List<MysteryBoxWinHitLog> queryLatestLogs(int limit,
-                                                               String userId,
-                                                               String mysteryBoxOrderId,
-                                                               LocalDateTime createdTimeStart,
-                                                               LocalDateTime createdTimeEnd) {
+    public List<MysteryBoxWinHitLog> queryLatestLogs(int limit,
+                                                     String userId,
+                                                     String mysteryBoxOrderId,
+                                                     LocalDateTime createdTimeStart,
+                                                     LocalDateTime createdTimeEnd) {
         int safeLimit = limit <= 0 ? 50 : Math.min(limit, 500);
         return mysteryBoxWinHitLogRepository.findLatestWithFilters(
                 safeLimit,
@@ -156,6 +172,14 @@ public class MysteryBoxWinRuleService {
 
     public Map<String, Long> queryOpCounters() {
         return new LinkedHashMap<>(opCounters);
+    }
+
+    private void assertOverrideAllowed(String action) {
+        if (!allowWinRuleOverride) {
+            throw new BusinessException(
+                    "WIN_RULE_DISABLED: 指定中奖已关闭（app.fairness.allow-win-rule-override=false），无法"
+                            + action);
+        }
     }
 
     private void logRuleOperation(String ruleId, String action, String detail) {

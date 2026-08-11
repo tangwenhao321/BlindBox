@@ -14,6 +14,7 @@ import type { Order } from "../types";
 import { markNotificationsRead } from "../utils/notificationRead";
 import { setPendingShipRequestId } from "../utils/deepLinkParams";
 import { SubPageHeader } from "./ui/SubPageHeader";
+import { SubPageShelfAccent } from "./ui/SubPageShelfAccent";
 import { SectionHeading } from "./ui/SectionHeading";
 import { EmptyState } from "./EmptyState";
 import { ScreenScaffold } from "./ui/ScreenScaffold";
@@ -39,6 +40,7 @@ type Props = {
   couponCount?: number;
   onBack: () => void;
   onOpenOrder: (orderId: string) => void;
+  onOpenBox?: (boxId: string) => void;
   onOpenCoupons?: () => void;
   onOpenMarketplace?: () => void;
   onOpenShipRequests?: () => void;
@@ -62,6 +64,7 @@ export function MessageCenterView({
   couponCount = 0,
   onBack,
   onOpenOrder,
+  onOpenBox,
   onOpenCoupons,
   onOpenMarketplace,
   onOpenShipRequests,
@@ -162,6 +165,7 @@ export function MessageCenterView({
   return (
     <View style={styles.root}>
       <SubPageHeader title={t("messages.title")} onBack={handleBack} />
+      <SubPageShelfAccent />
       <View style={styles.tabs}>
         {TABS.map((item) => {
           const active = tab === item.key;
@@ -252,11 +256,15 @@ export function MessageCenterView({
                     note.refId &&
                     (note.category === "ORDER" || note.category === "REFUND");
                   const canOpenShip = note.category === "WAREHOUSE_SHIP" && note.refId;
+                  const canOpenBox =
+                    !!note.refId &&
+                    (note.category === NOTIFICATION_CATEGORIES.RESTOCK ||
+                      note.category === NOTIFICATION_CATEGORIES.PITY);
                   return (
                     <Pressable
                       key={note.id}
                       style={styles.orderRow}
-                      disabled={!canOpenOrder && !canOpenShip && note.category !== "MARKETPLACE"}
+                      disabled={!canOpenOrder && !canOpenShip && !canOpenBox && note.category !== "MARKETPLACE"}
                       onPress={() => {
                         markNoteRead(note.id);
                         if (note.category === "MARKETPLACE") {
@@ -266,6 +274,10 @@ export function MessageCenterView({
                         if (canOpenShip && note.refId) {
                           setPendingShipRequestId(note.refId);
                           onOpenShipRequests?.();
+                          return;
+                        }
+                        if (canOpenBox && note.refId) {
+                          onOpenBox?.(note.refId);
                           return;
                         }
                         if (canOpenOrder && note.refId) onOpenOrder(note.refId);
@@ -294,11 +306,15 @@ export function MessageCenterView({
                     note.refId &&
                     (note.category === "ORDER" || note.category === "REFUND");
                   const canOpenShip = note.category === "WAREHOUSE_SHIP" && note.refId;
+                  const canOpenBox =
+                    !!note.refId &&
+                    (note.category === NOTIFICATION_CATEGORIES.RESTOCK ||
+                      note.category === NOTIFICATION_CATEGORIES.PITY);
                   return (
                     <Pressable
                       key={note.id}
                       style={styles.orderRow}
-                      disabled={!canOpenOrder && !canOpenShip && note.category !== "MARKETPLACE"}
+                      disabled={!canOpenOrder && !canOpenShip && !canOpenBox && note.category !== "MARKETPLACE"}
                       onPress={() => {
                         if (!note.read) markNoteRead(note.id);
                         if (note.category === "MARKETPLACE") {
@@ -308,6 +324,10 @@ export function MessageCenterView({
                         if (canOpenShip && note.refId) {
                           setPendingShipRequestId(note.refId);
                           onOpenShipRequests?.();
+                          return;
+                        }
+                        if (canOpenBox && note.refId) {
+                          onOpenBox?.(note.refId);
                           return;
                         }
                         if (canOpenOrder && note.refId) onOpenOrder(note.refId);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
@@ -12,8 +12,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTranslation } from "react-i18next";
 import type { RoomProgress } from "../../effects/revealSocialRoom";
 import { parseSpectatorSnapshot } from "../../effects/revealSpectatorSnapshot";
+import { playChargeSound } from "../../effects/sound";
 import { resolveProductImageUrl } from "../../utils/boxImage";
 import { normalizeQualityTier } from "../../utils/quality";
+import { getRuntimeRevealSoundEnabled } from "../../utils/revealSettings";
+import { nightColors, radius } from "../../styles/tokens";
 import { QualityBadge } from "./QualityBadge";
 import { RemoteImage } from "./RemoteImage";
 import { RevealStaticFallback } from "./RevealStaticFallback";
@@ -41,6 +44,8 @@ export function RevealSpectatorPlayer({ snapshot, phase, progress, testID = "spe
       : [];
 
   const pulse = useSharedValue(1);
+  const chargePlayedRef = useRef(false);
+
   useEffect(() => {
     if (livePhase !== "playing" && livePhase !== "gap") {
       pulse.value = 1;
@@ -53,6 +58,12 @@ export function RevealSpectatorPlayer({ snapshot, phase, progress, testID = "spe
     );
   }, [livePhase, pulse]);
 
+  useEffect(() => {
+    if (livePhase !== "playing" || chargePlayedRef.current) return;
+    chargePlayedRef.current = true;
+    void playChargeSound("GENERAL", getRuntimeRevealSoundEnabled());
+  }, [livePhase]);
+
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
   }));
@@ -60,7 +71,11 @@ export function RevealSpectatorPlayer({ snapshot, phase, progress, testID = "spe
   if (livePhase === "summary" || livePhase === "idle") {
     return (
       <View style={styles.host} testID={testID}>
+        <View style={styles.liteCaptionRow}>
+          <Text style={styles.liteCaption}>{t("spectator.liteBadge")}</Text>
+        </View>
         <RevealStaticFallback products={revealedProducts.length ? revealedProducts : parsed.products} />
+        <Text style={styles.liteHint}>{t("spectator.liteHint")}</Text>
       </View>
     );
   }
@@ -70,7 +85,13 @@ export function RevealSpectatorPlayer({ snapshot, phase, progress, testID = "spe
 
   return (
     <View style={styles.host} testID={testID}>
-      <LinearGradient colors={["#1e1b4b", "#0b0a14"]} style={styles.backdrop}>
+      <LinearGradient colors={[nightColors.bgCard, nightColors.bgPage]} style={styles.backdrop}>
+        <View style={styles.lustreRim} pointerEvents="none" />
+        <View style={styles.liteCaptionRow}>
+          <Text style={styles.liteCaption} testID="spectatorLiteCaption">
+            {t("spectator.liteBadge")}
+          </Text>
+        </View>
         <Text style={styles.phaseLabel}>
           {livePhase === "gap"
             ? t("spectator.phaseGap")
@@ -98,6 +119,7 @@ export function RevealSpectatorPlayer({ snapshot, phase, progress, testID = "spe
             total: liveTotal,
           })}
         </Text>
+        <Text style={styles.liteHint}>{t("spectator.liteHint")}</Text>
         <Text style={styles.readOnly}>{t("spectator.readOnlyHint")}</Text>
       </LinearGradient>
     </View>
@@ -108,23 +130,62 @@ const styles = StyleSheet.create({
   host: { flex: 1, minHeight: 280 },
   backdrop: {
     flex: 1,
-    borderRadius: 16,
+    borderRadius: radius.lg,
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
     gap: 12,
+    overflow: "hidden",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: nightColors.brassPanelBorder,
   },
-  phaseLabel: { color: "#ffd56a", fontSize: 13, fontWeight: "700", textTransform: "uppercase" },
+  lustreRim: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: radius.lg,
+    borderWidth: 1.5,
+    borderColor: "rgba(196, 165, 116, 0.28)",
+  },
+  liteCaptionRow: {
+    alignSelf: "stretch",
+    alignItems: "flex-start",
+  },
+  liteCaption: {
+    color: nightColors.brandText,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: nightColors.brassPanelBorder,
+    backgroundColor: "rgba(196, 165, 116, 0.12)",
+    overflow: "hidden",
+  },
+  liteHint: {
+    color: nightColors.textMuted,
+    fontSize: 12,
+    lineHeight: 17,
+    textAlign: "center",
+    paddingHorizontal: 8,
+  },
+  phaseLabel: {
+    color: nightColors.brandText,
+    fontSize: 13,
+    fontWeight: "700",
+    textTransform: "uppercase",
+  },
   card: { alignItems: "center", gap: 10, maxWidth: 280 },
   cardRare: {
     borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.45)",
-    borderRadius: 16,
+    borderColor: "rgba(196, 165, 116, 0.5)",
+    borderRadius: radius.lg,
     padding: 12,
   },
   image: { width: 140, height: 140, borderRadius: 12 },
-  name: { color: "#fff", fontSize: 18, fontWeight: "800", textAlign: "center" },
-  waiting: { color: "rgba(255,255,255,0.75)", fontSize: 16 },
-  progressHint: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  readOnly: { color: "rgba(255,255,255,0.55)", fontSize: 12, textAlign: "center" },
+  name: { color: nightColors.textPrimary, fontSize: 18, fontWeight: "800", textAlign: "center" },
+  waiting: { color: nightColors.textSecondary, fontSize: 16 },
+  progressHint: { color: nightColors.textPrimary, fontSize: 15, fontWeight: "600" },
+  readOnly: { color: nightColors.textMuted, fontSize: 12, textAlign: "center" },
 });

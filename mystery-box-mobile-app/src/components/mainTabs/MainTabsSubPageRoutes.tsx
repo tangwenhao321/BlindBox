@@ -18,14 +18,18 @@ import { MyOrdersView } from "../MyOrdersView";
 import { PromotionView } from "../PromotionView";
 import { CommissionDetailsView } from "../CommissionDetailsView";
 import { TeamView } from "../TeamView";
+import { TeamLotteryView } from "../TeamLotteryView";
 import { InviteCenterView } from "../InviteCenterView";
 import { IpThemeView } from "../IpThemeView";
+import { EffectsCenterView } from "../EffectsCenterView";
 import { VipBenefitsView } from "../VipBenefitsView";
 import { ProbabilityDisclosureView } from "../ProbabilityDisclosureView";
 import { ExchangeMallView } from "../ExchangeMallView";
 import { LeaderboardView } from "../LeaderboardView";
 import { CommunityView } from "../CommunityView";
 import { MarketplaceView } from "../MarketplaceView";
+import { MarketplaceChatView } from "../MarketplaceChatView";
+import { peekMarketplaceChatParams } from "../../navigation/marketplaceChatParams";
 import { CatalogSearchView } from "../CatalogSearchView";
 import { RefundsView } from "../RefundsView";
 import { ShipRequestsView } from "../ShipRequestsView";
@@ -123,6 +127,18 @@ function MarketplaceRoute() {
   return <MarketplaceView {...props} />;
 }
 
+function MarketplaceChatRoute() {
+  const { goBack } = useMainTabsShellViewState();
+  const params = peekMarketplaceChatParams();
+  return (
+    <MarketplaceChatView
+      listingId={params?.listingId}
+      listingTitle={params?.listingTitle}
+      onBack={goBack}
+    />
+  );
+}
+
 function RefundsRoute() {
   const props = useRefundsScreenProps();
   return <RefundsView {...props} />;
@@ -195,6 +211,11 @@ function InviteCenterRoute() {
 function IpThemeRoute() {
   const props = useIpThemeScreenProps();
   return <IpThemeView {...props} />;
+}
+
+function EffectsCenterRoute() {
+  const props = useGoBackScreenProps();
+  return <EffectsCenterView {...props} />;
 }
 
 function BalanceLogsRoute() {
@@ -291,8 +312,13 @@ function CommissionRoute() {
 }
 
 function TeamRoute() {
-  const props = useGoBackScreenProps();
-  return <TeamView {...props} />;
+  const { goBack, setView } = useMainTabsShellViewState();
+  return <TeamView onBack={goBack} onOpenTeamLottery={() => setView("teamLottery")} />;
+}
+
+function TeamLotteryRoute() {
+  const { goBack, onOpenLogin } = useMainTabsShellViewState();
+  return <TeamLotteryView onBack={goBack} onRequireLogin={onOpenLogin} />;
 }
 
 function AddressFormRoute() {
@@ -328,6 +354,8 @@ export function MainTabsSubPageRoutes({ view, offline }: MainTabsSubPageRoutesPr
       return <CommunityRoute />;
     case "marketplace":
       return <MarketplaceRoute />;
+    case "marketplaceChat":
+      return <MarketplaceChatRoute />;
     case "refunds":
       return <RefundsRoute />;
     case "activityDetail":
@@ -352,6 +380,8 @@ export function MainTabsSubPageRoutes({ view, offline }: MainTabsSubPageRoutesPr
       return <InviteCenterRoute />;
     case "ipTheme":
       return <IpThemeRoute />;
+    case "effectsCenter":
+      return <EffectsCenterRoute />;
     case "balanceLogs":
       return <BalanceLogsRoute />;
     case "addressManage":
@@ -374,6 +404,8 @@ export function MainTabsSubPageRoutes({ view, offline }: MainTabsSubPageRoutesPr
       return <CommissionRoute />;
     case "team":
       return <TeamRoute />;
+    case "teamLottery":
+      return <TeamLotteryRoute />;
     case "addressForm":
       return <AddressFormRoute />;
     case "paymentReturn":

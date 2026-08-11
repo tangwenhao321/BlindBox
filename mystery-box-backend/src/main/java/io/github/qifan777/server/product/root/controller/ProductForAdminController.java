@@ -1,12 +1,13 @@
 package io.github.qifan777.server.product.root.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.qifan.infrastructure.common.exception.BusinessException;
+import io.github.qifan777.server.box.draw.BoxProfitabilityService;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.product.root.entity.Product;
 import io.github.qifan777.server.product.root.entity.dto.ProductInput;
 import io.github.qifan777.server.product.root.entity.dto.ProductSpec;
 import io.github.qifan777.server.product.root.repository.ProductRepository;
+import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
@@ -25,6 +26,7 @@ import java.util.List;
 @Transactional
 public class ProductForAdminController {
     private final ProductRepository productRepository;
+    private final BoxProfitabilityService boxProfitabilityService;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_ADMIN") Product findById(@PathVariable String id) {
@@ -38,7 +40,9 @@ public class ProductForAdminController {
 
     @PostMapping("save")
     public String save(@RequestBody @Validated ProductInput productInput) {
-        return productRepository.save(productInput.toEntity()).id();
+        String id = productRepository.save(productInput.toEntity()).id();
+        boxProfitabilityService.recheckBoxesForProduct(id);
+        return id;
     }
 
     @DeleteMapping

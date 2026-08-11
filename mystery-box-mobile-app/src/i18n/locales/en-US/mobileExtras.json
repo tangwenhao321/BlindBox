@@ -24,7 +24,8 @@
   },
   "messages": {
     "filterRestock": "Restock",
-    "filterPity": "Pity"
+    "filterPity": "Pity",
+    "filterProbability": "Odds change"
   },
   "promotion": {
     "milestonesTitle": "Referral milestones"

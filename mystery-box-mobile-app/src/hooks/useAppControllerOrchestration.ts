@@ -37,11 +37,14 @@ export function useAppControllerOrchestration(): AppControllerOrchestrationResul
     setPassword,
     restoreToken,
     login,
+    loginWithSms,
+    loginWithZalo,
     register,
     logout,
     confirmPassword,
     inviteCode,
     setInviteCode,
+    clearInviteCode,
     setLoginVisible,
     openLoginPage,
     requireAuth,
@@ -226,10 +229,13 @@ export function useAppControllerOrchestration(): AppControllerOrchestrationResul
     setPhone,
     setPassword,
     login,
+    loginWithSms,
+    loginWithZalo,
     register,
     confirmPassword,
     inviteCode,
     setInviteCode,
+    clearInviteCode,
     setLoginVisible,
     token,
     navigate,
@@ -247,8 +253,12 @@ export function useAppControllerOrchestration(): AppControllerOrchestrationResul
     setLoading,
     restoreToken,
     onRestoreSuccess: async (savedToken) => {
-      await refreshAllWithLoading(savedToken, { includeHeavy: false, includeMall: false });
-      loadBalanceLogs(savedToken).catch(() => undefined);
+      // Fire-and-forget: do not block splash/shell on home catalog refresh.
+      void refreshAllWithLoading(savedToken, { includeHeavy: false, includeMall: false })
+        .then(() => {
+          loadBalanceLogs(savedToken).catch(() => undefined);
+        })
+        .catch(() => undefined);
     },
     onRestoreFail,
     onUnauthorized,

@@ -39,7 +39,7 @@ export function startRevealRecordingMonitor(): () => void {
       const elapsed = Date.now() - recordingStartedAt;
       if (elapsed > 60_000) {
         toast.revealHint(
-          i18n.t("revealOverlay.recordingLongHint", { defaultValue: "Long screen recording may affect smooth playback." }),
+          i18n.t("revealOverlay.recordingLongHint"),
         );
       }
     }

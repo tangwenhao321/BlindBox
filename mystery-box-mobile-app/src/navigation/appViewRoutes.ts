@@ -6,7 +6,17 @@ import type { NotificationDeepLink } from "../utils/notificationDeepLink";
 export { isTabAppView, TAB_APP_VIEWS };
 
 /** Expo Router href for a view (and optional entity id). */
-export function appViewToHref(view: AppView, params?: { orderId?: string; boxId?: string; paymentResponseCode?: string; spectatorToken?: string }): string {
+export function appViewToHref(
+  view: AppView,
+  params?: {
+    orderId?: string;
+    boxId?: string;
+    paymentResponseCode?: string;
+    spectatorToken?: string;
+    listingId?: string;
+    listingTitle?: string;
+  },
+): string {
   if (isTabAppView(view)) {
     return `/(shell)/(tabs)/${view}`;
   }
@@ -16,6 +26,13 @@ export function appViewToHref(view: AppView, params?: { orderId?: string; boxId?
       query.set("vnp_ResponseCode", params.paymentResponseCode);
     }
     return `/payment-return?${query.toString()}`;
+  }
+  if (view === "marketplaceChat" && params?.listingId) {
+    const query = new URLSearchParams({ listingId: params.listingId });
+    if (params.listingTitle) {
+      query.set("title", params.listingTitle);
+    }
+    return `/marketplace-chat?${query.toString()}`;
   }
   if (view === "revealSpectator" && params?.spectatorToken) {
     return `/reveal/spectator/${encodeURIComponent(params.spectatorToken)}`;
@@ -46,6 +63,8 @@ export function deepLinkToHref(link: NotificationDeepLink): string {
     boxId: link.boxId,
     paymentResponseCode: link.paymentResponseCode,
     spectatorToken: link.spectatorToken,
+    listingId: link.listingId,
+    listingTitle: link.listingTitle,
   });
 }
 

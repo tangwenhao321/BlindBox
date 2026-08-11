@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -111,7 +112,7 @@ export function CabinetShakeSheet({ visible, token, boxId, onClose, onHintResult
             onPress={onShake}
           >
             <Animated.View style={[styles.shakeBox, shakeStyle]}>
-              <Text style={styles.shakeEmoji}>📦</Text>
+              <Ionicons name="cube" size={36} color={styles.shakeText.color} />
               <Text style={styles.shakeText}>{loading ? t("cabinet.shakeLoading") : t("cabinet.shakeCta")}</Text>
             </Animated.View>
           </Pressable>
@@ -168,7 +169,6 @@ function buildShakeSheetStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.xs,
     },
-    shakeEmoji: { fontSize: 36 },
     shakeText: { color: colors.textOnBrand, fontWeight: "800" },
     closeBtn: { alignItems: "center", paddingVertical: spacing.sm },
     closeText: { color: colors.textMuted, fontWeight: "700" },

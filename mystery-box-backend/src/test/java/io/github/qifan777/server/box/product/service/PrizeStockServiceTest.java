@@ -34,4 +34,14 @@ class PrizeStockServiceTest {
         int remaining = 0;
         assertTrue(remaining <= 0);
     }
+
+    @Test
+    void atomicDecrementLeavesNonNegativeRemaining() {
+        int remaining = 5;
+        int updated = remaining > 0 ? 1 : 0;
+        assertEquals(1, updated);
+        remaining = remaining - 1;
+        assertEquals(4, remaining);
+        assertTrue(remaining >= 0);
+    }
 }

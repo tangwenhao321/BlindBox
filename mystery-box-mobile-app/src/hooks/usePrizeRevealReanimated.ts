@@ -21,8 +21,9 @@ import {
 } from "../effects/reanimated";
 import { applyRemoteRevealProfile, getRevealRemoteConfig, type ReduceMotionLevel } from "../effects/revealRemote";
 import { applyRevealTheme, resolveRevealTheme } from "../effects/revealTheme";
+import { resolveActiveRevealThemeId, rollSurpriseThemeId } from "../effects/revealThemeRotation";
 import type { RevealPacing } from "../effects/revealSequence";
-import { cancelScheduledRevealSounds, playRevealSoundArc, playTierSoundSynced, warmupTierSounds } from "../effects/sound";
+import { cancelScheduledRevealSounds, playRevealSoundArc, playTierSoundSynced, setRuntimeThemeSoundBankFromTheme, warmupTierSounds } from "../effects/sound";
 import { resolveHoldDuration, scaleRevealDuration, getStepIdleMs, resolveFlipSpringMs } from "../effects/revealTiming";
 import { alignRevealPhaseStart } from "../effects/revealPhaseAlign";
 import { healStuckRevealOverlay } from "../effects/revealRenderHeal";
@@ -162,15 +163,21 @@ export function usePrizeRevealReanimated({
     if (!product) return resolveCeremonyTier({ id: "", name: "", price: 0 } as Product, drawProducts);
     return resolveCeremonyTier(product, drawProducts ?? products);
   }, [products, drawProducts]);
+  const surpriseThemeId = useMemo(() => rollSurpriseThemeId(), [orderId]);
   const revealTheme = useMemo(
     () =>
       resolveRevealTheme({
         boxName,
         categoryName: boxCategoryName,
-        remoteThemeId: getRevealRemoteConfig().themeId,
+        remoteThemeId: resolveActiveRevealThemeId({
+          surpriseThemeId,
+        }),
       }),
-    [boxName, boxCategoryName],
+    [boxName, boxCategoryName, surpriseThemeId],
   );
+  useEffect(() => {
+    setRuntimeThemeSoundBankFromTheme(revealTheme.id);
+  }, [revealTheme.id]);
   const profile = useMemo(() => {
     const opts = { reduceMotion, lowPerf: lowPerfMode };
     const base =
@@ -415,8 +422,9 @@ export function usePrizeRevealReanimated({
         isFinaleDraw,
         soundEnabled,
         afterBoxTeaser: playBoxTeaser,
-        chargeMs: profile.chargeMs,
+        chargeMs: Math.max(profile.chargeMs, 900),
         accelerateTier: accelTierRef.current,
+        themeId: revealTheme.id,
       });
       if (getRevealRemoteConfig().vibrateFallbackEnabled && getRuntimeRevealHapticEnabled()) {
         try {

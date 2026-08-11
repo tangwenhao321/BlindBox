@@ -1,4 +1,5 @@
 export { BoxDetailsBenefitCards } from "./BoxDetailsBenefitCards";
+export { PityCompensateSheet } from "./PityCompensateSheet";
 export { BoxDetailsBottomBar } from "./BoxDetailsBottomBar";
 export { BoxDetailsCheckoutModals } from "./BoxDetailsCheckoutModals";
 export { BoxDetailsComplianceCard } from "./BoxDetailsComplianceCard";

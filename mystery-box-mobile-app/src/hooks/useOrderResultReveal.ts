@@ -54,7 +54,7 @@ import { resetRevealDriverTierForPaidReveal } from "../effects/revealDriverTier"
 import { REVEAL_BOOT_DELAY_MS } from "../effects/revealSessionController";
 import { useRevealSequence } from "./useRevealSequence";
 import { fetchOrderDrawIntegrity } from "../services/orderService";
-import { hydrateAtmosphereRevealOverrides } from "../effects/revealAtmosphereRuntime";
+import { getAtmosphereOverrides, hydrateAtmosphereRevealOverrides } from "../effects/revealAtmosphereRuntime";
 import { resolveAtmosphereSoundPack, type AtmosphereRevealOverrides } from "../effects/revealAtmosphereOverrides";
 import {
   connectRevealRoom,
@@ -74,6 +74,7 @@ import {
   clearRevealSpectatorShareToken,
   setRevealSpectatorShareToken,
 } from "../utils/revealSpectatorTokenBridge";
+import { fetchPityProgress, type PityProgress } from "../services/pityService";
 
 type Params = {
   visible: boolean;
@@ -115,7 +116,7 @@ export function useOrderResultReveal({
     refreshPerf,
     startFpsMonitor,
     stopFpsMonitor,
-  } = useRevealDevice();
+  } = useRevealDevice(authToken);
   const revealProducts = useMemo(() => {
     if (pendingPayment || prizes.length === 0) return [];
     return sortRevealSequence(prizes);
@@ -319,7 +320,7 @@ export function useOrderResultReveal({
     if (authToken) {
       void fetchOrderDrawIntegrity(authToken, orderId)
         .then((row) => setServerIntegrityFailed((row?.issueCount ?? 0) > 0))
-        .catch(() => setServerIntegrityFailed(false));
+        .catch(() => setServerIntegrityFailed(true));
     }
   }, [visible, pendingPayment, prizes, orderId, authToken]);
 
@@ -328,9 +329,7 @@ export function useOrderResultReveal({
     if (integrityToastRef.current) return;
     integrityToastRef.current = true;
     toast.info(
-      i18n.t("orderResult.integrityFallback", {
-        defaultValue: "Reveal simplified for data integrity. You can verify fairness in order details.",
-      }),
+      i18n.t("orderResult.integrityFallback"),
     );
   }, [visible, integrityFailed, serverIntegrityFailed]);
 
@@ -353,7 +352,7 @@ export function useOrderResultReveal({
       revealedIdsRef.current = [...revealedIdsRef.current, currentRevealProduct.id];
       const tier = normalizeQualityTier(currentRevealProduct.qualityType);
       if (tier !== "GENERAL") {
-        publishRevealRoomReaction(tier === "LEGENDARY" || tier === "LEGEND" ? "🔥" : "✨");
+        publishRevealRoomReaction(tier === "LEGENDARY" || tier === "LEGEND" ? "★" : "•");
       }
       if (ceremonyTier && ceremonyTier !== "GENERAL" && !highlightMarkersRef.current.includes(revealIndex)) {
         highlightMarkersRef.current = [...highlightMarkersRef.current, revealIndex];
@@ -675,8 +674,33 @@ export function useOrderResultReveal({
     return () => clearRevealSpectatorShareToken(orderId);
   }, [visible, orderId, spectatorShareToken]);
 
+  const [pityProgress, setPityProgress] = useState<PityProgress | null>(null);
+
+  const refetchPityProgress = useCallback(async () => {
+    if (!authToken || !boxId) {
+      setPityProgress(null);
+      return;
+    }
+    try {
+      const next = await fetchPityProgress(authToken, boxId);
+      setPityProgress(next);
+    } catch {
+      setPityProgress(null);
+    }
+  }, [authToken, boxId]);
+
+  useEffect(() => {
+    if (!visible || pendingPayment || !authToken || !boxId) {
+      setPityProgress(null);
+      return;
+    }
+    void refetchPityProgress();
+  }, [visible, pendingPayment, authToken, boxId, sequenceDone, refetchPityProgress]);
+
   return {
     revealProducts,
+    pityProgress,
+    refetchPityProgress,
     revealIndex,
     showSummary,
     sequenceDone,
@@ -693,8 +717,9 @@ export function useOrderResultReveal({
     reduceMotion,
     reduceMotionLevel,
     degradeLevel,
-    skipParticles: skipParticles || atmosphereOverrides.skipParticles,
-    atmosphereParticleScale: atmosphereOverrides.particleScale ?? 1,
+    skipParticles: skipParticles || atmosphereOverrides.skipParticles || !!getAtmosphereOverrides().skipParticles,
+    atmosphereParticleScale:
+      getAtmosphereOverrides().particleScale ?? atmosphereOverrides.particleScale ?? 1,
     skipTeaserAnim,
     collectionEasterEgg,
     autoPlayBlocked,

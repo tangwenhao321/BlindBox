@@ -67,6 +67,10 @@
     "progressLong_progressRare0": "稀有气息正在汇聚，请稍候…",
     "progressLong_progressFinalePool0": "压轴时刻即将到来，屏住呼吸…",
     "storyFragmentUnlocked": "解锁剧情碎片：{{name}}",
-    "atmosphereRibbonA11y": "限时氛围加成"
+    "atmosphereRibbonA11y": "限时氛围加成",
+    "recordingLongHint": "长时间录屏可能影响流畅播放",
+    "productStoryTitle": "款式故事",
+    "guestReplayLimited": "登录后可解锁完整揭晓回放",
+    "guestSnapshotLimited": "登录后可保存揭晓截图"
   }
 }

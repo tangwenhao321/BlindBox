@@ -1,7 +1,9 @@
 import { Linking, Modal, Pressable, StyleSheet, Text, View, Clipboard, AppState } from "react-native";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getPaymentMode } from "../config/payment";
+import { PaymentAbandonPanel } from "./PaymentAbandonPanel";
+import { usePaymentAbandonOffer } from "../hooks/usePaymentAbandonOffer";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
@@ -14,29 +16,57 @@ type Props = {
   visible: boolean;
   orderId: string;
   payAmount: number;
+  token?: string;
   prepay: VNPayPrepayResult | null;
   onClose: () => void;
   onRetry?: () => void;
   onPaid?: () => void | Promise<void>;
   onRefreshStatus?: () => Promise<boolean>;
   onUseMockPay?: () => void;
+  onClaimAndReprepay?: (payload: { orderId: string; payAmount: number }) => void | Promise<void>;
 };
 
 export function VNPayCheckoutModal({
   visible,
   orderId,
   payAmount,
+  token,
   prepay,
   onClose,
   onRetry,
   onPaid,
   onRefreshStatus,
   onUseMockPay,
+  onClaimAndReprepay,
 }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildVNPayCheckoutStyles);
   const pollingRef = useRef(false);
   const showDevUrl = __DEV__ && getPaymentMode() === "vnpay";
+  const [displayPayAmount, setDisplayPayAmount] = useState(payAmount);
+
+  useEffect(() => {
+    if (visible) setDisplayPayAmount(payAmount);
+  }, [visible, payAmount]);
+
+  const {
+    abandonPhase,
+    offerEligible,
+    offerDiscount,
+    claiming,
+    requestClose,
+    continuePay,
+    leaveDirect,
+    claimAndContinue,
+  } = usePaymentAbandonOffer({
+    visible,
+    token,
+    orderId,
+    channel: "vnpay",
+    onClose,
+    onPayAmountChange: setDisplayPayAmount,
+    onClaimAndReprepay,
+  });
 
   const refreshPaymentStatus = useCallback(async () => {
     if (!onRefreshStatus || pollingRef.current) return;
@@ -80,88 +110,103 @@ export function VNPayCheckoutModal({
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={requestClose}>
       <Pressable
         style={styles.mask}
-        onPress={onClose}
+        onPress={requestClose}
         accessibilityRole="button"
         accessibilityLabel={t("common.cancel")}
       >
         <Pressable style={styles.card} onPress={(e) => e.stopPropagation()}>
-          <Text style={styles.title}>{t("vnpay.title")}</Text>
-          <Text style={styles.amount}>{formatCurrency(payAmount)}</Text>
-          <Text style={styles.meta}>{t("vnpay.orderId", { id: orderId })}</Text>
-          <View style={styles.statusCard}>
-            <Text style={styles.statusTitle}>
-              {prepay ? t("vnpay.statusReady") : t("vnpay.statusMissing")}
-            </Text>
-            <Text style={styles.tip}>{prepay ? t("vnpay.tip") : t("vnpay.noPrepay")}</Text>
-            {prepay?.sandbox ? <Text style={styles.sandbox}>{t("vnpay.sandbox")}</Text> : null}
-          </View>
-          {showDevUrl && prepay?.paymentUrl ? (
-            <Text style={styles.devUrl} numberOfLines={3}>
-              {prepay.paymentUrl}
-            </Text>
-          ) : null}
-          {prepay ? (
-            <Pressable
-              style={({ pressed }) => [styles.payBtn, pressed ? styles.pressed : null]}
-              onPress={() => void openVnpay()}
-              accessibilityRole="button"
-              accessibilityLabel={t("vnpay.open")}
-            >
-              <Text style={styles.payBtnText}>{t("vnpay.open")}</Text>
-            </Pressable>
-          ) : null}
-          {onRefreshStatus ? (
-            <Pressable
-              style={({ pressed }) => [styles.secondaryBtn, pressed ? styles.pressed : null]}
-              onPress={() => void refreshPaymentStatus()}
-              accessibilityRole="button"
-              accessibilityLabel={t("vnpay.refreshStatus")}
-            >
-              <Text style={styles.secondaryBtnText}>{t("vnpay.refreshStatus")}</Text>
-            </Pressable>
-          ) : null}
-          <Pressable
-            style={({ pressed }) => [styles.secondaryBtn, pressed ? styles.pressed : null]}
-            onPress={() => void copyOrderId()}
-            accessibilityRole="button"
-            accessibilityLabel={t("vnpay.copyOrder")}
-          >
-            <Text style={styles.secondaryBtnText}>{t("vnpay.copyOrder")}</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.supportBtn, pressed ? styles.pressed : null]}
-            onPress={() => void openContactSupport()}
-            accessibilityRole="button"
-            accessibilityLabel={t("vnpay.contactSupport")}
-          >
-            <Text style={styles.supportBtnText}>{t("vnpay.contactSupport")}</Text>
-          </Pressable>
-          {onRetry && !prepay ? (
-            <Pressable
-              style={({ pressed }) => [styles.retryBtn, pressed ? styles.pressed : null]}
-              onPress={onRetry}
-              accessibilityRole="button"
-              accessibilityLabel={t("vnpay.retryPrepay")}
-            >
-              <Text style={styles.retryBtnText}>{t("vnpay.retryPrepay")}</Text>
-            </Pressable>
-          ) : null}
-          {onUseMockPay ? (
-            <Pressable
-              style={({ pressed }) => [styles.mockBtn, pressed ? styles.pressed : null]}
-              onPress={onUseMockPay}
-              accessibilityRole="button"
-              accessibilityLabel={t("vnpay.mockPay")}
-            >
-              <Text style={styles.mockBtnText}>{t("vnpay.mockPay")}</Text>
-            </Pressable>
-          ) : null}
-          <Pressable style={styles.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel={t("vnpay.close")}>
-            <Text style={styles.closeText}>{t("vnpay.close")}</Text>
-          </Pressable>
+          {abandonPhase ? (
+            <PaymentAbandonPanel
+              onContinuePay={continuePay}
+              onClaimAndContinue={() => {
+                void claimAndContinue();
+              }}
+              onLeaveDirect={leaveDirect}
+              offerEligible={offerEligible}
+              offerDiscount={offerDiscount}
+              claiming={claiming}
+            />
+          ) : (
+            <>
+              <Text style={styles.title}>{t("vnpay.title")}</Text>
+              <Text style={styles.amount}>{formatCurrency(displayPayAmount)}</Text>
+              <Text style={styles.meta}>{t("vnpay.orderId", { id: orderId })}</Text>
+              <View style={styles.statusCard}>
+                <Text style={styles.statusTitle}>
+                  {prepay ? t("vnpay.statusReady") : t("vnpay.statusMissing")}
+                </Text>
+                <Text style={styles.tip}>{prepay ? t("vnpay.tip") : t("vnpay.noPrepay")}</Text>
+                {prepay?.sandbox ? <Text style={styles.sandbox}>{t("vnpay.sandbox")}</Text> : null}
+              </View>
+              {showDevUrl && prepay?.paymentUrl ? (
+                <Text style={styles.devUrl} numberOfLines={3}>
+                  {prepay.paymentUrl}
+                </Text>
+              ) : null}
+              {prepay ? (
+                <Pressable
+                  style={({ pressed }) => [styles.payBtn, pressed ? styles.pressed : null]}
+                  onPress={() => void openVnpay()}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("vnpay.open")}
+                >
+                  <Text style={styles.payBtnText}>{t("vnpay.open")}</Text>
+                </Pressable>
+              ) : null}
+              {onRefreshStatus ? (
+                <Pressable
+                  style={({ pressed }) => [styles.secondaryBtn, pressed ? styles.pressed : null]}
+                  onPress={() => void refreshPaymentStatus()}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("vnpay.refreshStatus")}
+                >
+                  <Text style={styles.secondaryBtnText}>{t("vnpay.refreshStatus")}</Text>
+                </Pressable>
+              ) : null}
+              <Pressable
+                style={({ pressed }) => [styles.secondaryBtn, pressed ? styles.pressed : null]}
+                onPress={() => void copyOrderId()}
+                accessibilityRole="button"
+                accessibilityLabel={t("vnpay.copyOrder")}
+              >
+                <Text style={styles.secondaryBtnText}>{t("vnpay.copyOrder")}</Text>
+              </Pressable>
+              <Pressable
+                style={({ pressed }) => [styles.supportBtn, pressed ? styles.pressed : null]}
+                onPress={() => void openContactSupport()}
+                accessibilityRole="button"
+                accessibilityLabel={t("vnpay.contactSupport")}
+              >
+                <Text style={styles.supportBtnText}>{t("vnpay.contactSupport")}</Text>
+              </Pressable>
+              {onRetry && !prepay ? (
+                <Pressable
+                  style={({ pressed }) => [styles.retryBtn, pressed ? styles.pressed : null]}
+                  onPress={onRetry}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("vnpay.retryPrepay")}
+                >
+                  <Text style={styles.retryBtnText}>{t("vnpay.retryPrepay")}</Text>
+                </Pressable>
+              ) : null}
+              {onUseMockPay ? (
+                <Pressable
+                  style={({ pressed }) => [styles.mockBtn, pressed ? styles.pressed : null]}
+                  onPress={onUseMockPay}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("vnpay.mockPay")}
+                >
+                  <Text style={styles.mockBtnText}>{t("vnpay.mockPay")}</Text>
+                </Pressable>
+              ) : null}
+              <Pressable style={styles.closeBtn} onPress={requestClose} accessibilityRole="button" accessibilityLabel={t("vnpay.close")}>
+                <Text style={styles.closeText}>{t("vnpay.close")}</Text>
+              </Pressable>
+            </>
+          )}
         </Pressable>
       </Pressable>
     </Modal>

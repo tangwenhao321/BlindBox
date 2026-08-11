@@ -7,4 +7,11 @@ export const API_ERROR_CODE_KEYS: Record<number, string> = {
   1001010: "api.errors.sessionExpired",
   1001007: "api.errors.unauthorized",
   1001008: "api.errors.tokenInvalid",
+  // MoneyPathErrorCode (backend 1002xxx)
+  1002001: "api.errors.pityStockExhausted",
+  1002002: "api.errors.refundDenied",
+  1002003: "api.errors.refundInProgress",
+  1002004: "api.errors.paymentAmountMismatch",
+  1002005: "api.errors.orderOwnershipDenied",
+  1002006: "api.errors.stockConflict",
 };

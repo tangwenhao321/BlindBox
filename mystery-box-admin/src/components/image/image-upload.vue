@@ -3,6 +3,7 @@ import { computed, defineComponent, ref } from 'vue'
 import { ElIcon, ElMessage, ElUpload, type UploadProps } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
 import request from '@/utils/request'
+import { getAdminToken } from '@/utils/admin-auth-token'
 import { resolveMediaUrl } from '@/utils/media-url'
 import { extractApiErrorMessage } from '@/utils/api-error'
 import { compressImageFile } from '@/utils/compress-image'
@@ -19,7 +20,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const loading = ref(false)
     const uploadHeaders = computed(() => {
-      const token = localStorage.getItem('token')
+      const token = getAdminToken()
       return token ? { token } : {}
     })
 

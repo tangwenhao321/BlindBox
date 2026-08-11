@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory, createWebHistory } from 'vue-router'
 
 import { useHomeStore } from '@/stores/home-store'
+import { isAdminAuthenticated } from '@/utils/admin-auth-token'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -102,6 +103,10 @@ const router = createRouter({
         {
           path: '/payment-market-health',
           component: () => import('@/views/ops/payment-market-health-view.vue')
+        },
+        {
+          path: '/marketplace-pending-external',
+          component: () => import('@/views/ops/marketplace-pending-external-view.vue')
         },
         {
           path: '/feature-flag',
@@ -242,16 +247,16 @@ const router = createRouter({
     }
   ]
 })
-// 路由拦截：无 token 时跳转登录。
-// 注意：token 存于 localStorage，若站点存在 XSS 则可能被窃取；生产环境应配合 CSP、HttpOnly 会话等防护。
+// 路由拦截：无会话时跳转登录。
+// 默认：token 存于 memory + sessionStorage；cookie 模式：HttpOnly cookie + 非密钥 tab 标记（见 docs/ADMIN_SECURITY.md）。
 // eslint-disable-next-line no-sparse-arrays
 const whiteList = ['/login', '/']
 router.beforeEach(async (to, from, next) => {
-  const token = localStorage.getItem('token')
+  const authenticated = isAdminAuthenticated()
   if (to.path === '/login') {
-    return token ? next('/') : next()
+    return authenticated ? next('/') : next()
   }
-  if (!token) {
+  if (!authenticated) {
     return next('/login')
   }
   const homeStore = useHomeStore()

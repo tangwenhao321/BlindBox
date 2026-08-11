@@ -28,28 +28,34 @@ export function HotPoolCarousel({ boxes, onOpenBox }: Props) {
         data={data}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => (
-          <Pressable
-            style={styles.card}
-            onPress={() => onOpenBox(item.id)}
-            accessibilityRole="button"
-            accessibilityLabel={item.name}
-          >
-            <RemoteImage
-              uri={resolveBoxImageUrl({ id: item.id, name: item.name, cover: item.cover })}
-              style={styles.cover}
-            />
-            <Text style={styles.name} numberOfLines={1}>
-              {item.name}
-            </Text>
-            <Text style={styles.meta}>
-              {t("home.hotPoolMeta", {
-                sold: Math.max(0, (item.poolTotal ?? 0) - (item.poolRemaining ?? 0)),
-                draws: item.drawCount7d,
+        renderItem={({ item }) => {
+          const sold = Math.max(0, (item.poolTotal ?? 0) - (item.poolRemaining ?? 0));
+          const draws = item.drawCount7d;
+          return (
+            <Pressable
+              style={styles.card}
+              onPress={() => onOpenBox(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel={t("home.hotPoolA11y", {
+                name: item.name,
+                sold,
+                draws,
               })}
-            </Text>
-          </Pressable>
-        )}
+            >
+              <RemoteImage
+                uri={resolveBoxImageUrl({ id: item.id, name: item.name, cover: item.cover })}
+                style={styles.cover}
+                priority="low"
+              />
+              <Text style={styles.name} numberOfLines={1}>
+                {item.name}
+              </Text>
+              <Text style={styles.meta}>
+                {t("home.hotPoolMeta", { sold, draws })}
+              </Text>
+            </Pressable>
+          );
+        }}
       />
     </View>
   );

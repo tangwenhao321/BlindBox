@@ -3,6 +3,7 @@ package io.github.qifan777.server.vip.order.controller;
 import cn.dev33.satoken.stp.StpUtil;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import io.github.qifan777.server.payment.gateway.PaymentGatewayRegistry;
 import io.github.qifan777.server.vip.order.entity.VipOrder;
@@ -34,10 +35,14 @@ public class VipOrderForFrontController {
     private final VipOrderRepository vipOrderRepository;
     private final VipOrderService vipOrderService;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
+    private final ClientIpResolver clientIpResolver;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") VipOrder findById(@PathVariable String id) {
-        return vipOrderRepository.findById(id, VipOrderRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
+        VipOrder vipOrder = vipOrderRepository.findById(id, VipOrderRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(vipOrder.creator().id());
+        return vipOrder;
     }
 
     @PostMapping("query")
@@ -47,20 +52,20 @@ public class VipOrderForFrontController {
     }
 
     @PostMapping("save")
-    public Object save(@RequestBody @Validated VipOrderInput vipOrderInput) {
-        return vipOrderService.save(vipOrderInput);
+    public Object save(@RequestBody @Validated VipOrderInput vipOrderInput, HttpServletRequest request) {
+        return vipOrderService.save(vipOrderInput, clientIpResolver.resolve(request));
     }
 
     @PostMapping("{id}/prepay/wechat")
-    public Object prepayWechat(@PathVariable String id) {
+    public Object prepayWechat(@PathVariable String id, HttpServletRequest request) {
         paymentGatewayRegistry.assertMarketProvider("wechat");
-        return vipOrderService.prepay(id, "127.0.0.1");
+        return vipOrderService.prepay(id, clientIpResolver.resolve(request));
     }
 
     @PostMapping("{id}/prepay/vnpay")
     public Object prepayVNPay(@PathVariable String id, HttpServletRequest request) {
         paymentGatewayRegistry.assertMarketProvider("vnpay");
-        return vipOrderService.prepay(id, ClientIpResolver.resolve(request));
+        return vipOrderService.prepay(id, clientIpResolver.resolve(request));
     }
 
     @DeleteMapping

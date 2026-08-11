@@ -8,7 +8,6 @@ import io.github.qifan777.server.box.queue.service.MysteryBoxDrawQueueService;
 import io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -21,11 +20,12 @@ public class OrderPaymentMetaService {
 
     private final MysteryBoxOrderRepository mysteryBoxOrderRepository;
     private final MysteryBoxDrawQueueService drawQueueService;
-    private final JdbcTemplate jdbcTemplate;
+    private final PaymentRetentionService paymentRetentionService;
 
     public OrderPaymentMetaView meta(String orderId) {
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(orderId);
-        if (!order.creator().id().equals(StpUtil.getLoginIdAsString())) {
+        String userId = StpUtil.getLoginIdAsString();
+        if (!order.creator().id().equals(userId)) {
             throw new BusinessException("无权查看订单");
         }
         LocalDateTime created = order.createdTime() == null ? LocalDateTime.now() : order.createdTime();
@@ -34,19 +34,26 @@ public class OrderPaymentMetaService {
         if (order.items() != null && !order.items().isEmpty()) {
             String boxId = order.items().get(0).mysteryBoxId();
             var lock = drawQueueService.buyoutLockStatus(boxId);
-            if (lock.holderUserId() != null && lock.holderUserId().equals(StpUtil.getLoginIdAsString())) {
+            if (lock.holderUserId() != null && lock.holderUserId().equals(userId)) {
                 lockSeconds = lock.lockTtlSeconds();
             }
         }
-        boolean claimed = Boolean.TRUE.equals(jdbcTemplate.query(
-                "SELECT COUNT(1) > 0 FROM order_payment_retention_claim WHERE order_id = ?",
-                rs -> {
-                    rs.next();
-                    return rs.getBoolean(1);
-                },
-                orderId
-        ));
-        return new OrderPaymentMetaView(orderId, deadline, lockSeconds, claimed, new BigDecimal("5.00"));
+        PaymentRetentionService.Eligibility eligibility =
+                paymentRetentionService.evaluateEligibility(orderId, userId, order);
+        BigDecimal discount = eligibility.claimed()
+                ? eligibility.claimedDiscount()
+                : eligibility.offerDiscount();
+        BigDecimal payAmount = order.baseOrder().payment().payAmount();
+        return new OrderPaymentMetaView(
+                orderId,
+                deadline,
+                lockSeconds,
+                eligibility.claimed(),
+                discount,
+                eligibility.eligible(),
+                eligibility.blockReason(),
+                payAmount
+        );
     }
 
     public LocalDateTime payDeadlineFor(MysteryBoxOrder order) {

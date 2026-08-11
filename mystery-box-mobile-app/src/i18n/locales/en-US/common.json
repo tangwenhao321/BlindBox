@@ -17,6 +17,8 @@
     "sectionPrizes": "PRIZES",
     "amountAtLeast": "≥{{amount}}",
     "gotIt": "Got it",
-    "contactSupport": "Contact support"
+    "contactSupport": "Contact support",
+    "clear": "Clear",
+    "close": "Close"
   }
 }

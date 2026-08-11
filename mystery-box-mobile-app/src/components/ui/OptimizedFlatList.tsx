@@ -1,10 +1,14 @@
 import { forwardRef, useMemo } from "react";
 import {
   FlatList,
+  Platform,
+  RefreshControl,
   type FlatListProps,
   type ListRenderItem,
   type ListRenderItemInfo,
 } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { isHarmonyLikeDevice } from "../../effects/deviceProfile";
 
 const ITEM_HEIGHT = {
   row: 92,
@@ -14,21 +18,70 @@ const ITEM_HEIGHT = {
 export type { ListRenderItem, ListRenderItemInfo };
 
 export type OptimizedFlatListProps<T> = FlatListProps<T> & {
-  /** Fixed row height hint (improves scroll perf on long lists). */
+  /** Fixed row height hint (FlatList getItemLayout + FlashList estimatedItemSize default). */
   listVariant?: "row" | "card";
-  /** Ignored — kept for API compatibility with FlashList callers. */
+  /**
+   * FlashList size hint. Defaults from `listVariant` or row height.
+   * FlashList v2 ignores estimates but we still pass a stable value for API/compat.
+   */
+  estimatedItemSize?: number;
+  /** FlashList span/layout override when FlashList is active. */
   overrideItemLayout?: (layout: { span?: number; size?: number }, item: T, index: number) => void;
-  /** Ignored — kept for API compatibility with FlashList callers. */
+  /** FlashList draw distance when FlashList is active. */
   drawDistance?: number;
+  /** Force RN FlatList (nested hosts, experimental layouts). */
+  forceFlatList?: boolean;
 };
 
-export type OptimizedListRef<T> = FlatList<T>;
+/** Minimal imperative API shared by FlatList and FlashList. */
+export type OptimizedListRef<T = unknown> = {
+  scrollToOffset: (params: { offset: number; animated?: boolean | null }) => void;
+  scrollToIndex: (params: {
+    index: number;
+    animated?: boolean | null;
+    viewOffset?: number;
+    viewPosition?: number;
+  }) => void | Promise<void>;
+};
+
+/**
+ * FlashList only for clearly vertical full-screen lists.
+ * Horizontal carousels and lists nested in ScrollView keep FlatList (safer nesting).
+ * Harmony-like OEMs and web stay on FlatList for compatibility.
+ */
+function canUseFlashList(opts: {
+  horizontal?: boolean | null;
+  forceFlatList?: boolean;
+}): boolean {
+  if (opts.forceFlatList) return false;
+  if (opts.horizontal) return false;
+  if (Platform.OS === "web") return false;
+  if (isHarmonyLikeDevice()) return false;
+  return true;
+}
 
 function OptimizedFlatListInner<T>(
   props: OptimizedFlatListProps<T>,
   ref: React.Ref<OptimizedListRef<T>>,
 ) {
-  const { listVariant, overrideItemLayout: _overrideItemLayout, drawDistance: _drawDistance, ...rest } = props;
+  const {
+    listVariant,
+    estimatedItemSize: estimatedItemSizeProp,
+    overrideItemLayout,
+    drawDistance,
+    forceFlatList,
+    getItemLayout: getItemLayoutProp,
+    refreshing,
+    onRefresh,
+    refreshControl,
+    horizontal,
+    ...rest
+  } = props;
+
+  const estimatedItemSize =
+    estimatedItemSizeProp ?? (listVariant ? ITEM_HEIGHT[listVariant] : ITEM_HEIGHT.row);
+
+  const useFlash = canUseFlashList({ horizontal, forceFlatList });
 
   const getItemLayout = useMemo(() => {
     if (!listVariant) return undefined;
@@ -40,16 +93,57 @@ function OptimizedFlatListInner<T>(
     });
   }, [listVariant]);
 
+  if (useFlash) {
+    const flashRefreshControl =
+      refreshControl ??
+      (onRefresh ? (
+        <RefreshControl refreshing={Boolean(refreshing)} onRefresh={onRefresh} />
+      ) : undefined);
+
+    // Strip FlatList-only tuning props FlashList does not support.
+    const {
+      initialNumToRender: _initialNumToRender,
+      maxToRenderPerBatch: _maxToRenderPerBatch,
+      windowSize: _windowSize,
+      updateCellsBatchingPeriod: _updateCellsBatchingPeriod,
+      disableVirtualization: _disableVirtualization,
+      onScrollToIndexFailed: _onScrollToIndexFailed,
+      ...flashRest
+    } = rest;
+
+    // FlashList / FlatList ref shapes differ; callers only use scrollToOffset / scrollToIndex.
+    // Cast through unknown: FlashListProps generics + FlatList rest props don't align cleanly.
+    const flashProps = {
+      ...flashRest,
+      ref: ref as never,
+      horizontal: false as const,
+      // v2 ignores estimates; kept for API compatibility / older FlashList.
+      estimatedItemSize,
+      drawDistance,
+      overrideItemLayout: overrideItemLayout
+        ? (layout: { span?: number }, item: unknown, index: number) => {
+            overrideItemLayout(layout as { span?: number; size?: number }, item as T, index);
+          }
+        : undefined,
+      refreshControl: flashRefreshControl,
+    };
+    return <FlashList {...(flashProps as React.ComponentProps<typeof FlashList>)} />;
+  }
+
   return (
     <FlatList
-      ref={ref}
+      ref={ref as React.Ref<FlatList<T>>}
       {...rest}
-      getItemLayout={rest.getItemLayout ?? getItemLayout}
+      horizontal={horizontal}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      refreshControl={refreshControl}
+      getItemLayout={getItemLayoutProp ?? getItemLayout}
     />
   );
 }
 
-/** Uses React Native FlatList for broad HarmonyOS / legacy device compatibility. */
+/** Platform-gated FlashList for long vertical lists; FlatList fallback otherwise. */
 export const OptimizedFlatList = forwardRef(OptimizedFlatListInner) as <T>(
   props: OptimizedFlatListProps<T> & { ref?: React.Ref<OptimizedListRef<T>> },
 ) => React.ReactElement;

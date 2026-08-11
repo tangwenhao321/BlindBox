@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { layout, spacing } from "../../styles/tokens";
@@ -19,7 +20,7 @@ export function BoxDetailsWinFab({ onPress }: Props) {
       accessibilityRole="button"
       accessibilityLabel={t("boxDetails.winFab")}
     >
-      <Text style={styles.winFabIcon}>🏆</Text>
+      <Ionicons name="trophy" size={18} color={styles.winFabText.color} />
       <Text style={styles.winFabText}>{t("boxDetails.winFab")}</Text>
     </Pressable>
   );
@@ -44,7 +45,6 @@ function buildWinFabStyles(colors: ThemeColors) {
       shadowRadius: 8,
       elevation: 4,
     },
-    winFabIcon: { fontSize: 18 },
     winFabText: { fontSize: 9, color: colors.textSecondary, fontWeight: "700" },
   });
 }

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { ListFooterLoading } from "./ui/ListFooterLoading";
 import { SubPageHeader } from "./ui/SubPageHeader";
+import { SubPageShelfAccent } from "./ui/SubPageShelfAccent";
 import { EmptyState } from "./EmptyState";
 import { OptimizedFlatList } from "./ui/OptimizedFlatList";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
@@ -75,6 +76,7 @@ export function LeaderboardView({ mysteryBoxId, onBack }: Props) {
   return (
     <View style={styles.page}>
       <SubPageHeader title={t("leaderboard.title")} onBack={onBack} />
+      <SubPageShelfAccent />
       <View style={styles.tabs}>
         {(["week", "month"] as const).map((key) => (
           <Pressable

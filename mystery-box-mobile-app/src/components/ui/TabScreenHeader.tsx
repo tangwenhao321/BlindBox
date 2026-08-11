@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAppTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
@@ -24,22 +26,39 @@ export function TabScreenHeader({ title, variant = "default", rightSlot }: Props
   );
 }
 
-export function HeaderIconButton({
-  label,
-  icon,
-  badge,
-  onPress,
-  testID,
-}: {
+type HeaderIconButtonProps = {
   label: string;
-  icon?: string;
+  /** Ionicons glyph name (preferred for chrome icons). */
+  ion?: ComponentProps<typeof Ionicons>["name"];
+  /** Custom icon node; used when `ion` is omitted. */
+  icon?: ReactNode;
   badge?: number;
   onPress: () => void;
   testID?: string;
-}) {
+};
+
+export function HeaderIconButton({ label, ion, icon, badge, onPress, testID }: HeaderIconButtonProps) {
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(buildTabScreenHeaderStyles);
-  const displayIcon = icon ?? label.charAt(0);
   const badgeText = badge != null && badge > 0 ? (badge > 99 ? "99+" : badge > 9 ? "9+" : String(badge)) : null;
+
+  let glyph: ReactNode;
+  if (ion) {
+    glyph = (
+      <Ionicons
+        name={ion}
+        size={18}
+        color={colors.textPrimary}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+      />
+    );
+  } else if (icon != null) {
+    glyph = icon;
+  } else {
+    glyph = <Text style={styles.iconBtnText}>{label.charAt(0)}</Text>;
+  }
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -48,7 +67,7 @@ export function HeaderIconButton({
       onPress={onPress}
       style={({ pressed }) => [styles.iconBtn, pressed ? styles.pressed : null]}
     >
-      <Text style={styles.iconBtnText}>{displayIcon}</Text>
+      {glyph}
       {badgeText ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7}>
@@ -111,7 +130,7 @@ function buildTabScreenHeaderStyles(colors: ThemeColors) {
       position: "relative",
       overflow: "visible",
     },
-    iconBtnText: { fontSize: 17 },
+    iconBtnText: { fontSize: 17, color: colors.textPrimary },
     badge: {
       position: "absolute",
       top: -4,

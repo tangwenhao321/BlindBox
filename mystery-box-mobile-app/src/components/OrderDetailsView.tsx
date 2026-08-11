@@ -52,7 +52,7 @@ import {
 } from "../effects/revealOrchestrator";
 import { useRevealSequence } from "../hooks/useRevealSequence";
 import { fetchOrderDrawIntegrity } from "../services/orderService";
-import { hydrateAtmosphereRevealOverrides } from "../effects/revealAtmosphereRuntime";
+import { getAtmosphereOverrides, hydrateAtmosphereRevealOverrides } from "../effects/revealAtmosphereRuntime";
 import { resolveAtmosphereSoundPack } from "../effects/revealAtmosphereOverrides";
 import { setRuntimeRevealSoundPack } from "../effects/sound";
 import { useRevealSpectatorSessionSync } from "../hooks/useRevealSpectatorSessionSync";
@@ -196,7 +196,7 @@ export function OrderDetailsView(props: Props) {
     if (!isPaidWithPrizes || prizesUnveiled) return;
     void shouldShowReturnWelcome().then((show) => {
       if (show) {
-        toast.info(t("orderDetails.returnWelcome", { defaultValue: "Welcome back — enjoy your reveal!" }));
+        toast.info(t("orderDetails.returnWelcome"));
         void markReturnWelcomeShown();
       }
     });
@@ -228,7 +228,7 @@ export function OrderDetailsView(props: Props) {
     if (authToken) {
       void fetchOrderDrawIntegrity(authToken, order.id)
         .then((row) => setServerIntegrityFailed((row?.issueCount ?? 0) > 0))
-        .catch(() => setServerIntegrityFailed(false));
+        .catch(() => setServerIntegrityFailed(true));
     }
   }, [isPaidWithPrizes, sortedPrizes, order.id, authToken]);
 
@@ -245,10 +245,13 @@ export function OrderDetailsView(props: Props) {
     highlightMarkersRef.current = [];
   }, [order.id, isPaidWithPrizes]);
   const { reduceMotion, reduceMotionLevel, lowPerfMode, a11yFlashScale, a11yLustreScale, skipParticles: deviceSkipParticles } =
-    useRevealDevice();
+    useRevealDevice(authToken);
   const [atmosphereSkipParticles, setAtmosphereSkipParticles] = useState(false);
   const [atmosphereParticleScale, setAtmosphereParticleScale] = useState(1);
-  const skipParticlesReveal = deviceSkipParticles || atmosphereSkipParticles;
+  const liveAtmosphere = getAtmosphereOverrides();
+  const skipParticlesReveal =
+    deviceSkipParticles || atmosphereSkipParticles || !!liveAtmosphere.skipParticles;
+  const liveAtmosphereParticleScale = liveAtmosphere.particleScale ?? atmosphereParticleScale;
   const activeReplayProduct = useMemo(() => {
     if (playlistIndex != null) return sortedPrizes[playlistIndex];
     const finale = sortedPrizes[sortedPrizes.length - 1];
@@ -287,7 +290,7 @@ export function OrderDetailsView(props: Props) {
     if (completedProduct) {
       const tier = normalizeQualityTier(completedProduct.qualityType);
       if (tier !== "GENERAL") {
-        publishRevealRoomReaction(tier === "LEGENDARY" || tier === "LEGEND" ? "🔥" : "✨");
+        publishRevealRoomReaction(tier === "LEGENDARY" || tier === "LEGEND" ? "★" : "•");
       }
     }
     if (playlistIndex != null) {
@@ -539,11 +542,9 @@ export function OrderDetailsView(props: Props) {
     });
   };
   const orderBoxName = getOrderBoxName(order);
-  const boxCoverUri =
-    getOrderBoxCover(order) ??
-    `https://picsum.photos/seed/${encodeURIComponent(orderBoxName)}/400/400`;
+  const boxCoverUri = getOrderBoxCover(order) || undefined;
   const topPrizeImage = topPrize
-    ? resolveProductImageUrl(topPrize.id, topPrize.name, topPrize.cover)
+    ? resolveProductImageUrl(topPrize.id, topPrize.name, topPrize.cover) || undefined
     : undefined;
   const activeRevealIndex = playlistIndex ?? 0;
   const inMultiRevealSequence =
@@ -572,7 +573,7 @@ export function OrderDetailsView(props: Props) {
           teaserVariant={teaserVariant}
           subtitle={t("orderDetails.revealSubtitle")}
           skipParticles={skipParticlesReveal}
-          atmosphereParticleScale={atmosphereParticleScale}
+          atmosphereParticleScale={liveAtmosphereParticleScale}
           a11yFlashScale={a11yFlashScale}
           a11yLustreScale={a11yLustreScale}
         />
@@ -604,7 +605,7 @@ export function OrderDetailsView(props: Props) {
           teaserVariant={teaserVariant}
           subtitle={t("orderDetails.revealSubtitle")}
           skipParticles={skipParticlesReveal}
-          atmosphereParticleScale={atmosphereParticleScale}
+          atmosphereParticleScale={liveAtmosphereParticleScale}
           a11yFlashScale={a11yFlashScale}
           a11yLustreScale={a11yLustreScale}
         />

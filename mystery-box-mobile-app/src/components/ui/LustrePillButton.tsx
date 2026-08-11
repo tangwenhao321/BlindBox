@@ -51,7 +51,11 @@ export function LustrePillButton({
         accessibilityLabel={accessibilityLabel}
         disabled={disabled}
         onPress={onPress}
-        style={[styles.inner, disabled ? styles.disabled : null]}
+        style={({ pressed }) => [
+          styles.inner,
+          disabled ? styles.disabled : null,
+          !disabled && pressed ? styles.pressed : null,
+        ]}
       >
         {children}
       </Pressable>
@@ -67,5 +71,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  pressed: { opacity: 0.9 },
   disabled: { opacity: 0.45 },
 });

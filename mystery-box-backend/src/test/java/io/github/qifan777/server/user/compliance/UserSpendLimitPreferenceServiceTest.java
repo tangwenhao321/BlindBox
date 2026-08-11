@@ -1,5 +1,6 @@
 package io.github.qifan777.server.user.compliance;
 
+import io.github.qifan777.server.payment.config.MarketProperties;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,18 +15,22 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class UserSpendLimitPreferenceServiceTest {
 
     @Mock
     private JdbcTemplate jdbcTemplate;
+    @Mock
+    private MarketProperties marketProperties;
 
     private UserSpendLimitPreferenceService service;
 
     @BeforeEach
     void setUp() {
-        service = new UserSpendLimitPreferenceService(jdbcTemplate);
+        lenient().when(marketProperties.getCurrency()).thenReturn("CNY");
+        service = new UserSpendLimitPreferenceService(jdbcTemplate, marketProperties);
         ReflectionTestUtils.setField(service, "coolingOffHours", 24);
     }
 

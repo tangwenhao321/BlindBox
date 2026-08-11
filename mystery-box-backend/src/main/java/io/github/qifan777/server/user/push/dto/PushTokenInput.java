@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record PushTokenInput(
         @NotBlank String expoPushToken,
-        String platform
+        String platform,
+        String releaseChannel
 ) {
 }

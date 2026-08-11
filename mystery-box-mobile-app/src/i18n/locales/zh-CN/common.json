@@ -17,6 +17,8 @@
     "sectionPrizes": "奖品",
     "amountAtLeast": "≥{{amount}}",
     "gotIt": "知道了",
-    "contactSupport": "联系客服"
+    "contactSupport": "联系客服",
+    "clear": "清除",
+    "close": "关闭"
   }
 }

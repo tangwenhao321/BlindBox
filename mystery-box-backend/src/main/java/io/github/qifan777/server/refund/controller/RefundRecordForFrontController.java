@@ -2,6 +2,7 @@ package io.github.qifan777.server.refund.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.github.qifan777.server.refund.entity.RefundRecord;
 import io.github.qifan777.server.refund.entity.dto.RefundRecordInput;
 import io.github.qifan777.server.refund.entity.dto.RefundRecordSpec;
@@ -30,7 +31,10 @@ public class RefundRecordForFrontController {
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") RefundRecord findById(@PathVariable String id) {
-        return refundRecordRepository.findById(id, RefundRecordRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
+        RefundRecord refundRecord = refundRecordRepository.findById(id, RefundRecordRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(refundRecord.creator().id());
+        return refundRecord;
     }
 
     @PostMapping("query")

@@ -31,8 +31,9 @@ public class MarketPaymentHealthService {
                 configured,
                 vnpayProperties.isSandbox(),
                 ipnConfigured,
-                momoProperties.isEnabled(),
-                momoProperties.isConfigured(),
+                // Never advertise stub / unwired MoMo as a ready/offered provider
+                momoProperties.isCheckoutOffered(),
+                momoProperties.isCheckoutOffered(),
                 mockPaymentEnabled
         );
     }

@@ -20,9 +20,10 @@ type Props = {
   embedded?: boolean;
   referral?: ReferralStatsHook;
   onInvite?: () => void;
+  onOpenTeamLottery?: () => void;
 };
 
-export function TeamView({ onBack, embedded, referral, onInvite }: Props) {
+export function TeamView({ onBack, embedded, referral, onInvite, onOpenTeamLottery }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const internalReferral = useReferralStats(token);
@@ -97,6 +98,11 @@ export function TeamView({ onBack, embedded, referral, onInvite }: Props) {
         <View style={styles.summary}>
           <Text style={styles.summaryText}>{t("team.memberCount", { count: memberCount })}</Text>
           <Text style={styles.summaryText}>{t("team.inviteCode", { code: inviteCode || "—" })}</Text>
+          {onOpenTeamLottery ? (
+            <Pressable onPress={onOpenTeamLottery} accessibilityRole="button" accessibilityLabel={t("teamLottery.title")}>
+              <Text style={styles.inviteLink}>{t("teamLottery.title")} →</Text>
+            </Pressable>
+          ) : null}
         </View>
       )}
       <View style={styles.tabs}>

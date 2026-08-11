@@ -1,7 +1,9 @@
 {
   "validation": {
     "phone": "请输入 11 位有效手机号",
-    "passwordMin": "密码至少 6 位",
+    "passwordMin": "密码至少 8 位",
+    "passwordMinLogin": "密码至少 6 位",
+    "passwordComplexity": "密码需同时包含字母和数字",
     "recipientRequired": "请填写收件人姓名",
     "recipientMin": "收件人姓名至少 2 个字符",
     "regionRequired": "请选择所在地区",

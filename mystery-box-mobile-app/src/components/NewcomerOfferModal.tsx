@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { parseError } from "../api";
 import { getNewcomerOfferBox } from "../services/boxService";
@@ -13,10 +14,12 @@ import { RemoteImage } from "./ui/RemoteImage";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { ListSkeleton } from "./ListSkeleton";
 import { useThemedStyles } from "../hooks/useThemedStyles";
+import { useAppTheme } from "../context/ThemeContext";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { resolveBoxImageUrl } from "../utils/boxImage";
 import { formatCurrency } from "../utils/formatCurrency";
+import { getNewcomerFallbackPrice } from "../utils/newcomerOffer";
 import type { MysteryBox } from "../types";
 import { trackEvent } from "../utils/analytics";
 
@@ -29,6 +32,7 @@ type Props = {
 
 export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props) {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   const styles = useThemedStyles(buildNewcomerOfferStyles);
   const [box, setBox] = useState<MysteryBox | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,7 +77,7 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
   }, [visible, token, reload]);
 
   const priceText = useMemo(() => {
-    if (!box) return formatCurrency(0.01);
+    if (!box) return formatCurrency(getNewcomerFallbackPrice());
     return formatCurrency(box.price);
   }, [box]);
 
@@ -107,8 +111,8 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
             <Text style={styles.tagText}>{t("newcomerOffer.tag")}</Text>
           </View>
           <Text style={styles.title}>
-            <Text style={styles.titleBlue}>{t("newcomerOffer.titleNewcomer")}</Text>
-            <Text style={styles.titleRed}>{t("newcomerOffer.titleBox", { price: priceText })}</Text>
+            <Text style={styles.titleBrand}>{t("newcomerOffer.titleNewcomer")}</Text>
+            <Text style={styles.titleBrand}>{t("newcomerOffer.titleBox", { price: priceText })}</Text>
           </Text>
           <Text style={styles.subtitle}>
             {box?.name ? t("newcomerOffer.subtitlePrefix", { boxName: box.name }) : null}
@@ -124,7 +128,7 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
               {box?.cover ? (
                 <RemoteImage uri={resolveBoxImageUrl(box)} style={styles.heroImage} />
               ) : (
-                <Text style={styles.heroEmoji}>🎁</Text>
+                <Text style={styles.heroMarker}>✦</Text>
               )}
               {box ? (
                 <View style={styles.heroBadge}>
@@ -156,7 +160,10 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
                     <Text style={styles.missionProgress}>
                       {mission.progress}/{mission.target}
                       {mission.rewardCoins ? ` · +${mission.rewardCoins}` : ""}
-                      {mission.rewardHintCards ? ` · +${mission.rewardHintCards}💡` : ""}
+                      {mission.rewardHintCards ? ` · +${mission.rewardHintCards}` : ""}
+                      {mission.rewardHintCards ? (
+                        <Ionicons name="bulb-outline" size={12} color={colors.brand} />
+                      ) : null}
                     </Text>
                   </View>
                   {mission.claimed ? (
@@ -231,8 +238,7 @@ function buildNewcomerOfferStyles(colors: ThemeColors) {
     },
     tagText: { color: colors.textOnBrand, fontSize: typography.micro, fontWeight: "800" },
     title: { fontSize: typography.h2, fontWeight: "900", marginBottom: spacing.xs },
-    titleBlue: { color: colors.brandDark },
-    titleRed: { color: colors.danger },
+    titleBrand: { color: colors.brandText },
     subtitle: { fontSize: typography.caption, color: colors.textSecondary, lineHeight: 20, marginBottom: spacing.md },
     priceHighlight: { color: colors.danger, fontWeight: "800" },
     hero: {
@@ -250,7 +256,7 @@ function buildNewcomerOfferStyles(colors: ThemeColors) {
       overflow: "hidden",
     },
     heroImage: { width: "100%", height: "100%" },
-    heroEmoji: { fontSize: 56 },
+    heroMarker: { fontSize: 48, color: colors.brandText, fontWeight: "900" },
     heroBadge: {
       position: "absolute",
       right: spacing.md,

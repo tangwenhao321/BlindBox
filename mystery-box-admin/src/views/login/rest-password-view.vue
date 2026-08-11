@@ -18,6 +18,7 @@ import background from '@/assets/background.jpg'
 import { api } from '@/utils/api-instance'
 
 import { assertFormValidate, assertSuccess } from '@/utils/common'
+import { isCookieAuthMode, setAdminToken, setAdminTokenCookieMode } from '@/utils/admin-auth-token'
 import { sendSMS } from '@/apis/sms/sms-api'
 import { useHomeStore } from '@/stores/home-store'
 import type { UserResetPasswordInput } from '@/apis/__generated/model/static'
@@ -47,8 +48,12 @@ const handleRest = async () => {
       api.userForFrontController.passwordRest({ body: restForm }).then(async (res) => {
         const homeStore = useHomeStore()
         homeStore.logout()
+        if (isCookieAuthMode()) {
+          setAdminTokenCookieMode()
+        } else {
+          setAdminToken(res.tokenValue)
+        }
         await homeStore.init()
-        localStorage.setItem('token', res.tokenValue)
         router.replace({ path: '/' })
       })
     )

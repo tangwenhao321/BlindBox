@@ -23,6 +23,17 @@ describe("notificationDeepLink", () => {
     });
   });
 
+  it("resolves restock and pity to box details", () => {
+    expect(resolveNotificationDeepLink("RESTOCK", "box-1")).toEqual({
+      view: "boxDetails",
+      boxId: "box-1",
+    });
+    expect(resolveNotificationDeepLink("PITY", "box-2")).toEqual({
+      view: "boxDetails",
+      boxId: "box-2",
+    });
+  });
+
   it("extracts push payload fields", () => {
     expect(extractPushData({ category: "REFUND", refId: "r1" })).toEqual({
       category: "REFUND",

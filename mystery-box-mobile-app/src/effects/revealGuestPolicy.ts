@@ -25,5 +25,5 @@ export function recordGuestReplay(hasAuth: boolean): void {
 export function notifyGuestRevealBlocked(kind: "replay" | "snapshot"): void {
   const key =
     kind === "replay" ? "revealOverlay.guestReplayLimited" : "revealOverlay.guestSnapshotLimited";
-  toast.revealHint(i18n.t(key, { defaultValue: "Sign in to unlock full reveal history." }));
+  toast.revealHint(i18n.t(key));
 }

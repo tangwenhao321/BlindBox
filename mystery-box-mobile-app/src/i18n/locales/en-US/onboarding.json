@@ -1,9 +1,12 @@
 {
   "onboarding": {
     "title": "Quick tour",
-    "step1": "① Choose draw count or buyout",
-    "step2": "② Confirm address and pay",
-    "step3": "③ View or redeem prizes in warehouse",
+    "step1Title": "Browse the cabinet",
+    "step1": "Pick a series and draw pack — odds stay visible.",
+    "step2Title": "Pay safely",
+    "step2": "Confirm address and pay on a clear checkout sheet.",
+    "step3Title": "Warehouse collection",
+    "step3": "Prizes land in warehouse — ship or redeem anytime.",
     "skip": "Skip",
     "next": "Next",
     "done": "Done"

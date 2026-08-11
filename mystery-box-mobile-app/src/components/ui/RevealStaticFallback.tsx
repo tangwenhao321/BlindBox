@@ -53,7 +53,7 @@ export function RevealStaticFallback({ products, onSkip }: Props) {
           style={[styles.skipBtn, { backgroundColor: colors.bgSoft }]}
         >
           <Text style={[styles.skipText, { color: colors.textSecondary }]}>
-            {t("orderResult.skipRemaining", { defaultValue: "Skip reveal" })}
+            {t("orderResult.skipRemaining")}
           </Text>
         </Pressable>
       ) : null}

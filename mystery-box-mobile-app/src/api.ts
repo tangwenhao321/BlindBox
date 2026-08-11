@@ -22,12 +22,15 @@ export { AUTH_ERROR_CODES } from "./utils/apiErrorCodes";
 export class ApiClientError extends Error {
   code: number;
   traceId?: string;
+  /** Stable SCREAMING_SNAKE from backend JSON `errorCode` when present. */
+  errorCode?: string;
 
-  constructor(message: string, code = -1, traceId?: string) {
+  constructor(message: string, code = -1, traceId?: string, errorCode?: string) {
     super(message);
     this.name = "ApiClientError";
     this.code = code;
     this.traceId = traceId;
+    this.errorCode = errorCode;
   }
 }
 
@@ -103,7 +106,14 @@ api.interceptors.response.use(
       if (shouldTriggerUnauthorized(response.config?.url, payload.code, response.status)) {
         triggerUnauthorized();
       }
-      return Promise.reject(new ApiClientError(payload.msg || i18n.t("api.requestFailed"), payload.code, traceId));
+      return Promise.reject(
+        new ApiClientError(
+          payload.msg || i18n.t("api.requestFailed"),
+          payload.code,
+          traceId,
+          typeof payload.errorCode === "string" ? payload.errorCode : undefined,
+        ),
+      );
     }
     return response;
   },
@@ -130,12 +140,13 @@ api.interceptors.response.use(
     setOffline(false);
     const message = rawMessage || error.message || i18n.t("api.requestRetry");
     const code = payload?.code ?? error.response?.status ?? -1;
+    const errorCode = typeof payload?.errorCode === "string" ? payload.errorCode : undefined;
     if (
       shouldTriggerUnauthorized(error.config?.url, code, error.response?.status)
     ) {
       triggerUnauthorized();
     }
-    return Promise.reject(new ApiClientError(message, code, traceId));
+    return Promise.reject(new ApiClientError(message, code, traceId, errorCode));
   },
 );
 

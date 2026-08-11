@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class ProductionReadinessLogger {
-    @Value("${payment.mock-enabled:true}")
+    @Value("${payment.mock-enabled:false}")
     private boolean paymentMockEnabled;
     @Value("${oss.provider:}")
     private String ossProvider;

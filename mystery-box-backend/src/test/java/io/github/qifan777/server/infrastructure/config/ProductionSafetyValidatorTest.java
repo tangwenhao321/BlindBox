@@ -55,5 +55,30 @@ class ProductionSafetyValidatorTest {
         assertTrue((Boolean) ReflectionTestUtils.invokeMethod(validator, "isUnsafeSmsProvider"));
         ReflectionTestUtils.setField(validator, "smsProvider", "ali_yun");
         assertFalse((Boolean) ReflectionTestUtils.invokeMethod(validator, "isUnsafeSmsProvider"));
+        ReflectionTestUtils.setField(validator, "smsProvider", "vn_esms");
+        assertFalse((Boolean) ReflectionTestUtils.invokeMethod(validator, "isUnsafeSmsProvider"));
+    }
+
+    @Test
+    void rejectsPlaceholderIdentityHashSecret() {
+        assertTrue(ProductionSafetyValidator.isUnsafeIdentityHashSecret(""));
+        assertTrue(ProductionSafetyValidator.isUnsafeIdentityHashSecret("CHANGE_ME_IDENTITY_HASH_SECRET"));
+        assertTrue(ProductionSafetyValidator.isUnsafeIdentityHashSecret("CHANGE_ME"));
+        assertTrue(ProductionSafetyValidator.isUnsafeIdentityHashSecret("placeholder"));
+        assertFalse(ProductionSafetyValidator.isUnsafeIdentityHashSecret("prod-identity-hash-9f3a2c1b"));
+    }
+
+    @Test
+    void prodVnWarnsWhenIdentityProviderStillLocal() throws Exception {
+        MockEnvironment env = new MockEnvironment();
+        env.setActiveProfiles("prod-vn");
+        ProductionSafetyValidator validator = new ProductionSafetyValidator(env);
+        ReflectionTestUtils.setField(validator, "identityProvider", "local");
+        Method method = ProductionSafetyValidator.class.getDeclaredMethod("warnLocalIdentityOnProdVn");
+        method.setAccessible(true);
+        method.invoke(validator);
+
+        ReflectionTestUtils.setField(validator, "identityProvider", "ekyc_vendor");
+        method.invoke(validator);
     }
 }

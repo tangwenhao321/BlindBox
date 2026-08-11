@@ -9,6 +9,7 @@ export type FeatureRoute =
 export const FEATURE_KEYS = {
   PROMOTION: "promotion",
   TEAM: "team",
+  TEAM_LOTTERY: "teamLottery",
   COMMISSION: "commission",
   INVITE_FRIENDS: "inviteFriends",
   INVITE_REWARD: "inviteReward",
@@ -26,6 +27,7 @@ export const FEATURE_KEYS = {
   VIP: "vip",
   INVITE_CENTER: "inviteCenter",
   IP_THEME: "ipTheme",
+  EFFECTS_CENTER: "effectsCenter",
   EXCHANGE_MALL: "exchangeMall",
   LEADERBOARD: "leaderboard",
   COMMUNITY: "community",
@@ -38,6 +40,7 @@ export type FeatureKey = (typeof FEATURE_KEYS)[keyof typeof FEATURE_KEYS];
 const ROUTES: Record<FeatureKey, FeatureRoute> = {
   [FEATURE_KEYS.PROMOTION]: { type: "view", view: "promotion" },
   [FEATURE_KEYS.TEAM]: { type: "view", view: "team" },
+  [FEATURE_KEYS.TEAM_LOTTERY]: { type: "view", view: "teamLottery" },
   [FEATURE_KEYS.COMMISSION]: { type: "view", view: "commission" },
   [FEATURE_KEYS.INVITE_FRIENDS]: { type: "action", action: "shareInvite" },
   [FEATURE_KEYS.INVITE_REWARD]: { type: "action", action: "shareInvite" },
@@ -55,6 +58,7 @@ const ROUTES: Record<FeatureKey, FeatureRoute> = {
   [FEATURE_KEYS.VIP]: { type: "view", view: "levelGift" },
   [FEATURE_KEYS.INVITE_CENTER]: { type: "view", view: "inviteCenter" },
   [FEATURE_KEYS.IP_THEME]: { type: "view", view: "ipTheme" },
+  [FEATURE_KEYS.EFFECTS_CENTER]: { type: "view", view: "effectsCenter" },
   [FEATURE_KEYS.EXCHANGE_MALL]: { type: "view", view: "exchangeMall" },
   [FEATURE_KEYS.LEADERBOARD]: { type: "view", view: "leaderboard" },
   [FEATURE_KEYS.COMMUNITY]: { type: "view", view: "community" },
@@ -66,6 +70,7 @@ const ROUTES: Record<FeatureKey, FeatureRoute> = {
 const LEGACY_FEATURE_ALIASES: Record<string, FeatureKey> = {
   我的推广: FEATURE_KEYS.PROMOTION,
   团队管理: FEATURE_KEYS.TEAM,
+  对对碰: FEATURE_KEYS.TEAM_LOTTERY,
   佣金明细: FEATURE_KEYS.COMMISSION,
   邀请好友: FEATURE_KEYS.INVITE_FRIENDS,
   邀请有礼: FEATURE_KEYS.INVITE_REWARD,
@@ -83,6 +88,7 @@ const LEGACY_FEATURE_ALIASES: Record<string, FeatureKey> = {
   会员权益: FEATURE_KEYS.VIP,
   邀请中心: FEATURE_KEYS.INVITE_CENTER,
   IP专题馆: FEATURE_KEYS.IP_THEME,
+  特效中心: FEATURE_KEYS.EFFECTS_CENTER,
   进阶商城: FEATURE_KEYS.EXCHANGE_MALL,
   欧皇榜: FEATURE_KEYS.LEADERBOARD,
   晒单墙: FEATURE_KEYS.COMMUNITY,

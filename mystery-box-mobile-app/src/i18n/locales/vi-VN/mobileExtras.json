@@ -24,7 +24,8 @@
   },
   "messages": {
     "filterRestock": "Nhập hàng",
-    "filterPity": "Pity"
+    "filterPity": "Pity",
+    "filterProbability": "Đổi xác suất"
   },
   "promotion": {
     "milestonesTitle": "Mốc giới thiệu"

@@ -23,8 +23,14 @@
     "prizesTitle": "Your prizes",
     "viewOrders": "View orders",
     "payNow": "Pay now",
+    "goWarehouse": "Warehouse",
+    "goWarehouseA11y": "View prizes in warehouse",
     "tryAgain": "Open again",
-    "shareReveal": "Share reveal poster",
+    "shareHighlight": "Share highlight",
+    "shareHighlightA11y": "Share reveal highlight capture",
+    "sharePoster": "Share poster",
+    "sharePosterA11y": "Share order poster",
+    "shareReveal": "Share highlight",
     "verifyFairness": "Fairness verification",
     "shareCaptureFailed": "Failed to generate share image",
     "shareCaptureSuccess": "Share image ready",
@@ -51,7 +57,10 @@
     "temporaryTurboA11y": "Toggle turbo reveal for this order",
     "integrityFallback": "Reveal simplified for data integrity. You can verify fairness in order details.",
     "shareSpectatorMessage": "Watch my reveal live: {{url}}",
-    "shareHighlightMessage": "Check out my pull!"
+    "shareHighlightMessage": "Check out my pull!",
+    "pityCompensateTitle": "Pity stock unavailable",
+    "pityCompensateBody": "Pity triggered, but the high-tier prize is out of stock. Wait for restock or take points.",
+    "pityCompensateCta": "Choose compensation"
   },
   "achievements": {
     "multiRareTitle": "Rare streak",

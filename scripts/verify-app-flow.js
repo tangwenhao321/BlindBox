@@ -33,8 +33,12 @@ async function main() {
 
   try {
     const rec = await req("GET", "/front/recommendation/mystery-box?limit=8");
-    if (rec.json?.code === 1) pass("Guest recommendation", `count=${rec.json.result?.length ?? 0}`);
-    else fail("Guest recommendation", rec.text.slice(0, 120));
+    if (rec.json?.code === 1) {
+      const result = rec.json.result;
+      const count = Array.isArray(result) ? result.length : (result?.items?.length ?? 0);
+      const variant = Array.isArray(result) ? undefined : result?.variant;
+      pass("Guest recommendation", `count=${count}${variant ? ` variant=${variant}` : ""}`);
+    } else fail("Guest recommendation", rec.text.slice(0, 120));
   } catch (e) { fail("Guest recommendation", e.message); }
 
   try {

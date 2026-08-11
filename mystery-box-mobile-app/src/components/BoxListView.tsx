@@ -22,7 +22,7 @@ import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { listEmptyWhenOk, shouldShowListSkeleton } from "./ui/listScreenHelpers";
 import { ListFooterLoading } from "./ui/ListFooterLoading";
 import { ListSkeleton } from "./ListSkeleton";
-import { layout, radius, shadows, spacing, typography } from "../styles/tokens";
+import { font, layout, radius, shadows, spacing, typography } from "../styles/tokens";
 import { resolveBoxImageUrl } from "../utils/boxImage";
 import type { ThemeColors } from "../styles/themes";
 import type { MysteryBox } from "../types";
@@ -32,11 +32,12 @@ import { dedupeMysteryBoxes, isPitySeriesBox } from "../utils/boxDisplay";
 import { getNewcomerBarPrice } from "../utils/newcomerOffer";
 import { fetchNewcomerMissions } from "../services/newcomerMissionService";
 import { pickLatestUnclaimedMission } from "../utils/newcomerMissionDisplay";
-import type { MysteryBoxActivity } from "../services/activityService";
 import { rememberListScroll, peekListScroll } from "../utils/listScrollMemory";
 import { RevealFeedTicker } from "./ui/RevealFeedTicker";
 import { WinRecordModal } from "./WinRecordModal";
 import { getRevealRemoteConfig } from "../effects/revealRemote";
+import { consumeWeeklyThemeBanner } from "../effects/revealThemeBanner";
+import { getAppLocale } from "../utils/i18nLocale";
 import type { Order } from "../types";
 
 type Props = {
@@ -54,16 +55,12 @@ type Props = {
   onMallCategoryChange?: (categoryId?: string) => void;
   onMallSearch?: (keyword: string) => void;
   mallKeyword?: string;
-  onOpenFeature?: (title: string) => void;
   onContactSupport?: () => void;
-  onGoMall?: () => void;
-  onGoMallSearch?: (keyword: string) => void;
   showNewcomerBar?: boolean;
   onNewcomerPress?: () => void;
   orders?: Order[];
   onContinuePendingPayment?: (orderId: string) => void;
   onViewAllPending?: () => void;
-  onOpenActivity?: (activity: MysteryBoxActivity) => void;
   onOpenCatalogSearch?: (keyword?: string) => void;
   onOpenPlayGuide?: () => void;
   onOpenProbabilityDisclosure?: () => void;
@@ -98,16 +95,12 @@ export const BoxListView = memo(function BoxListView(props: Props) {
     onMallCategoryChange,
     onMallSearch,
     mallKeyword,
-    onOpenFeature,
     onContactSupport,
-    onGoMall,
-    onGoMallSearch,
     showNewcomerBar,
     onNewcomerPress,
     orders = [],
     onContinuePendingPayment,
     onViewAllPending,
-    onOpenActivity,
     onOpenCatalogSearch,
     onOpenPlayGuide,
     onOpenProbabilityDisclosure,
@@ -126,6 +119,7 @@ export const BoxListView = memo(function BoxListView(props: Props) {
   const [priceAsc, setPriceAsc] = useState(true);
   const [mallCategoryId, setMallCategoryId] = useState<string | undefined>();
   const [winRecordVisible, setWinRecordVisible] = useState(false);
+  const [weeklyThemeBanner, setWeeklyThemeBanner] = useState<string | null>(null);
   const [searchDraft, setSearchDraft] = useState(mallKeyword ?? "");
   const [newcomerMissionsDone, setNewcomerMissionsDone] = useState(0);
   const [newcomerMissionsTotal, setNewcomerMissionsTotal] = useState(0);
@@ -142,6 +136,15 @@ export const BoxListView = memo(function BoxListView(props: Props) {
     }, 0);
     return () => clearTimeout(timer);
   }, [scrollKey]);
+
+  useEffect(() => {
+    if (mode !== "home") return;
+    const locale = getAppLocale();
+    const lang = locale.startsWith("vi") ? "vi" : locale.startsWith("en") ? "en" : "zh";
+    void consumeWeeklyThemeBanner(lang).then((msg) => {
+      if (msg) setWeeklyThemeBanner(msg);
+    });
+  }, [mode]);
 
   useEffect(() => {
     if (!showNewcomerBar || !token) {
@@ -267,6 +270,31 @@ export const BoxListView = memo(function BoxListView(props: Props) {
     return sideData.apiCategories.find((c) => c.id === mallCategoryId)?.name;
   }, [mallCategoryId, sideData.apiCategories]);
 
+  const hasActiveEmptyFilter = useMemo(() => {
+    if (mode === "mall") return Boolean(mallKeyword?.trim() || mallCategoryId);
+    return Boolean(activeHomeTab && activeHomeTab.kind !== "all");
+  }, [activeHomeTab, mallCategoryId, mallKeyword, mode]);
+
+  const clearEmptyFilters = useCallback(() => {
+    if (mode === "home") {
+      setHomeTabKey("all");
+      return;
+    }
+    setMallCategoryId(undefined);
+    onMallCategoryChange?.(undefined);
+    setSearchDraft("");
+    onMallSearch?.("");
+  }, [mode, onMallCategoryChange, onMallSearch]);
+
+  const emptyActionLabel = hasActiveEmptyFilter
+    ? t("home.emptyClearFilters")
+    : t("home.emptyRefresh");
+  const emptyOnAction = hasActiveEmptyFilter
+    ? clearEmptyFilters
+    : () => {
+        (onRetryCatalog ?? onRefresh)();
+      };
+
   const bannerSlides = useMemo(() => {
     if (mode === "home" && sideData.homeSummary?.banners?.length) {
       return sideData.homeSummary.banners.map((banner) => ({
@@ -342,7 +370,7 @@ export const BoxListView = memo(function BoxListView(props: Props) {
         tickerItems={tickerItems}
         homeSummary={sideData.homeSummary}
         recommendBoxes={recommendBoxes}
-        activities={sideData.activities}
+        recommendVariant={sideData.recommendVariant}
         homeTabs={homeTabs}
         homeTabKey={homeTabKey}
         sortKey={sortKey}
@@ -358,10 +386,6 @@ export const BoxListView = memo(function BoxListView(props: Props) {
         onOpenProbabilityDisclosure={onOpenProbabilityDisclosure}
         onOpenPlayGuide={onOpenPlayGuide}
         onOpenBox={handleOpenDetails}
-        onOpenActivity={onOpenActivity}
-        onOpenFeature={onOpenFeature}
-        onGoMall={onGoMall}
-        onGoMallSearch={onGoMallSearch}
         onHomeTabChange={setHomeTabKey}
         onSortPress={handleSortPress}
       />
@@ -381,11 +405,13 @@ export const BoxListView = memo(function BoxListView(props: Props) {
           loading={pageLoading}
         />
         <MallCategoryNav categories={sideData.apiCategories} activeId={mallCategoryId} onSelect={handleMallCategory} />
-        {mallKeyword ? (
-          <Text style={styles.mallCategoryHint}>{t("mall.searchResultHint", { keyword: mallKeyword })}</Text>
-        ) : mallCategoryLabel ? (
-          <Text style={styles.mallCategoryHint}>{t("mall.currentCategory", { name: mallCategoryLabel })}</Text>
-        ) : null}
+        <Text style={styles.aisleTitle}>
+          {mallKeyword
+            ? t("mall.searchResultHint", { keyword: mallKeyword })
+            : mallCategoryLabel
+              ? t("mall.aisleTitle", { name: mallCategoryLabel })
+              : t("mall.aisleAll")}
+        </Text>
       </View>
     );
 
@@ -404,6 +430,16 @@ export const BoxListView = memo(function BoxListView(props: Props) {
 
   return (
     <View style={styles.container}>
+      {mode === "home" && weeklyThemeBanner ? (
+        <Pressable
+          style={styles.weeklyThemeBanner}
+          onPress={() => setWeeklyThemeBanner(null)}
+          accessibilityRole="button"
+          accessibilityLabel={weeklyThemeBanner}
+        >
+          <Text style={styles.weeklyThemeBannerText}>{weeklyThemeBanner}</Text>
+        </Pressable>
+      ) : null}
       {mode === "home" && getRevealRemoteConfig().feedTickerEnabled ? (
         <RevealFeedTicker visible boxId={null} />
       ) : null}
@@ -433,7 +469,7 @@ export const BoxListView = memo(function BoxListView(props: Props) {
         renderItem={mode === "mall" ? renderMallItem : renderHomeItem}
         ListEmptyComponent={
           listLoading ? (
-            <ListSkeleton rows={mode === "mall" ? 6 : 5} />
+            <ListSkeleton rows={mode === "mall" ? 6 : 5} variant={mode === "mall" ? "grid" : "card"} />
           ) : (
             listEmptyWhenOk(
               catalogLoadError ?? null,
@@ -448,7 +484,8 @@ export const BoxListView = memo(function BoxListView(props: Props) {
                         ? t("home.emptyFilterHome")
                         : t("home.emptyRetry")
                 }
-                icon="📦"
+                actionLabel={emptyActionLabel}
+                onAction={emptyOnAction}
               />,
             )
           )
@@ -488,12 +525,35 @@ export const BoxListView = memo(function BoxListView(props: Props) {
 function buildBoxListStyles(colors: ThemeColors) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.bgPage },
+    weeklyThemeBanner: {
+      marginHorizontal: layout.screenPaddingX,
+      marginTop: spacing.sm,
+      marginBottom: spacing.xs,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.md,
+      backgroundColor: colors.bgCard,
+    },
+    weeklyThemeBannerText: {
+      color: colors.textSecondary,
+      fontSize: typography.caption,
+      fontWeight: "700",
+    },
     headerWrap: { marginBottom: spacing.sm, backgroundColor: colors.bgPage },
     mallCategoryHint: {
       fontSize: typography.caption,
       color: colors.textSecondary,
       marginBottom: spacing.sm,
       fontWeight: "600",
+    },
+    aisleTitle: {
+      ...font("bodySemiBold"),
+      fontSize: typography.bodyLg,
+      fontWeight: "800",
+      color: colors.brandText,
+      marginTop: spacing.xs,
+      marginBottom: spacing.md,
+      letterSpacing: 0.3,
     },
     mallCell: { flex: 1, marginBottom: spacing.sm, paddingHorizontal: spacing.xs },
     loadMoreText: {

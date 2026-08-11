@@ -1,7 +1,8 @@
 {
   "mall": {
     "title": "商城",
-    "tags": "全新正品  |  精选好物  |  急速发货",
+    "shelfEyebrow": "今晚货架",
+    "tags": "全新正品  ·  分区货架  ·  急速发货",
     "searchA11y": "搜索商城商品",
     "searchPlaceholder": "请输入搜索的产品",
     "searchBtn": "搜索",
@@ -9,7 +10,9 @@
     "searchResultHint": "搜索「{{keyword}}」的结果",
     "emptySearch": "未找到「{{keyword}}」相关商品，换个关键词试试",
     "categoryAll": "全部",
-    "currentCategory": "当前分类：{{name}}",
+    "currentCategory": "货架 · {{name}}",
+    "aisleTitle": "货架 · {{name}}",
+    "aisleAll": "货架 · 全部商品",
     "fallbackNew": "每月上新",
     "fallbackDigital": "数码3C",
     "fallbackApple": "苹果专区",

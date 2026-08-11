@@ -24,7 +24,8 @@ import {
   type CeremonyTier,
 } from "../../effects/ceremonyTier";
 import { buildBurstParticles } from "../../effects/burstParticles";
-import { getLustrePalette, pickLustreColor, lustreGradientStops } from "../../effects/lustrePalette";
+import { pickLustreColor, lustreGradientStops, tintLustrePalette } from "../../effects/lustrePalette";
+import { getAtmosphereOverrides } from "../../effects/revealAtmosphereRuntime";
 import { revealLayerZIndex } from "../../effects/revealLayerZIndex";
 import { resolveThemedLustre, themeConfettiColors, type RevealTheme } from "../../effects/revealTheme";
 import { resolveLustreIntensity, shouldReduceLustreMotion, getRevealRemoteConfig } from "../../effects/revealRemote";
@@ -124,10 +125,10 @@ type Props = {
 };
 
 function tierAccent(tier: CeremonyTier, brand: string, warning: string) {
-  if (tier === "TREASURE_PEERLESS") return "#F0ABFC";
-  if (tier === "PEERLESS") return "#FF6B35";
+  if (tier === "TREASURE_PEERLESS") return "#E0C48A";
+  if (tier === "PEERLESS") return "#D4A060";
   if (tier === "TREASURE_LEGEND") return warning;
-  if (tier === "HIDDEN") return "#B049FF";
+  if (tier === "HIDDEN") return "#C4A574";
   return brand;
 }
 
@@ -188,6 +189,7 @@ export function OpenBoxRevealOverlay({
   const recordingFlags = resolveRecordingSafeRevealFlags();
   const templateVisual = resolveCeremonyTemplateVisualScale(resolveEffectiveCeremonyTemplateId());
   const emotionParticleScale = resolveActiveEmotionProfile().particleScale;
+  const atmosphere = getAtmosphereOverrides();
   const particleScale =
     resolveRevealAssetParticleScale(degradeLevel) *
     resolveNetworkTierParticleScale() *
@@ -211,7 +213,26 @@ export function OpenBoxRevealOverlay({
   const haloPulse = useSharedValue(0);
   const chargeRing = useSharedValue(0);
   const effectTier = normalizeCeremonyTier(tier);
-  const lustre = useMemo(() => resolveThemedLustre(effectTier, revealTheme, boxId), [effectTier, revealTheme, boxId]);
+  const effectPreset = resolveRevealEffectPreset(getRuntimeRevealEffectPresetId());
+  const lustre = useMemo(() => {
+    let palette = resolveThemedLustre(effectTier, revealTheme, boxId);
+    if (effectPreset.lustrePaletteId === "warm") {
+      palette = tintLustrePalette(palette, "#FB923C", 0.24);
+    } else if (effectPreset.lustrePaletteId === "neon") {
+      palette = tintLustrePalette(palette, "#00E5FF", 0.28);
+    }
+    if (atmosphere.lustreTintAccent && (atmosphere.lustreTintStrength ?? 0) > 0) {
+      palette = tintLustrePalette(palette, atmosphere.lustreTintAccent, atmosphere.lustreTintStrength);
+    }
+    return palette;
+  }, [
+    effectTier,
+    revealTheme,
+    boxId,
+    effectPreset.lustrePaletteId,
+    atmosphere.lustreTintAccent,
+    atmosphere.lustreTintStrength,
+  ]);
   const isCeremony = isPremiumCeremony(effectTier);
   const isUltimate = isUltimateCeremony(effectTier);
   const guardTier = useMemo(() => resolveTouchGuardTier(effectTier, pacing), [effectTier, pacing]);
@@ -259,7 +280,6 @@ export function OpenBoxRevealOverlay({
   const skipParticles = skipParticlesProp ?? shouldSkipParticles(reduceMotionLevel, degradeLevel);
   const skipTeaserAnim = skipTeaserAnimProp ?? shouldSkipTeaser(reduceMotionLevel, degradeLevel);
   const fatigueScale = resolveSessionFatigueScale();
-  const effectPreset = resolveRevealEffectPreset(getRuntimeRevealEffectPresetId());
   const scaledParticleCount = Math.max(
     0,
     Math.round(
@@ -279,8 +299,12 @@ export function OpenBoxRevealOverlay({
   const showGoldFoil = tierFlags.goldFoil !== false && isUltimate;
   const effectiveShowTeaser = showBoxTeaser && !skipTeaserAnim;
   const particles = useMemo(
-    () => buildBurstParticles(scaledParticleCount, revealTheme?.particleBias ?? "mixed"),
-    [scaledParticleCount, revealTheme?.particleBias],
+    () =>
+      buildBurstParticles(
+        scaledParticleCount,
+        atmosphere.particleBias ?? revealTheme?.particleBias ?? "mixed",
+      ),
+    [scaledParticleCount, revealTheme?.particleBias, atmosphere.particleBias],
   );
 
   const accelTier: 0 | 1 | 2 =

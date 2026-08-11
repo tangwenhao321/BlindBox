@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { applyRevealTheme, applyRemoteLustrePalette, resolveRevealTheme, resolveThemedLustre } from "./revealTheme";
+import {
+  applyRevealTheme,
+  applyRemoteLustrePalette,
+  canonicalizeRevealThemeId,
+  resolveRevealTheme,
+  resolveThemedLustre,
+} from "./revealTheme";
 import { getEffectProfile } from "./config";
 import { getLustrePalette } from "./lustrePalette";
 import { setRevealRemoteConfig } from "./revealRemote";
@@ -7,10 +13,25 @@ import { setRevealRemoteConfig } from "./revealRemote";
 describe("revealTheme", () => {
   it("infers neon theme from category keywords", () => {
     expect(resolveRevealTheme({ categoryName: "数码潮玩" }).id).toBe("neon");
+    expect(resolveRevealTheme({ categoryName: "cyberpunk glitch" }).id).toBe("neon");
+  });
+
+  it("infers cute / luxury / adventure from VN/EN keywords", () => {
+    expect(resolveRevealTheme({ boxName: "ASMR chữa lành" }).id).toBe("cute");
+    expect(resolveRevealTheme({ boxName: "Tiệc carnival party" }).id).toBe("luxury");
+    expect(resolveRevealTheme({ categoryName: "treasure adventure" }).id).toBe("default");
+  });
+
+  it("maps Doc2 aliases via canonicalize", () => {
+    expect(canonicalizeRevealThemeId("cyberpunk")).toBe("neon");
+    expect(canonicalizeRevealThemeId("asmr")).toBe("cute");
+    expect(canonicalizeRevealThemeId("party")).toBe("luxury");
+    expect(canonicalizeRevealThemeId("adventure")).toBe("default");
   });
 
   it("prefers remote theme override", () => {
     expect(resolveRevealTheme({ boxName: "数码盒", remoteThemeId: "cute" }).id).toBe("cute");
+    expect(resolveRevealTheme({ remoteThemeId: "cyberpunk" }).id).toBe("neon");
   });
 
   it("applies theme sparkle without changing tier", () => {

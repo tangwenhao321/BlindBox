@@ -23,6 +23,7 @@ describe("mainTabsNavigation", () => {
     expect(resolveMainTabsActiveTab("home")).toBe("home");
     expect(resolveMainTabsActiveTab("catalogSearch")).toBe("mall");
     expect(resolveMainTabsActiveTab("marketplace")).toBe("warehouse");
+    expect(resolveMainTabsActiveTab("marketplaceChat")).toBe("warehouse");
     expect(resolveMainTabsActiveTab("orders")).toBe("profile");
   });
 

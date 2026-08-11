@@ -87,7 +87,7 @@ export function useAppCheckoutOrchestration(input: AppCheckoutOrchestrationInput
     applySuggestedCouponFromQuote,
   } = useAppCouponSelection(token);
 
-  const { quote, quoting: quotingPrice, quoteError } = useBoxPriceQuote(
+  const { quote, quoting: quotingPrice, quoteError, retryQuote } = useBoxPriceQuote(
     token,
     activeBox?.id,
     "",
@@ -227,6 +227,7 @@ export function useAppCheckoutOrchestration(input: AppCheckoutOrchestrationInput
     quote,
     quotingPrice,
     quoteError,
+    retryQuote,
     orderStatusFilter,
     autoRefreshOrders,
     orderKeyword,

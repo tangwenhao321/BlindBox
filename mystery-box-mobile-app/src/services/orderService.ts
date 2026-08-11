@@ -3,17 +3,22 @@ import { DEFAULT_QUERY_PAGE_NUM, DEFAULT_QUERY_PAGE_SIZE, ORDER_LIST_PAGE_SIZE }
 import i18n from "../i18n";
 import { getOrCreateDeviceId } from "../utils/deviceId";
 import { createIdempotencyKey, IDEMPOTENCY_HEADER, type IdempotencyScope } from "../utils/idempotencyKey";
+import { takeVariant as takeRecommendVariant } from "../utils/lastRecommendAttribution";
 import type { ApiResult, Order, PaymentPriceView, PrepayResult, QueryResult, VNPayPrepayResult } from "../types";
 
-const DEFAULT_ORDER_REMARK = "Mystery box order";
-
 function defaultOrderRemark() {
-  return i18n.t("orderUtils.boxOrderDefault", { defaultValue: DEFAULT_ORDER_REMARK });
+  return i18n.t("orderUtils.boxOrderDefault");
 }
 
 export type DrawMode = "instant" | "queue" | "buyout" | "cabinet";
 
-type OrderRequestOptions = { riskConfirm?: boolean; drawMode?: DrawMode; slotNo?: number };
+type OrderRequestOptions = {
+  riskConfirm?: boolean;
+  drawMode?: DrawMode;
+  slotNo?: number;
+  /** Home recommend A/B variant; when omitted, taken from lastRecommendAttribution for this box. */
+  recommendVariant?: string;
+};
 
 type OrderPayload = {
   addressId?: string;
@@ -58,6 +63,9 @@ async function buildOrderHeaders(
   if (options?.slotNo != null && options.slotNo > 0) {
     headers["x-slot-no"] = String(options.slotNo);
   }
+  if (options?.recommendVariant?.trim()) {
+    headers["x-recommend-variant"] = options.recommendVariant.trim();
+  }
   return headers;
 }
 
@@ -101,19 +109,15 @@ export async function calculateOrderPrice(
   addressId: string | undefined,
   mysteryBoxCount = 1,
   couponUserId?: string,
-  retentionOrderId?: string | null,
+  // Kept for call-site compat; retention is original-order only and ignored on new quotes.
+  _retentionOrderId?: string | null,
 ) {
-  const retention =
-    retentionOrderId !== undefined
-      ? retentionOrderId || undefined
-      : ((await import("../utils/retentionStorage").then((m) => m.getRetentionOrderId()).catch(() => null)) ??
-        undefined);
   const response = await api.post<ApiResult<PaymentPriceView>>(
     "/front/mystery-box-order/calculate",
     buildOrderBody({ addressId, boxId, mysteryBoxCount, couponUserId }),
     {
       headers: buildAuthHeaders(token),
-      params: { autoCoupon: true, retentionOrderId: retention || undefined },
+      params: { autoCoupon: true },
     },
   );
   return response.data.result;
@@ -126,6 +130,8 @@ export async function createOrder(
   mysteryBoxCount = 1,
   options?: OrderRequestOptions & { couponUserId?: string },
 ) {
+  const recommendVariant =
+    options?.recommendVariant?.trim() || takeRecommendVariant(boxId) || undefined;
   const response = await api.post<ApiResult<string>>(
     "/front/mystery-box-order/create",
     buildOrderBody({
@@ -137,9 +143,12 @@ export async function createOrder(
     {
       headers: await buildOrderHeaders(token, {
         ...options,
+        recommendVariant,
         idempotencyScope: "create-order",
         idempotencySeed: `${boxId}:${addressId ?? "none"}:${mysteryBoxCount}`,
       }),
+      // Query param is the body-field alternative (Jimmer Input rejects unknown JSON keys).
+      params: recommendVariant ? { recommendVariant } : undefined,
     },
   );
   return response.data.result;
@@ -177,7 +186,7 @@ export async function getWechatPrepayParams(token: string, id: string, options?:
       headers: await buildOrderHeaders(token, {
         ...options,
         idempotencyScope: "prepay-wechat",
-        idempotencySeed: id,
+        idempotencySeed: options?.idempotencySeed ?? id,
       }),
     },
   );
@@ -192,7 +201,7 @@ export async function retryWechatPrepayParams(token: string, id: string, options
       headers: await buildOrderHeaders(token, {
         ...options,
         idempotencyScope: "prepay-wechat",
-        idempotencySeed: `${id}:retry`,
+        idempotencySeed: options?.idempotencySeed ?? `${id}:retry`,
       }),
     },
   );
@@ -207,7 +216,7 @@ export async function getVNPayPrepayParams(token: string, id: string, options?: 
       headers: await buildOrderHeaders(token, {
         ...options,
         idempotencyScope: "prepay-vnpay",
-        idempotencySeed: id,
+        idempotencySeed: options?.idempotencySeed ?? id,
       }),
     },
   );
@@ -222,7 +231,7 @@ export async function retryVNPayPrepayParams(token: string, id: string, options?
       headers: await buildOrderHeaders(token, {
         ...options,
         idempotencyScope: "prepay-vnpay",
-        idempotencySeed: `${id}:retry`,
+        idempotencySeed: options?.idempotencySeed ?? `${id}:retry`,
       }),
     },
   );
@@ -237,7 +246,7 @@ export async function getMoMoPrepayParams(token: string, id: string, options?: O
       headers: await buildOrderHeaders(token, {
         ...options,
         idempotencyScope: "prepay-vnpay",
-        idempotencySeed: `${id}:momo`,
+        idempotencySeed: options?.idempotencySeed ?? `${id}:momo`,
       }),
     },
   );
@@ -252,7 +261,7 @@ export async function retryMoMoPrepayParams(token: string, id: string, options?:
       headers: await buildOrderHeaders(token, {
         ...options,
         idempotencyScope: "prepay-vnpay",
-        idempotencySeed: `${id}:momo-retry`,
+        idempotencySeed: options?.idempotencySeed ?? `${id}:momo-retry`,
       }),
     },
   );

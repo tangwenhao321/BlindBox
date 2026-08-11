@@ -6,6 +6,12 @@
     "step2Body": "Accept terms and complete mock payment on the order sheet.",
     "step3Title": "③ Warehouse",
     "step3Body": "Open Warehouse tab to view prizes and shipping.",
+    "step4Title": "④ Profile",
+    "step4Body": "Profile keeps highlights, balance, and invite rewards.",
+    "revealSkipTitle": "Skip during reveal",
+    "revealSkipBody": "Tap to skip one prize, or Skip rest to finish the batch.",
+    "revealShareTitle": "Share after settle",
+    "revealShareBody": "On the settlement sheet, share a reveal poster of your pulls.",
     "next": "Next",
     "start": "Get started",
     "skip": "Skip"

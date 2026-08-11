@@ -16,7 +16,8 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
-  const [mode, setModeState] = useState<ThemeMode>("light");
+  /** Brand default: night cabinet; light = day cabinet (bright stall wood + paper). */
+  const [mode, setModeState] = useState<ThemeMode>("dark");
 
   useEffect(() => {
     void getStoredThemeMode().then((stored) => {
@@ -58,12 +59,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 export function useAppTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext);
   if (!ctx) {
-    const resolvedMode = "light";
+    const resolvedMode = "dark" as const;
     return {
-      mode: "light",
+      mode: "dark",
       resolvedMode,
       colors: getThemeColors(resolvedMode),
-      isDark: false,
+      isDark: true,
       setMode: () => undefined,
       toggleDark: () => undefined,
     };

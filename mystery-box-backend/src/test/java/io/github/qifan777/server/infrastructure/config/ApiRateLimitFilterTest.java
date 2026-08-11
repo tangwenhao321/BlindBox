@@ -1,5 +1,6 @@
 package io.github.qifan777.server.infrastructure.config;
 
+import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -9,9 +10,17 @@ import org.springframework.test.util.ReflectionTestUtils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ApiRateLimitFilterTest {
+    private static ApiRateLimitFilter newFilter() {
+        ApiRateLimitFilter filter = new ApiRateLimitFilter();
+        ClientIpResolver resolver = new ClientIpResolver();
+        ReflectionTestUtils.setField(resolver, "trustedProxy", false);
+        ReflectionTestUtils.setField(filter, "clientIpResolver", resolver);
+        return filter;
+    }
+
     @Test
     void blocksWhenExceedPerMinuteLimit() throws Exception {
-        ApiRateLimitFilter filter = new ApiRateLimitFilter();
+        ApiRateLimitFilter filter = newFilter();
         ReflectionTestUtils.setField(filter, "enabled", true);
         ReflectionTestUtils.setField(filter, "perMinute", 1);
         ReflectionTestUtils.setField(filter, "orderCreatePerMinute", 1);
@@ -31,7 +40,7 @@ class ApiRateLimitFilterTest {
 
     @Test
     void blocksRepeatedSpectatorGetRequests() throws Exception {
-        ApiRateLimitFilter filter = new ApiRateLimitFilter();
+        ApiRateLimitFilter filter = newFilter();
         ReflectionTestUtils.setField(filter, "enabled", true);
         ReflectionTestUtils.setField(filter, "spectatorGetPerMinute", 1);
 

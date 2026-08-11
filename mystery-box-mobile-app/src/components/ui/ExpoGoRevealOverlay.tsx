@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, Easing, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, Dimensions, Easing, Pressable, StyleSheet, Text, View } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
@@ -11,10 +11,13 @@ import {
   normalizeCeremonyTier,
   type CeremonyTier,
 } from "../../effects/ceremonyTier";
-import { pickLustreColor, lustreGradientStops } from "../../effects/lustrePalette";
+import { pickLustreColor, lustreGradientStops, tintLustrePalette } from "../../effects/lustrePalette";
 import { revealLayerZIndex } from "../../effects/revealLayerZIndex";
 import { resolveThemedLustre } from "../../effects/revealTheme";
 import { resolveLustreIntensity, shouldReduceLustreMotion } from "../../effects/revealRemote";
+import { getAtmosphereOverrides } from "../../effects/revealAtmosphereRuntime";
+import { resolveRevealEffectPreset } from "../../effects/revealEffectPreset";
+import { getRuntimeRevealEffectPresetId } from "../../utils/revealSettings";
 import { getExpoRevealTimeline } from "../../effects/expoRevealTiming";
 import type { RevealPacing } from "../../effects/revealSequence";
 import { useAppTheme } from "../../context/ThemeContext";
@@ -49,26 +52,27 @@ type Props = {
   playToken?: string | number;
   skipParticles?: boolean;
   atmosphereParticleScale?: number;
+  reduceMotion?: boolean;
   onPressSkip?: () => void;
   onLongPressAccelerate?: () => void;
 };
 
 function tierAccent(tier: CeremonyTier, brand: string, warning: string) {
-  if (tier === "TREASURE_PEERLESS") return "#F0ABFC";
-  if (tier === "PEERLESS") return "#FF6B35";
+  if (tier === "TREASURE_PEERLESS") return "#E0C48A";
+  if (tier === "PEERLESS") return "#D4A060";
   if (tier === "TREASURE_LEGEND") return warning;
-  if (tier === "HIDDEN") return "#B049FF";
+  if (tier === "HIDDEN") return "#C4A574";
   return brand;
 }
 
-const SPARKLE = ["✦", "✧", "★", "◆", "·"];
+const SPARKLE = ["★", "✦", "·", "◆", "•"];
 
-function tierEmoji(tier: CeremonyTier) {
-  if (tier === "TREASURE_PEERLESS") return "💎";
-  if (tier === "PEERLESS") return "⚔️";
-  if (tier === "TREASURE_LEGEND") return "👑";
-  if (tier === "HIDDEN") return "✨";
-  return "🎁";
+function tierMarker(tier: CeremonyTier) {
+  if (tier === "TREASURE_PEERLESS") return "★★";
+  if (tier === "PEERLESS") return "★";
+  if (tier === "TREASURE_LEGEND") return "★";
+  if (tier === "HIDDEN") return "✦";
+  return "•";
 }
 
 export function ExpoGoRevealOverlay({
@@ -87,6 +91,7 @@ export function ExpoGoRevealOverlay({
   playToken: playTokenProp,
   skipParticles = false,
   atmosphereParticleScale = 1,
+  reduceMotion = false,
   onPressSkip,
   onLongPressAccelerate,
 }: Props) {
@@ -94,13 +99,33 @@ export function ExpoGoRevealOverlay({
   const { colors } = useAppTheme();
   const styles = useThemedStyles(buildExpoGoRevealStyles);
   const tierKey = normalizeCeremonyTier(tier);
-  const lustre = useMemo(() => resolveThemedLustre(tierKey, revealTheme, boxId), [tierKey, revealTheme, boxId]);
+  const atmosphere = getAtmosphereOverrides();
+  const effectPreset = resolveRevealEffectPreset(getRuntimeRevealEffectPresetId());
+  const lustre = useMemo(() => {
+    let palette = resolveThemedLustre(tierKey, revealTheme, boxId);
+    if (effectPreset.lustrePaletteId === "warm") {
+      palette = tintLustrePalette(palette, "#FB923C", 0.24);
+    } else if (effectPreset.lustrePaletteId === "neon") {
+      palette = tintLustrePalette(palette, "#00E5FF", 0.28);
+    }
+    if (atmosphere.lustreTintAccent && (atmosphere.lustreTintStrength ?? 0) > 0) {
+      palette = tintLustrePalette(palette, atmosphere.lustreTintAccent, atmosphere.lustreTintStrength);
+    }
+    return palette;
+  }, [
+    tierKey,
+    revealTheme,
+    boxId,
+    effectPreset.lustrePaletteId,
+    atmosphere.lustreTintAccent,
+    atmosphere.lustreTintStrength,
+  ]);
   const isCeremony = isPremiumCeremony(tierKey);
   const isUltimate = isUltimateCeremony(tierKey);
   const lustreIntensity = resolveLustreIntensity(
     isUltimate ? 1 : isCeremony ? 0.82 : tierKey === "HIDDEN" ? 0.58 : 0.42,
   );
-  const lustreMotion = shouldReduceLustreMotion(false) || Platform.OS === "android";
+  const lustreMotion = shouldReduceLustreMotion(reduceMotion);
   const displaySubtitle = subtitle ?? t("orderResult.revealSuccessSubtitle");
   const isQuickReveal = pacing === "fast";
   const timeline = useMemo(
@@ -609,7 +634,7 @@ export function ExpoGoRevealOverlay({
           ) : null}
           {!isQuickReveal ? (
             <Animated.View style={[styles.mysteryWrap, { opacity: mysteryOpacity }]}>
-              <LinearGradient colors={["#2a2540", "#14141c"]} style={styles.mysteryFrame}>
+              <LinearGradient colors={["#1a1612", "#0c0a08"]} style={styles.mysteryFrame}>
                 <Text style={styles.mysteryIcon}>?</Text>
                 <Text style={styles.mysteryHint}>{t("revealOverlay.revealing")}</Text>
               </LinearGradient>
@@ -635,7 +660,9 @@ export function ExpoGoRevealOverlay({
                 />
               ) : (
                 <View style={[styles.prizeImage, styles.prizePlaceholder]}>
-                  <Text style={styles.cardEmoji}>{tierEmoji(tierKey)}</Text>
+                  <Text style={[styles.cardEmoji, { color: tierAccent(tierKey, colors.brand, colors.warning) }]}>
+                    {tierMarker(tierKey)}
+                  </Text>
                 </View>
               )}
               {quality ? (
@@ -820,7 +847,7 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
     right: 6,
     bottom: 6,
   },
-  cardEmoji: { fontSize: 52 },
+  cardEmoji: { fontSize: 44, fontWeight: "900", letterSpacing: 2 },
   prizeName: {
     width: "100%",
     fontSize: 17,

@@ -1,20 +1,28 @@
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useRef, useState, useEffect, useCallback } from "react";
 import {
   Dimensions,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  runOnJS,
+  type SharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useTranslation } from "react-i18next";
 import { AppGradient } from "../ui/AppGradient";
 import { RemoteImage } from "../ui/RemoteImage";
 import { useAppTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { radius, shadows, spacing, typography } from "../../styles/tokens";
+import { useReduceMotion } from "../../hooks/useReduceMotion";
+import { font, layout, radius, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 import { qualityAccentColor } from "../../utils/quality";
 
@@ -31,15 +39,70 @@ type Props = {
 };
 
 const SCREEN_W = Dimensions.get("window").width;
-const CARD_W = SCREEN_W - spacing.lg * 2;
+const STAGE_H = 288;
+
+function BannerSlide({
+  slide,
+  index,
+  scrollX,
+  reduceMotion,
+  colors,
+  styles,
+  onPress,
+}: {
+  slide: Slide;
+  index: number;
+  scrollX: SharedValue<number>;
+  reduceMotion: boolean;
+  colors: ThemeColors;
+  styles: ReturnType<typeof buildHomeBannerCarouselStyles>;
+  onPress?: () => void;
+}) {
+  const parallaxStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollX.value,
+      [(index - 1) * SCREEN_W, index * SCREEN_W, (index + 1) * SCREEN_W],
+      [0.42, 1, 0.42],
+      Extrapolation.CLAMP,
+    );
+    return { opacity };
+  });
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={styles.stage}
+      accessibilityRole="button"
+      accessibilityLabel={slide.title}
+    >
+      <Animated.View style={[StyleSheet.absoluteFillObject, reduceMotion ? null : parallaxStyle]}>
+        <AppGradient colors={[colors.bgSoft, colors.bgBrandSoft, colors.bgMuted]} style={styles.stageFill}>
+          {slide.uri ? <RemoteImage uri={slide.uri} style={styles.stageImage} priority="high" /> : null}
+          <View style={styles.stageScrim} />
+          <View style={styles.stageBody}>
+            <Text style={styles.stageTitle}>{slide.title}</Text>
+            <Text style={styles.stageSub}>{slide.subtitle}</Text>
+            {slide.cta ? (
+              <View style={styles.stageCta}>
+                <Text style={styles.stageCtaText}>{slide.cta}</Text>
+              </View>
+            ) : null}
+          </View>
+        </AppGradient>
+      </Animated.View>
+    </Pressable>
+  );
+}
 
 export function HomeBannerCarousel({ slides, tickerText, tickerLines, tickerItems, onPressSlide, onPressTicker }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const styles = useThemedStyles(buildHomeBannerCarouselStyles);
-  const scrollRef = useRef<ScrollView>(null);
+  const reduceMotion = useReduceMotion();
   const [index, setIndex] = useState(0);
   const [tickerIndex, setTickerIndex] = useState(0);
+  const scrollX = useSharedValue(0);
+  const tickerOpacity = useSharedValue(1);
   const data = useMemo(
     () =>
       slides.length
@@ -50,22 +113,87 @@ export function HomeBannerCarousel({ slides, tickerText, tickerLines, tickerItem
   const items: TickerItem[] =
     tickerItems?.length
       ? tickerItems
-      : (tickerLines?.length ? tickerLines.map((text) => ({ text })) : tickerText ? [{ text: tickerText }] : []);
+      : tickerLines?.length
+        ? tickerLines.map((text) => ({ text }))
+        : tickerText
+          ? [{ text: tickerText }]
+          : [];
   const activeTicker = items.length ? items[tickerIndex % items.length] : undefined;
+  const advancingRef = useRef(false);
+
+  const clearAdvancing = useCallback(() => {
+    advancingRef.current = false;
+  }, []);
+
+  const bumpTicker = useCallback(() => {
+    setTickerIndex((i) => (i + 1) % items.length);
+    advancingRef.current = false;
+    if (!reduceMotion) {
+      tickerOpacity.value = withTiming(1, { duration: 220 });
+    }
+  }, [items.length, reduceMotion, tickerOpacity]);
 
   useEffect(() => {
     if (items.length <= 1) return;
-    const timer = setInterval(() => setTickerIndex((i) => (i + 1) % items.length), 4000);
+    const timer = setInterval(() => {
+      if (reduceMotion) {
+        setTickerIndex((i) => (i + 1) % items.length);
+        return;
+      }
+      if (advancingRef.current) return;
+      advancingRef.current = true;
+      tickerOpacity.value = withTiming(0, { duration: 220 }, (finished) => {
+        if (finished) runOnJS(bumpTicker)();
+        else runOnJS(clearAdvancing)();
+      });
+    }, 4000);
     return () => clearInterval(timer);
-  }, [items.length]);
+  }, [items.length, reduceMotion, tickerOpacity, bumpTicker, clearAdvancing]);
 
-  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const next = Math.round(e.nativeEvent.contentOffset.x / (CARD_W + spacing.sm));
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      scrollX.value = e.contentOffset.x;
+    },
+  });
+
+  const onMomentumEnd = (x: number) => {
+    const next = Math.round(x / SCREEN_W);
     if (next !== index) setIndex(next);
   };
 
+  const tickerFadeStyle = useAnimatedStyle(() => ({
+    opacity: tickerOpacity.value,
+  }));
+
   return (
     <View style={styles.wrap}>
+      <Animated.ScrollView
+        horizontal
+        pagingEnabled
+        decelerationRate="fast"
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        onMomentumScrollEnd={(e) => onMomentumEnd(e.nativeEvent.contentOffset.x)}
+      >
+        {data.map((slide, i) => (
+          <BannerSlide
+            key={`${slide.title}-${i}`}
+            slide={slide}
+            index={i}
+            scrollX={scrollX}
+            reduceMotion={reduceMotion}
+            colors={colors}
+            styles={styles}
+            onPress={() => onPressSlide?.(i)}
+          />
+        ))}
+      </Animated.ScrollView>
+      <View style={styles.dots}>
+        {data.map((_, i) => (
+          <View key={i} style={[styles.dot, i === index ? styles.dotActive : null]} />
+        ))}
+      </View>
       {activeTicker ? (
         <Pressable
           style={styles.ticker}
@@ -77,110 +205,118 @@ export function HomeBannerCarousel({ slides, tickerText, tickerLines, tickerItem
           <Text style={styles.tickerTag}>{t("home.tickerGoodNews")}</Text>
           {activeTicker.qualityType ? (
             <View
-              style={[
-                styles.qualityDot,
-                { backgroundColor: qualityAccentColor(activeTicker.qualityType) },
-              ]}
+              style={[styles.qualityDot, { backgroundColor: qualityAccentColor(activeTicker.qualityType) }]}
             />
           ) : null}
-          <Text style={styles.tickerText} numberOfLines={1}>
-            {activeTicker.text}
-          </Text>
+          <Animated.View style={[{ flex: 1 }, reduceMotion ? null : tickerFadeStyle]}>
+            <Text style={styles.tickerText} numberOfLines={1}>
+              {activeTicker.text}
+            </Text>
+          </Animated.View>
           {items.length > 1 ? <Text style={styles.tickerMore}>›</Text> : null}
         </Pressable>
       ) : null}
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled={false}
-        snapToInterval={CARD_W + spacing.sm}
-        decelerationRate="fast"
-        showsHorizontalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {data.map((slide, i) => (
-          <Pressable
-            key={`${slide.title}-${i}`}
-            onPress={() => onPressSlide?.(i)}
-            style={styles.card}
-            accessibilityRole="button"
-            accessibilityLabel={slide.title}
-          >
-            <AppGradient colors={["#1A1035", "#312E81", "#4338CA"]} style={styles.cardGradient}>
-              {slide.uri ? (
-                <RemoteImage uri={slide.uri} style={styles.cardImage} />
-              ) : null}
-              <View style={styles.cardOverlay} />
-              <View style={styles.cardBody}>
-                <Text style={styles.cardBadge}>{t("home.bannerPlayGuide")}</Text>
-                <Text style={styles.cardTitle}>{slide.title}</Text>
-                <Text style={styles.cardSub}>{slide.subtitle}</Text>
-                {slide.cta ? (
-                  <Text style={[styles.cardCta, { color: colors.accentOrange }]}>{slide.cta} →</Text>
-                ) : null}
-              </View>
-            </AppGradient>
-          </Pressable>
-        ))}
-      </ScrollView>
-      <View style={styles.dots}>
-        {data.map((_, i) => (
-          <View key={i} style={[styles.dot, i === index ? styles.dotActive : null]} />
-        ))}
-      </View>
     </View>
   );
 }
 
 function buildHomeBannerCarouselStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    wrap: { marginBottom: spacing.lg, gap: spacing.sm },
+    wrap: {
+      marginBottom: spacing.lg,
+      marginHorizontal: -layout.screenPaddingX,
+      gap: spacing.sm,
+    },
+    stage: {
+      width: SCREEN_W,
+      height: STAGE_H,
+      overflow: "hidden",
+    },
+    stageFill: {
+      flex: 1,
+      justifyContent: "flex-end",
+    },
+    stageImage: {
+      ...StyleSheet.absoluteFillObject,
+      opacity: 0.88,
+    },
+    stageScrim: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.heroOverlay,
+    },
+    stageBody: {
+      paddingHorizontal: layout.screenPaddingX,
+      paddingBottom: spacing.xl,
+      paddingTop: spacing.lg,
+      gap: spacing.xs,
+    },
+    stageTitle: {
+      ...font("bodySemiBold"),
+      fontWeight: "800",
+      color: colors.textPrimary,
+      fontSize: typography.h2,
+      lineHeight: 30,
+    },
+    stageSub: {
+      ...font("body"),
+      color: colors.textSecondary,
+      fontSize: typography.caption,
+      fontWeight: "600",
+      maxWidth: "92%",
+    },
+    stageCta: {
+      alignSelf: "flex-start",
+      marginTop: spacing.sm,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: colors.brand,
+    },
+    stageCtaText: {
+      ...font("bodySemiBold"),
+      fontSize: typography.caption,
+      fontWeight: "800",
+      color: colors.textOnBrand,
+    },
+    dots: {
+      flexDirection: "row",
+      justifyContent: "center",
+      gap: 6,
+      paddingHorizontal: layout.screenPaddingX,
+    },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.borderSoft },
+    dotActive: { width: 18, backgroundColor: colors.brand },
     ticker: {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-      backgroundColor: "rgba(26,16,53,0.92)",
-      borderRadius: radius.pill,
+      marginHorizontal: layout.screenPaddingX,
+      backgroundColor: colors.bgSoft,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
     },
     tickerTag: {
-      color: colors.accentOrange,
-      fontSize: typography.micro,
-      fontWeight: "900",
-      backgroundColor: "rgba(255,138,61,0.15)",
-      paddingHorizontal: spacing.sm,
-      paddingVertical: 2,
-      borderRadius: radius.pill,
-      overflow: "hidden",
-    },
-    tickerText: { flex: 1, color: colors.textOnBrand, fontSize: typography.caption, fontWeight: "600" },
-    tickerMore: { color: colors.textOnBrand, fontWeight: "800", fontSize: typography.body },
-    qualityDot: { width: 8, height: 8, borderRadius: 4 },
-    scrollContent: { gap: spacing.sm, paddingRight: spacing.lg },
-    card: { width: CARD_W, borderRadius: radius.lg, overflow: "hidden", ...shadows.card },
-    cardGradient: { minHeight: 168, justifyContent: "flex-end" },
-    cardImage: { ...StyleSheet.absoluteFillObject, opacity: 0.35 },
-    cardOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(26,16,53,0.35)" },
-    cardBody: { padding: spacing.lg, gap: spacing.xs },
-    cardBadge: {
-      alignSelf: "flex-start",
-      color: colors.textOnBrand,
+      ...font("bodySemiBold"),
+      color: colors.brandText,
       fontSize: typography.micro,
       fontWeight: "800",
-      backgroundColor: "rgba(255,255,255,0.18)",
+      backgroundColor: colors.accentSoft,
       paddingHorizontal: spacing.sm,
       paddingVertical: 2,
-      borderRadius: radius.pill,
+      borderRadius: radius.xs,
       overflow: "hidden",
     },
-    cardTitle: { color: colors.textOnBrand, fontSize: typography.h3, fontWeight: "900" },
-    cardSub: { color: "rgba(255,255,255,0.82)", fontSize: typography.caption, fontWeight: "600" },
-    cardCta: { marginTop: spacing.xs, fontWeight: "800", fontSize: typography.caption },
-    dots: { flexDirection: "row", justifyContent: "center", gap: 6 },
-    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.borderSoft },
-    dotActive: { width: 18, backgroundColor: colors.brand },
+    tickerText: {
+      ...font("body"),
+      flex: 1,
+      color: colors.textSecondary,
+      fontSize: typography.caption,
+      fontWeight: "600",
+    },
+    tickerMore: { color: colors.brand, fontWeight: "800", fontSize: typography.body },
+    qualityDot: { width: 8, height: 8, borderRadius: 4 },
   });
 }

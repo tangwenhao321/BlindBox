@@ -1,6 +1,8 @@
 {
   "spectator": {
     "title": "观战揭晓",
+    "liteBadge": "围观精简",
+    "liteHint": "完整开盒仪式在开盒者设备上播放 — 此处为精简同步画面。",
     "expired": "观战链接已过期",
     "phaseUnknown": "等待中",
     "phaseGap": "下一抽即将开始…",

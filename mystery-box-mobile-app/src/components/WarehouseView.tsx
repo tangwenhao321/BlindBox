@@ -324,7 +324,7 @@ export function WarehouseView({
                           style={styles.thumbImg}
                         />
                       ) : (
-                        <Text style={styles.thumbIcon}>{warehouse.mainTab === "box" ? "🎁" : "✦"}</Text>
+                        <Text style={styles.thumbIcon}>✦</Text>
                       )}
                     </WarehouseRareThumb>
                   </View>
@@ -344,7 +344,10 @@ export function WarehouseView({
                     ) : null}
                   </View>
                   {item.tier ? (
-                    <LinearGradient colors={["#FF6B8A", "#FF8A3D"]} style={styles.tierBadge}>
+                    <LinearGradient
+                      colors={[themeColors.brand, themeColors.brandGradientEnd]}
+                      style={styles.tierBadge}
+                    >
                       <Text style={styles.tierText}>{qualityLabelFromRaw(item.tier, t)}</Text>
                     </LinearGradient>
                   ) : null}
@@ -433,7 +436,7 @@ export function WarehouseView({
                   ) : null}
                 </View>
               ) : null}
-              {!warehouse.selectMode && canRedeem && warehouse.mainTab === "box" && onRedeemToBalance ? (
+              {!warehouse.selectMode && canRedeem && warehouse.mainTab === "box" ? (
                 <Pressable
                   style={styles.redeemBtn}
                   accessibilityRole="button"
@@ -473,6 +476,7 @@ export function WarehouseView({
       />
       {warehouse.selectMode && authToken ? (
         <View style={[styles.shipBar, { bottom: layout.screenPaddingBottom }]}>
+          {/* bottom uses layout.screenPaddingBottom; list extra uses layout.tabBarClearance (see BottomTabBar) */}
           <Pressable
             onPress={warehouse.selectAllShippable}
             accessibilityRole="button"
@@ -571,7 +575,7 @@ function buildWarehouseStyles(colors: ThemeColors) {
     list: {
       paddingHorizontal: layout.screenPaddingX,
       paddingTop: spacing.sm,
-      paddingBottom: layout.screenPaddingBottom + 72,
+      paddingBottom: layout.screenPaddingBottom + layout.tabBarClearance,
     },
     listTablet: { maxWidth: 720, alignSelf: "center", width: "100%" },
     checkBox: {
@@ -632,7 +636,7 @@ function buildWarehouseStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "center",
     },
-    thumbIcon: { fontSize: 22 },
+    thumbIcon: { fontSize: 22, color: colors.brandText, fontWeight: "900" },
     thumbImg: { width: 52, height: 52, borderRadius: radius.md },
     cardBody: { flex: 1, gap: 4 },
     cardName: { fontWeight: "800", fontSize: typography.body, color: colors.textPrimary },

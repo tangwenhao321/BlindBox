@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
           cache-dependency-path: mystery-box-mobile-app/package-lock.json
 
@@ -32,6 +32,14 @@ jobs:
 
       - name: Type check and tests
         run: npm run check
+
+      - name: Bundle budget (light)
+        # Full `npx expo export --dump-sourcemap` size gate is TODO (too heavy for default PR CI).
+        # See scripts/check-bundle-budget.mjs and docs/DEV_ONBOARDING.md.
+        run: npm run check:bundle-budget
+
+      - name: Validate Maestro flows
+        run: npm run validate:maestro
 
       - name: Run test coverage
         run: npm run test:coverage
@@ -42,17 +50,18 @@ jobs:
       - name: Prebuild Android project
         run: npx expo prebuild --platform android --no-install
 
-      - name: Maestro flow syntax (optional)
+      - name: Maestro device e2e (optional)
         continue-on-error: true
         env:
           MAESTRO_TEST_PHONE: ${{ vars.MAESTRO_TEST_PHONE || '13800138000' }}
           MAESTRO_TEST_PASSWORD: ${{ vars.MAESTRO_TEST_PASSWORD || 'Admin@123456' }}
         run: |
           if command -v maestro >/dev/null 2>&1; then
+            # Device/emulator E2E — optional; validate:maestro above is the required gate
             # mock-pay-smoke chains checkout-smoke and order-result-smoke (order result modal assertions)
             maestro test .maestro/flows/smoke.yaml .maestro/flows/checkout-smoke.yaml .maestro/flows/mock-pay-smoke.yaml
           else
-            echo "Maestro CLI not installed; skipping E2E smoke"
+            echo "Maestro CLI not installed; skipping device E2E smoke"
           fi
 
   android-compile:
@@ -76,7 +85,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
           cache-dependency-path: mystery-box-mobile-app/package-lock.json
 
@@ -87,4 +96,3 @@ jobs:
         run: |
           npx expo prebuild --platform android --no-install
           cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
-

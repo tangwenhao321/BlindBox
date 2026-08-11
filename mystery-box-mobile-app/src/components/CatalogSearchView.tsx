@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { Ionicons } from "@expo/vector-icons";
+
 import { useTranslation } from "react-i18next";
 
 import { SubPageHeader } from "./ui/SubPageHeader";
@@ -140,9 +142,14 @@ export function CatalogSearchView({
       <SubPageHeader title={t("catalogSearch.title")} onBack={onBack} />
       <View style={styles.searchRow}>
         <View style={styles.searchInputWrap}>
-          <Text style={styles.searchIcon} accessibilityElementsHidden>
-            🔍
-          </Text>
+          <Ionicons
+            name="search-outline"
+            size={16}
+            color={themeColors.textMuted}
+            style={styles.searchIcon}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          />
           <TextInput
             testID="catalogSearchInput"
             value={keyword}

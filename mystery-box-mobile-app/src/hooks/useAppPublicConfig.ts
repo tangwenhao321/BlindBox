@@ -9,6 +9,8 @@ import { setRemotePaymentMode } from "../config/payment";
 import { syncRevealExperimentFromConfig } from "../effects/revealExperiment";
 import { syncFestivalTemplateCache } from "../effects/revealAssetManager";
 import { setRevealRemoteConfig } from "../effects/revealRemote";
+import { loadEquippedThemeId, loadThemeUnlockState } from "../effects/revealThemeRotation";
+import { setRevealNetworkRtt } from "../effects/revealNetworkTier";
 
 import { fetchAppPublicConfig, parseRevealCopyPoolSizes, parseRevealPhaseEasingPresets, parseRevealTierElementFlags, type AppPublicConfig } from "../services/appConfigService";
 
@@ -60,6 +62,9 @@ function applyRevealConfig(next: AppPublicConfig) {
     feedTickerEnabled: next.revealFeedTickerEnabled,
     feedTickerMinTier: next.revealFeedTickerMinTier === "LEGENDARY" ? "LEGENDARY" : "HIDDEN",
     themeId: next.revealThemeId,
+    currentTheme: next.revealCurrentTheme ?? next.revealThemeId,
+    rotationCycle: next.revealRotationCycle ?? 7,
+    randomTriggerRate: next.revealRandomTriggerRate ?? 0.05,
     introVideoUri: next.revealIntroVideoUri,
     interDrawDelayMs: Math.min(Math.max(0, next.revealInterDrawDelayMs ?? 280), 320),
     finalePauseMs: Math.min(Math.max(0, next.revealFinalePauseMs ?? 420), 520),
@@ -124,6 +129,8 @@ function applyRevealConfig(next: AppPublicConfig) {
     sessionIdleResetMs: next.revealSessionIdleResetMs,
   });
   syncFestivalTemplateCache(next.revealFestivalTemplateId);
+  void loadThemeUnlockState();
+  void loadEquippedThemeId();
   const templateFromConfig = normalizeCeremonyTemplateId(next.configTemplateId);
   if (templateFromConfig !== "standard" || next.configTemplateId) {
     setRuntimeRevealCeremonyTemplateId(templateFromConfig);
@@ -144,6 +151,9 @@ function normalizeConfig(remote: AppPublicConfig): AppPublicConfig {
     revealLustreBoxOverrides: remote.revealLustreBoxOverrides,
     revealFeedTickerEnabled: remote.revealFeedTickerEnabled,
     revealThemeId: remote.revealThemeId,
+    revealCurrentTheme: remote.revealCurrentTheme,
+    revealRotationCycle: remote.revealRotationCycle,
+    revealRandomTriggerRate: remote.revealRandomTriggerRate,
     revealIntroVideoUri: remote.revealIntroVideoUri,
     revealInterDrawDelayMs: remote.revealInterDrawDelayMs,
     revealFinalePauseMs: remote.revealFinalePauseMs,
@@ -206,6 +216,9 @@ function normalizeConfig(remote: AppPublicConfig): AppPublicConfig {
     supportZaloOaId: remote.supportZaloOaId,
     defaultLocale: remote.defaultLocale,
     logisticsMode: remote.logisticsMode,
+    marketplaceFeeRate: remote.marketplaceFeeRate,
+    momoEnabled: remote.momoEnabled === true,
+    zaloLoginEnabled: remote.zaloLoginEnabled === true,
     featureFlags: remote.featureFlags,
   };
 }
@@ -238,7 +251,9 @@ export function useAppPublicConfig(opts?: { boxId?: string; categoryId?: string;
       applyFeatureFlags(next);
     }
     try {
+      const started = Date.now();
       const remote = await fetchAppPublicConfig({ boxId, categoryId, themeId });
+      setRevealNetworkRtt(Date.now() - started);
       const next = normalizeConfig(remote);
       setConfig(next);
       applyRevealConfig(next);

@@ -50,7 +50,8 @@ class AppVersionPushServiceTest {
     @Test
     void broadcast_sendsToEveryRegisteredDeviceAndRecordsTheRun() {
         when(appVersionReleaseService.get("rel-1")).thenReturn(release(AppVersionReleaseService.STATUS_PUBLISHED));
-        when(userPushTokenService.listTargetsByPlatform(eq("android"), eq(0), anyInt())).thenReturn(List.of(
+        when(userPushTokenService.listTargetsByPlatformAndChannel(
+                eq("android"), eq("production"), eq(0), anyInt())).thenReturn(List.of(
                 new UserPushTokenService.PushTarget("user-a", "ExponentPushToken[a]"),
                 new UserPushTokenService.PushTarget("user-b", "ExponentPushToken[b]")
         ));

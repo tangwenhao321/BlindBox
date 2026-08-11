@@ -1,5 +1,7 @@
 package io.github.qifan777.server.user.compliance;
 
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
+import io.github.qifan777.server.payment.config.MarketProperties;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,7 +9,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -15,6 +16,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserSpendLimitPreferenceService {
     private final JdbcTemplate jdbcTemplate;
+    private final MarketProperties marketProperties;
 
     @Value("${security.compliance.spend-limit.cooling-off-hours:24}")
     private int coolingOffHours;
@@ -67,12 +69,12 @@ public class UserSpendLimitPreferenceService {
                 });
     }
 
-    private static BigDecimal normalizeCap(BigDecimal value, BigDecimal serverMax, String label) {
+    private BigDecimal normalizeCap(BigDecimal value, BigDecimal serverMax, String label) {
         if (value == null) {
-            return serverMax;
+            return MoneyRounding.round(serverMax, marketProperties.getCurrency());
         }
-        BigDecimal normalized = value.setScale(2, RoundingMode.HALF_UP);
-        if (normalized.signum() <= 0) {
+        BigDecimal normalized = MoneyRounding.round(value, marketProperties.getCurrency());
+        if (normalized == null || normalized.signum() <= 0) {
             throw new BusinessException(label + "限额必须大于 0");
         }
         if (normalized.compareTo(serverMax) > 0) {

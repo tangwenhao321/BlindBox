@@ -8,6 +8,7 @@ import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;
 import com.github.binarywang.wxpay.bean.result.enums.TradeTypeEnum;
 import com.github.binarywang.wxpay.service.WxPayService;
 import io.github.qifan777.server.infrastructure.model.WxPayPropertiesExtension;
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.order.entity.BaseOrder;
 import io.github.qifan777.server.payment.model.WeChatPayModel;
 import io.github.qifan777.server.user.wechat.entity.UserWeChatTable;
@@ -39,6 +40,18 @@ public class WeChatPayService {
     private final WxPayService wxPayService;
     private final static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 
+    /** Drop cached pay URL after payAmount / retention mutation so IPN amount stays consistent. */
+    public void invalidatePrepayCache(String orderId) {
+        if (!StringUtils.hasText(orderId)) {
+            return;
+        }
+        try {
+            redisTemplate.delete("prepay:" + orderId);
+        } catch (Exception ex) {
+            log.warn("Failed to invalidate WeChat prepay cache orderId={}", orderId, ex);
+        }
+    }
+
     @SneakyThrows
     public WxPayUnifiedOrderV3Result.JsapiResult prepay(WeChatPayModel weChatPayModel) {
         BaseOrder baseOrder = weChatPayModel.getBaseOrder();
@@ -68,9 +81,7 @@ public class WeChatPayService {
         WxPayUnifiedOrderV3Request wxPayUnifiedOrderV3Request = new WxPayUnifiedOrderV3Request();
         // 支付价格
         WxPayUnifiedOrderV3Request.Amount amount = new WxPayUnifiedOrderV3Request.Amount();
-        amount.setTotal(baseOrder.payment().payAmount()
-                .multiply(BigDecimal.valueOf(
-                        100)).intValue());
+        amount.setTotal(MoneyRounding.toGatewayMinorUnitsInt(baseOrder.payment().payAmount()));
         UserWeChatTable t = UserWeChatTable.$;
         // 获取支付人信息
         WxPayUnifiedOrderV3Request.Payer payer = new WxPayUnifiedOrderV3Request.Payer();

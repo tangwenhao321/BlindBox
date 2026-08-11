@@ -8,9 +8,11 @@ import { AgeGateModal, useAgeGate } from "../AgeGateModal";
 import { trackEvent } from "../../utils/analytics";
 import { setPendingPaymentWallet } from "../../payment/paymentWalletPreference";
 import { fetchSpendLimit, type SpendLimitView } from "../../services/complianceService";
+import { fetchBoxProbability, resolveDisplayRates, type BoxProbability } from "../../services/probabilityService";
 import { formatCurrency, formatCurrencyOptional } from "../../utils/formatCurrency";
 import type { Address, MysteryBox } from "../../types";
 import type { QueueStatus } from "../../services/drawQueueService";
+import type { PityProgress } from "../../services/pityService";
 
 import type { DrawMode } from "../../services/orderService";
 
@@ -29,8 +31,13 @@ type Props = {
   quoteRetentionDiscount: number;
   quoteSavingsAmount?: number;
   suggestedCouponApplied?: boolean;
+  suggestedCouponUserId?: string;
+  availableCoupons?: import("../../types").CouponItem[];
+  selectedCouponUserId?: string;
+  onSelectCoupon?: (couponUserId: string) => void;
   quotingPrice?: boolean;
   quoteError?: string | null;
+  onRetryQuote?: () => void;
   creatingOrder: boolean;
   canSubmit: boolean;
   priceHint: string;
@@ -45,6 +52,7 @@ type Props = {
   poolTotal?: number;
   poolRemaining?: number;
   wholeBoxDrawCount?: number;
+  pityProgress?: PityProgress | null;
   onChangeDrawCount: (count: number) => void;
   onCreateOrder: (drawMode: DrawMode, slotNo?: number) => void;
   onRequireLogin?: () => void;
@@ -73,8 +81,13 @@ export function BoxDetailsCheckoutModals(props: Props) {
     quoteRetentionDiscount,
     quoteSavingsAmount = 0,
     suggestedCouponApplied = false,
+    suggestedCouponUserId,
+    availableCoupons = [],
+    selectedCouponUserId = "",
+    onSelectCoupon,
     quotingPrice,
     quoteError,
+    onRetryQuote,
     creatingOrder,
     canSubmit,
     priceHint,
@@ -89,6 +102,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
     poolTotal,
     poolRemaining,
     wholeBoxDrawCount,
+    pityProgress = null,
     onChangeDrawCount,
     onCreateOrder,
     onRequireLogin,
@@ -107,6 +121,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
   const ageGate = useAgeGate(authToken);
   const [ageGateVisible, setAgeGateVisible] = useState(false);
   const [spendLimit, setSpendLimit] = useState<SpendLimitView | null>(null);
+  const [probability, setProbability] = useState<BoxProbability | null>(null);
   const estimatedPayDeadline = estimatePayDeadlineFromNow();
 
   useEffect(() => {
@@ -118,6 +133,16 @@ export function BoxDetailsCheckoutModals(props: Props) {
       .then(setSpendLimit)
       .catch(() => setSpendLimit(null));
   }, [confirmVisible, authToken, spendLimitRefreshKey]);
+
+  useEffect(() => {
+    if (!confirmVisible && !drawModalVisible) {
+      return;
+    }
+    void fetchBoxProbability(activeBox.id, {
+      token: authToken || undefined,
+      drawCount,
+    }).then(setProbability);
+  }, [confirmVisible, drawModalVisible, activeBox.id, authToken, drawCount]);
 
   const spendLimitMeta = useMemo(() => {
     if (!spendLimit?.enabled) {
@@ -209,6 +234,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
         payAmount={displayPayAmount}
         quoting={quotingPrice}
         quoteError={quoteError}
+        onRetryQuote={onRetryQuote}
         paying={creatingOrder}
         payBlocked={!canSubmit || !hasAddress}
         payBlockedHint={
@@ -226,16 +252,33 @@ export function BoxDetailsCheckoutModals(props: Props) {
         }
         suggestedCouponSavings={quoteSavingsAmount}
         suggestedCouponApplied={suggestedCouponApplied}
+        suggestedCouponUserId={suggestedCouponUserId}
+        availableCoupons={availableCoupons}
+        selectedCouponUserId={selectedCouponUserId}
+        onSelectCoupon={onSelectCoupon}
         spendLimitWarning={spendLimitMeta.warning}
         spendLimitBlocked={spendLimitMeta.blocked}
         payDeadlineIso={estimatedPayDeadline}
+        hasAddress={hasAddress}
         addressSummary={null}
         onEditAddress={undefined}
+        onRequestAddress={goFillAddress}
         agreed={agreedPay}
         onToggleAgreed={() => setAgreedPay((v) => !v)}
         onClose={() => onConfirmVisibleChange(false)}
         deferPayLabel={queueStatus?.canDraw ? t("boxDetails.deferPayLater") : undefined}
         onDeferPay={queueStatus?.canDraw ? () => onConfirmVisibleChange(false) : undefined}
+        probabilityRates={(() => {
+          const display = resolveDisplayRates(probability);
+          if (!display) return null;
+          return {
+            legendaryRate: display.legendaryRate,
+            hiddenRate: display.hiddenRate,
+            generalRate: display.generalRate,
+            dynamicProbability: probability?.dynamicProbability !== false,
+            adjusted: display.adjusted,
+          };
+        })()}
         onPay={(wallet) => {
           trackEvent("confirm_pay_click", { boxId: activeBox.id, drawCount });
           if (!isLoggedIn) {

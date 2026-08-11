@@ -1,4 +1,3 @@
-import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
 import type { AudioPlayer } from "expo-audio";
 import type { PrizeTier } from "./config";
@@ -11,43 +10,166 @@ import { playRevealHapticQueued } from "./revealHaptics";
 import {
   getRuntimeRevealSoundLayers,
   getRevealVoiceLineEnabled,
+  type RevealSoundPack,
 } from "../utils/revealSettings";
 import { resolveRevealAudioMultiplier } from "./revealAudioAdapt";
 import { resolveAudioRouteMultiplier } from "./revealAudioRouteAdapt";
 import { resolvePanVolumeScale, resolveRevealSoundPan } from "./revealAudioSpatial";
 import { resolveActiveEmotionProfile } from "./revealEmotionProfiles";
+import { getMinorAudioScale, setMinorAudioScale } from "./revealMinorMode";
 import { trackEffectEvent } from "./telemetry";
-import type { RevealSoundPack } from "../utils/revealSettings";
+import type { RevealThemeId } from "./revealTheme";
+import { canonicalizeRevealThemeId } from "./revealTheme";
+import { resolveTierVoiceLineUri } from "./revealVoiceLines";
+
+export { setMinorAudioScale, resolveTierVoiceLineUri };
 
 let audioReady = false;
+
+/** Runtime theme pack drives which dedicated SFX bank is loaded. */
+export type ThemeSoundBank = "classic" | "cyberpunk" | "asmr" | "party" | "adventure";
+
+let runtimeThemeSoundBank: ThemeSoundBank = "classic";
 let runtimeRevealSoundPack: RevealSoundPack = "classic";
 
 const SOUND_PACK_PLAYBACK_RATE: Record<RevealSoundPack, number> = {
   classic: 1,
-  cute: 1.08,
-  neon: 1.14,
-  minimal: 0.92,
+  cute: 0.98,
+  neon: 1.06,
+  minimal: 0.94,
 };
+
+const THEME_BANK_PLAYBACK_RATE: Record<ThemeSoundBank, number> = {
+  classic: 1,
+  cyberpunk: 1.04,
+  asmr: 0.96,
+  party: 1.05,
+  adventure: 1.0,
+};
+
+type SoundKey = "GENERAL" | "HIDDEN" | "LEGENDARY" | "CHARGE" | "AMBIENT";
+
+type BankModules = Record<SoundKey, number>;
+
+/**
+ * Metro needs static require() paths. Each bank is loaded only on first use via a
+ * getter (not all five at module init).
+ */
+const BANK_MODULE_LOADERS: Record<ThemeSoundBank, () => BankModules> = {
+  classic: () => ({
+    GENERAL: require("../assets/sounds/classic/general.wav"),
+    HIDDEN: require("../assets/sounds/classic/hidden.wav"),
+    LEGENDARY: require("../assets/sounds/classic/legendary.wav"),
+    CHARGE: require("../assets/sounds/classic/charge.wav"),
+    AMBIENT: require("../assets/sounds/classic/ambient.wav"),
+  }),
+  cyberpunk: () => ({
+    GENERAL: require("../assets/sounds/cyberpunk/general.wav"),
+    HIDDEN: require("../assets/sounds/cyberpunk/hidden.wav"),
+    LEGENDARY: require("../assets/sounds/cyberpunk/legendary.wav"),
+    CHARGE: require("../assets/sounds/cyberpunk/charge.wav"),
+    AMBIENT: require("../assets/sounds/cyberpunk/ambient.wav"),
+  }),
+  asmr: () => ({
+    GENERAL: require("../assets/sounds/asmr/general.wav"),
+    HIDDEN: require("../assets/sounds/asmr/hidden.wav"),
+    LEGENDARY: require("../assets/sounds/asmr/legendary.wav"),
+    CHARGE: require("../assets/sounds/asmr/charge.wav"),
+    AMBIENT: require("../assets/sounds/asmr/ambient.wav"),
+  }),
+  party: () => ({
+    GENERAL: require("../assets/sounds/party/general.wav"),
+    HIDDEN: require("../assets/sounds/party/hidden.wav"),
+    LEGENDARY: require("../assets/sounds/party/legendary.wav"),
+    CHARGE: require("../assets/sounds/party/charge.wav"),
+    AMBIENT: require("../assets/sounds/party/ambient.wav"),
+  }),
+  adventure: () => ({
+    GENERAL: require("../assets/sounds/adventure/general.wav"),
+    HIDDEN: require("../assets/sounds/adventure/hidden.wav"),
+    LEGENDARY: require("../assets/sounds/adventure/legendary.wav"),
+    CHARGE: require("../assets/sounds/adventure/charge.wav"),
+    AMBIENT: require("../assets/sounds/adventure/ambient.wav"),
+  }),
+};
+
+const loadedBankModules = new Map<ThemeSoundBank, BankModules>();
+
+function getBankModules(bank: ThemeSoundBank): BankModules {
+  const cached = loadedBankModules.get(bank);
+  if (cached) return cached;
+  const loader = BANK_MODULE_LOADERS[bank] ?? BANK_MODULE_LOADERS.classic;
+  const modules = loader();
+  loadedBankModules.set(bank, modules);
+  return modules;
+}
+
+/** Map Doc2 / RevealThemeId / sound-pack aliases onto a dedicated bank. */
+export function resolveThemeSoundBank(themeOrPack?: string | null): ThemeSoundBank {
+  const raw = (themeOrPack ?? "").trim().toLowerCase();
+  if (!raw) return "classic";
+  if (raw === "cyberpunk" || raw === "neon" || raw === "glitch") return "cyberpunk";
+  if (raw === "asmr" || raw === "cute" || raw === "healing" || raw === "minimal") return "asmr";
+  if (raw === "party" || raw === "carnival" || raw === "luxury") return "party";
+  if (raw === "adventure" || raw === "narrative" || raw === "default") return "adventure";
+  if (raw === "classic") return "classic";
+  const id = canonicalizeRevealThemeId(raw);
+  if (id === "neon") return "cyberpunk";
+  if (id === "cute") return "asmr";
+  if (id === "luxury") return "party";
+  if (id === "default") return "adventure";
+  return "classic";
+}
 
 export function setRuntimeRevealSoundPack(pack: RevealSoundPack) {
   runtimeRevealSoundPack = pack;
+  const nextBank = resolveThemeSoundBank(pack);
+  if (nextBank !== runtimeThemeSoundBank) {
+    clearSoundCache();
+    runtimeThemeSoundBank = nextBank;
+  }
+}
+
+/** Bind open-box SFX bank to the active reveal theme (call when theme resolves). */
+export function setRuntimeThemeSoundBankFromTheme(themeId?: string | RevealThemeId | null) {
+  const next = resolveThemeSoundBank(themeId ?? null);
+  if (next === runtimeThemeSoundBank) return;
+  clearSoundCache();
+  runtimeThemeSoundBank = next;
+  trackEffectEvent("reveal_sound_bank_switched", { bank: next, themeId: themeId ?? "" });
+}
+
+export function getRuntimeThemeSoundBank(): ThemeSoundBank {
+  return runtimeThemeSoundBank;
 }
 
 function resolveSoundPackPlaybackMultiplier(): number {
-  return SOUND_PACK_PLAYBACK_RATE[runtimeRevealSoundPack] ?? 1;
+  return (
+    (SOUND_PACK_PLAYBACK_RATE[runtimeRevealSoundPack] ?? 1) *
+    (THEME_BANK_PLAYBACK_RATE[runtimeThemeSoundBank] ?? 1)
+  );
 }
 
-const soundCache = new Map<SoundKey, AudioPlayer>();
+const soundCache = new Map<string, AudioPlayer>();
 const soundTimers = new Set<ReturnType<typeof setTimeout>>();
 const activePlayers = new Set<AudioPlayer>();
-
-type SoundKey = "GENERAL" | "HIDDEN" | "LEGENDARY" | "CHARGE";
+const playerStartedAt = new WeakMap<AudioPlayer, number>();
 
 export type SoundLayer = "ambient" | "charge" | "reveal" | "finale";
 
 let ambientLoopActive = false;
-const MIN_TIER_SOUND_PLAY_MS = 120;
-const playerStartedAt = new WeakMap<AudioPlayer, number>();
+let ambientPlayer: AudioPlayer | null = null;
+let ambientFadeToken = 0;
+const AMBIENT_BED_VOLUME = 0.15;
+const AMBIENT_DUCK_VOLUME = 0.05;
+const MIN_TIER_SOUND_PLAY_MS = 160;
+/** Keep reveals audible even when minor/emotion scales stack low (unless explicitly muted). */
+const BASE_VOLUME = 1;
+const MIN_AUDIBLE_VOLUME = 0.55;
+
+function cacheKey(key: SoundKey): string {
+  return `${runtimeThemeSoundBank}:${key}`;
+}
 
 function soundKeyForTier(tier: PrizeTier): SoundKey {
   const ceremony = normalizeCeremonyTier(tier);
@@ -58,19 +180,10 @@ function soundKeyForTier(tier: PrizeTier): SoundKey {
   return "GENERAL";
 }
 
-const LOCAL_SOUND_MODULES: Partial<Record<SoundKey, number>> = {
-  GENERAL: require("../assets/sounds/general.wav"),
-  HIDDEN: require("../assets/sounds/hidden.wav"),
-  LEGENDARY: require("../assets/sounds/legendary.wav"),
-  CHARGE: require("../assets/sounds/charge.wav"),
-};
-
-const REMOTE_SOUND_URI: Partial<Record<SoundKey, string>> = {
-  GENERAL: "https://cdn.pixabay.com/download/audio/2021/08/04/audio_12b6cbe3f2.mp3",
-  HIDDEN: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_8cb7709cca.mp3",
-  LEGENDARY: "https://cdn.pixabay.com/download/audio/2022/03/24/audio_128a1c123c.mp3",
-  CHARGE: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_8f8c8e8f8c.mp3",
-};
+function resolveSoundSource(key: SoundKey): number | null {
+  const bank = getBankModules(runtimeThemeSoundBank);
+  return bank[key] ?? null;
+}
 
 async function loadAudioModule() {
   try {
@@ -81,55 +194,165 @@ async function loadAudioModule() {
 }
 
 async function ensureAudio() {
-  if (audioReady) return true;
   const audio = await loadAudioModule();
   if (!audio) return false;
   try {
+    // Short SFX should mix; doNotMix can fail to acquire focus on Android and mute everything.
     await audio.setAudioModeAsync({
       playsInSilentMode: true,
       shouldPlayInBackground: false,
       allowsRecording: false,
       interruptionMode: "mixWithOthers",
+      shouldRouteThroughEarpiece: false,
     });
+    if (typeof audio.setIsAudioActiveAsync === "function") {
+      await audio.setIsAudioActiveAsync(true);
+    }
     audioReady = true;
     return true;
   } catch {
-    return false;
+    try {
+      await audio.setAudioModeAsync({
+        playsInSilentMode: true,
+        interruptionMode: "duckOthers",
+      });
+      if (typeof audio.setIsAudioActiveAsync === "function") {
+        await audio.setIsAudioActiveAsync(true);
+      }
+      audioReady = true;
+      return true;
+    } catch {
+      audioReady = false;
+      return false;
+    }
   }
 }
 
-function resolveSoundSource(key: SoundKey): number | { uri: string } | null {
-  const local = LOCAL_SOUND_MODULES[key];
-  if (local != null) return local;
-  const remote = REMOTE_SOUND_URI[key];
-  return remote ? { uri: remote } : null;
+function clearSoundCache() {
+  stopAmbientPlayer(true);
+  for (const player of soundCache.values()) {
+    try {
+      player.pause?.();
+      player.remove?.();
+    } catch {
+      /* ignore */
+    }
+  }
+  soundCache.clear();
+}
+
+function setPlayerVolume(player: AudioPlayer, volume: number) {
+  if ("volume" in player) {
+    (player as AudioPlayer & { volume?: number }).volume = Math.min(1, Math.max(0, volume));
+  }
+}
+
+function setPlayerLoop(player: AudioPlayer, loop: boolean) {
+  if ("loop" in player) {
+    (player as AudioPlayer & { loop?: boolean }).loop = loop;
+  }
+}
+
+async function waitUntilLoaded(player: AudioPlayer, timeoutMs = 1500): Promise<boolean> {
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const loaded =
+      (player as AudioPlayer & { isLoaded?: boolean }).isLoaded === true ||
+      (player.currentStatus?.isLoaded ?? false);
+    if (loaded) return true;
+    await new Promise((r) => setTimeout(r, 30));
+  }
+  return true;
+}
+
+function resolvePlayVolume(): number {
+  const minor = getMinorAudioScale();
+  if (minor <= 0) return 0;
+  const volumeScale =
+    resolveRevealAudioMultiplier() *
+    resolveAudioRouteMultiplier() *
+    resolveActiveEmotionProfile().volumeScale *
+    Math.max(0.35, minor);
+  if (volumeScale <= 0) return 0;
+  return Math.min(1, Math.max(MIN_AUDIBLE_VOLUME, BASE_VOLUME * volumeScale));
 }
 
 async function loadSoundKey(key: SoundKey) {
-  const cached = soundCache.get(key);
+  const ck = cacheKey(key);
+  const cached = soundCache.get(ck);
   if (cached) return cached;
   const source = resolveSoundSource(key);
-  if (!source) return null;
+  if (source == null) return null;
   const audio = await loadAudioModule();
   if (!audio) return null;
   try {
-    const player = audio.createAudioPlayer(source);
-    soundCache.set(key, player);
+    const player = audio.createAudioPlayer(source, {
+      updateInterval: 250,
+      keepAudioSessionActive: true,
+    });
+    soundCache.set(ck, player);
+    await waitUntilLoaded(player);
     return player;
   } catch {
     return null;
   }
 }
 
-async function loadSound(tier: PrizeTier) {
-  return loadSoundKey(soundKeyForTier(tier));
+/** One-shot player — avoids stuck-at-end cache issues that silently skip replay. */
+async function createOneShotPlayer(key: SoundKey): Promise<AudioPlayer | null> {
+  const source = resolveSoundSource(key);
+  if (source == null) return null;
+  return createOneShotPlayerFromSource(source);
+}
+
+async function createOneShotPlayerFromSource(source: number | { uri: string }): Promise<AudioPlayer | null> {
+  const audio = await loadAudioModule();
+  if (!audio) return null;
+  try {
+    const player = audio.createAudioPlayer(source, {
+      updateInterval: 250,
+      keepAudioSessionActive: true,
+    });
+    await waitUntilLoaded(player);
+    return player;
+  } catch {
+    return null;
+  }
 }
 
 async function playHapticFallback(tier: PrizeTier) {
   playRevealHapticQueued(tier);
 }
 
-async function playSoundKey(key: SoundKey, tier: PrizeTier, enabled: boolean) {
+function applyPlayerGain(player: AudioPlayer, rate: number, pan = 0) {
+  const playbackRate = Math.min(1.28, Math.max(0.85, rate * resolveSoundPackPlaybackMultiplier()));
+  const targetVolume = resolvePlayVolume() * resolvePanVolumeScale(pan);
+  if ("setPlaybackRate" in player && typeof player.setPlaybackRate === "function") {
+    player.setPlaybackRate(playbackRate);
+  } else if ("playbackRate" in player) {
+    (player as AudioPlayer & { playbackRate?: number }).playbackRate = playbackRate;
+  }
+  if ("volume" in player) {
+    (player as AudioPlayer & { volume?: number }).volume = Math.min(1, Math.max(0, targetVolume));
+  }
+  return { playbackRate, targetVolume };
+}
+
+function schedulePlayerCleanup(player: AudioPlayer, ms = 2800) {
+  const timer = setTimeout(() => {
+    soundTimers.delete(timer);
+    activePlayers.delete(player);
+    try {
+      player.pause?.();
+      player.remove?.();
+    } catch {
+      /* ignore */
+    }
+  }, ms);
+  soundTimers.add(timer);
+}
+
+async function playSoundKey(key: SoundKey, tier: PrizeTier, enabled: boolean, rate = 1, pan = 0) {
   if (!enabled) return;
   const ok = await ensureAudio();
   if (!ok) {
@@ -137,20 +360,71 @@ async function playSoundKey(key: SoundKey, tier: PrizeTier, enabled: boolean) {
     trackEffectEvent("reveal_sound_skipped_runtime", { tier, platform: Platform.OS });
     return;
   }
+  const volume = resolvePlayVolume();
+  if (volume <= 0) {
+    trackEffectEvent("reveal_sound_skipped_muted", { tier, key, bank: runtimeThemeSoundBank });
+    return;
+  }
   try {
-    const player = await loadSoundKey(key);
+    // Prefer one-shot so each hit is audible; fall back to warmed cache.
+    let player = await createOneShotPlayer(key);
+    let oneShot = true;
+    if (!player) {
+      player = await loadSoundKey(key);
+      oneShot = false;
+    }
     if (!player) {
       await playHapticFallback(tier);
-      trackEffectEvent("reveal_sound_skipped_no_asset", { tier, key });
+      trackEffectEvent("reveal_sound_skipped_no_asset", { tier, key, bank: runtimeThemeSoundBank });
       return;
     }
-    await player.seekTo(0);
+    const { playbackRate, targetVolume } = applyPlayerGain(player, rate, pan);
+    if (targetVolume <= 0) {
+      if (oneShot) {
+        try {
+          player.remove?.();
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
+    // Avoid pause() on a fresh player — it can deactivate the audio session on iOS/Android.
+    try {
+      const status = player.currentStatus;
+      if (status?.playing) {
+        player.pause();
+      }
+      if ((status?.currentTime ?? 0) > 0.01) {
+        await player.seekTo(0);
+      }
+    } catch {
+      try {
+        await player.seekTo(0);
+      } catch {
+        /* ignore */
+      }
+    }
     player.play();
+    playerStartedAt.set(player, Date.now());
     activePlayers.add(player);
-    trackEffectEvent("reveal_sound_play", { tier, key });
-  } catch {
+    if (oneShot) schedulePlayerCleanup(player);
+    trackEffectEvent("reveal_sound_play", {
+      tier,
+      key,
+      bank: runtimeThemeSoundBank,
+      playbackRate,
+      volume: targetVolume,
+      oneShot,
+    });
+  } catch (err) {
     await playHapticFallback(tier);
-    trackEffectEvent("reveal_sound_play_failed", { tier, key });
+    trackEffectEvent("reveal_sound_play_failed", {
+      tier,
+      key,
+      bank: runtimeThemeSoundBank,
+      message: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
@@ -160,9 +434,7 @@ export async function playTierSound(tier: PrizeTier, enabled: boolean) {
 
 export async function playChargeSound(tier: PrizeTier, enabled: boolean) {
   if (!enabled || !getRuntimeRevealSoundLayers().charge) return;
-  const ceremony = normalizeCeremonyTier(tier);
-  if (ceremony === "GENERAL") return;
-  await playSoundKey("CHARGE", tier, enabled);
+  await playSoundKey("CHARGE", tier, enabled, 1);
 }
 
 export function playTierSoundSynced(
@@ -187,9 +459,8 @@ export function playChargeSoundSynced(
   opts?: { afterBoxTeaser?: boolean },
 ) {
   if (!enabled || chargeMs <= 0) return;
-  const ceremony = normalizeCeremonyTier(tier);
-  if (ceremony === "GENERAL") return;
-  const base = opts?.afterBoxTeaser ? REVEAL_SOUND_SYNC.afterBoxTeaserMs : 0;
+  // Fire charge almost immediately so it is not cancelled by fast skip / multi-draw stopAll.
+  const base = opts?.afterBoxTeaser ? Math.min(120, REVEAL_SOUND_SYNC.afterBoxTeaserMs) : 0;
   const timer = setTimeout(() => {
     soundTimers.delete(timer);
     void playChargeSound(tier, enabled);
@@ -207,6 +478,7 @@ export type RevealSoundArcOptions = {
   afterBoxTeaser?: boolean;
   chargeMs: number;
   accelerateTier?: 0 | 1 | 2;
+  themeId?: string | null;
 };
 
 async function playTierSoundWithRate(
@@ -215,45 +487,10 @@ async function playTierSoundWithRate(
   rate: number,
   opts?: { pan?: number; revealIndex?: number; totalReveals?: number; isFinaleDraw?: boolean },
 ) {
-  if (!enabled) return;
-  const ok = await ensureAudio();
-  if (!ok) {
-    await playHapticFallback(tier);
-    return;
-  }
-  try {
-    const key = soundKeyForTier(tier);
-    const player = await loadSoundKey(key);
-    if (!player) {
-      await playHapticFallback(tier);
-      return;
-    }
-    const pan =
-      opts?.pan ??
-      resolveRevealSoundPan(opts?.revealIndex ?? 0, opts?.totalReveals ?? 1, opts?.isFinaleDraw ?? false);
-    const playbackRate = Math.min(1.24, Math.max(0.85, rate * resolveSoundPackPlaybackMultiplier()));
-    const volumeScale =
-      resolveRevealAudioMultiplier() *
-      resolveAudioRouteMultiplier() *
-      resolvePanVolumeScale(pan) *
-      resolveActiveEmotionProfile().volumeScale;
-    const targetVolume = 0.92 * volumeScale;
-    if ("setPlaybackRate" in player && typeof player.setPlaybackRate === "function") {
-      player.setPlaybackRate(playbackRate);
-    } else if ("playbackRate" in player) {
-      (player as AudioPlayer & { playbackRate?: number }).playbackRate = playbackRate;
-    }
-    if ("volume" in player) {
-      (player as AudioPlayer & { volume?: number }).volume = targetVolume;
-    }
-    await player.seekTo(0);
-    player.play();
-    playerStartedAt.set(player, Date.now());
-    activePlayers.add(player);
-    trackEffectEvent("reveal_sound_play", { tier, key, playbackRate, pan });
-  } catch {
-    await playHapticFallback(tier);
-  }
+  const pan =
+    opts?.pan ??
+    resolveRevealSoundPan(opts?.revealIndex ?? 0, opts?.totalReveals ?? 1, opts?.isFinaleDraw ?? false);
+  await playSoundKey(soundKeyForTier(tier), tier, enabled, rate, pan);
 }
 
 export function canStopRevealPlayer(player: AudioPlayer): boolean {
@@ -273,32 +510,40 @@ export function playRevealSoundArc(opts: RevealSoundArcOptions) {
     chargeMs,
     pacing = "normal",
     accelerateTier = 0,
+    themeId,
   } = opts;
   if (!soundEnabled) return;
+  if (themeId) setRuntimeThemeSoundBankFromTheme(themeId);
+
   const layers = getRuntimeRevealSoundLayers();
   const remote = getRevealRemoteConfig();
-  if (layers.ambient && !ambientLoopActive && (opts.totalReveals ?? 1) > 1) {
+  if (layers.ambient && !ambientLoopActive) {
     void startAmbientLoop(true);
   }
-  const indexPitchDelay = revealIndex * 40;
-  if (layers.charge) {
-    playChargeSoundSynced(tier, soundEnabled, chargeMs, { afterBoxTeaser });
+  const indexPitchDelay = Math.min(80, revealIndex * 24);
+  if (layers.charge !== false) {
+    void crossfadeSoundLayers("ambient", "charge", Math.min(180, remote.audioFadeOutMs || 120));
+    playChargeSoundSynced(tier, soundEnabled, Math.max(chargeMs, 400), { afterBoxTeaser });
   }
   const finaleSilence = isFinaleDraw ? remote.silenceBeforeFinaleMs : 0;
   const pacingScale = pacing === "fast" ? 0.9 : pacing === "finale" || pacing === "ceremony" ? 1.05 : 1;
   const playbackRate = acceleratePlaybackRate(accelerateTier, 1 + revealIndex * 0.04) * pacingScale;
-  const revealLayerOk = isFinaleDraw ? layers.finale : layers.reveal;
+  const revealLayerOk = isFinaleDraw ? layers.finale !== false : layers.reveal !== false;
   if (!revealLayerOk) return;
-  void crossfadeSoundLayers(null, isFinaleDraw ? "finale" : "reveal", remote.audioFadeOutMs);
+  void crossfadeSoundLayers("ambient", isFinaleDraw ? "finale" : "reveal", remote.audioFadeOutMs || 160);
+
+  // Keep tier hit close to the visual flash — long chargeMs used to schedule after finishReveal cancelled timers.
   const ceremony = normalizeCeremonyTier(tier);
-  const chargeDelay =
-    ceremony === "GENERAL" ? 0 : Math.min(chargeMs, pacing === "fast" ? 160 : chargeMs);
+  const chargeLead =
+    ceremony === "GENERAL"
+      ? Math.min(160, Math.max(60, chargeMs * 0.2))
+      : Math.min(280, Math.max(90, chargeMs * 0.25));
   let tierDelayBase =
-    (afterBoxTeaser ? REVEAL_SOUND_SYNC.afterBoxTeaserMs : REVEAL_SOUND_SYNC.flashPeakMs) +
-    chargeDelay +
+    (afterBoxTeaser ? Math.min(160, REVEAL_SOUND_SYNC.afterBoxTeaserMs) : REVEAL_SOUND_SYNC.flashPeakMs) +
+    chargeLead +
     indexPitchDelay;
   if ((opts.totalReveals ?? 1) > 1) {
-    tierDelayBase = Math.min(tierDelayBase, pacing === "fast" ? 80 : pacing === "normal" ? 140 : 220);
+    tierDelayBase = Math.min(tierDelayBase, pacing === "fast" ? 60 : pacing === "normal" ? 110 : 180);
   }
   const timer = setTimeout(() => {
     soundTimers.delete(timer);
@@ -313,135 +558,201 @@ export function playRevealSoundArc(opts: RevealSoundArcOptions) {
     void getRevealVoiceLineEnabled().then((enabled) => {
       if (enabled) void playTierVoiceLine(tier, remote.themeId);
     });
-  }, tierDelayBase + finaleSilence);
+  }, Math.max(0, tierDelayBase + finaleSilence));
   soundTimers.add(timer);
 }
 
-export async function startAmbientLoop(enabled: boolean) {
-  if (!enabled || ambientLoopActive || !getRuntimeRevealSoundLayers().ambient) return;
-  const ok = await ensureAudio();
-  if (!ok) return;
-  const player = await loadSoundKey("CHARGE");
-  if (!player) return;
-  try {
-    if ("volume" in player) (player as AudioPlayer & { volume?: number }).volume = 0.08;
-    if ("loop" in player) (player as AudioPlayer & { loop?: boolean }).loop = true;
-    await player.seekTo(0);
-    player.play();
-    activePlayers.add(player);
-    ambientLoopActive = true;
-    trackEffectEvent("reveal_sound_ambient_start");
-  } catch {
-    /* ignore */
+async function startAmbientLoop(enabled: boolean) {
+  if (!enabled || ambientLoopActive) return;
+  if (!getRuntimeRevealSoundLayers().ambient) return;
+  ambientLoopActive = true;
+  await playAmbientLoop();
+}
+
+/** Ensure looping ambient bed is audible (e.g. during finale silence). */
+async function playAmbientBed(_ms: number) {
+  if (!getRuntimeRevealSoundLayers().ambient) return;
+  if (ambientLoopActive && ambientPlayer) {
+    setPlayerVolume(ambientPlayer, AMBIENT_BED_VOLUME);
+    return;
   }
+  await startAmbientLoop(true);
 }
 
-export async function stopAmbientLoop() {
-  ambientLoopActive = false;
-  trackEffectEvent("reveal_sound_ambient_stop");
-}
-
-async function playAmbientBed(ms: number) {
-  if (ms <= 0 || !getRuntimeRevealSoundLayers().ambient) return;
-  const player = await loadSoundKey("CHARGE");
-  if (!player) return;
+async function playAmbientLoop() {
+  if (!getRuntimeRevealSoundLayers().ambient) {
+    ambientLoopActive = false;
+    return;
+  }
+  const ok = await ensureAudio();
+  if (!ok) {
+    ambientLoopActive = false;
+    return;
+  }
   try {
-    if ("volume" in player) (player as AudioPlayer & { volume?: number }).volume = 0.04;
-    if ("loop" in player) (player as AudioPlayer & { loop?: boolean }).loop = true;
-    await player.seekTo(0);
-    player.play();
-    activePlayers.add(player);
-    setTimeout(() => {
+    stopAmbientPlayer(false);
+    let player = await createOneShotPlayer("AMBIENT");
+    if (!player) {
+      // Fallback if ambient.wav not yet generated for this bank
+      player = await createOneShotPlayer("CHARGE");
+    }
+    if (!player) {
+      ambientLoopActive = false;
+      return;
+    }
+    ambientPlayer = player;
+    setPlayerLoop(player, true);
+    setPlayerVolume(player, 0);
+    try {
+      const status = player.currentStatus;
+      if ((status?.currentTime ?? 0) > 0.01) {
+        await player.seekTo(0);
+      }
+    } catch {
       try {
-        if ("loop" in player) (player as AudioPlayer & { loop?: boolean }).loop = false;
-        player.pause?.();
+        await player.seekTo(0);
       } catch {
         /* ignore */
       }
-    }, ms);
-  } catch {
-    /* ignore */
+    }
+    player.play();
+    playerStartedAt.set(player, Date.now());
+    activePlayers.add(player);
+    await rampAmbientVolume(0, AMBIENT_BED_VOLUME, 220);
+    trackEffectEvent("reveal_sound_ambient_bed", {
+      volume: AMBIENT_BED_VOLUME,
+      bank: runtimeThemeSoundBank,
+      loop: true,
+    });
+  } catch (err) {
+    ambientLoopActive = false;
+    trackEffectEvent("reveal_sound_ambient_failed", {
+      message: err instanceof Error ? err.message : String(err),
+    });
   }
 }
 
-export async function playTierVoiceLine(tier: PrizeTier, themeId?: string) {
-  const remote = getRevealRemoteConfig();
-  const uris = remote.voiceLineUris;
-  if (!uris) return;
-  const key = themeId ? `${normalizeCeremonyTier(tier)}_${themeId}` : normalizeCeremonyTier(tier);
-  const uri = uris[key] ?? uris[normalizeCeremonyTier(tier)];
-  if (!uri) return;
-  const ok = await ensureAudio();
-  if (!ok) return;
+function stopAmbientPlayer(resetFlag = true) {
+  ambientFadeToken += 1;
+  if (ambientPlayer) {
+    try {
+      ambientPlayer.pause?.();
+      ambientPlayer.remove?.();
+    } catch {
+      /* ignore */
+    }
+    activePlayers.delete(ambientPlayer);
+    ambientPlayer = null;
+  }
+  if (resetFlag) ambientLoopActive = false;
+}
+
+async function rampAmbientVolume(from: number, to: number, fadeMs: number) {
+  const player = ambientPlayer;
+  if (!player) return;
+  const token = ++ambientFadeToken;
+  const ms = Math.max(0, fadeMs);
+  if (ms <= 0) {
+    setPlayerVolume(player, to);
+    return;
+  }
+  const steps = Math.max(4, Math.min(16, Math.round(ms / 30)));
+  const stepMs = ms / steps;
+  for (let i = 1; i <= steps; i++) {
+    if (token !== ambientFadeToken || ambientPlayer !== player) return;
+    const t = i / steps;
+    setPlayerVolume(player, from + (to - from) * t);
+    await new Promise((r) => setTimeout(r, stepMs));
+  }
+}
+
+/** Duck / restore ambient against charge & reveal hits (simple volume ramp). */
+async function crossfadeSoundLayers(_from: SoundLayer | null, to: SoundLayer, fadeMs: number) {
+  if (!ambientPlayer || !ambientLoopActive) return;
+  const ms = Math.max(40, fadeMs || 120);
+  const duck =
+    to === "charge" ? Math.max(AMBIENT_DUCK_VOLUME, AMBIENT_BED_VOLUME * 0.45) : AMBIENT_DUCK_VOLUME;
+  await rampAmbientVolume(AMBIENT_BED_VOLUME, duck, Math.min(ms, 180));
+  if (!ambientPlayer || !ambientLoopActive) return;
+  await rampAmbientVolume(duck, AMBIENT_BED_VOLUME, Math.min(ms, 220));
+}
+
+async function fadeOutAndStopAmbient(fadeMs: number) {
+  const player = ambientPlayer;
+  if (!player) {
+    stopAmbientPlayer(true);
+    return;
+  }
+  const current =
+    typeof (player as AudioPlayer & { volume?: number }).volume === "number"
+      ? ((player as AudioPlayer & { volume?: number }).volume as number)
+      : AMBIENT_BED_VOLUME;
+  await rampAmbientVolume(current, 0, fadeMs);
+  stopAmbientPlayer(true);
+}
+
+async function playTierVoiceLine(tier: PrizeTier, themeId?: string) {
   try {
-    const audio = await loadAudioModule();
-    if (!audio) return;
-    const player = audio.createAudioPlayer({ uri });
+    const remote = getRevealRemoteConfig();
+    const uri = resolveTierVoiceLineUri(tier, themeId ?? remote.themeId, remote.voiceLineUris);
+    if (!uri) return;
+    const ok = await ensureAudio();
+    if (!ok) return;
+    const volume = resolvePlayVolume();
+    if (volume <= 0) return;
+    const player = await createOneShotPlayerFromSource({ uri });
+    if (!player) return;
+    setPlayerLoop(player, false);
+    applyPlayerGain(player, 1);
+    try {
+      const status = player.currentStatus;
+      if (status?.playing) player.pause();
+      if ((status?.currentTime ?? 0) > 0.01) await player.seekTo(0);
+    } catch {
+      try {
+        await player.seekTo(0);
+      } catch {
+        /* ignore */
+      }
+    }
     player.play();
+    playerStartedAt.set(player, Date.now());
     activePlayers.add(player);
-    trackEffectEvent("reveal_voice_line_play", { tier, themeId });
+    schedulePlayerCleanup(player, 4200);
+    trackEffectEvent("reveal_sound_voice_line", {
+      tier: normalizeCeremonyTier(tier),
+      themeId: themeId ?? remote.themeId ?? "",
+    });
   } catch {
-    trackEffectEvent("reveal_voice_line_failed", { tier });
+    /* optional asset — never crash the reveal arc */
+  }
+}
+
+export function cancelScheduledRevealSounds(opts?: { fadeMs?: number }) {
+  for (const timer of soundTimers) clearTimeout(timer);
+  soundTimers.clear();
+  const fadeMs = opts?.fadeMs ?? 0;
+  if (fadeMs > 0 && ambientPlayer) {
+    void fadeOutAndStopAmbient(fadeMs);
+  } else {
+    stopAmbientPlayer(true);
   }
 }
 
 export function cancelScheduledRevealSoundTimers() {
-  soundTimers.forEach(clearTimeout);
-  soundTimers.clear();
+  cancelScheduledRevealSounds();
 }
 
-export function cancelScheduledRevealSounds(opts?: { fadeMs?: number }) {
-  void stopAmbientLoop();
-  const fadeMs = opts?.fadeMs ?? getRevealRemoteConfig().audioFadeOutMs;
-  if (fadeMs > 0) {
-    fadeOutActiveSounds(fadeMs).finally(() => {
-      cancelScheduledRevealSoundTimers();
-    });
-    return;
-  }
-  cancelScheduledRevealSoundTimers();
-}
-
-/** Crossfade between sound layers during phase transitions. */
-export async function crossfadeSoundLayers(
-  _prev: SoundLayer | null,
-  _next: SoundLayer | null,
-  ms?: number,
-): Promise<void> {
-  const fadeMs = ms ?? getRevealRemoteConfig().audioFadeOutMs;
-  if (fadeMs <= 0) return;
-  await fadeOutActiveSounds(Math.round(fadeMs * 0.55));
-  trackEffectEvent("reveal_sound_crossfade", { from: _prev ?? "none", to: _next ?? "none", fadeMs });
-}
-
-async function fadeOutActiveSounds(fadeMs: number): Promise<void> {
-  const players = [...activePlayers];
-  if (!players.length) return;
-  const steps = 4;
-  const stepMs = Math.max(20, Math.floor(fadeMs / steps));
-  for (let i = steps; i >= 0; i -= 1) {
-    const volume = i / steps;
-    players.forEach((p) => {
-      try {
-        if ("volume" in p) (p as AudioPlayer & { volume?: number }).volume = volume;
-      } catch {
-        /* ignore */
-      }
-    });
-    await new Promise((r) => setTimeout(r, stepMs));
-  }
-  players.forEach((p) => {
+export function stopActiveRevealSounds() {
+  const keep = new Set<AudioPlayer>();
+  activePlayers.forEach((p) => {
+    if (p === ambientPlayer) {
+      keep.add(p);
+      return;
+    }
     try {
       if (!canStopRevealPlayer(p)) {
-        const started = playerStartedAt.get(p) ?? Date.now();
-        const wait = Math.max(0, MIN_TIER_SOUND_PLAY_MS - (Date.now() - started));
-        setTimeout(() => {
-          try {
-            p.pause?.();
-          } catch {
-            /* ignore */
-          }
-        }, wait);
+        keep.add(p);
         return;
       }
       p.pause?.();
@@ -450,6 +761,7 @@ async function fadeOutActiveSounds(fadeMs: number): Promise<void> {
     }
   });
   activePlayers.clear();
+  keep.forEach((p) => activePlayers.add(p));
 }
 
 export async function warmupTierSounds() {
@@ -459,9 +771,9 @@ export async function warmupTierSounds() {
     return;
   }
   await Promise.all(
-    (["GENERAL", "HIDDEN", "LEGENDARY", "CHARGE"] as SoundKey[]).map((key) =>
+    (["GENERAL", "HIDDEN", "LEGENDARY", "CHARGE", "AMBIENT"] as SoundKey[]).map((key) =>
       loadSoundKey(key).catch(() => undefined),
     ),
   );
-  trackEffectEvent("reveal_sound_warmup_ok");
+  trackEffectEvent("reveal_sound_warmup_ok", { bank: runtimeThemeSoundBank });
 }

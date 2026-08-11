@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
+import { router } from "expo-router";
 import { Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { RemoteImage } from "./ui/RemoteImage";
@@ -10,9 +11,16 @@ import { OptimizedFlatList } from "./ui/OptimizedFlatList";
 import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { listEmptyWhenOk, shouldShowListSkeleton } from "./ui/listScreenHelpers";
 import { ListSkeleton } from "./ListSkeleton";
+import { AppGradient } from "./ui/AppGradient";
 import {
   buyMarketplaceListing,
   cancelMarketplaceListing,
+  cancelMarketplaceTrade,
+  coolingRemainingMs,
+  fetchMarketplaceCertificate,
+  fetchMarketplaceCredit,
+  formatCoolingCountdown,
+  submitMarketplaceCertificate,
   type MarketplaceListing,
   type PurchasedListing,
 } from "../services/marketplaceService";
@@ -28,6 +36,7 @@ import { toast } from "../utils/toast";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useAppTheme } from "../context/ThemeContext";
 import { useAuthToken } from "../hooks/useAuthToken";
+import { useAppPublicConfig } from "../hooks/useAppPublicConfig";
 import {
   useMarketplaceListingsQuery,
   useMyMarketplaceListingsQuery,
@@ -36,9 +45,11 @@ import {
 } from "../query/hooks/useMarketplaceListingsQuery";
 import { queryKeys } from "../query/keys";
 import { fetchMarketplaceListingsPage } from "../query/fetchers";
-import { layout, radius, spacing, typography } from "../styles/tokens";
+import { layout, radius, shadows, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { InlineGuideBanner } from "./ui/InlineGuideBanner";
+import { appViewToHref } from "../navigation/appViewRoutes";
+import { setMarketplaceChatParams } from "../navigation/marketplaceChatParams";
 import { dismissMarketplaceGuide, shouldShowMarketplaceGuide } from "../utils/uxGuideStorage";
 
 type Tab = "market" | "mine" | "purchased";
@@ -53,7 +64,21 @@ function listingStatusLabel(status: string, t: (key: string) => string) {
   if (status === "ON_SALE") return t("marketplace.statusOnSale");
   if (status === "SOLD") return t("marketplace.statusSold");
   if (status === "CANCELLED") return t("marketplace.statusCancelled");
+  if (status === "COOLING") return t("marketplace.statusCooling");
+  if (status === "PENDING_EXTERNAL") return t("marketplace.statusPendingExternal");
   return status;
+}
+
+function isPendingExternal(row: { status?: string | null; tradeStatus?: string | null }) {
+  return row.status === "PENDING_EXTERNAL" || row.tradeStatus === "PENDING_EXTERNAL";
+}
+
+function displayListingStatus(
+  row: { status?: string | null; tradeStatus?: string | null },
+  t: (key: string) => string,
+) {
+  if (isPendingExternal(row)) return listingStatusLabel("PENDING_EXTERNAL", t);
+  return listingStatusLabel(row.status ?? "", t);
 }
 
 const MARKET_PAGE = 20;
@@ -65,6 +90,7 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   const styles = useThemedStyles(buildMarketplaceStyles);
   const { confirm } = useConfirmDialog();
   const queryClient = useQueryClient();
+  const { marketplaceFeeRate } = useAppPublicConfig();
   const [tab, setTab] = useState<Tab>("market");
   const [keyword, setKeyword] = useState("");
   const [sort, setSort] = useState<MarketSort>("newest");
@@ -74,11 +100,68 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   const [marketItems, setMarketItems] = useState<MarketplaceListing[]>([]);
   const [marketHasMore, setMarketHasMore] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
+  const [myCredit, setMyCredit] = useState<number | null>(null);
+  const [nowTick, setNowTick] = useState(Date.now());
+  const [certListingId, setCertListingId] = useState<string | null>(null);
+  const [certVideoUrl, setCertVideoUrl] = useState("");
 
   useEffect(() => {
     if (tab !== "market") return;
     void shouldShowMarketplaceGuide().then(setShowGuide);
   }, [tab]);
+
+  const openChat = (listingId: string, title?: string) => {
+    if (!authToken) {
+      onRequireLogin?.();
+      return;
+    }
+    setMarketplaceChatParams({ listingId, listingTitle: title });
+    router.push(
+      appViewToHref("marketplaceChat", { listingId, listingTitle: title }) as never,
+    );
+  };
+
+  const renderTrustRow = (listingId: string, sellerCredit?: number | null) => (
+    <View style={styles.trustRow}>
+      {sellerCredit != null ? (
+        <View style={styles.creditBadge} accessibilityRole="text">
+          <Text style={styles.creditBadgeLabel}>{t("marketplace.creditBadgeLabel")}</Text>
+          <Text style={styles.creditBadgeScore}>{Number(sellerCredit).toFixed(1)}</Text>
+        </View>
+      ) : (
+        <View style={[styles.creditBadge, styles.creditBadgeMuted]}>
+          <Text style={styles.creditBadgeMutedText}>{t("marketplace.creditUnavailable")}</Text>
+        </View>
+      )}
+      <Pressable
+        style={styles.certBadge}
+        onPress={() => void handleViewCertificate(listingId)}
+        accessibilityRole="button"
+        accessibilityLabel={t("marketplace.certificateView")}
+      >
+        <Text style={styles.certBadgeText}>{t("marketplace.certificateBadge")}</Text>
+      </Pressable>
+    </View>
+  );
+
+  useEffect(() => {
+    const timer = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!authToken) {
+      setMyCredit(null);
+      return;
+    }
+    void fetchMarketplaceCredit(authToken)
+      .then((c) => {
+        setMyCredit(c.score);
+      })
+      .catch(() => {
+        setMyCredit(null);
+      });
+  }, [authToken]);
 
   const marketQuery = useMarketplaceListingsQuery(keyword, sort, minPrice, maxPrice, marketOffset, tab === "market");
   const mineQuery = useMyMarketplaceListingsQuery(authToken, tab === "mine");
@@ -158,7 +241,7 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
       try {
         await buyMarketplaceListing(authToken, item.id);
         trackEvent("marketplace_buy", { listingId: item.id, price: item.price });
-        toast.success(t("marketplace.buySuccess"));
+        toast.success(t("marketplace.coolingBuySuccess"));
         void reload();
       } catch (error) {
         reportAppError(toAppError(error), "marketplace_buy");
@@ -207,6 +290,46 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
     await perform();
   };
 
+  const handleCancelTrade = async (item: MarketplaceListing | PurchasedListing) => {
+    if (!authToken) return;
+    const ok = await confirm({
+      title: t("marketplace.cancelTradeTitle"),
+      message: t("marketplace.cancelTradeMessage", { name: item.productName }),
+      confirmLabel: t("marketplace.cancelTradeBtn"),
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      await cancelMarketplaceTrade(authToken, item.id);
+      toast.success(t("marketplace.cancelTradeSuccess"));
+      void reload();
+    } catch (error) {
+      reportAppError(toAppError(error), "marketplace_cancel_trade");
+      toast.error(parseError(error));
+    }
+  };
+
+  const handleViewCertificate = async (listingId: string) => {
+    try {
+      const cert = await fetchMarketplaceCertificate(authToken, listingId);
+      toast.info(`${t("marketplace.certificate")}: ${cert.reviewStatus} ${cert.videoUrl ?? ""}`.trim());
+    } catch {
+      toast.info(t("marketplace.certificateNone"));
+    }
+  };
+
+  const handleSubmitCertificate = async () => {
+    if (!authToken || !certListingId || !certVideoUrl.trim()) return;
+    try {
+      await submitMarketplaceCertificate(authToken, certListingId, { videoUrl: certVideoUrl.trim() });
+      toast.success(t("marketplace.certificateSubmitSuccess"));
+      setCertListingId(null);
+      setCertVideoUrl("");
+    } catch (error) {
+      toast.error(parseError(error));
+    }
+  };
+
   const listData = items as (MarketplaceListing | PurchasedListing)[];
 
   const purchasedShipLabel = (status: string | null) => {
@@ -223,6 +346,36 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   return (
     <View style={styles.page}>
       <SubPageHeader title={t("marketplace.title")} onBack={onBack} />
+      {myCredit != null ? (
+        <Text style={styles.creditBanner}>{t("marketplace.myCredit", { score: myCredit.toFixed(1) })}</Text>
+      ) : null}
+      {certListingId ? (
+        <View style={styles.certRow}>
+          <TextInput
+            style={styles.search}
+            placeholder={t("marketplace.certificateSubmitPrompt")}
+            placeholderTextColor={themeColors.textPlaceholder}
+            value={certVideoUrl}
+            onChangeText={setCertVideoUrl}
+            autoCapitalize="none"
+          />
+          <Pressable
+            style={[styles.applyBtn, styles.certApply]}
+            onPress={() => void handleSubmitCertificate()}
+            accessibilityRole="button"
+            accessibilityLabel={t("marketplace.certificateSubmit")}
+          >
+            <AppGradient
+              colors={[themeColors.brandDark, themeColors.brandGradientEnd]}
+              start={{ x: 0, y: 0.5 }}
+              end={{ x: 1, y: 0.5 }}
+              style={styles.applyBtnFill}
+            >
+              <Text style={styles.applyBtnText}>{t("marketplace.certificateSubmit")}</Text>
+            </AppGradient>
+          </Pressable>
+        </View>
+      ) : null}
       {showGuide && tab === "market" ? (
         <InlineGuideBanner
           testID="marketplaceGuideBanner"
@@ -239,6 +392,7 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
           <TextInput
             style={styles.search}
             placeholder={t("marketplace.searchPlaceholder")}
+            placeholderTextColor={themeColors.textPlaceholder}
             value={keyword}
             onChangeText={setKeyword}
             onSubmitEditing={() => void reload()}
@@ -264,6 +418,7 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
             <TextInput
               style={styles.priceInput}
               placeholder={t("marketplace.minPrice")}
+              placeholderTextColor={themeColors.textPlaceholder}
               keyboardType="decimal-pad"
               value={minPrice}
               onChangeText={setMinPrice}
@@ -272,6 +427,7 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
             <TextInput
               style={styles.priceInput}
               placeholder={t("marketplace.maxPrice")}
+              placeholderTextColor={themeColors.textPlaceholder}
               keyboardType="decimal-pad"
               value={maxPrice}
               onChangeText={setMaxPrice}
@@ -282,7 +438,14 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
               accessibilityRole="button"
               accessibilityLabel={t("marketplace.filterApply")}
             >
-              <Text style={styles.applyBtnText}>{t("marketplace.filterApply")}</Text>
+              <AppGradient
+                colors={[themeColors.brandDark, themeColors.brandGradientEnd]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={styles.applyBtnFill}
+              >
+                <Text style={styles.applyBtnText}>{t("marketplace.filterApply")}</Text>
+              </AppGradient>
             </Pressable>
           </View>
         </>
@@ -365,63 +528,140 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
         renderItem={({ item }) => {
           if (tab === "purchased") {
             const row = item as PurchasedListing;
+            const coolingMs = row.status === "COOLING" ? coolingRemainingMs(row.coolingUntil, nowTick) : 0;
             return (
-              <View style={styles.card}>
+              <Pressable style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}>
                 <RemoteImage
                   uri={row.cover || resolveProductImageUrl(row.id, row.productName)}
                   style={styles.cover}
+                  priority="low"
                 />
                 <View style={styles.meta}>
                   <Text style={styles.name} numberOfLines={2}>{row.productName}</Text>
                   <Text style={styles.tier}>
-                    {qualityLabelFromRaw(row.qualityType, t)} · {purchasedShipLabel(row.buyerShipStatus)}
+                    {qualityLabelFromRaw(row.qualityType, t)} ·{" "}
+                    {isPendingExternal(row)
+                      ? listingStatusLabel("PENDING_EXTERNAL", t)
+                      : row.status === "COOLING"
+                        ? listingStatusLabel("COOLING", t)
+                        : purchasedShipLabel(row.buyerShipStatus)}
                   </Text>
+                  {isPendingExternal(row) ? (
+                    <Text style={styles.pendingHint}>{t("marketplace.pendingExternalHint")}</Text>
+                  ) : null}
                   <Text style={styles.price}>{formatCurrency(Number(row.price))}</Text>
+                  {renderTrustRow(row.id, row.sellerCredit)}
+                  {coolingMs > 0 ? (
+                    <Text style={styles.cooling}>
+                      {t("marketplace.coolingCountdown", { time: formatCoolingCountdown(coolingMs) })}
+                    </Text>
+                  ) : null}
+                  {row.status === "COOLING" ? (
+                    <Pressable
+                      style={({ pressed }) => [styles.cancelBtn, pressed ? styles.cardPressed : null]}
+                      onPress={() => handleCancelTrade(row)}
+                      accessibilityRole="button"
+                      accessibilityLabel={t("marketplace.cancelTradeBtn")}
+                    >
+                      <Text style={styles.cancelText}>{t("marketplace.cancelTradeBtn")}</Text>
+                    </Pressable>
+                  ) : null}
+                  <Pressable
+                    style={({ pressed }) => [styles.chatOpenBtn, pressed ? styles.cardPressed : null]}
+                    onPress={() => openChat(row.id, row.productName)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("marketplace.chat")}
+                  >
+                    <Text style={styles.chatOpenText}>{t("marketplace.chat")}</Text>
+                  </Pressable>
                 </View>
-              </View>
+              </Pressable>
             );
           }
           const row = item as MarketplaceListing;
+          const coolingMs = row.status === "COOLING" ? coolingRemainingMs(row.coolingUntil, nowTick) : 0;
           return (
-          <View style={styles.card}>
+          <Pressable style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}>
             <RemoteImage
               uri={row.cover || resolveProductImageUrl(row.productId, row.productName)}
               style={styles.cover}
+              priority="low"
             />
             <View style={styles.meta}>
               <Text style={styles.name} numberOfLines={2}>
                 {row.productName}
               </Text>
               <Text style={styles.tier}>
-                {qualityLabelFromRaw(row.qualityType, t)} · {listingStatusLabel(row.status, t)}
+                {qualityLabelFromRaw(row.qualityType, t)} · {displayListingStatus(row, t)}
               </Text>
+              {tab === "mine" && isPendingExternal(row) ? (
+                <Text style={styles.pendingHint}>{t("marketplace.pendingExternalHint")}</Text>
+              ) : null}
               <Text style={styles.price}>{formatCurrency(Number(row.price))}</Text>
+              {renderTrustRow(row.id, row.sellerCredit)}
               {tab === "mine" ? (
                 <Text style={styles.netProceeds}>
-                  {t("marketplace.netProceeds", { amount: formatCurrency(estimateMarketplaceNetProceeds(Number(row.price))) })}
+                  {t("marketplace.netProceeds", {
+                    amount: formatCurrency(estimateMarketplaceNetProceeds(Number(row.price), marketplaceFeeRate)),
+                  })}
+                </Text>
+              ) : null}
+              {coolingMs > 0 ? (
+                <Text style={styles.cooling}>
+                  {t("marketplace.coolingCountdown", { time: formatCoolingCountdown(coolingMs) })}
                 </Text>
               ) : null}
               {tab === "market" ? (
                 <Pressable
-                  style={styles.buyBtn}
+                  style={({ pressed }) => [styles.buyBtn, pressed ? styles.cardPressed : null]}
                   onPress={() => handleBuy(row)}
                   accessibilityRole="button"
                   accessibilityLabel={t("marketplace.buyWithBalance")}
                 >
-                  <Text style={styles.buyText}>{t("marketplace.buyWithBalance")}</Text>
+                  <AppGradient
+                    colors={[themeColors.brandDark, themeColors.brandGradientEnd]}
+                    start={{ x: 0, y: 0.5 }}
+                    end={{ x: 1, y: 0.5 }}
+                    style={styles.buyBtnFill}
+                  >
+                    <Text style={styles.buyText}>{t("marketplace.buyWithBalance")}</Text>
+                  </AppGradient>
                 </Pressable>
               ) : row.status === "ON_SALE" ? (
+                <>
+                  <Pressable
+                    style={({ pressed }) => [styles.cancelBtn, pressed ? styles.cardPressed : null]}
+                    onPress={() => handleCancel(row)}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("marketplace.delist")}
+                  >
+                    <Text style={styles.cancelText}>{t("marketplace.delist")}</Text>
+                  </Pressable>
+                  <Pressable
+                    style={({ pressed }) => [styles.linkBtn, pressed ? styles.cardPressed : null]}
+                    onPress={() => {
+                      setCertListingId(row.id);
+                      setCertVideoUrl("");
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("marketplace.certificateSubmit")}
+                  >
+                    <Text style={styles.linkText}>{t("marketplace.certificateSubmit")}</Text>
+                  </Pressable>
+                </>
+              ) : null}
+              {tab === "mine" ? (
                 <Pressable
-                  style={styles.cancelBtn}
-                  onPress={() => handleCancel(row)}
+                  style={({ pressed }) => [styles.chatOpenBtn, pressed ? styles.cardPressed : null]}
+                  onPress={() => openChat(row.id, row.productName)}
                   accessibilityRole="button"
-                  accessibilityLabel={t("marketplace.delist")}
+                  accessibilityLabel={t("marketplace.chat")}
                 >
-                  <Text style={styles.cancelText}>{t("marketplace.delist")}</Text>
+                  <Text style={styles.chatOpenText}>{t("marketplace.chat")}</Text>
                 </Pressable>
               ) : null}
             </View>
-          </View>
+          </Pressable>
           );
         }}
       />
@@ -441,15 +681,18 @@ function buildMarketplaceStyles(colors: ThemeColors) {
   },
   filterChip: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.pill,
-    backgroundColor: colors.bgCard,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.sm,
+    backgroundColor: colors.bgSoft,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  filterChipOn: { backgroundColor: colors.brand, borderColor: colors.brand },
-  filterChipText: { fontSize: typography.caption, fontWeight: "700", color: colors.textSecondary },
-  filterChipTextOn: { color: colors.textOnBrand },
+  filterChipOn: {
+    backgroundColor: colors.accentSoft,
+    borderColor: colors.chipBorder,
+  },
+  filterChipText: { fontSize: typography.caption, fontWeight: "600", color: colors.textMuted },
+  filterChipTextOn: { color: colors.brandText, fontWeight: "700" },
   priceRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -459,49 +702,59 @@ function buildMarketplaceStyles(colors: ThemeColors) {
   },
   priceInput: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.md,
+    backgroundColor: colors.bgSoft,
+    borderRadius: radius.sm,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.xs + 2,
     borderWidth: 1,
     borderColor: colors.border,
     fontSize: typography.caption,
+    color: colors.textPrimary,
   },
   priceDash: { color: colors.textMuted },
   applyBtn: {
+    borderRadius: radius.sm,
+    overflow: "hidden",
+  },
+  applyBtnFill: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.brand,
-    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
   },
   applyBtnText: { color: colors.textOnBrand, fontWeight: "700", fontSize: typography.caption },
   search: {
     marginHorizontal: layout.screenPaddingX,
     marginBottom: spacing.sm,
-    backgroundColor: colors.bgCard,
+    backgroundColor: colors.bgSoft,
     borderRadius: radius.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.sm + 2,
     borderWidth: 1,
     borderColor: colors.border,
+    color: colors.textPrimary,
+    fontSize: typography.body,
   },
   tabs: {
     flexDirection: "row",
-    gap: spacing.sm,
-    paddingHorizontal: layout.screenPaddingX,
-    paddingBottom: spacing.sm,
+    gap: 0,
+    marginHorizontal: layout.screenPaddingX,
+    marginBottom: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   tab: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.bgCard,
-    borderWidth: 1,
-    borderColor: colors.border,
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: spacing.md,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
   },
-  tabOn: { backgroundColor: colors.brand, borderColor: colors.brand },
-  tabText: { fontWeight: "700", color: colors.textSecondary, fontSize: typography.caption },
-  tabTextOn: { color: colors.textOnBrand },
+  tabOn: {
+    borderBottomColor: colors.brand,
+  },
+  tabText: { fontWeight: "600", color: colors.textMuted, fontSize: typography.caption },
+  tabTextOn: { color: colors.brandText, fontWeight: "800" },
   list: { padding: layout.screenPaddingX, gap: spacing.md, paddingBottom: spacing.xxl },
   card: {
     flexDirection: "row",
@@ -509,29 +762,128 @@ function buildMarketplaceStyles(colors: ThemeColors) {
     backgroundColor: colors.bgCard,
     borderRadius: radius.lg,
     padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.profileHeroGlassBorder,
+    ...shadows.cardSm,
   },
-  cover: { width: 72, height: 72, borderRadius: radius.md },
-  meta: { flex: 1, gap: 4 },
+  cardPressed: { opacity: 0.9 },
+  cover: {
+    width: 108,
+    height: 108,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.borderSoft,
+    backgroundColor: colors.bgMuted,
+  },
+  meta: { flex: 1, gap: 4, justifyContent: "center" },
   name: { fontSize: typography.body, fontWeight: "700", color: colors.textPrimary },
   tier: { fontSize: typography.caption, color: colors.textSecondary },
-  price: { fontSize: typography.h3, fontWeight: "800", color: colors.brand, marginTop: 4 },
+  price: { fontSize: typography.h3, fontWeight: "800", color: colors.brandText, marginTop: 4 },
   netProceeds: { fontSize: typography.caption, color: colors.textSecondary, fontWeight: "600" },
+  cooling: { fontSize: typography.caption, color: colors.brand, fontWeight: "700", marginTop: 2 },
+  pendingHint: {
+    fontSize: typography.caption,
+    color: colors.textSecondary,
+    fontWeight: "600",
+    marginTop: 2,
+    lineHeight: 18,
+  },
+  creditBanner: {
+    paddingHorizontal: layout.screenPaddingX,
+    paddingBottom: spacing.xs,
+    color: colors.textSecondary,
+    fontSize: typography.caption,
+    fontWeight: "600",
+  },
+  certRow: { marginBottom: spacing.sm, gap: spacing.sm },
+  certApply: { marginHorizontal: layout.screenPaddingX, alignSelf: "stretch" },
+  linkBtn: { marginTop: spacing.xs, paddingVertical: 2 },
+  linkText: { color: colors.brand, fontWeight: "600", fontSize: typography.caption },
   buyBtn: {
     marginTop: spacing.sm,
-    backgroundColor: colors.brand,
     borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
+    overflow: "hidden",
   },
-  buyText: { color: "#fff", fontWeight: "700", fontSize: typography.caption },
+  buyBtnFill: {
+    paddingVertical: spacing.sm + 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buyText: { color: colors.textOnBrand, fontWeight: "800", fontSize: typography.caption, letterSpacing: 0.3 },
   cancelBtn: {
     marginTop: spacing.sm,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderSoft,
+    backgroundColor: colors.bgSoft,
   },
   cancelText: { color: colors.textSecondary, fontWeight: "700", fontSize: typography.caption },
+  trustRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    gap: spacing.xs,
+    marginTop: spacing.xs,
+  },
+  creditBadge: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 4,
+    backgroundColor: colors.bgBrandSoft,
+    borderWidth: 1.5,
+    borderColor: colors.brand,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+  creditBadgeMuted: {
+    backgroundColor: colors.bgSoft,
+    borderColor: colors.border,
+    borderWidth: 1,
+  },
+  creditBadgeLabel: {
+    fontSize: typography.micro,
+    fontWeight: "800",
+    color: colors.brandText,
+    letterSpacing: 0.3,
+    textTransform: "uppercase",
+  },
+  creditBadgeScore: {
+    fontSize: typography.body,
+    fontWeight: "900",
+    color: colors.brandText,
+  },
+  creditBadgeMutedText: {
+    fontSize: typography.micro,
+    fontWeight: "600",
+    color: colors.textMuted,
+  },
+  certBadge: {
+    backgroundColor: colors.bgCard,
+    borderWidth: 1.5,
+    borderColor: colors.chipBorder,
+    borderRadius: radius.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+  certBadgeText: {
+    fontSize: typography.micro,
+    fontWeight: "800",
+    color: colors.brand,
+    letterSpacing: 0.2,
+  },
+  chatOpenBtn: {
+    marginTop: spacing.sm,
+    alignSelf: "flex-start",
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.pill,
+    backgroundColor: colors.bgSoft,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  chatOpenText: { color: colors.brandText, fontWeight: "700", fontSize: typography.caption },
   });
 }

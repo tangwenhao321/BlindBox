@@ -31,12 +31,26 @@ export async function queryBoxes(
   return { items: content, hasMore: content.length >= pageSize };
 }
 
-export async function queryRecommendedBoxes(token: string, limit = 8) {
-  const response = await api.get<ApiResult<MysteryBox[]>>("/front/recommendation/mystery-box", {
-    params: { limit },
-    headers: buildAuthHeaders(token),
-  });
-  return dedupeMysteryBoxes(response.data.result ?? []);
+export type RecommendedBoxesResult = {
+  items: MysteryBox[];
+  /** A/B variant id (PERSONALIZED | POPULAR). Track with RECOMMEND_IMPRESSION. */
+  variant?: string;
+};
+
+export async function queryRecommendedBoxes(token: string, limit = 8): Promise<RecommendedBoxesResult> {
+  const response = await api.get<ApiResult<MysteryBox[] | { items?: MysteryBox[]; variant?: string }>>(
+    "/front/recommendation/mystery-box",
+    {
+      params: { limit },
+      headers: buildAuthHeaders(token),
+    },
+  );
+  const payload = response.data.result;
+  if (Array.isArray(payload)) {
+    return { items: dedupeMysteryBoxes(payload) };
+  }
+  const items = dedupeMysteryBoxes(payload?.items ?? []);
+  return { items, variant: payload?.variant };
 }
 
 export async function getBoxById(token: string, id: string) {

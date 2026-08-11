@@ -35,28 +35,31 @@ export function qualityLabelFromRaw(value?: string | null, t?: TFunction) {
 export function qualityAccentColor(tier: QualityTier | string | undefined) {
   const normalized = typeof tier === "string" ? normalizeQualityTier(tier) : tier;
   if (normalized === "LEGENDARY") return "#F59E0B";
-  if (normalized === "HIDDEN") return "#8B5CF6";
-  return "#94A3B8";
+  if (normalized === "EPIC") return "#B87333";
+  if (normalized === "RARE") return "#5B8A7A";
+  if (normalized === "ADVANCED") return "#3D6B5C";
+  if (normalized === "HIDDEN") return "#C4A574";
+  return "#8A8178";
 }
 
 export const qualityColors: Record<QualityTier, { bg: string; border: string; text: string }> = {
   LEGENDARY: { bg: "#fff3e8", border: "#ffd8a8", text: "#b45309" },
   LEGEND: { bg: "#fff3e8", border: "#ffd8a8", text: "#b45309" },
-  EPIC: { bg: "#f5f0ff", border: "#d9c2ff", text: "#6d28d9" },
-  RARE: { bg: "#ecfeff", border: "#bae6fd", text: "#0369a1" },
-  ADVANCED: { bg: "#ecfdf5", border: "#bbf7d0", text: "#047857" },
-  GENERAL: { bg: "#f8fafc", border: "#dbe4ee", text: "#475569" },
-  HIDDEN: { bg: "#1f2435", border: "#4b5563", text: "#f8fafc" },
+  EPIC: { bg: "#f7efe6", border: "#e0c4a8", text: "#8B5A2B" },
+  RARE: { bg: "#eef6f3", border: "#c5ddd4", text: "#3D6B5C" },
+  ADVANCED: { bg: "#e8f2ee", border: "#a8c9bb", text: "#2F5648" },
+  GENERAL: { bg: "#f5f2ee", border: "#ddd5cb", text: "#5C564E" },
+  HIDDEN: { bg: "#1a1814", border: "#C4A574", text: "#E8D5B0" },
 };
 
 export const qualityColorsDark: Record<QualityTier, { bg: string; border: string; text: string }> = {
   LEGENDARY: { bg: "#3D2A0A", border: "#92400E", text: "#FCD34D" },
   LEGEND: { bg: "#3D2A0A", border: "#92400E", text: "#FCD34D" },
-  EPIC: { bg: "#2E1F4A", border: "#6D28D9", text: "#C4B5FD" },
-  RARE: { bg: "#0C2D3A", border: "#0369A1", text: "#7DD3FC" },
-  ADVANCED: { bg: "#0D2818", border: "#047857", text: "#6EE7B7" },
-  GENERAL: { bg: "#252836", border: "#454B63", text: "#B8BDD0" },
-  HIDDEN: { bg: "#1f2435", border: "#4b5563", text: "#f8fafc" },
+  EPIC: { bg: "#2A1C12", border: "#8B5A2B", text: "#D4A574" },
+  RARE: { bg: "#142420", border: "#3D6B5C", text: "#8FB9A8" },
+  ADVANCED: { bg: "#0F1F1A", border: "#2F5648", text: "#6B9A88" },
+  GENERAL: { bg: "#221F1A", border: "#4A453C", text: "#B8B0A4" },
+  HIDDEN: { bg: "#0E0C0A", border: "#C4A574", text: "#E8D5B0" },
 };
 
 export function resolveQualityColors(tier: QualityTier, isDark: boolean) {

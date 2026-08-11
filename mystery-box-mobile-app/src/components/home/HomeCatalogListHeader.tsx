@@ -2,18 +2,15 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppGradient } from "../ui/AppGradient";
 import { HomeBannerCarousel } from "./HomeBannerCarousel";
-import { HomeFeatureGrid } from "./HomeFeatureGrid";
 import { HomePageHeader } from "./HomePageHeader";
-import { HomeStatsBar } from "./HomeStatsBar";
 import { HomeTrustBadges } from "./HomeTrustBadges";
 import { HotPoolCarousel } from "./HotPoolCarousel";
 import { RecommendCarousel } from "./RecommendCarousel";
 import { PendingPaymentBanner } from "../PendingPaymentBanner";
 import { SectionHeading } from "../ui/SectionHeading";
 import { dedupeHotBoxes } from "../../utils/boxDisplay";
-import { radius, spacing, typography } from "../../styles/tokens";
+import { font, radius, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
-import type { MysteryBoxActivity } from "../../services/activityService";
 import type { HomeSummary } from "../../services/homeService";
 import type { Order, MysteryBox } from "../../types";
 
@@ -35,7 +32,8 @@ type Props = {
   tickerItems: Array<{ text: string; qualityType?: string | null }>;
   homeSummary: HomeSummary | null;
   recommendBoxes?: MysteryBox[];
-  activities: MysteryBoxActivity[];
+  /** A/B variant for RECOMMEND_IMPRESSION analytics */
+  recommendVariant?: string;
   homeTabs: HomeTab[];
   homeTabKey: string;
   sortKey: SortKey;
@@ -51,10 +49,6 @@ type Props = {
   onOpenProbabilityDisclosure?: () => void;
   onOpenPlayGuide?: () => void;
   onOpenBox: (id: string) => void;
-  onOpenActivity?: (activity: MysteryBoxActivity) => void;
-  onOpenFeature?: (title: string) => void;
-  onGoMall?: () => void;
-  onGoMallSearch?: (keyword: string) => void;
   onHomeTabChange: (key: string) => void;
   onSortPress: (key: SortKey) => void;
 };
@@ -75,7 +69,7 @@ export function HomeCatalogListHeader(props: Props) {
     tickerItems,
     homeSummary,
     recommendBoxes = [],
-    activities,
+    recommendVariant,
     homeTabs,
     homeTabKey,
     sortKey,
@@ -91,16 +85,13 @@ export function HomeCatalogListHeader(props: Props) {
     onOpenProbabilityDisclosure,
     onOpenPlayGuide,
     onOpenBox,
-    onOpenActivity,
-    onOpenFeature,
-    onGoMall,
-    onGoMallSearch,
     onHomeTabChange,
     onSortPress,
   } = props;
 
   return (
     <View style={styles.headerWrap}>
+      {/* 1–3: first viewport — brand + sub + search, pending, full-bleed banner */}
       <HomePageHeader onPressSearch={onPressSearch} onContactSupport={onContactSupport} />
       {onContinuePendingPayment ? (
         <PendingPaymentBanner
@@ -117,47 +108,20 @@ export function HomeCatalogListHeader(props: Props) {
         onPressTicker={onPressTicker}
       />
       <HomeTrustBadges onPressProbability={onOpenProbabilityDisclosure} onPressPlayGuide={onOpenPlayGuide} />
-      {homeSummary ? (
-        <HomeStatsBar
-          todayDrawCount={homeSummary.todayDrawCount}
-          todayLegendaryCount={homeSummary.todayLegendaryCount}
-        />
-      ) : null}
+
+      {/* Below fold: Hot rail (+ Recommend). */}
       {homeSummary?.hotBoxes?.length ? (
         <HotPoolCarousel boxes={dedupeHotBoxes(homeSummary.hotBoxes)} onOpenBox={onOpenBox} />
       ) : null}
-      {recommendBoxes.length > 0 ? <RecommendCarousel boxes={recommendBoxes} onOpenBox={onOpenBox} /> : null}
-      {activities.length > 0 && onOpenActivity ? (
-        <View style={styles.activityBlock}>
-          <Text style={styles.activityTitle}>{t("home.limitedActivity")}</Text>
-          {activities.slice(0, 3).map((act) => {
-            const diff = new Date(act.endTime).getTime() - Date.now();
-            const countdown =
-              diff <= 0
-                ? t("home.activityEnded")
-                : `${Math.floor(diff / 3600000)}:${String(Math.floor((diff % 3600000) / 60000)).padStart(2, "0")}:${String(Math.floor((diff % 60000) / 1000)).padStart(2, "0")}`;
-            return (
-              <Pressable
-                key={act.id}
-                style={styles.activityCard}
-                onPress={() => onOpenActivity(act)}
-                accessibilityRole="button"
-                accessibilityLabel={act.title}
-              >
-                <Text style={styles.activityName}>{act.title}</Text>
-                <Text style={styles.activityEnd}>{t("home.activityRemaining", { countdown })}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+      {recommendBoxes.length > 0 ? (
+        <RecommendCarousel boxes={recommendBoxes} variant={recommendVariant} onOpenBox={onOpenBox} />
       ) : null}
-      {onOpenFeature && onGoMall ? (
-        <HomeFeatureGrid onOpenFeature={onOpenFeature} onGoMall={onGoMall} onGoMallSearch={onGoMallSearch} />
-      ) : null}
+
+      {/* Category tabs + sort — FlatList catalog items follow this header */}
       <SectionHeading
         title={t("home.hotSaleTitle")}
         subtitle={t("common.sectionHotSale")}
-        accent={themeColors.accentOrange}
+        accent={themeColors.brand}
       />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabRow}>
         {homeTabs.map((tab) => {
@@ -172,7 +136,7 @@ export function HomeCatalogListHeader(props: Props) {
               accessibilityLabel={tab.label}
             >
               {active ? (
-                <AppGradient colors={[themeColors.accentOrange, themeColors.profilePink]} style={styles.tabBtnActive}>
+                <AppGradient colors={[themeColors.brandDark, themeColors.brand]} style={styles.tabBtnActive}>
                   <Text style={styles.tabTextActive}>{tab.label}</Text>
                 </AppGradient>
               ) : (
@@ -212,17 +176,6 @@ export function HomeCatalogListHeader(props: Props) {
 function buildHomeCatalogListHeaderStyles(colors: ThemeColors) {
   return StyleSheet.create({
     headerWrap: { marginBottom: spacing.sm, backgroundColor: colors.bgPage },
-    activityBlock: { marginBottom: spacing.md, gap: spacing.sm },
-    activityTitle: { fontWeight: "900", fontSize: typography.bodyLg, color: colors.textPrimary },
-    activityCard: {
-      backgroundColor: colors.bgCard,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    activityName: { fontWeight: "800", color: colors.textPrimary },
-    activityEnd: { marginTop: 4, fontSize: typography.micro, color: colors.textMuted },
     tabRow: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md, paddingRight: spacing.lg },
     tabBtnWrap: { minWidth: 88 },
     tabBtn: {
@@ -230,7 +183,7 @@ function buildHomeCatalogListHeaderStyles(colors: ThemeColors) {
       justifyContent: "center",
       paddingVertical: spacing.md,
       borderRadius: radius.md,
-      backgroundColor: colors.bgCard,
+      backgroundColor: colors.bgSoft,
       borderWidth: 1,
       borderColor: colors.border,
     },
@@ -240,12 +193,33 @@ function buildHomeCatalogListHeaderStyles(colors: ThemeColors) {
       paddingVertical: spacing.md,
       borderRadius: radius.md,
     },
-    tabText: { fontSize: typography.caption, fontWeight: "700", color: colors.textSecondary },
-    tabTextActive: { fontSize: typography.caption, fontWeight: "900", color: colors.textOnBrand },
+    tabText: {
+      ...font("bodyMedium"),
+      fontSize: typography.caption,
+      fontWeight: "700",
+      color: colors.textSecondary,
+    },
+    tabTextActive: {
+      ...font("bodySemiBold"),
+      fontSize: typography.caption,
+      fontWeight: "800",
+      color: colors.textOnBrand,
+    },
     sortRow: { flexDirection: "row", alignItems: "center", gap: spacing.lg, marginBottom: spacing.md },
     sortItem: { paddingVertical: spacing.xs },
-    sortText: { fontSize: typography.caption, color: colors.textMuted, fontWeight: "600" },
-    sortTextActive: { color: colors.brand, fontWeight: "900" },
-    resultMeta: { marginStart: "auto", fontSize: typography.micro, color: colors.textMuted, fontWeight: "600" },
+    sortText: {
+      ...font("body"),
+      fontSize: typography.caption,
+      color: colors.textMuted,
+      fontWeight: "600",
+    },
+    sortTextActive: { color: colors.brandText, fontWeight: "800" },
+    resultMeta: {
+      ...font("body"),
+      marginStart: "auto",
+      fontSize: typography.micro,
+      color: colors.textMuted,
+      fontWeight: "600",
+    },
   });
 }

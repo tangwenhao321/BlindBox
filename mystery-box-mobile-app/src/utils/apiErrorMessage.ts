@@ -1,15 +1,25 @@
 import { ApiClientError } from "../api";
 import i18n from "../i18n";
 import { API_ERROR_CODE_KEYS } from "./apiErrorCodes";
-import { API_ERROR_MESSAGE_PATTERNS } from "./apiErrorMessagePatterns";
+import { API_ERROR_MESSAGE_PATTERNS, API_ERROR_TOKEN_PATTERNS } from "./apiErrorMessagePatterns";
 import { getAppLocale } from "./i18nLocale";
 
-function resolveMessageByPattern(message: string): string | null {
-  if (getAppLocale() === "zh-CN") return null;
-  for (const { pattern, key } of API_ERROR_MESSAGE_PATTERNS) {
+function resolveByPatterns(
+  message: string,
+  patterns: ReadonlyArray<{ pattern: RegExp; key: string }>,
+): string | null {
+  for (const { pattern, key } of patterns) {
     if (pattern.test(message) && i18n.exists(key)) return i18n.t(key);
   }
   return null;
+}
+
+function resolveMessageByPattern(message: string): string | null {
+  // Token / machine codes apply in every locale (including zh-CN).
+  const tokenMsg = resolveByPatterns(message, API_ERROR_TOKEN_PATTERNS);
+  if (tokenMsg) return tokenMsg;
+  if (getAppLocale() === "zh-CN") return null;
+  return resolveByPatterns(message, API_ERROR_MESSAGE_PATTERNS);
 }
 
 function stripParenthetical(text: string): string {
@@ -19,6 +29,10 @@ function stripParenthetical(text: string): string {
 export function resolveApiErrorMessage(error: ApiClientError): string {
   const key = API_ERROR_CODE_KEYS[error.code];
   if (key && i18n.exists(key)) return i18n.t(key);
+  if (error.errorCode) {
+    const byErrorCode = resolveByPatterns(error.errorCode, API_ERROR_TOKEN_PATTERNS);
+    if (byErrorCode) return byErrorCode;
+  }
   const patternMsg = resolveMessageByPattern(error.message);
   if (patternMsg) return patternMsg;
   if (/系统异常/.test(error.message) && i18n.exists("api.errors.systemError")) {
@@ -32,6 +46,8 @@ export function parseError(error: unknown) {
     return resolveApiErrorMessage(error);
   }
   if (error instanceof Error && error.message) {
+    const tokenMsg = resolveByPatterns(error.message, API_ERROR_TOKEN_PATTERNS);
+    if (tokenMsg) return tokenMsg;
     return stripParenthetical(error.message);
   }
   return i18n.t("api.requestRetry");

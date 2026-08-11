@@ -26,6 +26,11 @@ export const ANALYTICS_EVENTS = {
   PAYMENT_SUCCESS: "payment_success",
   PAYMENT_FAIL: "payment_fail",
   PAYMENT_CANCEL: "payment_cancel",
+  RETENTION_OFFER_SHOWN: "retention_offer_shown",
+  RETENTION_OFFER_CLAIMED: "retention_offer_claimed",
+  RETENTION_OFFER_CONTINUE: "retention_offer_continue",
+  RETENTION_OFFER_DISMISSED: "retention_offer_dismissed",
+  RETENTION_CONVERTED: "retention_converted",
   PAYMENT_STALE: "payment_stale",
   PAYMENT_MOCK_REQUESTED: "payment_mock_requested",
   PAYMENT_WECHAT_REQUESTED: "payment_wechat_requested",
@@ -50,7 +55,10 @@ export const ANALYTICS_EVENTS = {
   ORDER_RESULT_MODAL_SHOW: "order_result_modal_show",
   ORDER_RESULT_PAY_NOW_CLICK: "order_result_pay_now_click",
   ORDER_RESULT_TRY_AGAIN_CLICK: "order_result_try_again_click",
+  ORDER_RESULT_GO_WAREHOUSE_CLICK: "order_result_go_warehouse_click",
   ORDER_RESULT_SHARE_CLICK: "order_result_share_click",
+  ORDER_RESULT_SHARE_HIGHLIGHT_CLICK: "order_result_share_highlight_click",
+  ORDER_RESULT_SHARE_POSTER_CLICK: "order_result_share_poster_click",
   ORDER_RESULT_VERIFY_FAIRNESS_CLICK: "order_result_verify_fairness_click",
   GLOBAL_REFRESH_ERROR: "global_refresh_error",
   GLOBAL_REFRESH_PARTIAL_ERROR: "global_refresh_partial_error",
@@ -68,6 +76,9 @@ export const ANALYTICS_EVENTS = {
   NOTIFICATION_PREF_CHANGE: "notification_pref_change",
   ADDRESS_SAVE: "address_save",
   SETTINGS_TOGGLE: "settings_toggle",
+  PRIVACY_EXPORT: "privacy_export",
+  PRIVACY_DELETE: "privacy_delete",
+  PITY_COMPENSATE: "pity_compensate",
 } as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];

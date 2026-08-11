@@ -1,7 +1,9 @@
 {
   "validation": {
     "phone": "Enter a valid 11-digit mobile number",
-    "passwordMin": "Password must be at least 6 characters",
+    "passwordMin": "Password must be at least 8 characters",
+    "passwordMinLogin": "Password must be at least 6 characters",
+    "passwordComplexity": "Password must include letters and numbers",
     "recipientRequired": "Enter recipient name",
     "recipientMin": "Recipient name must be at least 2 characters",
     "regionRequired": "Select your region",

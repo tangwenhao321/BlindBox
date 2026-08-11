@@ -92,7 +92,12 @@ describe("marketplaceService", () => {
       2,
       "/front/marketplace/listings/listing-9/buy",
       {},
-      { headers: { token: "token-1" } },
+      {
+        headers: expect.objectContaining({
+          token: "token-1",
+          "x-idempotency-key": expect.any(String),
+        }),
+      },
     );
   });
 });

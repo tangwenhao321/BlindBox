@@ -10,6 +10,18 @@ import { resolveSolarTermId } from "./revealSolarTermPool";
 
 export type RevealThemeId = "default" | "neon" | "cute" | "luxury";
 
+/** Doc2 aliases map onto the four runtime theme ids. */
+export function canonicalizeRevealThemeId(raw?: string | null): RevealThemeId {
+  const s = (raw ?? "").trim().toLowerCase();
+  if (!s) return "default";
+  if (s === "cyberpunk" || s === "neon" || s === "glitch") return "neon";
+  if (s === "asmr" || s === "cute" || s === "healing") return "cute";
+  if (s === "party" || s === "carnival" || s === "luxury") return "luxury";
+  if (s === "adventure" || s === "narrative" || s === "default") return "default";
+  if (s === "neon" || s === "cute" || s === "luxury" || s === "default") return s;
+  return "default";
+}
+
 export type RevealTheme = {
   id: RevealThemeId;
   accent: string;
@@ -56,9 +68,18 @@ const THEMES: Record<RevealThemeId, RevealTheme> = {
 
 function inferThemeId(text: string): RevealThemeId | null {
   const s = text.toLowerCase();
-  if (/潮|数码|科技|电竞|game|tech|cyber|neon/.test(s)) return "neon";
-  if (/萌|可爱|少女|毛绒|cute|kawaii|pink/.test(s)) return "cute";
-  if (/限定|珍藏|黄金|vip|luxury|premium|legend/.test(s)) return "luxury";
+  if (/潮|数码|科技|电竞|赛博|故障|game|tech|cyber|neon|glitch|cyberpunk|labubu|skullpanda/.test(s)) {
+    return "neon";
+  }
+  if (/萌|可爱|少女|毛绒|治愈|asmr|cute|kawaii|pink|healing|chữa lành|dịu dàng/.test(s)) {
+    return "cute";
+  }
+  if (/限定|珍藏|黄金|派对|狂欢|vip|luxury|premium|legend|party|carnival|tiệc|bảo底/.test(s)) {
+    return "luxury";
+  }
+  if (/寻宝|叙事|探险|adventure|narrative|treasure|phiêu lưu|bản đồ/.test(s)) {
+    return "default";
+  }
   return null;
 }
 
@@ -69,14 +90,13 @@ export function resolveRevealTheme(opts?: {
 }): RevealTheme {
   const cfg = getRevealRemoteConfig();
   if ((cfg.limitedThemePriority ?? 0) > 0 && cfg.limitedThemeId) {
-    const limited = cfg.limitedThemeId.toLowerCase();
-    if (limited === "neon" || limited === "cute" || limited === "luxury" || limited === "default") {
-      return THEMES[limited];
-    }
+    return THEMES[canonicalizeRevealThemeId(cfg.limitedThemeId)];
   }
-  const remote = (opts?.remoteThemeId ?? "").toLowerCase();
-  if (remote === "neon" || remote === "cute" || remote === "luxury" || remote === "default") {
-    return THEMES[remote];
+  if (opts?.remoteThemeId) {
+    return THEMES[canonicalizeRevealThemeId(opts.remoteThemeId)];
+  }
+  if (cfg.currentTheme) {
+    return THEMES[canonicalizeRevealThemeId(cfg.currentTheme)];
   }
   const fromCategory = opts?.categoryName ? inferThemeId(opts.categoryName) : null;
   if (fromCategory) return THEMES[fromCategory];

@@ -1,4 +1,6 @@
-/** Parse invite code from universal link or custom scheme (no native deps — vitest-safe). */
+/** Parse invite code from universal link or custom scheme (no native deps — vitest-safe).
+ * Flow: share → deep link → setInviteCode (AsyncStorage) → register/bindInviter — see docs/INVITE_ATTRIBUTION.md
+ */
 
 function queryParams(url: string): Record<string, string> {
   const queryIndex = url.indexOf("?");

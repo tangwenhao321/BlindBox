@@ -1,7 +1,20 @@
 import type { MysteryBox } from "../types";
 import { API_BASE_URL } from "../api";
 
-const FALLBACK = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80";
+/**
+ * Local brand asset — no Unsplash/Picsum network dependency.
+ * Metro resolves PNG; Node/vitest may not — fall back to null and use PlaceholderCover.
+ */
+function loadLocalFallback(): number | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("../../assets/icon.png") as number;
+  } catch {
+    return null;
+  }
+}
+
+const FALLBACK = loadLocalFallback();
 
 function joinApiBase(path: string) {
   const base = API_BASE_URL.replace(/\/$/, "");
@@ -21,7 +34,7 @@ export function resolveBoxImageUrl(box: Pick<MysteryBox, "id" | "cover" | "name"
     const path = cover.startsWith("/") ? cover : `/${cover}`;
     return joinApiBase(path);
   }
-  return `https://picsum.photos/seed/${encodeURIComponent(box.id || box.name)}/800/420`;
+  return "";
 }
 
 export function resolveProductImageUrl(
@@ -29,6 +42,8 @@ export function resolveProductImageUrl(
   name: string,
   cover?: string | null,
 ) {
+  void productId;
+  void name;
   const raw = (cover || "").trim();
   if (raw.startsWith("http://") || raw.startsWith("https://")) {
     const uploadsIdx = raw.indexOf("/uploads/");
@@ -39,7 +54,7 @@ export function resolveProductImageUrl(
     const path = raw.startsWith("/") ? raw : `/${raw}`;
     return joinApiBase(path);
   }
-  return `https://picsum.photos/seed/${encodeURIComponent(`${productId}-${name}`)}/400/400`;
+  return "";
 }
 
 export { FALLBACK as BOX_IMAGE_FALLBACK };

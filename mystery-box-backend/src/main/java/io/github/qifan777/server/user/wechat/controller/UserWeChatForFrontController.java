@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,14 +29,16 @@ public class UserWeChatForFrontController {
 
     @SaIgnore
     @PostMapping("register")
-    public SaTokenInfo register(@RequestBody @Validated UserWeChatRegisterInput registerInput) {
+    public SaTokenInfo register(@RequestBody @Validated UserWeChatRegisterInput registerInput,
+                                @RequestHeader(value = "x-device-id", required = false) String deviceId) {
         authSmsOtpGuard.assertSmsVerified(registerInput.getPhone(), registerInput.getCode());
-        return userWeChatService.register(registerInput);
+        return userWeChatService.register(registerInput, deviceId);
     }
 
     @SaIgnore
     @PostMapping("register2")
-    public SaTokenInfo registerV2(@RequestBody @Validated UserWeChatRegisterInputV2 registerInputV2) {
-        return userWeChatService.registerV2(registerInputV2);
+    public SaTokenInfo registerV2(@RequestBody @Validated UserWeChatRegisterInputV2 registerInputV2,
+                                  @RequestHeader(value = "x-device-id", required = false) String deviceId) {
+        return userWeChatService.registerV2(registerInputV2, deviceId);
     }
 }

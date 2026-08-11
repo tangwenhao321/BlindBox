@@ -1,4 +1,11 @@
-export type ApiResult<T> = { code: number; msg: string; result: T; traceId?: string };
+export type ApiResult<T> = {
+  code: number;
+  msg: string;
+  result: T;
+  traceId?: string;
+  /** Stable SCREAMING_SNAKE code from backend (e.g. PITY_STOCK_EXHAUSTED). */
+  errorCode?: string;
+};
 export type TokenInfo = { tokenValue: string };
 export type QueryResult<T> = { content: T[] };
 export type UserProfile = {
@@ -21,7 +28,8 @@ export type UserBalanceLog = {
   createdTime?: string;
 };
 
-export type Product = { id: string; name: string; price: number; qualityType?: string; cover?: string };
+/** `price` is optional: warehouse and order-item payloads return prize products without a price. */
+export type Product = { id: string; name: string; price?: number; qualityType?: string; cover?: string };
 export type MysteryBoxCategory = {
   id: string;
   name: string;

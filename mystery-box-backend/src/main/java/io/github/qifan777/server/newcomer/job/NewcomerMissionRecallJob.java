@@ -58,8 +58,7 @@ public class NewcomerMissionRecallJob {
                 String title = "新人任务待领取";
                 String body = "您有未完成的新人奖励，快来领取吧";
                 userNotificationService.persist(userId, "NEWCOMER_RECALL", title, body, userId);
-                userNotificationService.preparePushMessage(userId, "NEWCOMER_RECALL", title, body, userId)
-                        .ifPresent(batch::add);
+                batch.addAll(userNotificationService.preparePushMessages(userId, "NEWCOMER_RECALL", title, body, userId));
                 sent++;
             }
             if (!batch.isEmpty()) {

@@ -57,6 +57,15 @@ const form = reactive(emptyForm())
 
 const isEditing = computed(() => !!form.id)
 
+/** The request interceptor rejects with a plain `{ msg }` payload, not an Error. */
+const errText = (e: unknown, fallback: string) => {
+  if (e && typeof e === 'object' && 'msg' in e) {
+    const msg = (e as { msg?: unknown }).msg
+    if (typeof msg === 'string' && msg) return msg
+  }
+  return e instanceof Error ? e.message : fallback
+}
+
 const statusLabel: Record<string, string> = {
   DRAFT: '草稿',
   PUBLISHED: '已发布',
@@ -71,7 +80,7 @@ const load = async () => {
   try {
     rows.value = ((await request({ url: '/admin/app-version', method: 'get' })) as ReleaseRow[]) || []
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '加载失败')
+    ElMessage.error(errText(e, '加载失败'))
   } finally {
     loading.value = false
   }
@@ -133,19 +142,25 @@ const save = async () => {
     dialogVisible.value = false
     await load()
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '保存失败')
+    ElMessage.error(errText(e, '保存失败'))
   } finally {
     saving.value = false
   }
 }
 
+const channelOptions = ['production', 'production-vn', 'test']
+
 const publish = async (row: ReleaseRow) => {
   const pushNote = row.autoPush
-    ? '发布后将立即向所有已注册设备推送更新通知。'
+    ? `发布后将立即向渠道「${row.channel}」已注册设备推送更新通知。`
     : '该版本已关闭自动推送，发布后不会主动通知用户。'
+  const iosNote =
+    row.platform === 'ios'
+      ? '（iOS 仅推送提醒，应用内无法直接安装更新包。）'
+      : ''
   try {
     await ElMessageBox.confirm(
-      `确认发布 ${row.platform} ${row.versionName || row.versionCode}（${row.channel}）？${pushNote}`,
+      `确认发布 ${row.platform} ${row.versionName || row.versionCode}（${row.channel}）？${pushNote}${iosNote}`,
       '发布确认',
       { type: 'warning' }
     )
@@ -154,18 +169,39 @@ const publish = async (row: ReleaseRow) => {
   }
   try {
     await request({ url: `/admin/app-version/${row.id}/publish`, method: 'post' })
-    ElMessage.success('已发布')
+    ElMessage.success(row.autoPush ? '已发布，正在推送更新通知…' : '已发布')
     await load()
+    if (row.autoPush) {
+      // Async broadcast may take a moment; poll briefly so operators see push_sent_count.
+      for (let i = 0; i < 4; i++) {
+        await new Promise((r) => setTimeout(r, 800))
+        await load()
+        const updated = rows.value.find((r) => r.id === row.id)
+        if (!updated) break
+        if ((updated.pushSentCount ?? 0) > 0 || updated.lastPushedTime) {
+          ElMessage.success(`自动推送完成：已触达 ${updated.pushSentCount ?? 0} 台设备`)
+          break
+        }
+        if (i === 3) {
+          ElMessage.warning(
+            '发布成功，但尚未记录到推送目标（pushSentCount=0）。请确认客户端已注册 Expo Push Token。'
+          )
+        }
+      }
+      await loadPushLogs(row)
+    }
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '发布失败')
+    ElMessage.error(errText(e, '发布失败'))
   }
 }
 
 const rePush = async (row: ReleaseRow) => {
   try {
-    await ElMessageBox.confirm('确认再次向所有设备推送该版本的更新通知？', '推送确认', {
-      type: 'warning'
-    })
+    await ElMessageBox.confirm(
+      `确认再次向渠道「${row.channel}」设备推送该版本的更新通知？`,
+      '推送确认',
+      { type: 'warning' }
+    )
   } catch {
     return
   }
@@ -177,7 +213,7 @@ const rePush = async (row: ReleaseRow) => {
     ElMessage.success(`已推送 ${count ?? 0} 台设备`)
     await load()
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '推送失败')
+    ElMessage.error(errText(e, '推送失败'))
   }
 }
 
@@ -187,7 +223,7 @@ const archive = async (row: ReleaseRow) => {
     ElMessage.success('已归档')
     await load()
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '归档失败')
+    ElMessage.error(errText(e, '归档失败'))
   }
 }
 
@@ -202,7 +238,7 @@ const remove = async (row: ReleaseRow) => {
     ElMessage.success('已删除')
     await load()
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '删除失败')
+    ElMessage.error(errText(e, '删除失败'))
   }
 }
 
@@ -214,7 +250,7 @@ const loadPushLogs = async (row: ReleaseRow) => {
         method: 'get'
       })) as PushLogRow[]) || []
   } catch (e: unknown) {
-    ElMessage.error(e instanceof Error ? e.message : '加载推送记录失败')
+    ElMessage.error(errText(e, '加载推送记录失败'))
   }
 }
 
@@ -225,7 +261,7 @@ onMounted(() => void load())
   <list-page-shell>
     <template #query>
       <p class="hint">
-        App 版本发布：发布后 <code>/front/app/update-check</code> 立即下发新版本，并按需向所有已注册设备推送
+        App 版本发布：发布后 <code>/front/app/update-check</code> 立即下发新版本，并按需向该渠道已注册设备推送
         APP_UPDATE 通知（客户端收到后会自动弹出更新框）。低于「最低支持版本」的客户端将被强制更新。
       </p>
       <el-space>
@@ -311,12 +347,22 @@ onMounted(() => void load())
       <el-form label-width="140px">
         <el-form-item label="平台">
           <el-select v-model="form.platform" style="width: 200px">
-            <el-option label="android" value="android" />
-            <el-option label="ios" value="ios" />
+            <el-option label="android（可应用内安装）" value="android" />
+            <el-option label="ios（仅推送提醒）" value="ios" />
           </el-select>
+          <span v-if="form.platform === 'ios'" class="tip">iOS 无应用内 APK 安装，推送仅引导用户去商店更新</span>
         </el-form-item>
         <el-form-item label="渠道">
-          <el-input v-model="form.channel" placeholder="production / production-vn / test" />
+          <el-select
+            v-model="form.channel"
+            filterable
+            allow-create
+            default-first-option
+            placeholder="production / production-vn / test"
+            style="width: 240px"
+          >
+            <el-option v-for="ch in channelOptions" :key="ch" :label="ch" :value="ch" />
+          </el-select>
         </el-form-item>
         <el-form-item label="versionCode">
           <el-input-number v-model="form.versionCode" :min="1" :max="999999" />

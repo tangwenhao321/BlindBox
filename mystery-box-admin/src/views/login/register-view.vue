@@ -18,6 +18,7 @@ import background from '@/assets/background.jpg'
 import { api } from '@/utils/api-instance'
 import type { UserRegisterInput } from '@/apis/__generated/model/static'
 import { assertFormValidate, assertSuccess } from '@/utils/common'
+import { isCookieAuthMode, setAdminToken, setAdminTokenCookieMode } from '@/utils/admin-auth-token'
 import { sendSMS } from '@/apis/sms/sms-api'
 
 const registerForm = reactive<UserRegisterInput>({ phone: '', password: '', code: '' })
@@ -44,8 +45,12 @@ const handleRegister = async () => {
     assertFormValidate(() =>
       api.userForFrontController.register({ body: registerForm }).then((res) => {
         assertSuccess(res).then(() => {
+          if (isCookieAuthMode()) {
+            setAdminTokenCookieMode()
+          } else {
+            setAdminToken(res.tokenValue)
+          }
           router.replace({ path: '/' })
-          localStorage.setItem('token', res.tokenValue)
         })
       })
     )

@@ -1,21 +1,26 @@
 package io.github.qifan777.server.marketplace;
 
 import cn.dev33.satoken.stp.StpUtil;
+import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.babyfish.jimmer.client.ApiIgnore;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
+@ApiIgnore
 @RestController
 @RequestMapping("front/marketplace")
 @RequiredArgsConstructor
 public class MarketplaceForFrontController {
     private final MarketplaceService marketplaceService;
+    private final MarketplaceChatService marketplaceChatService;
 
     @GetMapping("listings")
     public List<MarketplaceService.MarketplaceListingView> listings(
@@ -43,6 +48,12 @@ public class MarketplaceForFrontController {
         return marketplaceService.listBySeller(StpUtil.getLoginIdAsString(), limit);
     }
 
+    @GetMapping("credit")
+    public Map<String, Object> myCredit() {
+        String userId = StpUtil.getLoginIdAsString();
+        return Map.of("userId", userId, "score", marketplaceService.getCreditScore(userId));
+    }
+
     @PostMapping("listings")
     public String create(@RequestBody @Validated CreateListingRequest request) {
         return marketplaceService.createListing(
@@ -60,8 +71,47 @@ public class MarketplaceForFrontController {
     }
 
     @PostMapping("listings/{id}/buy")
-    public void buy(@PathVariable String id) {
-        marketplaceService.buyListing(StpUtil.getLoginIdAsString(), id);
+    public String buy(@PathVariable String id) {
+        return marketplaceService.buyListing(StpUtil.getLoginIdAsString(), id);
+    }
+
+    @PostMapping("listings/{id}/cancel-trade")
+    public void cancelTrade(@PathVariable String id) {
+        marketplaceService.cancelTradeByBuyer(StpUtil.getLoginIdAsString(), id);
+    }
+
+    @PostMapping("trades/{tradeId}/rate")
+    public void rate(@PathVariable String tradeId, @RequestBody @Validated RateRequest request) {
+        marketplaceService.rateTrade(StpUtil.getLoginIdAsString(), tradeId, request.score());
+    }
+
+    @PostMapping("listings/{id}/certificate")
+    public String submitCertificate(@PathVariable String id, @RequestBody @Validated CertificateSubmitRequest request) {
+        return marketplaceService.submitCertificate(
+                StpUtil.getLoginIdAsString(),
+                id,
+                request.videoUrl(),
+                request.productUniqueId(),
+                request.ipLicenseText()
+        );
+    }
+
+    @GetMapping("listings/{id}/certificate")
+    public MarketplaceService.CertificateView certificate(@PathVariable String id) {
+        return marketplaceService.getCertificate(id);
+    }
+
+    @GetMapping("listings/{id}/chat")
+    public List<MarketplaceChatService.ChatMessage> chat(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "50") int limit
+    ) {
+        return marketplaceChatService.listChat(id, StpUtil.getLoginIdAsString(), limit);
+    }
+
+    @PostMapping("listings/{id}/chat")
+    public void postChat(@PathVariable String id, @RequestBody ChatRequest body) {
+        marketplaceChatService.postChat(id, StpUtil.getLoginIdAsString(), body.msgType(), body.body());
     }
 
     public record CreateListingRequest(
@@ -70,5 +120,20 @@ public class MarketplaceForFrontController {
             @NotBlank String productId,
             @NotNull @DecimalMin("0.01") BigDecimal price
     ) {
+    }
+
+    public record RateRequest(
+            @NotNull @DecimalMin("1") @DecimalMax("5") BigDecimal score
+    ) {
+    }
+
+    public record CertificateSubmitRequest(
+            @NotBlank String videoUrl,
+            String productUniqueId,
+            String ipLicenseText
+    ) {
+    }
+
+    public record ChatRequest(String msgType, String body) {
     }
 }

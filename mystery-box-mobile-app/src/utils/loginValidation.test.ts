@@ -9,7 +9,7 @@ vi.mock("../i18n", () => ({
 }));
 
 import { getAppLocale } from "./i18nLocale";
-import { validatePhone } from "./loginValidation";
+import { passwordStrength, validatePassword, validatePhone } from "./loginValidation";
 
 describe("validatePhone", () => {
   beforeEach(() => {
@@ -30,9 +30,34 @@ describe("validatePhone", () => {
     expect(validatePhone("0901234567")).toBeNull();
   });
 
+  it("accepts +84 VN numbers by normalizing to 0…", () => {
+    vi.mocked(getAppLocale).mockReturnValue("vi-VN");
+    expect(validatePhone("+84901234567")).toBeNull();
+    expect(validatePhone("84901234567")).toBeNull();
+  });
+
   it("rejects invalid VN numbers", () => {
     vi.mocked(getAppLocale).mockReturnValue("vi-VN");
     expect(validatePhone("901234567")).toBe("validation.phone");
     expect(validatePhone("19012345678")).toBe("validation.phone");
+  });
+});
+
+describe("validatePassword", () => {
+  it("allows legacy 6+ on login", () => {
+    expect(validatePassword("123456", "login")).toBeNull();
+    expect(validatePassword("12345", "login")).toBe("validation.passwordMinLogin");
+  });
+
+  it("requires 8+ letter+digit on register", () => {
+    expect(validatePassword("1234567", "register")).toBe("validation.passwordMin");
+    expect(validatePassword("abcdefgh", "register")).toBe("validation.passwordComplexity");
+    expect(validatePassword("abcd1234", "register")).toBeNull();
+  });
+
+  it("scores strength", () => {
+    expect(passwordStrength("ab")).toBe("weak");
+    expect(passwordStrength("abcd1234")).toBe("fair");
+    expect(passwordStrength("abcd1234!xyz")).toBe("strong");
   });
 });

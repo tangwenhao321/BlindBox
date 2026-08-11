@@ -17,19 +17,24 @@ describe("orderPaymentService", () => {
     postMock.mockReset();
   });
 
-  it("fetchOrderPaymentMeta returns result", async () => {
+  it("fetchOrderPaymentMeta maps retentionDiscount and eligibility", async () => {
     getMock.mockResolvedValueOnce({
       data: {
         result: {
           orderId: "ord-1",
           payDeadline: "2026-01-01T00:00:00Z",
           retentionClaimed: false,
-          retentionDiscountAmount: 0,
+          retentionDiscount: 10000,
+          retentionEligible: true,
+          payAmount: 99000,
         },
       },
     });
     const meta = await fetchOrderPaymentMeta("tok", "ord-1");
     expect(meta?.orderId).toBe("ord-1");
+    expect(meta?.retentionDiscountAmount).toBe(10000);
+    expect(meta?.retentionEligible).toBe(true);
+    expect(meta?.payAmount).toBe(99000);
   });
 
   it("fetchOrderPaymentMeta returns null on error", async () => {
@@ -39,10 +44,11 @@ describe("orderPaymentService", () => {
 
   it("claimAbandonOffer posts and returns result", async () => {
     postMock.mockResolvedValueOnce({
-      data: { result: { granted: true, discountAmount: 5, message: "ok" } },
+      data: { result: { granted: true, discountAmount: 5, message: "ok", payAmount: 95 } },
     });
     const result = await claimAbandonOffer("tok", "ord-2");
     expect(result.granted).toBe(true);
     expect(result.discountAmount).toBe(5);
+    expect(result.payAmount).toBe(95);
   });
 });

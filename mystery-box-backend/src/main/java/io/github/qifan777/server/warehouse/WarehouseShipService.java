@@ -170,19 +170,67 @@ public class WarehouseShipService {
         if (!"PENDING".equals(statuses.get(0))) {
             throw new BusinessException("该申请已处理，无法取消");
         }
+        cancelPendingRequest(requestId, userId, "订单退款取消发货申请退回运费");
+    }
+
+    /**
+     * Cancel PENDING warehouse ship requests that include items for {@code orderId}
+     * (items link via {@code warehouse_ship_request_item.order_id}). Refunds shipping fee if paid.
+     */
+    @Transactional
+    public int cancelPendingForOrder(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            return 0;
+        }
+        List<String> requestIds = jdbcTemplate.query(
+                """
+                        SELECT DISTINCT r.id
+                        FROM warehouse_ship_request r
+                        INNER JOIN warehouse_ship_request_item i ON i.request_id = r.id
+                        WHERE r.status = 'PENDING' AND i.order_id = ?
+                        """,
+                (rs, rowNum) -> rs.getString("id"),
+                orderId
+        );
+        int cancelled = 0;
+        for (String requestId : requestIds) {
+            String userId = jdbcTemplate.queryForObject(
+                    "SELECT user_id FROM warehouse_ship_request WHERE id = ?",
+                    String.class,
+                    requestId
+            );
+            int updated = cancelPendingRequest(requestId, userId, "订单退款取消发货申请退回运费");
+            if (updated > 0) {
+                cancelled++;
+                if (userId != null) {
+                    userNotificationService.push(
+                            userId,
+                            "WAREHOUSE_SHIP",
+                            "发货申请已取消",
+                            "订单退款，待发货申请已自动取消，运费如有已退回",
+                            requestId
+                    );
+                }
+            }
+        }
+        return cancelled;
+    }
+
+    private int cancelPendingRequest(String requestId, String userId, String feeRefundRemark) {
         BigDecimal payAmount = jdbcTemplate.queryForObject(
                 "SELECT pay_amount FROM warehouse_ship_request WHERE id = ?",
                 BigDecimal.class,
                 requestId
         );
-        if (payAmount != null && payAmount.compareTo(BigDecimal.ZERO) > 0) {
-            userWalletService.credit(userId, payAmount, "WAREHOUSE_SHIP_REFUND", "取消发货申请退回运费", requestId);
-        }
-        jdbcTemplate.update(
+        int updated = jdbcTemplate.update(
                 "UPDATE warehouse_ship_request SET status = 'CANCELLED', edited_time = ? WHERE id = ? AND status = 'PENDING'",
                 LocalDateTime.now(),
                 requestId
         );
+        if (updated == 1 && userId != null && payAmount != null && payAmount.compareTo(BigDecimal.ZERO) > 0) {
+            userWalletService.credit(userId, payAmount, "WAREHOUSE_SHIP_REFUND", feeRefundRemark, requestId);
+        }
+        return updated;
     }
 
     @Transactional
@@ -208,15 +256,18 @@ public class WarehouseShipService {
                 BigDecimal.class,
                 requestId
         );
-        if (userId != null && payAmount != null && payAmount.compareTo(BigDecimal.ZERO) > 0) {
-            userWalletService.credit(userId, payAmount, "WAREHOUSE_SHIP_REFUND", "发货申请被驳回，运费已退回", requestId);
-        }
-        jdbcTemplate.update(
+        int updated = jdbcTemplate.update(
                 "UPDATE warehouse_ship_request SET status = 'REJECTED', reject_reason = ?, edited_time = ? WHERE id = ? AND status = 'PENDING'",
                 reason,
                 LocalDateTime.now(),
                 requestId
         );
+        if (updated == 0) {
+            throw new BusinessException("该申请已处理");
+        }
+        if (userId != null && payAmount != null && payAmount.compareTo(BigDecimal.ZERO) > 0) {
+            userWalletService.credit(userId, payAmount, "WAREHOUSE_SHIP_REFUND", "发货申请被驳回，运费已退回", requestId);
+        }
         if (userId != null) {
             userNotificationService.push(
                     userId,
@@ -374,6 +425,23 @@ public class WarehouseShipService {
             throw new BusinessException("该申请已处理");
         }
 
+        LocalDateTime now = LocalDateTime.now();
+        // Claim before deliver / listing side effects so concurrent admin fulfills cannot double-ship.
+        int claimed = jdbcTemplate.update(
+                """
+                        UPDATE warehouse_ship_request
+                        SET status = 'SHIPPING', tracking_number = ?, carrier_code = ?, edited_time = ?
+                        WHERE id = ? AND status = 'PENDING'
+                        """,
+                tracking,
+                carrier,
+                now,
+                requestId
+        );
+        if (claimed != 1) {
+            throw new BusinessException("该申请已处理");
+        }
+
         List<ShipRequestItemRow> items = jdbcTemplate.query(
                 """
                         SELECT product_name, source, order_id, order_item_id, product_id, listing_id
@@ -398,7 +466,7 @@ public class WarehouseShipService {
             if ("MARKETPLACE".equals(item.source()) && item.listingId() != null && !item.listingId().isBlank()) {
                 jdbcTemplate.update(
                         "UPDATE marketplace_listing SET buyer_ship_status = 'SHIPPED', edited_time = ? WHERE id = ?",
-                        LocalDateTime.now(),
+                        now,
                         item.listingId()
                 );
             }
@@ -414,12 +482,10 @@ public class WarehouseShipService {
         jdbcTemplate.update(
                 """
                         UPDATE warehouse_ship_request
-                        SET status = 'SHIPPED', tracking_number = ?, carrier_code = ?, edited_time = ?
-                        WHERE id = ? AND status = 'PENDING'
+                        SET status = 'SHIPPED', edited_time = ?
+                        WHERE id = ? AND status = 'SHIPPING'
                         """,
-                tracking,
-                carrier,
-                LocalDateTime.now(),
+                now,
                 requestId
         );
 

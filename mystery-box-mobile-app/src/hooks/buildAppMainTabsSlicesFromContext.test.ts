@@ -70,6 +70,7 @@ describe("buildAppMainTabsSlicesFromContext", () => {
         quote: null,
         quotingPrice: false,
         quoteError: null,
+        retryQuote: noop,
         availableCoupons: [],
         selectedCouponUserId: "",
         setSelectedCouponUserId: noop,
@@ -109,6 +110,7 @@ describe("buildAppMainTabsSlicesFromContext", () => {
         searchedOrders: [],
         onFilterByStatus: noop,
         ordersLoadError: null,
+        ordersReady: true,
       },
       account: {
         couponCount: 0,

@@ -1,6 +1,8 @@
 {
   "spectator": {
     "title": "Spectator reveal",
+    "liteBadge": "Watching · lite",
+    "liteHint": "Full ceremony plays on the opener's device — you're on a lite sync view.",
     "expired": "This watch link has expired",
     "phaseUnknown": "Waiting",
     "phaseGap": "Next draw…",

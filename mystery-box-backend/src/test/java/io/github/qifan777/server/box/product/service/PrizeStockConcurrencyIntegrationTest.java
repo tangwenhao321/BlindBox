@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Verifies optimistic stock decrement (WHERE stock_remaining &gt; 0) under concurrent load
- * using the same SQL shape as {@link PrizeStockService#consumeRelStock}.
+ * Verifies atomic stock decrement (SET stock_remaining = stock_remaining - 1 WHERE &gt; 0)
+ * under concurrent load — same SQL shape as {@link PrizeStockService#consumeRelStock}.
  */
 @Testcontainers(disabledWithoutDocker = true)
 class PrizeStockConcurrencyIntegrationTest {
@@ -108,28 +108,11 @@ class PrizeStockConcurrencyIntegrationTest {
     private static boolean tryConsumeOnce() throws Exception {
         try (Connection conn = open()) {
             conn.setAutoCommit(false);
-            int current;
-            try (PreparedStatement sel = conn.prepareStatement(
-                    "SELECT stock_remaining FROM mystery_box_product_rel WHERE id = 'rel-concurrent' FOR UPDATE")) {
-                try (ResultSet rs = sel.executeQuery()) {
-                    if (!rs.next()) {
-                        conn.rollback();
-                        return false;
-                    }
-                    current = rs.getInt(1);
-                }
-            }
-            if (current <= 0) {
-                conn.rollback();
-                return false;
-            }
-            int next = current - 1;
             try (PreparedStatement upd = conn.prepareStatement("""
                     UPDATE mystery_box_product_rel
-                    SET stock_remaining = ?
+                    SET stock_remaining = stock_remaining - 1
                     WHERE id = 'rel-concurrent' AND stock_remaining > 0
                     """)) {
-                upd.setInt(1, next);
                 int updated = upd.executeUpdate();
                 if (updated == 0) {
                     conn.rollback();

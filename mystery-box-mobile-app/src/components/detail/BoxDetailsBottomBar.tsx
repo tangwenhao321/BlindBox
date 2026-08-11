@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Pressable, Text, View } from "react-native";
 import Animated, { interpolate, useAnimatedStyle, type SharedValue } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import type { CeremonyTier } from "../../effects/ceremonyTier";
 import { getRevealRemoteConfig } from "../../effects/revealRemote";
@@ -31,6 +32,7 @@ type Props = {
   isLoggedIn: boolean;
   onRequireLogin?: () => void;
   onOpenDrawModal: () => void;
+  pityProgress?: { current: number; threshold: number; remaining: number } | null;
 };
 
 function boxLustreTier(products: Product[]): CeremonyTier | null {
@@ -50,6 +52,7 @@ function boxLustreTier(products: Product[]): CeremonyTier | null {
 export function BoxDetailsBottomBar(props: Props) {
   const { t } = useTranslation();
   const { colors: themeColors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const {
     displayPayAmount,
     drawCount,
@@ -67,6 +70,7 @@ export function BoxDetailsBottomBar(props: Props) {
     isLoggedIn,
     onRequireLogin,
     onOpenDrawModal,
+    pityProgress = null,
   } = props;
 
   const revealTheme = useMemo(
@@ -90,7 +94,8 @@ export function BoxDetailsBottomBar(props: Props) {
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.md + insets.bottom,
       backgroundColor: colors.bgCard,
       borderTopWidth: 1,
       borderColor: colors.border,
@@ -109,7 +114,7 @@ export function BoxDetailsBottomBar(props: Props) {
     },
     openBtnText: { color: colors.textOnBrand, fontWeight: "800", fontSize: typography.bodyLg },
     openBtnDisabled: { opacity: 0.45 },
-  }));
+  }), [insets.bottom]);
 
   const ctaStyle = useAnimatedStyle(() => ({
     transform: [{ scale: interpolate(ctaPulse.value, [0, 1], [0.97, 1]) }],
@@ -152,6 +157,15 @@ export function BoxDetailsBottomBar(props: Props) {
             {t("boxDetails.dailyLimit", {
               remaining: purchaseLimit.remainingToday,
               max: purchaseLimit.maxPerDay,
+            })}
+          </Text>
+        ) : null}
+        {pityProgress && pityProgress.threshold > 0 ? (
+          <Text style={styles.bottomSave}>
+            {t("boxDetails.pityNearOpen", {
+              current: pityProgress.current,
+              threshold: pityProgress.threshold,
+              remaining: pityProgress.remaining,
             })}
           </Text>
         ) : null}

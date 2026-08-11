@@ -39,23 +39,11 @@ public class CouponReceiveActivityForFrontController {
 
     @PostMapping("save")
     public String save(@RequestBody @Validated CouponReceiveActivityInput couponReceiveActivityInput) {
-        if (StringUtils.hasText(couponReceiveActivityInput.getId())) {
-            CouponReceiveActivity couponReceiveActivity = couponReceiveActivityRepository.findById(couponReceiveActivityInput.getId(), CouponReceiveActivityRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
-            if (!couponReceiveActivity.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能修改自己的数据");
-            }
-        }
-        return couponReceiveActivityRepository.save(couponReceiveActivityInput.toEntity()).id();
+        throw new BusinessException("COUPON_RECEIVE_DISABLED: 领取活动暂未开放");
     }
 
     @DeleteMapping
     public Boolean delete(@RequestBody List<String> ids) {
-        couponReceiveActivityRepository.findByIds(ids, CouponReceiveActivityRepository.COMPLEX_FETCHER_FOR_FRONT).forEach(couponReceiveActivity -> {
-            if (!couponReceiveActivity.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能删除自己的数据");
-            }
-        });
-        couponReceiveActivityRepository.deleteAllById(ids);
-        return true;
+        throw new BusinessException("COUPON_RECEIVE_DISABLED: 领取活动暂未开放");
     }
 }

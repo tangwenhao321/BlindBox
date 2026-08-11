@@ -3,6 +3,9 @@ package io.github.qifan777.server.infrastructure.config;
 import cn.dev33.satoken.exception.DisableServiceException;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.exception.NotRoleException;
+import io.github.qifan777.server.infrastructure.error.BusinessErrorCodes;
+import io.github.qifan777.server.infrastructure.error.ErrorR;
+import io.qifan.infrastructure.common.constants.BaseEnum;
 import io.qifan.infrastructure.common.constants.ResultCode;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import io.qifan.infrastructure.common.exception.SystemException;
@@ -27,9 +30,10 @@ public class GlobalExceptionAdvice {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<R<String>> handleBusinessException(BusinessException e) {
-        log.warn("业务异常, traceId={}, message={}", resolveTraceId(), e.getMessage());
+        log.warn("业务异常, traceId={}, message={}, errorCode={}",
+                resolveTraceId(), e.getMessage(), BusinessErrorCodes.resolve(e));
         return withTraceHeader(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(R.fail(e.getResultCode(), e.getMessage())));
+                .body(failBody(e.getResultCode(), e.getMessage(), BusinessErrorCodes.resolve(e))));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -40,58 +44,69 @@ public class GlobalExceptionAdvice {
         }
         log.warn("参数异常, traceId={}, message={}", resolveTraceId(), message);
         return withTraceHeader(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(R.fail(ResultCode.ParamSetIllegal, message)));
+                .body(failBody(ResultCode.ParamSetIllegal, message, BusinessErrorCodes.tokenFromMessage(message))));
     }
 
     @ExceptionHandler(SystemException.class)
     public ResponseEntity<R<String>> handleSystemException(SystemException e) {
         log.error("系统异常, traceId={}", resolveTraceId(), e);
         return withTraceHeader(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(R.fail(ResultCode.SystemError)));
+                .body(failBody(ResultCode.SystemError, ResultCode.SystemError.getName(), null)));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<R<String>> handleException(Exception e) {
         log.error("系统异常, traceId={}", resolveTraceId(), e);
         return withTraceHeader(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(R.fail(ResultCode.SystemError)));
+                .body(failBody(ResultCode.SystemError, ResultCode.SystemError.getName(), null)));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<R<String>> handleValidateException(ConstraintViolationException e) {
         log.warn("校验异常, traceId={}", resolveTraceId(), e);
         ArrayList<ConstraintViolation<?>> constraintViolations = new ArrayList<>(e.getConstraintViolations());
+        String message = constraintViolations.get(0).getMessage();
         return withTraceHeader(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(R.fail(ResultCode.ValidateError, constraintViolations.get(0).getMessage())));
+                .body(failBody(ResultCode.ValidateError, message, null)));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<R<String>> handleValidateExceptionForSpring(MethodArgumentNotValidException e) {
         log.warn("校验异常, traceId={}", resolveTraceId(), e);
+        String message = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
         return withTraceHeader(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(R.fail(ResultCode.ValidateError,
-                        e.getBindingResult().getAllErrors().get(0).getDefaultMessage())));
+                .body(failBody(ResultCode.ValidateError, message, null)));
     }
 
     @ExceptionHandler(NotLoginException.class)
     public ResponseEntity<R<String>> handleNotLogin(NotLoginException e) {
         log.warn("未登录, traceId={}", resolveTraceId());
         return withTraceHeader(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(R.fail(AuthErrorCode.USER_PERMISSION_UNAUTHENTICATED)));
+                .body(failBody(
+                        AuthErrorCode.USER_PERMISSION_UNAUTHENTICATED,
+                        AuthErrorCode.USER_PERMISSION_UNAUTHENTICATED.getName(),
+                        AuthErrorCode.USER_PERMISSION_UNAUTHENTICATED.name())));
     }
 
     @ExceptionHandler(NotRoleException.class)
     public ResponseEntity<R<String>> handleNotRole(NotRoleException e) {
         log.warn("角色校验异常, traceId={}, message={}", resolveTraceId(), e.getMessage());
         return withTraceHeader(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(R.fail(ResultCode.NotGrant, e.getMessage())));
+                .body(failBody(ResultCode.NotGrant, e.getMessage(), null)));
     }
 
     @ExceptionHandler(DisableServiceException.class)
     public ResponseEntity<R<String>> handleDisabledException(DisableServiceException e) {
         log.warn("账号封禁, traceId={}", resolveTraceId());
         return withTraceHeader(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(R.fail(ResultCode.StatusHasInvalid, "账号已被封禁")));
+                .body(failBody(ResultCode.StatusHasInvalid, "账号已被封禁", null)));
+    }
+
+    private static R<String> failBody(BaseEnum resultCode, String msg, String errorCode) {
+        if (errorCode == null || errorCode.isBlank()) {
+            return R.fail(resultCode, msg);
+        }
+        return ErrorR.fail(resultCode, msg, errorCode);
     }
 
     private ResponseEntity<R<String>> withTraceHeader(ResponseEntity<R<String>> entity) {

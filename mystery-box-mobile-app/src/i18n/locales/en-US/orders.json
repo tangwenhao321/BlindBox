@@ -7,6 +7,7 @@
     "tabToReceive": "To receive",
     "tabFinished": "Completed",
     "searchPlaceholder": "Search order ID or box name",
+    "prizeLine": "Prize won",
     "loadFailed": "Failed to load orders: {{message}}",
     "redeemItemSuccess": "Redeemed {{amount}} to balance",
     "decomposeSuccess": "Decomposed into fragments",
