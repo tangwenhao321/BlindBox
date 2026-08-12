@@ -45,6 +45,9 @@ security:
       fail-closed: true
       require-attestation: ${IOS_REQUIRE_CLIENT_ATTESTATION:false}
       app-store-channel: appstore
+    app-attest:
+      enabled: ${IOS_APP_ATTEST_ENABLED:false}
+      require-header: ${IOS_APP_ATTEST_REQUIRE_HEADER:false}
   client-attestation-secret: ${CLIENT_ATTESTATION_SECRET:}
   sse:
     require-auth: true

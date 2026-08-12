@@ -214,6 +214,43 @@ public class MysteryBoxWinRuleService {
         return mysteryBoxWinRuleOpLogRepository.findLatest(limit <= 0 ? 50 : limit);
     }
 
+    /**
+     * Compliance audit export: op-log + hit-log rows as CSV (UTF-8).
+     */
+    public String exportAuditCsv(int limit) {
+        int safeLimit = limit <= 0 ? 200 : Math.min(limit, 2000);
+        StringBuilder sb = new StringBuilder();
+        sb.append("section,createdTime,ruleId,actionOrOrder,operatorOrUser,detailOrProducts,extra\n");
+        for (MysteryBoxWinRuleOpLog op : queryLatestOpLogs(safeLimit)) {
+            sb.append("op_log,")
+                    .append(csv(op.createdTime() == null ? "" : op.createdTime().toString())).append(',')
+                    .append(csv(op.ruleId())).append(',')
+                    .append(csv(op.action())).append(',')
+                    .append(csv(op.operatorId())).append(',')
+                    .append(csv(op.detail())).append(',')
+                    .append('\n');
+        }
+        for (MysteryBoxWinHitLog hit : queryLatestLogs(safeLimit)) {
+            sb.append("hit_log,")
+                    .append(csv(hit.createdTime() == null ? "" : hit.createdTime().toString())).append(',')
+                    .append(csv(hit.ruleId())).append(',')
+                    .append(csv(hit.mysteryBoxOrderId())).append(',')
+                    .append(csv(hit.userId())).append(',')
+                    .append(csv(hit.originalProductId() + "->" + hit.designatedProductId())).append(',')
+                    .append(csv(hit.remark()))
+                    .append('\n');
+        }
+        return sb.toString();
+    }
+
+    private static String csv(String raw) {
+        String value = raw == null ? "" : raw;
+        if (value.contains(",") || value.contains("\"") || value.contains("\n") || value.contains("\r")) {
+            return '"' + value.replace("\"", "\"\"") + '"';
+        }
+        return value;
+    }
+
     public Map<String, Long> queryOpCounters() {
         return new LinkedHashMap<>(opCounters);
     }

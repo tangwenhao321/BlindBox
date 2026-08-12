@@ -1,6 +1,7 @@
 package io.github.qifan777.server.box.draw.service;
 
 import cn.hutool.core.util.IdUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -12,13 +13,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.HexFormat;
 
 @Service
+@RequiredArgsConstructor
 public class DrawFairnessService {
     private static final DateTimeFormatter TS = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final int MAX_CLIENT_NONCE_LEN = 64;
 
+    private final FairnessDailyBeaconService fairnessDailyBeaconService;
+
     /**
      * Issue a server seed and public commit.
-     * When {@code clientNonce} is present, commit = sha256(seed|nonce) so the client can bind entropy.
+     * Commit = sha256(seed[|nonce][|beacon:daily]) so clients can bind nonce + published daily beacon.
      */
     public FairnessToken issue(String userId, String mysteryBoxId, String orderId) {
         return issue(userId, mysteryBoxId, orderId, null);
@@ -27,27 +31,42 @@ public class DrawFairnessService {
     public FairnessToken issue(String userId, String mysteryBoxId, String orderId, String clientNonce) {
         String seed = IdUtil.fastSimpleUUID();
         String nonce = normalizeNonce(clientNonce);
-        return new FairnessToken(seed, commitOf(seed, nonce), nonce);
+        FairnessDailyBeaconService.DailyBeacon daily = fairnessDailyBeaconService.today();
+        return new FairnessToken(seed, commitOf(seed, nonce, daily.beacon()), nonce, daily.dayUtc(), daily.beacon());
     }
 
     public String commitOf(String seed) {
-        return commitOf(seed, null);
+        return commitOf(seed, null, fairnessDailyBeaconService.todayBeaconValue());
     }
 
     public String commitOf(String seed, String clientNonce) {
+        return commitOf(seed, clientNonce, fairnessDailyBeaconService.todayBeaconValue());
+    }
+
+    public String commitOf(String seed, String clientNonce, String beacon) {
         if (seed == null || seed.isBlank()) {
             return null;
         }
         String nonce = normalizeNonce(clientNonce);
-        String material = nonce == null ? seed : seed + "|" + nonce;
-        return sha256Hex(material);
+        StringBuilder material = new StringBuilder(seed);
+        if (nonce != null) {
+            material.append('|').append(nonce);
+        }
+        if (StringUtils.hasText(beacon)) {
+            material.append("|beacon:").append(beacon.trim());
+        }
+        return sha256Hex(material.toString());
     }
 
     public boolean verifyCommit(String seed, String commit, String clientNonce) {
+        return verifyCommit(seed, commit, clientNonce, fairnessDailyBeaconService.todayBeaconValue());
+    }
+
+    public boolean verifyCommit(String seed, String commit, String clientNonce, String beacon) {
         if (seed == null || commit == null) {
             return false;
         }
-        return commit.equalsIgnoreCase(commitOf(seed, clientNonce));
+        return commit.equalsIgnoreCase(commitOf(seed, clientNonce, beacon));
     }
 
     public String hash(String seed, String userId, String mysteryBoxId, String orderId, String productId, LocalDateTime createdTime) {
@@ -94,7 +113,6 @@ public class DrawFairnessService {
         }
     }
 
-    /** @param commit sha256(seed) or sha256(seed|clientNonce) */
-    public record FairnessToken(String seed, String commit, String clientNonce) {
+    public record FairnessToken(String seed, String commit, String clientNonce, String beaconDayUtc, String beacon) {
     }
 }

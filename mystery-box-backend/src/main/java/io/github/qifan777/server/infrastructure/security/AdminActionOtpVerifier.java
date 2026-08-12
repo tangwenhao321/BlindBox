@@ -15,21 +15,27 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Shared admin high-risk OTP gate. Failure lockout is Redis-backed for multi-instance safety.
- * Client IP follows {@link ClientIpResolver} ({@code security.rate-limit.trusted-proxy}).
+ * After a successful OTP/TOTP check, a short-lived grant is issued so follow-up high-risk actions
+ * in the same window can send {@code x-admin-action-otp: GRANT} without re-entering the secret.
  */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class AdminActionOtpVerifier {
+    public static final String GRANT_TOKEN = "GRANT";
+
     private static final int OTP_MAX_FAILURE = 5;
     private static final long OTP_LOCK_MS = 10 * 60 * 1000L;
+    private static final long GRANT_TTL_MS = 5 * 60 * 1000L;
     private static final String FAIL_KEY = "admin:otp:fail:";
     private static final String LOCK_KEY = "admin:otp:lock:";
+    private static final String GRANT_KEY = "admin:otp:grant:";
 
     private final ClientIpResolver clientIpResolver;
     private final StringRedisTemplate redisTemplate;
@@ -43,26 +49,29 @@ public class AdminActionOtpVerifier {
 
     public void assertValid(String otp) {
         String traceId = resolveTraceId();
-        if (adminActionOtp == null || adminActionOtp.isBlank()) {
-            log.error("security_audit otp_config_missing traceId={} uri={}", traceId, getRequestUri());
-            throw new BusinessException(ResultCode.ParamSetIllegal, "服务端未配置 admin-action-otp");
-        }
-        if (isWeakOtp(adminActionOtp)) {
-            log.error("security_audit otp_config_weak traceId={} uri={}", traceId, getRequestUri());
-            throw new BusinessException(ResultCode.ParamSetIllegal, "服务端 admin-action-otp 配置过弱，请使用高强度口令");
-        }
+        ensureOtpConfigured(traceId);
         String actorId = StpUtil.isLogin() ? StpUtil.getLoginIdAsString() : "anonymous";
         String clientIp = resolveClientIp();
         String requestUri = getRequestUri();
         assertNotLocked(actorId, clientIp, traceId, requestUri);
 
-        if (otp == null) {
+        if (hasGrant(actorId) && isGrantPresentation(otp)) {
+            log.info("security_audit otp_grant_used traceId={} actorId={} ip={} uri={}",
+                    traceId, actorId, clientIp, requestUri);
+            return;
+        }
+
+        if (otp == null || otp.isBlank()) {
             recordOtpFailure(actorId);
             recordOtpFailure("ip:" + clientIp);
             log.warn("security_audit otp_failed_missing_header traceId={} actorId={} ip={} uri={}",
                     traceId, actorId, clientIp, requestUri);
             throw new BusinessException(ResultCode.ParamSetIllegal, "高危操作口令校验失败");
         }
+        if (isGrantPresentation(otp)) {
+            throw new BusinessException(ResultCode.ParamSetIllegal, "高危操作授权已过期，请重新输入口令");
+        }
+
         byte[] configured = adminActionOtp.trim().getBytes(StandardCharsets.UTF_8);
         byte[] provided = otp.trim().getBytes(StandardCharsets.UTF_8);
         boolean staticOk = MessageDigest.isEqual(configured, provided);
@@ -76,8 +85,55 @@ public class AdminActionOtpVerifier {
         }
         clearFailures(actorId);
         clearFailures("ip:" + clientIp);
+        issueGrant(actorId);
         log.info("security_audit otp_passed traceId={} actorId={} ip={} uri={}",
                 traceId, actorId, clientIp, requestUri);
+    }
+
+    /** Validate OTP/TOTP and issue a 5-minute grant for subsequent high-risk APIs. */
+    public Map<String, Object> issueActionGrant(String otp) {
+        assertValid(otp);
+        String actorId = StpUtil.getLoginIdAsString();
+        long expiresAt = System.currentTimeMillis() + GRANT_TTL_MS;
+        return Map.of(
+                "ok", true,
+                "grantToken", GRANT_TOKEN,
+                "expiresInSec", GRANT_TTL_MS / 1000,
+                "expiresAtMs", expiresAt,
+                "actorId", actorId
+        );
+    }
+
+    private void ensureOtpConfigured(String traceId) {
+        if (adminActionOtp == null || adminActionOtp.isBlank()) {
+            log.error("security_audit otp_config_missing traceId={} uri={}", traceId, getRequestUri());
+            throw new BusinessException(ResultCode.ParamSetIllegal, "服务端未配置 admin-action-otp");
+        }
+        if (isWeakOtp(adminActionOtp)) {
+            log.error("security_audit otp_config_weak traceId={} uri={}", traceId, getRequestUri());
+            throw new BusinessException(ResultCode.ParamSetIllegal, "服务端 admin-action-otp 配置过弱，请使用高强度口令");
+        }
+    }
+
+    private static boolean isGrantPresentation(String otp) {
+        return otp != null && GRANT_TOKEN.equalsIgnoreCase(otp.trim());
+    }
+
+    private boolean hasGrant(String actorId) {
+        try {
+            return Boolean.TRUE.equals(redisTemplate.hasKey(GRANT_KEY + actorId));
+        } catch (Exception ex) {
+            log.warn("admin otp grant check failed actorId={}", actorId, ex);
+            return false;
+        }
+    }
+
+    private void issueGrant(String actorId) {
+        try {
+            redisTemplate.opsForValue().set(GRANT_KEY + actorId, "1", GRANT_TTL_MS, TimeUnit.MILLISECONDS);
+        } catch (Exception ex) {
+            log.warn("admin otp grant issue failed actorId={}", actorId, ex);
+        }
     }
 
     private void assertNotLocked(String actorId, String clientIp, String traceId, String requestUri) {

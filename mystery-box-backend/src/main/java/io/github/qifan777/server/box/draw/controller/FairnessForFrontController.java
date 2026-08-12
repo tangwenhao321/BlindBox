@@ -9,6 +9,7 @@ import io.github.qifan777.server.box.order.service.OrderDrawMetaService;
 import io.github.qifan777.server.box.draw.entity.MysteryBoxDrawLog;
 import io.github.qifan777.server.box.draw.repository.MysteryBoxDrawLogRepository;
 import io.github.qifan777.server.box.draw.service.DrawFairnessService;
+import io.github.qifan777.server.box.draw.service.FairnessDailyBeaconService;
 import io.github.qifan777.server.box.draw.service.SeriesDrawStatisticsService;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,15 @@ public class FairnessForFrontController {
     private final MysteryBoxOrderRepository mysteryBoxOrderRepository;
     private final OrderDrawMetaService orderDrawMetaService;
     private final DrawFairnessService drawFairnessService;
+    private final FairnessDailyBeaconService fairnessDailyBeaconService;
     private final SeriesDrawStatisticsService seriesDrawStatisticsService;
     private final OrderIdLookupService orderIdLookupService;
+
+    @SaIgnore
+    @GetMapping("daily-beacon")
+    public FairnessDailyBeaconService.DailyBeacon dailyBeacon() {
+        return fairnessDailyBeaconService.today();
+    }
 
     @SaIgnore
     @GetMapping("series/{mysteryBoxId}/draw-statistics")
@@ -80,7 +88,8 @@ public class FairnessForFrontController {
         }
         boolean revealed = !mysteryBoxDrawLogRepository.findByOrderId(resolved).isEmpty();
         boolean clientNonceBound = commit != null && seedBoundCommit(resolved, commit);
-        return new FairnessCommitView(resolved, commit, revealed, clientNonceBound);
+        FairnessDailyBeaconService.DailyBeacon daily = fairnessDailyBeaconService.today();
+        return new FairnessCommitView(resolved, commit, revealed, clientNonceBound, daily.dayUtc(), daily.beacon());
     }
 
     private boolean seedBoundCommit(String orderId, String commit) {
@@ -88,8 +97,8 @@ public class FairnessForFrontController {
         if (seed == null) {
             return false;
         }
-        // If commit != sha256(seed), a client nonce was mixed in.
-        String seedOnly = drawFairnessService.commitOf(seed);
+        // If commit != sha256(seed|beacon), a client nonce was mixed in.
+        String seedOnly = drawFairnessService.commitOf(seed, null);
         return seedOnly != null && !seedOnly.equalsIgnoreCase(commit);
     }
 
@@ -139,7 +148,9 @@ public class FairnessForFrontController {
             String orderId,
             String fairnessCommit,
             boolean revealed,
-            boolean clientNonceBound
+            boolean clientNonceBound,
+            String beaconDayUtc,
+            String dailyBeacon
     ) {
     }
 }

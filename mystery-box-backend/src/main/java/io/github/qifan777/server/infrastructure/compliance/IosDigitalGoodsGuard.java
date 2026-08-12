@@ -22,7 +22,7 @@ import java.util.HexFormat;
  *   <li>missing platform when {@code fail-closed=true}</li>
  *   <li>{@code X-App-Channel} matching App Store channel (blocks platform spoof)</li>
  * </ul>
- * Optional HMAC attestation raises the bar until full App Attest is wired.
+ * Optional HMAC attestation and App Attest header raise the bar until full Apple verify is wired.
  */
 @Component
 public class IosDigitalGoodsGuard {
@@ -30,6 +30,8 @@ public class IosDigitalGoodsGuard {
     public static final String HEADER = "X-Client-Platform";
     public static final String CHANNEL_HEADER = "X-App-Channel";
     public static final String ATTESTATION_HEADER = "X-Client-Attestation";
+    /** Interim / real App Attest assertion (base64). Full Apple verify is a follow-up. */
+    public static final String APP_ATTEST_HEADER = "X-Apple-App-Attest";
 
     @Value("${security.ios.digital-goods.fail-closed:false}")
     private boolean failClosed;
@@ -43,6 +45,17 @@ public class IosDigitalGoodsGuard {
     @Value("${security.client-attestation-secret:}")
     private String attestationSecret;
 
+    /** When true, App Store-channel clients must present {@link #APP_ATTEST_HEADER}. */
+    @Value("${security.ios.app-attest.enabled:false}")
+    private boolean appAttestEnabled;
+
+    /**
+     * When true with {@code enabled}, blank/missing App Attest header fails closed.
+     * When false, header is accepted if present but not required (scaffold / canary).
+     */
+    @Value("${security.ios.app-attest.require-header:false}")
+    private boolean appAttestRequireHeader;
+
     public void rejectIfIosAppStoreClient() {
         HttpServletRequest request = currentRequest();
         String platform = resolveHeader(request, HEADER);
@@ -54,6 +67,7 @@ public class IosDigitalGoodsGuard {
         if (!treatAsAppStore) {
             return;
         }
+        assertAppAttestIfRequired(request);
         assertAttestationIfRequired(request);
         throw new BusinessException("IOS_DIGITAL_GOODS_BLOCKED");
     }
@@ -62,6 +76,33 @@ public class IosDigitalGoodsGuard {
         return StringUtils.hasText(appStoreChannel)
                 && StringUtils.hasText(channel)
                 && appStoreChannel.trim().equalsIgnoreCase(channel.trim());
+    }
+
+    private void assertAppAttestIfRequired(HttpServletRequest request) {
+        if (!appAttestEnabled) {
+            return;
+        }
+        String provided = resolveHeader(request, APP_ATTEST_HEADER);
+        if (!StringUtils.hasText(provided)) {
+            if (appAttestRequireHeader) {
+                throw new BusinessException("IOS_APP_ATTEST_REQUIRED");
+            }
+            return;
+        }
+        // Interim scaffold: non-blank header accepted. Optional HMAC shape when secret is set
+        // (prefix app-attest|) until DeviceCheck/App Attest server verify is integrated.
+        if (StringUtils.hasText(attestationSecret) && appAttestRequireHeader) {
+            long bucket = System.currentTimeMillis() / 300_000L;
+            String expected = hmacSha256Hex(attestationSecret.trim(), "app-attest|" + bucket);
+            String expectedPrev = hmacSha256Hex(attestationSecret.trim(), "app-attest|" + (bucket - 1));
+            String normalized = provided.trim().toLowerCase();
+            boolean hmacShape = constantTimeEquals(expected, normalized)
+                    || constantTimeEquals(expectedPrev, normalized);
+            // Accept either HMAC interim token or opaque Apple assertion (length gate).
+            if (!hmacShape && provided.trim().length() < 32) {
+                throw new BusinessException("IOS_APP_ATTEST_INVALID");
+            }
+        }
     }
 
     private void assertAttestationIfRequired(HttpServletRequest request) {

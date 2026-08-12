@@ -58,6 +58,12 @@ public class MysteryBoxWinRuleForAdminController {
         return mysteryBoxWinRuleService.queryLatestOpLogs(limit);
     }
 
+    /** UTF-8 CSV of recent op-log + hit-log for compliance disclosure / audit. */
+    @GetMapping("export-audit.csv")
+    public String exportAuditCsv(@RequestParam(required = false, defaultValue = "200") int limit) {
+        return mysteryBoxWinRuleService.exportAuditCsv(limit);
+    }
+
     @GetMapping("metrics")
     public java.util.Map<String, Long> metrics() {
         return mysteryBoxWinRuleService.queryOpCounters();

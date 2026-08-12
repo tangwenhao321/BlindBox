@@ -3,6 +3,10 @@ import { onMounted, reactive, ref } from 'vue'
 import { request } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from '@/utils/api-instance'
+import {
+  ADMIN_ACTION_GRANT_TOKEN,
+  promptAndArmAdminActionOtp
+} from '@/utils/admin-action-otp'
 
 type WinRule = {
   id: string
@@ -50,10 +54,36 @@ const adminOtp = ref('')
 
 const securedHeaders = () => {
   if (!adminOtp.value.trim()) {
-    throw new Error('请先填写高危操作口令')
+    throw new Error('请先填写高危操作口令，或点击「解锁 5 分钟」')
   }
   return {
     'x-admin-action-otp': adminOtp.value.trim()
+  }
+}
+
+const unlockHighRisk = async () => {
+  if (!(await promptAndArmAdminActionOtp('解锁指定中奖高危操作'))) return
+  adminOtp.value = ADMIN_ACTION_GRANT_TOKEN
+  ElMessage.success('已解锁约 5 分钟（后续请求可使用 GRANT）')
+}
+
+const exportAuditCsv = async () => {
+  try {
+    const csv = await request({
+      url: '/admin/mystery-box-win-rule/export-audit.csv?limit=500',
+      method: 'get'
+    })
+    const text = typeof csv === 'string' ? csv : String(csv ?? '')
+    const blob = new Blob(['\uFEFF' + text], { type: 'text/csv;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `win-rule-audit-${Date.now()}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+    ElMessage.success('审计 CSV 已下载')
+  } catch {
+    ElMessage.error('导出失败')
   }
 }
 
@@ -367,22 +397,24 @@ onMounted(async () => {
       <el-form-item label="管理口令">
         <el-input
           v-model="adminOtp"
-          placeholder="高危操作口令"
+          placeholder="高危操作口令 / GRANT"
           show-password
           clearable
           style="width: 180px"
         />
       </el-form-item>
       <el-form-item>
+        <el-button type="warning" @click="unlockHighRisk">解锁 5 分钟</el-button>
         <el-button type="primary" :loading="submitting" @click="createRule">新增规则</el-button>
         <el-button @click="loadRules">刷新</el-button>
         <el-button @click="loadHitLogs">刷新命中记录</el-button>
         <el-button @click="loadOpLogs">刷新操作日志</el-button>
         <el-button @click="loadMetrics">刷新指标</el-button>
+        <el-button @click="exportAuditCsv">导出审计 CSV</el-button>
       </el-form-item>
     </el-form>
     <el-alert
-      title="提示：规则命中后会替换中奖结果中的第一个商品，请谨慎配置。"
+      title="合规：生产默认 app.fairness.allow-win-rule-override=false，开启前需法务批准；备注≥8字；操作/命中需可导出审计。命中后会替换中奖结果中的第一个商品。"
       type="warning"
       show-icon
       :closable="false"

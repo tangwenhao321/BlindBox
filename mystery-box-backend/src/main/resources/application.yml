@@ -72,6 +72,10 @@ security:
       fail-closed: false
       require-attestation: false
       app-store-channel: appstore
+    app-attest:
+      # Scaffold: require X-Apple-App-Attest for App Store digital-goods path when enabled.
+      enabled: ${IOS_APP_ATTEST_ENABLED:false}
+      require-header: ${IOS_APP_ATTEST_REQUIRE_HEADER:false}
   client-attestation-secret: ${CLIENT_ATTESTATION_SECRET:}
   admin-action-totp-secret: ${ADMIN_ACTION_TOTP_SECRET:}
   idempotency:

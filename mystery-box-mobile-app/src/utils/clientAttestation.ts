@@ -18,8 +18,15 @@ export function resolveAppChannel(): string {
 }
 
 export function clientPlatformHeaders(): Record<string, string> {
-  return {
+  const headers: Record<string, string> = {
     "X-Client-Platform": Platform.OS,
     "X-App-Channel": resolveAppChannel(),
   };
+  // Interim App Attest token until native DeviceCheck/App Attest is wired.
+  // Production: leave unset unless backend security.ios.app-attest is enabled.
+  const appAttest = (process.env.EXPO_PUBLIC_APPLE_APP_ATTEST || "").trim();
+  if (appAttest && Platform.OS === "ios") {
+    headers["X-Apple-App-Attest"] = appAttest;
+  }
+  return headers;
 }

@@ -108,10 +108,13 @@ public class MinorProtectionService {
             return;
         }
         if (!policy.verified() && verificationRequired) {
-            throw new BusinessException("根据未成年人保护要求，请先完成实名认证后再下单");
+            String hint = "ekyc_vendor".equalsIgnoreCase(String.valueOf(identityProvider))
+                    ? "请先完成实名认证（eKYC）后再下单"
+                    : "请先完成实名认证后再下单（当前为本地身份校验；生产请接入 ekyc_vendor）";
+            throw new BusinessException("IDENTITY_VERIFICATION_REQUIRED: " + hint);
         }
         if (!policy.purchaseAllowed()) {
-            throw new BusinessException("根据实名信息，未满 8 周岁用户无法购买盲盒");
+            throw new BusinessException("MINOR_PURCHASE_FORBIDDEN: 根据实名信息，未满 8 周岁用户无法购买盲盒");
         }
     }
 

@@ -74,6 +74,9 @@ app:
   support:
     hotline: ${APP_SUPPORT_HOTLINE:400-000-0000}
     enterprise-wechat-id: ${APP_ENTERPRISE_WECHAT_ID:}
+  fairness:
+    # Prod default: win-rule overwrite OFF. Set env only with legal/compliance approval.
+    allow-win-rule-override: ${APP_FAIRNESS_ALLOW_WIN_RULE_OVERRIDE:false}
 
 payment:
   mock-enabled: false
@@ -89,6 +92,9 @@ security:
       fail-closed: true
       require-attestation: ${IOS_REQUIRE_CLIENT_ATTESTATION:false}
       app-store-channel: appstore
+    app-attest:
+      enabled: ${IOS_APP_ATTEST_ENABLED:false}
+      require-header: ${IOS_APP_ATTEST_REQUIRE_HEADER:false}
   client-attestation-secret: ${CLIENT_ATTESTATION_SECRET:}
   sse:
     require-auth: true
