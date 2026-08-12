@@ -95,8 +95,12 @@ export async function fetchAgeCompliance(token: string): Promise<boolean> {
   return Boolean((data as { confirmed?: boolean }).confirmed);
 }
 
-export async function confirmAgeCompliance(token: string): Promise<void> {
-  await api.post("/front/user/compliance/confirm-age", {}, { headers: buildAuthHeaders(token) });
+export async function confirmAgeCompliance(token: string, birthYear?: number): Promise<void> {
+  await api.post(
+    "/front/user/compliance/confirm-age",
+    birthYear != null ? { birthYear } : {},
+    { headers: buildAuthHeaders(token) },
+  );
 }
 
 export type IdentityStatus = {
@@ -110,63 +114,56 @@ export type IdentityStatus = {
 };
 
 export async function fetchIdentityStatus(token: string): Promise<IdentityStatus | null> {
-  try {
-    const response = await api.get<ApiResult<IdentityStatus> | IdentityStatus>(
-      "/front/user/compliance/identity",
-      { headers: buildAuthHeaders(token) },
-    );
-    const data = response.data;
-    const raw =
-      data && typeof data === "object" && "result" in data && data.result
-        ? (data.result as IdentityStatus)
-        : (data as IdentityStatus);
-    if (!raw || typeof raw !== "object") return null;
-    return {
-      verified: Boolean(raw.verified),
-      ageTier: String(raw.ageTier ?? "ADULT"),
-      minor: Boolean(raw.minor),
-      purchaseAllowed: raw.purchaseAllowed !== false,
-      audioVolumeScale:
-        typeof raw.audioVolumeScale === "number" && Number.isFinite(raw.audioVolumeScale)
-          ? raw.audioVolumeScale
-          : 1,
-      maskedIdNumber: typeof raw.maskedIdNumber === "string" ? raw.maskedIdNumber : undefined,
-      hardDailyCapMinor: typeof raw.hardDailyCapMinor === "string" ? raw.hardDailyCapMinor : undefined,
-    };
-  } catch {
-    return null;
-  }
+  if (!token) return null;
+  const response = await api.get<ApiResult<IdentityStatus> | IdentityStatus>(
+    "/front/user/compliance/identity",
+    { headers: buildAuthHeaders(token) },
+  );
+  const data = response.data;
+  const raw =
+    data && typeof data === "object" && "result" in data && data.result
+      ? (data.result as IdentityStatus)
+      : (data as IdentityStatus);
+  if (!raw || typeof raw !== "object") return null;
+  return {
+    verified: Boolean(raw.verified),
+    ageTier: String(raw.ageTier ?? "ADULT"),
+    minor: Boolean(raw.minor),
+    purchaseAllowed: raw.purchaseAllowed !== false,
+    audioVolumeScale:
+      typeof raw.audioVolumeScale === "number" && Number.isFinite(raw.audioVolumeScale)
+        ? raw.audioVolumeScale
+        : 1,
+    maskedIdNumber: typeof raw.maskedIdNumber === "string" ? raw.maskedIdNumber : undefined,
+    hardDailyCapMinor: typeof raw.hardDailyCapMinor === "string" ? raw.hardDailyCapMinor : undefined,
+  };
 }
 
 export async function verifyIdentity(
   token: string,
   payload: { documentNumber: string; fullName?: string },
-): Promise<IdentityStatus | null> {
-  try {
-    const response = await api.post<ApiResult<Record<string, unknown>> | Record<string, unknown>>(
-      "/front/user/compliance/identity/verify",
-      {
-        documentNumber: payload.documentNumber,
-        fullName: payload.fullName,
-        idNumber: payload.documentNumber,
-        realName: payload.fullName,
-      },
-      { headers: buildAuthHeaders(token) },
-    );
-    const data = response.data;
-    const raw =
-      data && typeof data === "object" && "result" in data && data.result
-        ? (data.result as Record<string, unknown>)
-        : (data as Record<string, unknown>);
-    return {
-      verified: true,
-      ageTier: String(raw.ageTier ?? "ADULT"),
-      minor: String(raw.ageTier ?? "").toUpperCase() !== "ADULT",
-      purchaseAllowed: String(raw.ageTier ?? "").toUpperCase() !== "CHILD",
-      audioVolumeScale: 1,
-      maskedIdNumber: typeof raw.maskedIdNumber === "string" ? raw.maskedIdNumber : undefined,
-    };
-  } catch {
-    return null;
-  }
+): Promise<IdentityStatus> {
+  const response = await api.post<ApiResult<Record<string, unknown>> | Record<string, unknown>>(
+    "/front/user/compliance/identity/verify",
+    {
+      documentNumber: payload.documentNumber,
+      fullName: payload.fullName,
+      idNumber: payload.documentNumber,
+      realName: payload.fullName,
+    },
+    { headers: buildAuthHeaders(token) },
+  );
+  const data = response.data;
+  const raw =
+    data && typeof data === "object" && "result" in data && data.result
+      ? (data.result as Record<string, unknown>)
+      : (data as Record<string, unknown>);
+  return {
+    verified: true,
+    ageTier: String(raw.ageTier ?? "ADULT"),
+    minor: String(raw.ageTier ?? "").toUpperCase() !== "ADULT",
+    purchaseAllowed: String(raw.ageTier ?? "").toUpperCase() !== "CHILD",
+    audioVolumeScale: 1,
+    maskedIdNumber: typeof raw.maskedIdNumber === "string" ? raw.maskedIdNumber : undefined,
+  };
 }

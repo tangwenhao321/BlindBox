@@ -4,6 +4,7 @@ import { api } from '@/utils/api-instance'
 import type { Scope } from '@/typings'
 import type { ProductDto } from '@/apis/__generated/model/dto'
 import { useTableHelper } from '@/components/base/table/table-helper'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type Product = ProductDto['ProductRepository/COMPLEX_FETCHER_FOR_ADMIN']
 type ProductScope = Scope<Product>
@@ -49,7 +50,7 @@ onMounted(() => {
         width="120"
       >
         <template v-slot:default="{ row }: ProductScope">
-          {{ row.price }}
+          {{ formatAdminMoney(row.price) }}
         </template>
       </el-table-column>
       <el-table-column

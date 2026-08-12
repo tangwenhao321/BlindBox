@@ -2,6 +2,6 @@
   "boxList": {
     "defaultHint": "点击查看详情并下单开盒",
     "openNow": "立即开盒 →",
-    "a11y": "{{name}}，价格{{price}}元"
+    "a11y": "{{name}}，价格{{price}}"
   }
 }

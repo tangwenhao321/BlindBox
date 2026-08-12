@@ -5,23 +5,39 @@ import i18n from "../i18n";
 import { maskPhone } from "../order-utils";
 import { toast } from "./toast";
 
+const SUPPORT_EMAIL = (process.env.EXPO_PUBLIC_SUPPORT_EMAIL || "").trim();
+
 export async function openContactSupport(phone?: string) {
   const target = phone?.trim() || SUPPORT_HOTLINE;
 
-  if (!target) {
-    toast.info(i18n.t("contact.noPhone"));
+  if (target) {
+    const url = `tel:${target}`;
+    const canOpen = await Linking.canOpenURL(url);
+    if (canOpen) {
+      await Linking.openURL(url);
+      return;
+    }
+    toast.info(i18n.t("contact.callHint", { phone: maskPhone(target) }));
     return;
   }
 
-  const url = `tel:${target}`;
-  const canOpen = await Linking.canOpenURL(url);
-
-  if (canOpen) {
-    await Linking.openURL(url);
+  // Fallbacks when hotline env is empty (App Review / soft launch).
+  if (ZALO_OA_ID.trim()) {
+    await openZaloSupport();
+    return;
+  }
+  if (SUPPORT_EMAIL) {
+    const mail = `mailto:${SUPPORT_EMAIL}`;
+    const canMail = await Linking.canOpenURL(mail);
+    if (canMail) {
+      await Linking.openURL(mail);
+      return;
+    }
+    toast.info(i18n.t("contact.emailHint", { email: SUPPORT_EMAIL }));
     return;
   }
 
-  toast.info(i18n.t("contact.callHint", { phone: maskPhone(target) }));
+  toast.info(i18n.t("contact.noPhoneFallback"));
 }
 
 function buildZaloOaUrl(oaId: string) {

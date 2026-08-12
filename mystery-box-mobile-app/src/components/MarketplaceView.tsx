@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, RefreshControl, StyleSheet, Text, TextInput, View, type TextStyle } from "react-native";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { RemoteImage } from "./ui/RemoteImage";
 import { SubPageHeader } from "./ui/SubPageHeader";
@@ -33,6 +33,7 @@ import { trackEvent } from "../utils/analytics";
 import { formatCurrency } from "../utils/formatCurrency";
 import { estimateMarketplaceNetProceeds } from "../utils/marketplaceProceeds";
 import { toast } from "../utils/toast";
+import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useAppTheme } from "../context/ThemeContext";
 import { useAuthToken } from "../hooks/useAuthToken";
@@ -81,6 +82,30 @@ function displayListingStatus(
   return listingStatusLabel(row.status ?? "", t);
 }
 
+/** Isolates 1s tick to cooling rows so the whole list does not re-render every second. */
+function MarketplaceCoolingLabel({
+  coolingUntil,
+  style,
+}: {
+  coolingUntil?: string | null;
+  style?: TextStyle;
+}) {
+  const { t } = useTranslation();
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => {
+    if (coolingRemainingMs(coolingUntil, Date.now()) <= 0) return;
+    const timer = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [coolingUntil]);
+  const coolingMs = coolingRemainingMs(coolingUntil, nowTick);
+  if (coolingMs <= 0) return null;
+  return (
+    <Text style={style}>
+      {t("marketplace.coolingCountdown", { time: formatCoolingCountdown(coolingMs) })}
+    </Text>
+  );
+}
+
 const MARKET_PAGE = 20;
 
 export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props) {
@@ -101,7 +126,6 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   const [marketHasMore, setMarketHasMore] = useState(true);
   const [showGuide, setShowGuide] = useState(false);
   const [myCredit, setMyCredit] = useState<number | null>(null);
-  const [nowTick, setNowTick] = useState(Date.now());
   const [certListingId, setCertListingId] = useState<string | null>(null);
   const [certVideoUrl, setCertVideoUrl] = useState("");
 
@@ -143,11 +167,6 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
       </Pressable>
     </View>
   );
-
-  useEffect(() => {
-    const timer = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => {
     if (!authToken) {
@@ -224,6 +243,10 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   ]);
 
   const handleBuy = async (item: MarketplaceListing) => {
+    if (isIosDigitalGoodsRestricted()) {
+      toast.info(t("actions.iosMarketplaceBuyBlocked"));
+      return;
+    }
     if (!authToken) {
       onRequireLogin?.();
       return;
@@ -507,28 +530,41 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
           loadError,
           <EmptyState
             title={
-              tab === "market"
-                ? t("marketplace.emptyMarket")
-                : tab === "mine"
-                  ? t("marketplace.emptyMine")
-                  : t("marketplace.emptyPurchased")
+              !authToken && (tab === "mine" || tab === "purchased")
+                ? t("marketplace.guestEmptyTitle")
+                : tab === "market"
+                  ? t("marketplace.emptyMarket")
+                  : tab === "mine"
+                    ? t("marketplace.emptyMine")
+                    : t("marketplace.emptyPurchased")
             }
             description={
-              tab === "market"
-                ? t("marketplace.emptyMarketDesc")
-                : tab === "mine"
-                  ? t("marketplace.emptyMineDesc")
-                  : t("marketplace.emptyPurchasedDesc")
+              !authToken && (tab === "mine" || tab === "purchased")
+                ? t("marketplace.guestEmptyDesc")
+                : tab === "market"
+                  ? t("marketplace.emptyMarketDesc")
+                  : tab === "mine"
+                    ? t("marketplace.emptyMineDesc")
+                    : t("marketplace.emptyPurchasedDesc")
             }
             variant="plain"
-            actionLabel={tab === "mine" && onGoWarehouse ? t("marketplace.goWarehouseList") : undefined}
-            onAction={onGoWarehouse}
+            actionLabel={
+              !authToken && (tab === "mine" || tab === "purchased") && onRequireLogin
+                ? t("marketplace.goLogin")
+                : tab === "mine" && onGoWarehouse
+                  ? t("marketplace.goWarehouseList")
+                  : undefined
+            }
+            onAction={
+              !authToken && (tab === "mine" || tab === "purchased") && onRequireLogin
+                ? onRequireLogin
+                : onGoWarehouse
+            }
           />,
         )}
         renderItem={({ item }) => {
           if (tab === "purchased") {
             const row = item as PurchasedListing;
-            const coolingMs = row.status === "COOLING" ? coolingRemainingMs(row.coolingUntil, nowTick) : 0;
             return (
               <Pressable style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}>
                 <RemoteImage
@@ -551,10 +587,8 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
                   ) : null}
                   <Text style={styles.price}>{formatCurrency(Number(row.price))}</Text>
                   {renderTrustRow(row.id, row.sellerCredit)}
-                  {coolingMs > 0 ? (
-                    <Text style={styles.cooling}>
-                      {t("marketplace.coolingCountdown", { time: formatCoolingCountdown(coolingMs) })}
-                    </Text>
+                  {row.status === "COOLING" ? (
+                    <MarketplaceCoolingLabel coolingUntil={row.coolingUntil} style={styles.cooling} />
                   ) : null}
                   {row.status === "COOLING" ? (
                     <Pressable
@@ -579,7 +613,6 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
             );
           }
           const row = item as MarketplaceListing;
-          const coolingMs = row.status === "COOLING" ? coolingRemainingMs(row.coolingUntil, nowTick) : 0;
           return (
           <Pressable style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}>
             <RemoteImage
@@ -606,12 +639,10 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
                   })}
                 </Text>
               ) : null}
-              {coolingMs > 0 ? (
-                <Text style={styles.cooling}>
-                  {t("marketplace.coolingCountdown", { time: formatCoolingCountdown(coolingMs) })}
-                </Text>
+              {row.status === "COOLING" ? (
+                <MarketplaceCoolingLabel coolingUntil={row.coolingUntil} style={styles.cooling} />
               ) : null}
-              {tab === "market" ? (
+              {tab === "market" && !isIosDigitalGoodsRestricted() ? (
                 <Pressable
                   style={({ pressed }) => [styles.buyBtn, pressed ? styles.cardPressed : null]}
                   onPress={() => handleBuy(row)}

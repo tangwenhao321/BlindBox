@@ -18,9 +18,10 @@ type Props = {
   onBack: () => void;
   embedded?: boolean;
   onGoPromotion?: () => void;
+  onRequireLogin?: () => void;
 };
 
-export function CommissionDetailsView({ onBack, embedded, onGoPromotion }: Props) {
+export function CommissionDetailsView({ onBack, embedded, onGoPromotion, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const [total, setTotal] = useState(0);
@@ -121,11 +122,17 @@ export function CommissionDetailsView({ onBack, embedded, onGoPromotion }: Props
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
             <EmptyState
-              title={t("commission.emptyTitle")}
-              description={t("commission.emptyDesc")}
+              title={token ? t("commission.emptyTitle") : t("commission.guestEmptyTitle")}
+              description={token ? t("commission.emptyDesc") : t("commission.guestEmptyDesc")}
               variant="plain"
-              actionLabel={onGoPromotion ? t("commission.goPromotion") : undefined}
-              onAction={onGoPromotion}
+              actionLabel={
+                !token && onRequireLogin
+                  ? t("commission.goLogin")
+                  : onGoPromotion
+                    ? t("commission.goPromotion")
+                    : undefined
+              }
+              onAction={!token ? onRequireLogin : onGoPromotion}
             />,
           )}
         />

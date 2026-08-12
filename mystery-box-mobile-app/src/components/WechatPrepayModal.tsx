@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getPaymentMode } from "../config/payment";
+import { resolvePaymentMode } from "../config/payment";
 import { PaymentAbandonPanel } from "./PaymentAbandonPanel";
 import { usePaymentAbandonOffer } from "../hooks/usePaymentAbandonOffer";
 import { useThemedStyles } from "../hooks/useThemedStyles";
@@ -37,7 +37,7 @@ export function WechatPrepayModal({
 }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildWechatPrepayStyles);
-  const showDevParams = __DEV__ && getPaymentMode() === "wechat";
+  const showDevParams = __DEV__ && resolvePaymentMode() === "wechat";
   const [displayPayAmount, setDisplayPayAmount] = useState(payAmount);
 
   useEffect(() => {

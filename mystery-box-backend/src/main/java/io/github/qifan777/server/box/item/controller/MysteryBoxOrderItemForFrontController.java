@@ -15,9 +15,11 @@ import java.util.Map;
 @Transactional
 public class MysteryBoxOrderItemForFrontController {
     private final MysteryBoxOrderItemRedeemService mysteryBoxOrderItemRedeemService;
+    private final io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard iosDigitalGoodsGuard;
 
     @PostMapping("{itemId}/redeem-balance")
     public BigDecimal redeemBalance(@PathVariable String itemId, @RequestBody Map<String, String> body) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         return mysteryBoxOrderItemRedeemService.redeemItemToBalance(
                 StpUtil.getLoginIdAsString(),
                 itemId,

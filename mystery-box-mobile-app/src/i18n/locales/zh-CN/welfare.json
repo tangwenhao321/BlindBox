@@ -9,6 +9,9 @@
     "lanternDaysLabel": "点灯天数",
     "streakMeta": "已点灯 {{days}} 天 · 今晚 +{{coins}} 幸运币",
     "checkInSuccess": "灯笼已亮 · +{{coins}} 幸运币",
-    "pageTitle": "福利中心"
+    "pageTitle": "福利中心",
+    "guestEmptyTitle": "登录后领取福利",
+    "guestEmptyDesc": "登录即可每日签到点灯并查看优惠券",
+    "goLogin": "去登录"
   }
 }

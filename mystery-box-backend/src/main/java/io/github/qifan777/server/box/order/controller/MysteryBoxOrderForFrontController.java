@@ -17,6 +17,7 @@ import io.github.qifan777.server.box.order.service.PurchaseLimitService;
 import io.github.qifan777.server.logistics.service.OrderLogisticsService;
 import io.github.qifan777.server.box.root.entity.dto.MysteryBoxInput;
 import io.github.qifan777.server.infrastructure.aop.NotRepeat;
+import io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
@@ -58,6 +59,7 @@ public class MysteryBoxOrderForFrontController {
     private final OrderIdLookupService orderIdLookupService;
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final ClientIpResolver clientIpResolver;
+    private final IosDigitalGoodsGuard iosDigitalGoodsGuard;
 
     @Value("${payment.mock-enabled:false}")
     private boolean mockPaymentEnabled;
@@ -249,6 +251,7 @@ public class MysteryBoxOrderForFrontController {
     @PostMapping("{id}/redeem/balance")
     @NotRepeat
     public BigDecimal redeemToBalance(@PathVariable String id) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         return mysteryBoxOrderService.redeemToBalance(resolveOrderId(id));
     }
 

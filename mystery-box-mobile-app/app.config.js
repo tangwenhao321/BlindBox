@@ -1,7 +1,29 @@
 /** @type {import('expo/config').ExpoConfig} */
-const linkDomain = process.env.EXPO_PUBLIC_APP_LINK_DOMAIN || "mysterybox.example.com";
+const rawLinkDomain = process.env.EXPO_PUBLIC_APP_LINK_DOMAIN?.trim() || "";
+const isPlaceholderDomain =
+  !rawLinkDomain ||
+  rawLinkDomain.includes("example.com") ||
+  rawLinkDomain.includes("your-domain");
+const linkDomain = isPlaceholderDomain ? "" : rawLinkDomain;
 const sentryDsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
 const isTestVariant = process.env.EXPO_PUBLIC_APP_VARIANT === "test";
+const isVnVariant = process.env.EXPO_PUBLIC_APP_VARIANT === "production-vn";
+
+const faceIdPermission =
+  process.env.EXPO_PUBLIC_FACE_ID_PERMISSION?.trim() ||
+  (isVnVariant
+    ? "Night Cabinet dùng Face ID để mở khóa ứng dụng an toàn."
+    : "Night Cabinet uses Face ID to unlock the app securely.");
+const photosPermission =
+  process.env.EXPO_PUBLIC_PHOTOS_PERMISSION?.trim() ||
+  (isVnVariant
+    ? "Night Cabinet cần quyền ảnh để đặt ảnh đại diện, đăng bài và lưu highlight mở hộp."
+    : "Night Cabinet needs photo access so you can set an avatar, share posts, and save reveal highlights.");
+const photosAddPermission =
+  process.env.EXPO_PUBLIC_PHOTOS_ADD_PERMISSION?.trim() ||
+  (isVnVariant
+    ? "Night Cabinet cần quyền lưu video highlight mở hộp vào thư viện ảnh."
+    : "Night Cabinet needs permission to save reveal highlight videos to your photo library.");
 
 const plugins = [
   "expo-router",
@@ -16,6 +38,26 @@ const plugins = [
     {
       icon: "./assets/icon.png",
       color: "#ffffff",
+    },
+  ],
+  [
+    "expo-local-authentication",
+    {
+      faceIDPermission: faceIdPermission,
+    },
+  ],
+  [
+    "expo-image-picker",
+    {
+      photosPermission,
+    },
+  ],
+  [
+    "expo-media-library",
+    {
+      photosPermission,
+      savePhotosPermission: photosAddPermission,
+      isAccessMediaLocationEnabled: false,
     },
   ],
 ];
@@ -57,9 +99,56 @@ if (
   );
 }
 
+const displayName = isTestVariant
+  ? "Night Cabinet Test"
+  : isVnVariant
+    ? "Night Cabinet"
+    : "Night Cabinet";
+
+const iosConfig = {
+  supportsTablet: false,
+  bundleIdentifier: isTestVariant ? "com.mysterybox.mobile.test" : "com.mysterybox.mobile",
+  backgroundColor: "#14110F",
+  infoPlist: {
+    UIBackgroundModes: ["remote-notification"],
+    UIStatusBarStyle: "UIStatusBarStyleLightContent",
+    ITSAppUsesNonExemptEncryption: false,
+    NSFaceIDUsageDescription: faceIdPermission,
+    NSPhotoLibraryUsageDescription: photosPermission,
+    NSPhotoLibraryAddUsageDescription: photosAddPermission,
+    LSApplicationQueriesSchemes: isVnVariant
+      ? ["momo", "momopay", "vnpay", "vnpaymerchant", "zalopay", "zalo"]
+      : ["momo", "momopay", "vnpay", "vnpaymerchant", "weixin", "wechat", "zalopay", "zalo"],
+  },
+  privacyManifests: {
+    NSPrivacyAccessedAPITypes: [
+      {
+        NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryUserDefaults",
+        NSPrivacyAccessedAPITypeReasons: ["CA92.1"],
+      },
+      {
+        NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryFileTimestamp",
+        NSPrivacyAccessedAPITypeReasons: ["C617.1"],
+      },
+      {
+        NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategorySystemBootTime",
+        NSPrivacyAccessedAPITypeReasons: ["35F9.1"],
+      },
+      {
+        NSPrivacyAccessedAPIType: "NSPrivacyAccessedAPICategoryDiskSpace",
+        NSPrivacyAccessedAPITypeReasons: ["E174.1"],
+      },
+    ],
+  },
+};
+
+if (linkDomain) {
+  iosConfig.associatedDomains = [`applinks:${linkDomain}`];
+}
+
 module.exports = {
   expo: {
-    name: isTestVariant ? "夜市珍宝柜·测试" : "夜市珍宝柜",
+    name: displayName,
     slug: isTestVariant ? "mystery-box-mobile-test" : "mystery-box-mobile",
     version: "1.0.5",
     icon: "./assets/icon.png",
@@ -77,16 +166,7 @@ module.exports = {
       appVariant,
     },
     owner: process.env.EXPO_OWNER || undefined,
-    ios: {
-      supportsTablet: true,
-      bundleIdentifier: isTestVariant ? "com.mysterybox.mobile.test" : "com.mysterybox.mobile",
-      backgroundColor: "#14110F",
-      infoPlist: {
-        UIBackgroundModes: ["remote-notification"],
-        UIStatusBarStyle: "UIStatusBarStyleLightContent",
-      },
-      associatedDomains: [`applinks:${linkDomain}`],
-    },
+    ios: iosConfig,
     android: {
       package: isTestVariant ? "com.mysterybox.mobile.test" : "com.mysterybox.mobile",
       versionCode: 6,
@@ -98,41 +178,36 @@ module.exports = {
       },
       navigationBar: {
         backgroundColor: "#14110F",
-        barStyle: "light-content",
       },
       adaptiveIcon: {
         foregroundImage: "./assets/icon.png",
         backgroundColor: "#14110F",
       },
-      intentFilters: [
-        {
-          action: "VIEW",
-          autoVerify: true,
-          data: [
+      intentFilters: linkDomain
+        ? [
             {
-              scheme: "https",
-              host: linkDomain,
-              pathPrefix: "/invite",
+              action: "VIEW",
+              autoVerify: true,
+              data: [
+                { scheme: "https", host: linkDomain, pathPrefix: "/invite" },
+                { scheme: "https", host: linkDomain, pathPrefix: "/order" },
+                { scheme: "https", host: linkDomain, pathPrefix: "/box" },
+              ],
+              category: ["BROWSABLE", "DEFAULT"],
             },
             {
-              scheme: "https",
-              host: linkDomain,
-              pathPrefix: "/order",
+              action: "VIEW",
+              data: [{ scheme: "mysterybox" }],
+              category: ["BROWSABLE", "DEFAULT"],
             },
+          ]
+        : [
             {
-              scheme: "https",
-              host: linkDomain,
-              pathPrefix: "/box",
+              action: "VIEW",
+              data: [{ scheme: "mysterybox" }],
+              category: ["BROWSABLE", "DEFAULT"],
             },
           ],
-          category: ["BROWSABLE", "DEFAULT"],
-        },
-        {
-          action: "VIEW",
-          data: [{ scheme: "mysterybox" }],
-          category: ["BROWSABLE", "DEFAULT"],
-        },
-      ],
     },
   },
 };

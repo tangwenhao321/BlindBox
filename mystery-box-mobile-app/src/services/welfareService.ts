@@ -54,13 +54,10 @@ export type LuckyCoinLedgerEntry = {
 };
 
 export async function fetchLuckyCoinLedger(token: string, page = 0, size = 20): Promise<LuckyCoinLedgerEntry[]> {
-  try {
-    const response = await api.get<ApiResult<{ items?: LuckyCoinLedgerEntry[] }>>("/front/welfare/lucky-coins/ledger", {
-      params: { page, size },
-      headers: buildAuthHeaders(token),
-    });
-    return response.data.result?.items ?? [];
-  } catch {
-    return [];
-  }
+  if (!token) return [];
+  const response = await api.get<ApiResult<{ items?: LuckyCoinLedgerEntry[] }>>("/front/welfare/lucky-coins/ledger", {
+    params: { page, size },
+    headers: buildAuthHeaders(token),
+  });
+  return response.data.result?.items ?? [];
 }

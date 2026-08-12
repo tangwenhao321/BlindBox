@@ -50,6 +50,7 @@
     "pityNearOpen": "Pity {{current}}/{{threshold}} (còn {{remaining}} lượt)",
     "pityCompensateTitle": "Pity hết hàng cao cấp",
     "pityCompensateBody": "Pity đã kích hoạt nhưng phần thưởng cao cấp tạm hết. Bạn có thể chờ nhập hàng và giữ tiến độ, hoặc nhận điểm bù.",
+    "pityCompensateBodyIos": "Pity đã kích hoạt nhưng phần thưởng cao cấp tạm hết. Bạn có thể chờ nhập hàng và giữ tiến độ. Bồi thường điểm không khả dụng trên iOS.",
     "pityCompensateWait": "Chờ nhập hàng",
     "pityCompensatePoints": "Nhận điểm",
     "pityCompensateChoose": "Chọn phương án bù",

@@ -187,7 +187,7 @@ public class RefundRecordService {
                 .setRefundId(wxResult.getRefundId())
                 .setRefundApplicationDetails(wxResult)
                 .setStatus(DictConstants.RefundStatus.REFUNDING)));
-        userNotificationService.push(userId, "REFUND", "退款处理中", "微信退款已发起，请留意到账", record.orderId());
+        userNotificationService.push(userId, "REFUND", "退款处理中", "渠道退款已发起，请留意到账", record.orderId());
     }
 
     /**
@@ -207,6 +207,14 @@ public class RefundRecordService {
             String gatewayRefundId,
             boolean rollbackStock
     ) {
+        // Money + warehouse side-effects before SUCCESS claim (fail closed).
+        restoreCouponIfPresent(order);
+        referralService.clawbackCommissionOnRefund(record.orderId());
+        WarehouseShipService shipService = warehouseShipService.getIfAvailable();
+        if (shipService != null) {
+            shipService.cancelPendingForOrder(record.orderId());
+        }
+
         // Claim SUCCESS before stock restore so concurrent approve/reconcile cannot double-restore.
         if (!refundRecordRepository.claimSuccess(record.id(), gatewayRefundId)) {
             log.info("Refund already finalized refundId={} orderId={}", record.id(), record.orderId());
@@ -215,22 +223,8 @@ public class RefundRecordService {
         if (rollbackStock) {
             prizeStockService.rollbackByOrderId(record.orderId());
         }
-        try {
-            WarehouseShipService shipService = warehouseShipService.getIfAvailable();
-            if (shipService != null) {
-                shipService.cancelPendingForOrder(record.orderId());
-            }
-        } catch (Exception ex) {
-            log.warn("cancelPendingForOrder failed orderId={}", record.orderId(), ex);
-        }
         mysteryBoxOrderRepository.changeStatus(record.orderId(), DictConstants.ProductOrderStatus.REFUNDED);
-        restoreCouponIfPresent(order);
         clearPityForOrder(record, order);
-        try {
-            referralService.clawbackCommissionOnRefund(record.orderId());
-        } catch (Exception ex) {
-            log.warn("Referral clawback failed orderId={}", record.orderId(), ex);
-        }
         if (record.reason() != null
                 && record.reason().contains(MysteryBoxUserPityService.COMPENSATE_CODE)
                 && order.items() != null) {
@@ -423,10 +417,25 @@ public class RefundRecordService {
     }
 
     private String formatRefundAmount(BigDecimal amount) {
-        if ("VND".equalsIgnoreCase(marketProperties.getCurrency())) {
-            return amount.stripTrailingZeros().toPlainString() + " ₫";
+        return marketProperties.formatAmount(amount);
+    }
+
+    private String gatewayRefundingLabel(RefundRecord record) {
+        try {
+            MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(record.orderId());
+            DictConstants.PayType payType = order.baseOrder() != null && order.baseOrder().payment() != null
+                    ? order.baseOrder().payment().payType()
+                    : null;
+            if (payType == DictConstants.PayType.MO_MO) {
+                return "MoMo 退款处理中";
+            }
+            if (isVnPayChannel(payType)) {
+                return "VNPay 退款处理中";
+            }
+        } catch (Exception ignored) {
+            // fall through
         }
-        return "¥" + amount;
+        return "渠道退款处理中";
     }
 
     public List<RefundTimelineEvent> timeline(String refundId, String userId) {
@@ -452,8 +461,8 @@ public class RefundRecordService {
             ));
             if (StringUtils.hasText(record.refundId())) {
                 events.add(new RefundTimelineEvent(
-                        "WX_REFUNDING",
-                        "微信退款处理中",
+                        "GATEWAY_REFUNDING",
+                        gatewayRefundingLabel(record),
                         record.editedTime() != null ? record.editedTime() : record.createdTime(),
                         record.refundId()
                 ));
@@ -462,7 +471,7 @@ public class RefundRecordService {
         if (DictConstants.RefundStatus.SUCCESS.getKeyEnName().equals(status)) {
             events.add(new RefundTimelineEvent(
                     "SUCCESS",
-                    "退款成功，¥" + record.amount() + " 已退回",
+                    "退款成功，" + formatRefundAmount(record.amount()) + " 已退回",
                     record.editedTime() != null ? record.editedTime() : record.createdTime(),
                     record.refundId()
             ));
@@ -546,12 +555,8 @@ public class RefundRecordService {
     }
 
     private void restoreCouponIfPresent(MysteryBoxOrder order) {
-        try {
-            if (order != null && order.baseOrder() != null && order.baseOrder().couponUser() != null) {
-                couponService.changeStatus(order.baseOrder().couponUser().id(), CouponUseStatus.UNUSED);
-            }
-        } catch (Exception ex) {
-            log.warn("Coupon restore on refund failed orderId={}", order == null ? null : order.id(), ex);
+        if (order != null && order.baseOrder() != null && order.baseOrder().couponUser() != null) {
+            couponService.changeStatus(order.baseOrder().couponUser().id(), CouponUseStatus.UNUSED);
         }
     }
 

@@ -40,7 +40,9 @@ import { clearSpectatorToken, peekSpectatorToken } from "../../navigation/specta
 import { useAuthToken } from "../../hooks/useAuthToken";
 import { ActivityDetailView } from "../ActivityDetailView";
 import { FavoritesView } from "../FavoritesView";
+import { EmptyState } from "../EmptyState";
 import { WelfareSubPage } from "./WelfareSubPage";
+import { useTranslation } from "react-i18next";
 import type { AppView } from "./appViews";
 import {
   useActivityDetailScreenProps,
@@ -102,8 +104,21 @@ function FavoritesRoute() {
 }
 
 function ProbabilityRoute() {
+  const { t } = useTranslation();
   const props = useProbabilityScreenProps();
-  if (!props.box) return null;
+  if (!props.box) {
+    return (
+      <View style={missingStyles.wrap}>
+        <EmptyState
+          title={t("boxDetails.missingTitle", { defaultValue: "暂无盲盒" })}
+          description={t("boxDetails.missingDesc", { defaultValue: "请从首页重新进入" })}
+          variant="plain"
+          actionLabel={t("common.back", { defaultValue: "返回" })}
+          onAction={props.onBack}
+        />
+      </View>
+    );
+  }
   return <ProbabilityDisclosureView box={props.box} onBack={props.onBack} />;
 }
 
@@ -145,8 +160,21 @@ function RefundsRoute() {
 }
 
 function ActivityDetailRoute() {
+  const { t } = useTranslation();
   const props = useActivityDetailScreenProps();
-  if (!props.activity) return null;
+  if (!props.activity) {
+    return (
+      <View style={missingStyles.wrap}>
+        <EmptyState
+          title={t("activity.missingTitle", { defaultValue: "活动不存在" })}
+          description={t("activity.missingDesc", { defaultValue: "请返回活动列表重试" })}
+          variant="plain"
+          actionLabel={t("common.back", { defaultValue: "返回" })}
+          onAction={props.onBack}
+        />
+      </View>
+    );
+  }
   return (
     <ActivityDetailView
       activity={props.activity}
@@ -158,9 +186,22 @@ function ActivityDetailRoute() {
 }
 
 function BoxDetailsRoute({ offline }: { offline: boolean }) {
+  const { t } = useTranslation();
   const goBackProps = useGoBackScreenProps();
   const props = useBoxDetailsScreenProps(offline);
-  if (!props.activeBox) return null;
+  if (!props.activeBox) {
+    return (
+      <View style={missingStyles.wrap}>
+        <EmptyState
+          title={t("boxDetails.missingTitle", { defaultValue: "暂无盲盒" })}
+          description={t("boxDetails.missingDesc", { defaultValue: "请从首页重新进入" })}
+          variant="plain"
+          actionLabel={t("common.back", { defaultValue: "返回" })}
+          onAction={goBackProps.onBack}
+        />
+      </View>
+    );
+  }
   return (
     <ErrorBoundary onReset={goBackProps.onBack}>
       <BoxDetailsView {...props} activeBox={props.activeBox} />
@@ -199,13 +240,13 @@ function MinorDeclarationRoute() {
 }
 
 function LevelGiftRoute() {
-  const props = useGoBackScreenProps();
-  return <VipBenefitsView {...props} />;
+  const { goBack, onOpenLogin } = useMainTabsShellViewState();
+  return <VipBenefitsView onBack={goBack} onRequireLogin={onOpenLogin} />;
 }
 
 function InviteCenterRoute() {
-  const props = useGoBackScreenProps();
-  return <InviteCenterView {...props} />;
+  const { goBack, onOpenLogin } = useMainTabsShellViewState();
+  return <InviteCenterView onBack={goBack} onRequireLogin={onOpenLogin} />;
 }
 
 function IpThemeRoute() {
@@ -244,7 +285,8 @@ function SettingsRoute() {
 }
 
 function OrderDetailsRoute() {
-  const { pageLoading } = useMainTabsShellViewState();
+  const { t } = useTranslation();
+  const { pageLoading, goBack } = useMainTabsShellViewState();
   const props = useOrderDetailsScreenProps();
   if (!props.order) {
     if (pageLoading) {
@@ -254,13 +296,27 @@ function OrderDetailsRoute() {
         </View>
       );
     }
-    return null;
+    return (
+      <View style={missingStyles.wrap}>
+        <EmptyState
+          title={t("orders.missingTitle", { defaultValue: "订单不存在" })}
+          description={t("orders.missingDesc", { defaultValue: "请返回订单列表重试" })}
+          variant="plain"
+          actionLabel={t("common.back", { defaultValue: "返回" })}
+          onAction={props.onBack ?? goBack}
+        />
+      </View>
+    );
   }
   return <OrderDetailsView {...props} order={props.order} />;
 }
 
 const orderDetailsLoadingStyles = StyleSheet.create({
   wrap: { flex: 1, paddingTop: 16 },
+});
+
+const missingStyles = StyleSheet.create({
+  wrap: { flex: 1, justifyContent: "center", padding: 24 },
 });
 
 function SpectatorRoute() {
@@ -271,8 +327,22 @@ function SpectatorRoute() {
 }
 
 function PaymentReturnRoute() {
+  const { t } = useTranslation();
+  const { goBack } = useMainTabsShellViewState();
   const props = usePaymentReturnScreenProps();
-  if (!props.orderId) return null;
+  if (!props.orderId) {
+    return (
+      <View style={missingStyles.wrap}>
+        <EmptyState
+          title={t("paymentReturn.missingTitle", { defaultValue: "无支付回跳订单" })}
+          description={t("paymentReturn.missingDesc", { defaultValue: "请从订单页重新进入" })}
+          variant="plain"
+          actionLabel={t("common.back", { defaultValue: "返回" })}
+          onAction={goBack}
+        />
+      </View>
+    );
+  }
   return <PaymentReturnView {...props} />;
 }
 
@@ -312,8 +382,14 @@ function CommissionRoute() {
 }
 
 function TeamRoute() {
-  const { goBack, setView } = useMainTabsShellViewState();
-  return <TeamView onBack={goBack} onOpenTeamLottery={() => setView("teamLottery")} />;
+  const { goBack, setView, onOpenLogin } = useMainTabsShellViewState();
+  return (
+    <TeamView
+      onBack={goBack}
+      onOpenTeamLottery={() => setView("teamLottery")}
+      onRequireLogin={onOpenLogin}
+    />
+  );
 }
 
 function TeamLotteryRoute() {

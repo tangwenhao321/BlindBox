@@ -30,7 +30,8 @@
     "i18n:neutralize": "node scripts/neutralize-i18n-currency.mjs",
     "generate:sounds": "node scripts/generateRevealSounds.mjs",
     "ensure:icon": "node scripts/ensureAppIcon.mjs",
-    "postinstall": "node scripts/ensureAppIcon.mjs",
+    "postinstall": "node scripts/ensureAppIcon.mjs && node scripts/generateRevealSounds.mjs",
+    "eas-build-post-install": "node scripts/generateRevealSounds.mjs",
     "doctor": "npx expo-doctor",
     "setup:android": "powershell -ExecutionPolicy Bypass -File scripts/setup-android-sdk.ps1",
     "android:compile": "cd android && gradlew.bat assembleDebug --no-daemon"

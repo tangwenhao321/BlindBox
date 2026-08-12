@@ -8,6 +8,7 @@ import type { VipPackageDto } from '@/apis/__generated/model/dto'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
 import { useTableHelper } from '@/components/base/table/table-helper'
 import { useTagStore } from '@/layout/store/tag-store'
+import { formatAdminMoney } from '@/utils/format-money'
 
 const tagStore = useTagStore()
 type VipPackageScope = Scope<VipPackageDto['VipPackageRepository/COMPLEX_FETCHER_FOR_ADMIN']>
@@ -108,7 +109,7 @@ const handleDelete = (ids: string[]) => {
         width="120"
       >
         <template v-slot:default="{ row }: VipPackageScope">
-          {{ row.price }}
+          {{ formatAdminMoney(row.price) }}
         </template>
       </el-table-column>
       <el-table-column label="天数" prop="days" sortable="custom" show-overflow-tooltip width="120">

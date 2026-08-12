@@ -12,6 +12,7 @@ import io.github.qifan777.server.product.root.entity.dto.ProductView;
 import io.github.qifan777.server.user.root.service.UserWalletService;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MysteryBoxUserPityService {
@@ -414,6 +416,8 @@ public class MysteryBoxUserPityService {
             Object value = rows.get(0).get("compensate_status");
             return value == null ? null : value.toString();
         } catch (Exception ex) {
+            // Fail closed for claims: null → NONE → PITY_COMPENSATE_DENIED. Log for ops visibility.
+            log.warn("loadCompensateStatus failed for user={} box={}: {}", userId, mysteryBoxId, ex.getMessage());
             return null;
         }
     }

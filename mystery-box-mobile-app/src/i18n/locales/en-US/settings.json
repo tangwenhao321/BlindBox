@@ -16,6 +16,10 @@
     "advancedEffects": "Unbox lab",
     "advancedEffectsHint": "Sound, atmosphere, danmaku, and reveal lab options (collapsed by default)",
     "accountSection": "Account & security",
+    "bindPhoneTitle": "Bind phone number",
+    "bindPhoneHint": "Your Zalo account uses a temporary phone id. Bind a real +84 number for SMS login and support.",
+    "bindPhoneSave": "Bind phone",
+    "bindPhoneSuccess": "Phone number bound",
     "privacySection": "Notifications & privacy",
     "revealAnimations": "Reveal animations",
     "revealAnimationsHint": "When off, only the result is shown (haptics & screen reader remain)",
@@ -50,13 +54,13 @@
     "revealFlash": "Flash bursts",
     "revealHaptic": "Haptic feedback",
     "spendLimitTitle": "Spend limits",
-    "spendLimitDaily": "Today {{spent}} / {{limit}} CNY ({{remaining}} left)",
-    "spendLimitMonthly": "This month {{spent}} / {{limit}} CNY ({{remaining}} left)",
-    "spendLimitServerCap": "Platform cap: daily {{daily}} · monthly {{monthly}} CNY",
+    "spendLimitDaily": "Today {{spent}} / {{limit}} ({{remaining}} left)",
+    "spendLimitMonthly": "This month {{spent}} / {{limit}} ({{remaining}} left)",
+    "spendLimitServerCap": "Platform cap: daily {{daily}} · monthly {{monthly}}",
     "spendLimitExceeded": "Near or over limit — orders may be declined",
     "spendLimitCoolingOff": "Cooling-off until {{until}} — limits cannot be changed",
-    "spendLimitUserDaily": "Custom daily cap (CNY)",
-    "spendLimitUserMonthly": "Custom monthly cap (CNY)",
+    "spendLimitUserDaily": "Custom daily cap",
+    "spendLimitUserMonthly": "Custom monthly cap",
     "spendLimitSave": "Save limits",
     "spendLimitSaved": "Spend limits updated",
     "spendLimitLoading": "Loading…",
@@ -162,6 +166,7 @@
       "verified": "Verified ({{tier}}) {{masked}}",
       "failed": "Verification failed — please check your ID number",
       "success": "Identity verified"
-    }
+    },
+    "deleteAccountFailed": "Account deletion was not confirmed by the server. Try again or contact support."
   }
 }

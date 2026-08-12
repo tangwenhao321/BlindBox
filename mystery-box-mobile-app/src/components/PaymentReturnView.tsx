@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { parseError } from "../api";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { getOrderById } from "../services/orderService";
+import { fetchVipOrder, isVipOrderPaid, type VipOrder } from "../services/vipService";
 import { formatCurrency } from "../utils/formatCurrency";
 import { formatOrderIdDisplay, isUnpaidOrder } from "../order-utils";
 import type { Order } from "../types";
@@ -17,7 +19,12 @@ type Props = {
   onGoHome: () => void;
   onRetryPay?: (orderId: string) => void;
   onPaymentSettled?: (orderId: string) => void | Promise<void>;
+  onRequireLogin?: () => void;
 };
+
+type LoadedOrder =
+  | { kind: "box"; order: Order }
+  | { kind: "vip"; order: VipOrder };
 
 export function PaymentReturnView({
   orderId,
@@ -26,14 +33,16 @@ export function PaymentReturnView({
   onGoHome,
   onRetryPay,
   onPaymentSettled,
+  onRequireLogin,
 }: Props) {
   const { t } = useTranslation();
   const token = useAuthToken();
   const styles = useThemedStyles(buildPaymentReturnStyles);
   const [loading, setLoading] = useState(true);
-  const [order, setOrder] = useState<Order | null>(null);
+  const [loaded, setLoaded] = useState<LoadedOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
   const settledRef = useRef(false);
+  const stopPollRef = useRef(false);
 
   const refresh = useCallback(async () => {
     if (!token || !orderId) {
@@ -43,40 +52,84 @@ export function PaymentReturnView({
     setLoading(true);
     setError(null);
     try {
-      const next = await getOrderById(token, orderId);
-      setOrder(next);
+      try {
+        const next = await getOrderById(token, orderId);
+        setLoaded({ kind: "box", order: next });
+      } catch {
+        const vip = await fetchVipOrder(token, orderId);
+        setLoaded({ kind: "vip", order: vip });
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : t("paymentReturn.loadFailed"));
+      setError(parseError(e) || t("paymentReturn.loadFailed"));
     } finally {
       setLoading(false);
     }
   }, [orderId, t, token]);
 
+  const unpaid =
+    loaded?.kind === "box"
+      ? isUnpaidOrder(loaded.order)
+      : loaded?.kind === "vip"
+        ? !isVipOrderPaid(loaded.order)
+        : true;
+  const gatewayFailed = responseCode != null && responseCode !== "" && responseCode !== "00";
+  const success = !!loaded && !unpaid && !gatewayFailed;
+  const failed = gatewayFailed || (!loading && loaded != null && unpaid);
+  const payAmount =
+    loaded?.kind === "box"
+      ? Number(loaded.order.baseOrder?.payment?.payAmount ?? 0)
+      : Number(loaded?.order.baseOrder?.payment?.payAmount ?? 0);
+
   useEffect(() => {
+    if (success || failed) {
+      stopPollRef.current = true;
+    }
+  }, [success, failed]);
+
+  useEffect(() => {
+    stopPollRef.current = false;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     void refresh();
     const timer = setInterval(() => {
+      if (stopPollRef.current) return;
       void refresh();
     }, 2500);
     return () => clearInterval(timer);
-  }, [refresh]);
-
-  const unpaid = order ? isUnpaidOrder(order) : true;
-  const gatewayFailed = responseCode != null && responseCode !== "" && responseCode !== "00";
-  const success = !!order && !unpaid && !gatewayFailed;
+  }, [refresh, token]);
 
   useEffect(() => {
     if (!success || settledRef.current || !orderId || !onPaymentSettled) return;
     settledRef.current = true;
+    stopPollRef.current = true;
     void onPaymentSettled(orderId);
   }, [success, orderId, onPaymentSettled]);
 
-  const failed = gatewayFailed || (!loading && order != null && unpaid);
+  if (!token) {
+    return (
+      <View style={styles.root}>
+        <Text style={styles.title}>{t("paymentReturn.title")}</Text>
+        <Text style={styles.meta}>{t("paymentReturn.orderId", { id: formatOrderIdDisplay(orderId) })}</Text>
+        <Text style={styles.hint}>{t("paymentReturn.loginRequired")}</Text>
+        {onRequireLogin ? (
+          <Pressable style={styles.primaryBtn} onPress={onRequireLogin} accessibilityRole="button">
+            <Text style={styles.primaryBtnText}>{t("paymentReturn.goLogin")}</Text>
+          </Pressable>
+        ) : null}
+        <Pressable style={styles.secondaryBtn} onPress={onGoHome} accessibilityRole="button">
+          <Text style={styles.secondaryBtnText}>{t("paymentReturn.backHome")}</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
       <Text style={styles.title}>{t("paymentReturn.title")}</Text>
       <Text style={styles.meta}>{t("paymentReturn.orderId", { id: formatOrderIdDisplay(orderId) })}</Text>
-      {loading && !order ? (
+      {loading && !loaded ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" />
           <Text style={styles.hint}>{t("paymentReturn.confirming")}</Text>
@@ -88,19 +141,25 @@ export function PaymentReturnView({
           <Text style={styles.statusOk}>{t("paymentReturn.successTitle")}</Text>
           <Text style={styles.hint}>
             {t("paymentReturn.successAmount", {
-              amount: formatCurrency(Number(order?.baseOrder?.payment?.payAmount ?? 0)),
+              amount: formatCurrency(payAmount),
             })}
           </Text>
-          <Pressable style={styles.primaryBtn} onPress={() => onGoOrder(orderId)} accessibilityRole="button">
-            <Text style={styles.primaryBtnText}>{t("paymentReturn.viewOrder")}</Text>
-          </Pressable>
+          {loaded?.kind === "box" ? (
+            <Pressable style={styles.primaryBtn} onPress={() => onGoOrder(orderId)} accessibilityRole="button">
+              <Text style={styles.primaryBtnText}>{t("paymentReturn.viewOrder")}</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.primaryBtn} onPress={onGoHome} accessibilityRole="button">
+              <Text style={styles.primaryBtnText}>{t("paymentReturn.backHome")}</Text>
+            </Pressable>
+          )}
         </View>
       ) : null}
       {failed && !loading ? (
         <View style={styles.cardFail} accessibilityRole="alert">
           <Text style={styles.statusFail}>{t("paymentReturn.failTitle")}</Text>
           <Text style={styles.hint}>{t("paymentReturn.failHint")}</Text>
-          {onRetryPay ? (
+          {onRetryPay && loaded?.kind === "box" ? (
             <Pressable style={styles.primaryBtn} onPress={() => onRetryPay(orderId)} accessibilityRole="button">
               <Text style={styles.primaryBtnText}>{t("paymentReturn.retryPay")}</Text>
             </Pressable>

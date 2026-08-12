@@ -108,6 +108,17 @@ public class UserForFrontController {
         return userRepository.update(UserDraft.$.produce(restInput.toEntity(), draft -> draft.setId(StpUtil.getLoginIdAsString()))).id();
     }
 
+    @PostMapping("bind-phone")
+    public void bindPhone(@RequestBody @Validated BindPhoneRequest body) {
+        userService.bindPhone(StpUtil.getLoginIdAsString(), body.phone(), body.code());
+    }
+
+    public record BindPhoneRequest(
+            @jakarta.validation.constraints.NotBlank String phone,
+            @jakarta.validation.constraints.NotBlank String code
+    ) {
+    }
+
     @PostMapping("push-token")
     public void registerPushToken(@RequestBody @Validated PushTokenInput input) {
         userPushTokenService.upsert(

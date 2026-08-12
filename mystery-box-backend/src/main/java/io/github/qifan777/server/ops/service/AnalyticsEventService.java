@@ -214,9 +214,11 @@ public class AnalyticsEventService {
         int pay = countByPrefix("order_result_pay_now_click", recentMinutes)
                 + countExact("payment_success", recentMinutes)
                 + countExact("payment_wechat_requested", recentMinutes)
-                + countExact("payment_vnpay_requested", recentMinutes);
+                + countExact("payment_vnpay_requested", recentMinutes)
+                + countExact("payment_momo_requested", recentMinutes);
         int payWechatRequested = countExact("payment_wechat_requested", recentMinutes);
         int payVnpayRequested = countExact("payment_vnpay_requested", recentMinutes);
+        int payMomoRequested = countExact("payment_momo_requested", recentMinutes);
         int share = countByPrefix("order_result_share_click", recentMinutes)
                 + countExact("share_reveal", recentMinutes);
         int paymentFail = countExact("payment_fail", recentMinutes);
@@ -232,6 +234,7 @@ public class AnalyticsEventService {
                 pay,
                 payWechatRequested,
                 payVnpayRequested,
+                payMomoRequested,
                 share,
                 paymentFail,
                 paymentCancel,
@@ -429,6 +432,7 @@ public class AnalyticsEventService {
             int pay,
             int payWechatRequested,
             int payVnpayRequested,
+            int payMomoRequested,
             int share,
             int paymentFail,
             int paymentCancel,

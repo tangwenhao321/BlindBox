@@ -16,6 +16,7 @@ import io.github.qifan777.server.payment.repository.PaymentRepository;
 import io.github.qifan777.server.payment.service.WeChatPayService;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentRetentionService {
@@ -297,6 +299,9 @@ public class PaymentRetentionService {
     }
 
     private boolean matchesGatewayAmount(PayType payType, Long amountMinor, BigDecimal payAmount) {
+        if (payType == null) {
+            return false;
+        }
         if (payType == PayType.MO_MO) {
             return momoPaymentGateway.matchesPayAmount(amountMinor, payAmount);
         }
@@ -311,10 +316,12 @@ public class PaymentRetentionService {
                     && order.baseOrder().payment().payType() != null) {
                 return order.baseOrder().payment().payType();
             }
-        } catch (Exception ignored) {
-            // fall through — default to ×100 matcher (VNPay/WeChat)
+            return null;
+        } catch (Exception ex) {
+            // Fail closed: unknown pay type must not use VNPay ×100 matcher against MoMo major VND.
+            log.warn("resolvePayType failed orderId={}: {}", orderId, ex.getMessage());
+            return null;
         }
-        return null;
     }
 
     /**

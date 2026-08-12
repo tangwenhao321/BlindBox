@@ -12,7 +12,7 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { PayCountdownText } from "./ui/PayCountdownText";
-import { getPaymentMode, resolvePaymentMode } from "../config/payment";
+import { resolvePaymentMode } from "../config/payment";
 import { measureAnchor, useOnboardingAnchors } from "../context/OnboardingAnchorContext";
 import { AgreementCheckbox } from "./ui/AgreementCheckbox";
 import { PaymentMethodBadge } from "./ui/PaymentMethodBadge";
@@ -202,7 +202,8 @@ export function ConfirmOrderModal({
   const countdownLabels = usePendingPaymentCountdownLabels();
   const sheetOpacity = useSharedValue(reduceMotion ? 1 : 0);
   const sheetTranslateY = useSharedValue(reduceMotion ? 0 : 28);
-  const payDisabled = !agreed || Boolean(quoting) || Boolean(paying) || Boolean(payBlocked) || Boolean(quoteError) || spendLimitBlocked;
+  const oddsMissing = !probabilityRates;
+  const payDisabled = !agreed || oddsMissing || Boolean(quoting) || Boolean(paying) || Boolean(payBlocked) || Boolean(quoteError) || spendLimitBlocked;
   const ctaPulse = useLoopPulse(visible && !payDisabled && !reduceMotion, 900);
   const ctaPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: interpolate(ctaPulse.value, [0, 1], [0.985, 1]) }],
@@ -499,7 +500,7 @@ export function ConfirmOrderModal({
               ) : null}
               <Text style={styles.payHint}>
                 {paymentMethod === "momo" && momoEnabled
-                  ? t("momo.stubHint")
+                  ? t("momo.continueHint")
                   : resolvePaymentMode() === "mock"
                     ? t("payment.mockTip")
                     : getPaymentMethodHint()}
@@ -507,6 +508,28 @@ export function ConfirmOrderModal({
             </View>
 
             <View style={styles.legalBlock}>
+              <Text style={styles.trustLine}>{t("checkout.physicalFulfillmentNote")}</Text>
+              <View style={styles.trustCard}>
+                <Text style={styles.trustLine}>{t("checkout.oddsTitle", { defaultValue: "Probability disclosure" })}</Text>
+                {probabilityRates ? (
+                  <>
+                    <Text style={styles.trustLine}>
+                      {t("checkout.probabilityRates", {
+                        legendary: (probabilityRates.legendaryRate / 100).toFixed(2),
+                        hidden: (probabilityRates.hiddenRate / 100).toFixed(2),
+                        general: (probabilityRates.generalRate / 100).toFixed(2),
+                      })}
+                    </Text>
+                    {probabilityRates.adjusted ? (
+                      <Text style={styles.trustLine}>{t("checkout.probabilityAdjustedNote")}</Text>
+                    ) : probabilityRates.dynamicProbability !== false ? (
+                      <Text style={styles.trustLine}>{t("checkout.probabilityDynamicNote")}</Text>
+                    ) : null}
+                  </>
+                ) : (
+                  <Text style={styles.trustLine}>{t("checkout.probabilityUnavailable", { defaultValue: "Published odds could not be loaded — open the probability page before paying, or retry." })}</Text>
+                )}
+              </View>
               <Pressable
                 onPress={() => setTermsExpanded((v) => !v)}
                 accessibilityRole="button"
@@ -537,7 +560,7 @@ export function ConfirmOrderModal({
                       ) : null}
                     </>
                   ) : (
-                    <Text style={styles.trustLine}>{t("checkout.probabilityDynamicNote")}</Text>
+                    <Text style={styles.trustLine}>{t("checkout.probabilityUnavailable", { defaultValue: "Published odds could not be loaded — open the probability page before paying, or retry." })}</Text>
                   )}
                   {TERMS_KEYS.map((key, index) => (
                     <Text key={key} style={styles.termText}>
@@ -577,7 +600,11 @@ export function ConfirmOrderModal({
                 payDisabled ? styles.payBtnDisabled : pressed ? styles.payBtnPressed : null,
               ]}
               disabled={payDisabled}
-              onPress={() => onPay(paymentMethod === "momo" && momoEnabled ? "momo" : "default")}
+              accessibilityHint={oddsMissing ? t("checkout.probabilityUnavailable") : undefined}
+              onPress={() => {
+                if (oddsMissing) return;
+                onPay(paymentMethod === "momo" && momoEnabled ? "momo" : "default");
+              }}
             >
               <LinearGradient
                 colors={[colors.brand, colors.brandGradientEnd]}
@@ -588,6 +615,8 @@ export function ConfirmOrderModal({
                 <Text style={styles.payBtnText}>
                   {paying
                     ? t("checkout.paySubmitting")
+                    : oddsMissing
+                      ? t("checkout.probabilityUnavailable")
                     : payBlocked
                       ? payBlockedHint || t("checkout.payBlocked")
                       : t("checkout.payNowAmount", { amount: formatCurrency(payAmount) })}

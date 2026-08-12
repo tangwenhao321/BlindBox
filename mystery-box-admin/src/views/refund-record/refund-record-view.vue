@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ListPageShell from '@/components/base/layout/list-page-shell.vue'
 import { request } from '@/utils/request'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type RefundRow = {
   id: string
@@ -51,7 +52,13 @@ const approve = async (row: RefundRow) => {
     method: 'post',
     headers: { 'x-admin-action-otp': adminOtp.value.trim() }
   })
-  ElMessage.success(row.payTypeKey === 'VN_PAY' ? '已通过：VNPay 退款已发起' : '已通过：模拟/未配微信时退回用户余额')
+  ElMessage.success(
+    row.payTypeKey === 'VN_PAY'
+      ? '已通过：VNPay 退款已发起'
+      : row.payTypeKey === 'MO_MO'
+        ? 'MoMo 暂不支持自动退款，请走人工结退'
+        : '已通过：模拟/余额通道或原路退回已处理',
+  )
   await load()
 }
 
@@ -90,7 +97,11 @@ onMounted(() => void load())
       <el-table v-loading="loading" :data="rows" border>
         <el-table-column prop="orderId" label="订单号" min-width="160" show-overflow-tooltip />
         <el-table-column prop="reason" label="退款原因" min-width="140" show-overflow-tooltip />
-        <el-table-column prop="amount" label="金额" width="100" />
+        <el-table-column prop="amount" label="金额" width="110">
+          <template #default="{ row }">
+            {{ formatAdminMoney(row.amount) }}
+          </template>
+        </el-table-column>
         <el-table-column label="支付渠道" width="120">
           <template #default="{ row }">
             <el-tag :type="row.payTypeKey === 'VN_PAY' ? 'success' : 'info'" size="small">

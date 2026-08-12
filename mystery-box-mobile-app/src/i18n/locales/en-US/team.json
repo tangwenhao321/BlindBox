@@ -7,6 +7,9 @@
     "level1": "Level 1",
     "level2": "Level 2",
     "emptyTitle": "No team members",
-    "emptyDesc": "Invite friends to see them here"
+    "emptyDesc": "Invite friends to see them here",
+    "guestEmptyTitle": "Sign in to view your team",
+    "guestEmptyDesc": "Sign in to invite friends and see members",
+    "goLogin": "Sign in"
   }
 }

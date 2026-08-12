@@ -77,7 +77,20 @@ public class MysteryBoxProductRelForAdminController {
 
     @DeleteMapping
     public Boolean delete(@RequestBody List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return true;
+        }
+        var existing = mysteryBoxProductRelRepository.findByIds(ids, MysteryBoxProductRelRepository.COMPLEX_FETCHER_FOR_ADMIN);
+        java.util.LinkedHashSet<String> boxIds = new java.util.LinkedHashSet<>();
+        for (MysteryBoxProductRel rel : existing) {
+            if (rel.mysteryBoxId() != null && !rel.mysteryBoxId().isBlank()) {
+                boxIds.add(rel.mysteryBoxId());
+            }
+        }
         mysteryBoxProductRelRepository.deleteAllById(ids);
+        for (String boxId : boxIds) {
+            boxProfitabilityService.assertBoxProfitable(boxId);
+        }
         return true;
     }
 }

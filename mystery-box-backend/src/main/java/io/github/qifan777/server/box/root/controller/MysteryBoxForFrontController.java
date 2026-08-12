@@ -19,6 +19,7 @@ import io.github.qifan777.server.box.root.model.PoolDashboardView;
 import io.github.qifan777.server.box.root.model.TrustMetaView;
 import io.github.qifan777.server.box.root.service.PoolDashboardService;
 import io.github.qifan777.server.box.root.service.TrustMetaService;
+import io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
@@ -48,6 +49,7 @@ public class MysteryBoxForFrontController {
     private final MysteryBoxProbabilityHistoryService mysteryBoxProbabilityHistoryService;
     private final PoolDashboardService poolDashboardService;
     private final TrustMetaService trustMetaService;
+    private final IosDigitalGoodsGuard iosDigitalGoodsGuard;
     private final DynamicProbabilityAdjuster dynamicProbabilityAdjuster;
 
     @GetMapping("{id}")
@@ -118,10 +120,15 @@ public class MysteryBoxForFrontController {
             @PathVariable String id,
             @RequestBody PityCompensateRequest body
     ) {
+        String choice = body == null ? null : body.choice();
+        // POINTS credits wallet — block on iOS App Store clients (Guideline 3.1.1).
+        if (choice != null && "POINTS".equalsIgnoreCase(choice.trim())) {
+            iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
+        }
         return mysteryBoxUserPityService.compensate(
                 StpUtil.getLoginIdAsString(),
                 id,
-                body == null ? null : body.choice()
+                choice
         );
     }
 

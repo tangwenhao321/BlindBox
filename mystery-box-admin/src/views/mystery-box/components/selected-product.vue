@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import type { Scope } from '@/typings'
 import type { ProductDto } from '@/apis/__generated/model/dto'
 import { Close } from '@element-plus/icons-vue'
+import { formatAdminMoney } from '@/utils/format-money'
 
 const products = defineModel<ProductDto['ProductRepository/COMPLEX_FETCHER_FOR_ADMIN'][]>(
   'products',
@@ -31,7 +32,7 @@ const handleRemove = (row: Product) => {
         width="120"
       >
         <template v-slot:default="{ row }: ProductScope">
-          {{ row.price }}
+          {{ formatAdminMoney(row.price) }}
         </template>
       </el-table-column>
       <el-table-column

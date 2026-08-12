@@ -1,4 +1,4 @@
-import { getPaymentMode } from "../config/payment";
+import { resolvePaymentMode } from "../config/payment";
 import { MOCK_PAYMENT_ENABLED } from "../config/constants";
 import i18n from "../i18n";
 import type { PrepayResult } from "../types";
@@ -24,7 +24,7 @@ function loadWechatModule(): WechatPayModule | null {
  * Falls back to instructing mock flow when unavailable (Expo Go).
  */
 export async function invokeWechatPay(prepay: PrepayResult): Promise<boolean> {
-  if (getPaymentMode() !== "wechat") {
+  if (resolvePaymentMode() !== "wechat") {
     return false;
   }
   const WeChat = loadWechatModule();

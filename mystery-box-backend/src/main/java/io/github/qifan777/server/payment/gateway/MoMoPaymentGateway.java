@@ -46,6 +46,9 @@ public class MoMoPaymentGateway implements PaymentGateway {
             if (!momoProperties.isEnabled()) {
                 throw new BusinessException("MoMo 支付尚未开通");
             }
+            if (!momoProperties.isPartnerWired()) {
+                throw new BusinessException("MoMo Partner 未接通（momo.partner-wired=false）");
+            }
             throw new BusinessException("MoMo 凭证未配置（momo.partner-code / access-key / secret-key）");
         }
         String deeplink = momoProperties.getReturnUrl()
@@ -85,6 +88,19 @@ public class MoMoPaymentGateway implements PaymentGateway {
 
     @Override
     public Optional<PaymentNotifyResult> queryPaid(String orderId, String clientIp) {
+        // Partner query API not wired — never invent a paid status for reconcile.
+        log.warn("MoMo queryPaid skipped (Partner query not implemented) orderId={}", orderId);
         return Optional.empty();
+    }
+
+    @Override
+    public Optional<PaymentRefundResult> refund(
+            String orderId,
+            String gatewayTransactionNo,
+            String outRefundNo,
+            BigDecimal amount,
+            String clientIp
+    ) {
+        throw new BusinessException("MoMo 退款通道未开通，已保留退款工单请人工处理");
     }
 }

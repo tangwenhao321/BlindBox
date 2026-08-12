@@ -155,6 +155,9 @@ export function MainTabsTabContent() {
             if (!requireAuth?.()) return;
             setView("exchangeMall");
           }}
+          onRequireLogin={() => {
+            requireAuth?.();
+          }}
         />
       </ErrorBoundary>
     );

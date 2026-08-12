@@ -18,7 +18,7 @@ import { useAppTheme } from "../context/ThemeContext";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { resolveBoxImageUrl } from "../utils/boxImage";
-import { formatCurrency } from "../utils/formatCurrency";
+import { formatCurrency, getAppCurrency } from "../utils/formatCurrency";
 import { getNewcomerFallbackPrice } from "../utils/newcomerOffer";
 import type { MysteryBox } from "../types";
 import { trackEvent } from "../utils/analytics";
@@ -82,7 +82,9 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
   }, [box]);
 
   const topProduct = box?.products?.[0];
-  const maxPrice = formatCurrency(topProduct?.price ?? 29999);
+  const maxPrice = formatCurrency(
+    topProduct?.price ?? (getAppCurrency() === "VND" ? 299_000 : 29999),
+  );
   const unavailable = !loading && !box;
 
   const missionsDone = missions.filter((m) => m.claimed).length;

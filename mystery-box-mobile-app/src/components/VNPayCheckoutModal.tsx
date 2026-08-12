@@ -1,7 +1,7 @@
 import { Linking, Modal, Pressable, StyleSheet, Text, View, Clipboard, AppState } from "react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { getPaymentMode } from "../config/payment";
+import { resolvePaymentMode } from "../config/payment";
 import { PaymentAbandonPanel } from "./PaymentAbandonPanel";
 import { usePaymentAbandonOffer } from "../hooks/usePaymentAbandonOffer";
 import { useThemedStyles } from "../hooks/useThemedStyles";
@@ -42,7 +42,7 @@ export function VNPayCheckoutModal({
   const { t } = useTranslation();
   const styles = useThemedStyles(buildVNPayCheckoutStyles);
   const pollingRef = useRef(false);
-  const showDevUrl = __DEV__ && getPaymentMode() === "vnpay";
+  const showDevUrl = __DEV__ && resolvePaymentMode() === "vnpay";
   const [displayPayAmount, setDisplayPayAmount] = useState(payAmount);
 
   useEffect(() => {
@@ -88,7 +88,13 @@ export function VNPayCheckoutModal({
         void refreshPaymentStatus();
       }
     });
-    return () => sub.remove();
+    const timer = setInterval(() => {
+      void refreshPaymentStatus();
+    }, 3000);
+    return () => {
+      sub.remove();
+      clearInterval(timer);
+    };
   }, [refreshPaymentStatus, visible]);
 
   const openVnpay = async () => {
@@ -99,6 +105,8 @@ export function VNPayCheckoutModal({
     }
     try {
       await Linking.openURL(url);
+      toast.info(t("vnpay.returnHint", { defaultValue: "Return here after paying — status refreshes automatically." }));
+      void refreshPaymentStatus();
     } catch {
       toast.error(t("vnpay.openFailed"));
     }

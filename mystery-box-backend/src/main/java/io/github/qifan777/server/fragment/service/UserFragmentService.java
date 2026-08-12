@@ -138,9 +138,12 @@ public class UserFragmentService {
             default -> 8;
         };
         if (product.getPrice() != null && product.getPrice().signum() > 0) {
-            int byPrice = MoneyRounding.round(product.getPrice(), marketProperties.getCurrency())
+            String currency = marketProperties.getCurrency();
+            // CNY: ≈1 fragment per 10 yuan; VND: ≈1 per 10_000₫ so typical box prices stay in the same band.
+            int priceDivisor = "VND".equalsIgnoreCase(currency) ? 10_000 : 10;
+            int byPrice = MoneyRounding.round(product.getPrice(), currency)
                     .setScale(0, java.math.RoundingMode.HALF_UP)
-                    .intValue() / 10;
+                    .intValue() / priceDivisor;
             byPrice = Math.max(5, Math.min(80, byPrice));
             return Math.max(byQuality, byPrice);
         }

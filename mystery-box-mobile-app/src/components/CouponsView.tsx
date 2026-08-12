@@ -22,9 +22,10 @@ type Props = {
   onGoWelfare?: () => void;
   onGoMall?: () => void;
   onOpenBox?: (boxId: string) => void;
+  onRequireLogin?: () => void;
 };
 
-export function CouponsView({ onBack, onGoWelfare, onGoMall, onOpenBox }: Props) {
+export function CouponsView({ onBack, onGoWelfare, onGoMall, onOpenBox, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -60,10 +61,16 @@ export function CouponsView({ onBack, onGoWelfare, onGoMall, onOpenBox }: Props)
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
             <EmptyState
-              title={t("coupons.emptyTitle")}
-              description={t("coupons.emptyDesc")}
-              actionLabel={onGoWelfare ? t("coupons.goWelfare") : undefined}
-              onAction={onGoWelfare}
+              title={token ? t("coupons.emptyTitle") : t("coupons.guestEmptyTitle")}
+              description={token ? t("coupons.emptyDesc") : t("coupons.guestEmptyDesc")}
+              actionLabel={
+                !token && onRequireLogin
+                  ? t("coupons.goLogin")
+                  : onGoWelfare
+                    ? t("coupons.goWelfare")
+                    : undefined
+              }
+              onAction={!token && onRequireLogin ? onRequireLogin : onGoWelfare}
             />,
           )}
           renderItem={({ item }) => {

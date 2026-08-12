@@ -41,14 +41,14 @@ export function RevealSpectatorScreen({ token, orderId, authToken }: Props) {
     const resolvedOrderId = orderId ?? resolvedOrderIdFromSession;
     if (!resolvedOrderId || joinedOrderRef.current === resolvedOrderId) return;
     joinedOrderRef.current = resolvedOrderId;
-    void joinRevealSpectatorRoom(resolvedOrderId, authToken ?? token).then(() => {
+    void joinRevealSpectatorRoom(resolvedOrderId, authToken ?? undefined).then(() => {
       setRoomState(getRevealSocialRoomState());
     });
     return () => {
       joinedOrderRef.current = null;
       leaveRevealSpectatorRoom();
     };
-  }, [status, snapshot, orderId, resolvedOrderIdFromSession, authToken, token]);
+  }, [status, snapshot, orderId, resolvedOrderIdFromSession, authToken]);
 
   if (status === "loading") {
     return (

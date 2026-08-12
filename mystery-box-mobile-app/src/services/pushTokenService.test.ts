@@ -75,14 +75,29 @@ describe("pushTokenService", () => {
     });
   });
 
-  it("tracks denial when permission not granted", async () => {
+  it("defers prompt when permission not granted and requestPermission is false", async () => {
+    const requestPermissionsAsync = vi.fn().mockResolvedValue({ status: "denied" });
+    loadExpoNotificationsMock.mockResolvedValueOnce({
+      getPermissionsAsync: vi.fn().mockResolvedValue({ status: "undetermined" }),
+      requestPermissionsAsync,
+      getExpoPushTokenAsync: vi.fn(),
+    });
+
+    await registerExpoPushToken("token-1");
+
+    expect(requestPermissionsAsync).not.toHaveBeenCalled();
+    expect(postMock).not.toHaveBeenCalled();
+    expect(trackEventMock).toHaveBeenCalledWith("push_token_register_deferred", { status: "undetermined" });
+  });
+
+  it("tracks denial when permission not granted and requestPermission is true", async () => {
     loadExpoNotificationsMock.mockResolvedValueOnce({
       getPermissionsAsync: vi.fn().mockResolvedValue({ status: "undetermined" }),
       requestPermissionsAsync: vi.fn().mockResolvedValue({ status: "denied" }),
       getExpoPushTokenAsync: vi.fn(),
     });
 
-    await registerExpoPushToken("token-1");
+    await registerExpoPushToken("token-1", { requestPermission: true });
 
     expect(postMock).not.toHaveBeenCalled();
     expect(trackEventMock).toHaveBeenCalledWith("notification_permission_denied", { status: "denied" });

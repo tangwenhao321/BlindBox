@@ -1,4 +1,4 @@
-import { Platform } from "react-native";
+import { AppState, Platform, type AppStateStatus } from "react-native";
 import type { AudioPlayer } from "expo-audio";
 import type { PrizeTier } from "./config";
 import { normalizeCeremonyTier } from "./ceremonyTier";
@@ -262,7 +262,10 @@ async function waitUntilLoaded(player: AudioPlayer, timeoutMs = 1500): Promise<b
     if (loaded) return true;
     await new Promise((r) => setTimeout(r, 30));
   }
-  return true;
+  const loaded =
+    (player as AudioPlayer & { isLoaded?: boolean }).isLoaded === true ||
+    (player.currentStatus?.isLoaded ?? false);
+  return loaded === true;
 }
 
 function resolvePlayVolume(): number {
@@ -274,7 +277,16 @@ function resolvePlayVolume(): number {
     resolveActiveEmotionProfile().volumeScale *
     Math.max(0.35, minor);
   if (volumeScale <= 0) return 0;
-  return Math.min(1, Math.max(MIN_AUDIBLE_VOLUME, BASE_VOLUME * volumeScale));
+  const raw = BASE_VOLUME * volumeScale;
+  // Floor keeps adult SFX audible on quiet devices; do not override teen attenuation.
+  if (minor < 1) return Math.min(1, Math.max(0.08, raw));
+  return Math.min(1, Math.max(MIN_AUDIBLE_VOLUME, raw));
+}
+
+function resolveAmbientVolume(): number {
+  const base = resolvePlayVolume();
+  if (base <= 0) return 0;
+  return Math.min(AMBIENT_BED_VOLUME, Math.max(0.02, base * 0.22));
 }
 
 async function loadSoundKey(key: SoundKey) {
@@ -565,6 +577,7 @@ export function playRevealSoundArc(opts: RevealSoundArcOptions) {
 async function startAmbientLoop(enabled: boolean) {
   if (!enabled || ambientLoopActive) return;
   if (!getRuntimeRevealSoundLayers().ambient) return;
+  if (resolvePlayVolume() <= 0) return;
   ambientLoopActive = true;
   await playAmbientLoop();
 }
@@ -573,7 +586,7 @@ async function startAmbientLoop(enabled: boolean) {
 async function playAmbientBed(_ms: number) {
   if (!getRuntimeRevealSoundLayers().ambient) return;
   if (ambientLoopActive && ambientPlayer) {
-    setPlayerVolume(ambientPlayer, AMBIENT_BED_VOLUME);
+    setPlayerVolume(ambientPlayer, resolveAmbientVolume());
     return;
   }
   await startAmbientLoop(true);
@@ -618,9 +631,14 @@ async function playAmbientLoop() {
     player.play();
     playerStartedAt.set(player, Date.now());
     activePlayers.add(player);
-    await rampAmbientVolume(0, AMBIENT_BED_VOLUME, 220);
+    const ambientVol = resolveAmbientVolume();
+    if (ambientVol <= 0) {
+      stopAmbientPlayer(true);
+      return;
+    }
+    await rampAmbientVolume(0, ambientVol, 220);
     trackEffectEvent("reveal_sound_ambient_bed", {
-      volume: AMBIENT_BED_VOLUME,
+      volume: ambientVol,
       bank: runtimeThemeSoundBank,
       loop: true,
     });
@@ -728,7 +746,7 @@ async function playTierVoiceLine(tier: PrizeTier, themeId?: string) {
   }
 }
 
-export function cancelScheduledRevealSounds(opts?: { fadeMs?: number }) {
+export function cancelScheduledRevealSounds(opts?: { fadeMs?: number; stopActive?: boolean }) {
   for (const timer of soundTimers) clearTimeout(timer);
   soundTimers.clear();
   const fadeMs = opts?.fadeMs ?? 0;
@@ -737,13 +755,17 @@ export function cancelScheduledRevealSounds(opts?: { fadeMs?: number }) {
   } else {
     stopAmbientPlayer(true);
   }
+  // Hard cancel / explicit stopActive clears one-shots so accelerate & multi-draw never stack.
+  if (fadeMs === 0 || opts?.stopActive) {
+    stopActiveRevealSounds({ force: true });
+  }
 }
 
 export function cancelScheduledRevealSoundTimers() {
   cancelScheduledRevealSounds();
 }
 
-export function stopActiveRevealSounds() {
+export function stopActiveRevealSounds(opts?: { force?: boolean }) {
   const keep = new Set<AudioPlayer>();
   activePlayers.forEach((p) => {
     if (p === ambientPlayer) {
@@ -751,11 +773,19 @@ export function stopActiveRevealSounds() {
       return;
     }
     try {
-      if (!canStopRevealPlayer(p)) {
+      if (!opts?.force && !canStopRevealPlayer(p)) {
         keep.add(p);
         return;
       }
       p.pause?.();
+      if (opts?.force) {
+        try {
+          p.remove?.();
+        } catch {
+          /* ignore */
+        }
+        playerStartedAt.delete(p);
+      }
     } catch {
       /* ignore */
     }
@@ -777,3 +807,25 @@ export async function warmupTierSounds() {
   );
   trackEffectEvent("reveal_sound_warmup_ok", { bank: runtimeThemeSoundBank });
 }
+
+
+let ambientAppStateAttached = false;
+function attachAmbientAppStateResume() {
+  if (ambientAppStateAttached) return;
+  ambientAppStateAttached = true;
+  let last: AppStateStatus = AppState.currentState;
+  AppState.addEventListener("change", (next) => {
+    if (last.match(/inactive|background/) && next === "active") {
+      if (ambientLoopActive && ambientPlayer && resolvePlayVolume() > 0) {
+        try {
+          ambientPlayer.play?.();
+          setPlayerVolume(ambientPlayer, resolveAmbientVolume());
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    last = next;
+  });
+}
+attachAmbientAppStateResume();

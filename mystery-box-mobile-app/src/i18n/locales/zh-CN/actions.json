@@ -22,6 +22,11 @@
     "resumeUnpaidTitle": "存在未支付订单",
     "resumeUnpaidMessage": "您有「{{boxName}}」的未支付订单（{{orderId}}），是否继续支付该订单？",
     "resumeUnpaidPay": "支付原订单",
-    "resumeUnpaidNew": "创建新订单"
+    "resumeUnpaidNew": "创建新订单",
+    "iosRedeemBlocked": "iOS 暂不支持将奖品兑成余额。请申请发货以完成实物履约。",
+    "iosDecomposeBlocked": "iOS 暂不支持分解为碎片。请改为申请发货。",
+    "iosExchangeBlocked": "iOS 暂不支持碎片兑换",
+    "iosExchangeBlockedHint": "按 App Store 规则，抽奖类奖品请走仓库发货履约。",
+    "iosMarketplaceBuyBlocked": "iOS 暂不支持用余额购买二手挂单。请浏览或从仓库申请发货。"
   }
 }

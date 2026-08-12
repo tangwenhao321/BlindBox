@@ -793,6 +793,12 @@ public class MysteryBoxOrderService {
                                     } catch (Exception refundEx) {
                                         log.error("Pity stock auto-refund after rollback failed orderId={}",
                                                 orderId, refundEx);
+                                        try {
+                                            ensurePityRefundingTicket(orderId);
+                                        } catch (Exception ensureEx) {
+                                            log.error("Pity refund ticket ensure failed orderId={}",
+                                                    orderId, ensureEx);
+                                        }
                                     }
                                 }
                             });
@@ -876,6 +882,7 @@ public class MysteryBoxOrderService {
         });
         DictConstants.PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
         boolean vnPayChannel = refundRecordService.isVnPayChannel(payType);
+        boolean refundSettled = false;
         try {
             if (refundRecordService.isMoMoRefundUnsupported(payType)) {
                 refundRecordRepository.save(refundRecord);
@@ -885,6 +892,7 @@ public class MysteryBoxOrderService {
                     userWalletService.credit(userId, payAmount, "REFUND", "超时取消后到账自动退款", orderId);
                 }
                 refundRecordService.finalizeLocalRefundSuccess(refundRecord, mysteryBoxOrder, null, false);
+                refundSettled = true;
             } else if (vnPayChannel) {
                 Optional<PaymentRefundResult> refundResult = vnpayPaymentGateway.refund(
                         orderId,
@@ -899,6 +907,7 @@ public class MysteryBoxOrderService {
                 }
                 refundRecordService.finalizeLocalRefundSuccess(
                         refundRecord, mysteryBoxOrder, result.gatewayRefundId(), false);
+                refundSettled = true;
             } else {
                 // Align with pity / admin paid-cancel: submit WeChat refund immediately.
                 BigDecimal safeAmount = payAmount == null ? BigDecimal.ZERO : payAmount;
@@ -922,24 +931,80 @@ public class MysteryBoxOrderService {
             }
             paymentReliabilityService.recordPaymentEvent(
                     userId, orderId, eventType, "paid_after_cancel_refund", "", 0);
-            userNotificationService.push(
-                    userId,
-                    "REFUND",
-                    "支付已自动退款",
-                    "订单已超时关闭，到账金额已原路/余额退回",
-                    orderId
-            );
+            if (refundSettled) {
+                userNotificationService.push(
+                        userId,
+                        "REFUND",
+                        "支付已自动退款",
+                        "订单已超时关闭，到账金额已原路/余额退回",
+                        orderId
+                );
+            } else {
+                userNotificationService.push(
+                        userId,
+                        "REFUND",
+                        "退款处理中",
+                        "订单已超时关闭，退款已提交请稍候到账",
+                        orderId
+                );
+            }
         } catch (Exception ex) {
             refundRecordRepository.save(refundRecord);
             paymentReliabilityService.recordPaymentEvent(
                     userId, orderId, eventType, "paid_after_cancel_refund_fail",
                     ex.getMessage() == null ? "" : ex.getMessage(), 0);
             log.error("Paid-after-cancel refund failed orderId={}: {}", orderId, ex.getMessage());
+            userNotificationService.push(
+                    userId,
+                    "REFUND",
+                    "退款处理中",
+                    "订单已超时关闭，退款已登记请稍候，如长时间未到账请联系客服",
+                    orderId
+            );
         }
     }
 
     private void executePityStockGatewayRefund(String orderId, String transactionId, String eventType) {
         requiresNewTransaction.executeWithoutResult(status -> doExecutePityStockGatewayRefund(orderId, transactionId, eventType));
+    }
+
+    /** Best-effort REFUNDING row so reconcile can retry when outer refund blew up before save. */
+    private void ensurePityRefundingTicket(String orderId) {
+        requiresNewTransaction.executeWithoutResult(status -> {
+            if (refundRecordRepository.existsRefundingOrSuccess(orderId)) {
+                return;
+            }
+            MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(orderId);
+            BigDecimal payAmount = order.baseOrder() != null && order.baseOrder().payment() != null
+                    ? order.baseOrder().payment().payAmount()
+                    : BigDecimal.ZERO;
+            String refundOrderId = IdUtil.fastSimpleUUID();
+            RefundRecord ticket = RefundRecordDraft.$.produce(draft -> {
+                draft.setId(refundOrderId);
+                draft.setOrderId(orderId);
+                draft.setAmount(payAmount == null ? BigDecimal.ZERO : payAmount);
+                draft.setReason(MysteryBoxUserPityService.COMPENSATE_CODE);
+                draft.setStatus(DictConstants.RefundStatus.REFUNDING);
+            });
+            refundRecordRepository.save(ticket);
+            if (!ProductOrderStatus.CLOSED.equals(order.status())
+                    && !ProductOrderStatus.REFUNDED.equals(order.status())) {
+                mysteryBoxOrderRepository.changeStatus(orderId, ProductOrderStatus.CLOSED);
+            }
+            String userId = order.creator() != null ? order.creator().id() : null;
+            String mysteryBoxId = order.items() == null || order.items().isEmpty()
+                    ? null
+                    : order.items().get(0).mysteryBoxId();
+            if (StringUtils.hasText(userId)) {
+                userNotificationService.push(
+                        userId,
+                        "PITY",
+                        "保底退款处理中",
+                        "保底库存不足，退款已登记请稍候，可选择积分补偿或等待补货",
+                        mysteryBoxId
+                );
+            }
+        });
     }
 
     private void doExecutePityStockGatewayRefund(String orderId, String transactionId, String eventType) {
@@ -972,6 +1037,7 @@ public class MysteryBoxOrderService {
         });
         DictConstants.PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
         boolean vnPayChannel = refundRecordService.isVnPayChannel(payType);
+        boolean refundSettled = false;
         try {
             // Align with RefundRecordService.approve: never wallet-credit VN_PAY when wx is unset.
             if (refundRecordService.isMoMoRefundUnsupported(payType)) {
@@ -984,6 +1050,7 @@ public class MysteryBoxOrderService {
                 }
                 // No prize rollback needed if draw never ran; clearPity skipped via COMPENSATE_CODE reason.
                 refundRecordService.finalizeLocalRefundSuccess(refundRecord, mysteryBoxOrder, null, false);
+                refundSettled = true;
             } else if (vnPayChannel) {
                 Optional<PaymentRefundResult> refundResult = vnpayPaymentGateway.refund(
                         orderId,
@@ -998,6 +1065,7 @@ public class MysteryBoxOrderService {
                 }
                 refundRecordService.finalizeLocalRefundSuccess(
                         refundRecord, mysteryBoxOrder, result.gatewayRefundId(), false);
+                refundSettled = true;
             } else {
                 WxPayRefundV3Request wxPayRefundV3Request = new WxPayRefundV3Request()
                         .setOutTradeNo(orderId)
@@ -1018,13 +1086,23 @@ public class MysteryBoxOrderService {
             }
             paymentReliabilityService.recordPaymentEvent(
                     userId, orderId, eventType, "pity_stock_refund", "", 0);
-            userNotificationService.push(
-                    userId,
-                    "PITY",
-                    "保底库存不足",
-                    "订单已自动退款，请选择积分补偿或等待补货",
-                    mysteryBoxId
-            );
+            if (refundSettled) {
+                userNotificationService.push(
+                        userId,
+                        "PITY",
+                        "保底库存不足",
+                        "订单已自动退款，请选择积分补偿或等待补货",
+                        mysteryBoxId
+                );
+            } else {
+                userNotificationService.push(
+                        userId,
+                        "PITY",
+                        "保底退款处理中",
+                        "保底库存不足，退款已提交请稍候，可选择积分补偿或等待补货",
+                        mysteryBoxId
+                );
+            }
         } catch (Exception ex) {
             // Keep REFUNDING for RefundReconciliationJob retry.
             refundRecordRepository.save(refundRecord);

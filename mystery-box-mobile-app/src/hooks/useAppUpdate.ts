@@ -1,11 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppState, type AppStateStatus } from "react-native";
+import { AppState, Linking, Platform, type AppStateStatus } from "react-native";
 import { parseError } from "../api";
 import { fetchAppUpdateInfo, type AppUpdateInfo } from "../services/appUpdateService";
 import { subscribeAppUpdateRequests } from "../services/appUpdateSignal";
 import { downloadApkUpdate, installDownloadedApk, type ApkDownloadProgress } from "../utils/installApkUpdate";
-import { getLocalAppVersion, isNativeAppUpdateSupported } from "../utils/appVersion";
+import { getLocalAppVersion, isNativeAppUpdateSupported, resolveIosAppStoreUrl } from "../utils/appVersion";
 import i18n from "../i18n";
 import { toast } from "../utils/toast";
 
@@ -112,8 +112,27 @@ export function useAppUpdateController(): AppUpdateController {
   );
 
   const startDownload = useCallback(async () => {
-    if (!info?.downloadUrl) return;
+    if (!info) return;
     setError(null);
+    if (Platform.OS === "ios") {
+      const storeUrl = resolveIosAppStoreUrl(info.downloadUrl);
+      if (!storeUrl) {
+        setError(i18n.t("appUpdate.iosStoreUrlMissing", { defaultValue: "App Store link is not configured." }));
+        setPhase("ready");
+        return;
+      }
+      try {
+        setPhase("installing");
+        await Linking.openURL(storeUrl);
+        setVisible(false);
+        setPhase("idle");
+      } catch (err) {
+        setError(parseError(err));
+        setPhase("ready");
+      }
+      return;
+    }
+    if (!info.downloadUrl) return;
     setPhase("downloading");
     setProgress(null);
     try {

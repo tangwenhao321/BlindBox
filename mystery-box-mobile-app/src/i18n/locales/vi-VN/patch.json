@@ -58,7 +58,8 @@
     "offlineQueueHint": "{{count}} thao tác chờ mạng để đồng bộ",
     "offlineQueueRetry": "Thử đồng bộ ngay",
     "offlineQueueRetryDone": "Đang đồng bộ thao tác ngoại tuyến",
-    "offlineQueueIdle": "Không có thao tác ngoại tuyến — sẽ tự đồng bộ khi có mạng."
+    "offlineQueueIdle": "Không có thao tác ngoại tuyến — sẽ tự đồng bộ khi có mạng.",
+    "deleteAccountFailed": "Máy chủ chưa xác nhận xóa tài khoản. Thử lại hoặc liên hệ hỗ trợ."
   },
   "balanceLogs": {
     "title": "Lịch sử số dư",
@@ -72,41 +73,7 @@
     "shareSummary": "Chia sẻ tóm tắt"
   },
   "profile": {
-    "title": "Của tôi",
-    "login": "Đăng nhập",
-    "tapLogin": "Chạm để đăng nhập",
-    "loginSyncHint": "Đăng nhập để đồng bộ số dư, đơn hàng và yêu thích",
-    "logout": "Đăng xuất",
-    "messagesA11y": "Tin nhắn",
-    "settingsA11y": "Cài đặt",
-    "editProfile": "Sửa hồ sơ",
-    "myOrders": "Đơn hàng của tôi",
-    "myApps": "Ứng dụng của tôi",
-    "moreTools": "Thêm công cụ",
-    "moreToolsHint": "Mở để xem check-in, coupon, cài đặt…",
-    "toolOrders": "Đơn hàng",
-    "toolWarehouse": "Kho",
-    "toolWallet": "Ví",
-    "toolInvite": "Mời",
-    "balance": "Số dư",
-    "luckyCoins": "Xu may mắn",
-    "starStones": "Đá sao",
-    "orderAll": "Tất cả đơn",
-    "orderToPay": "Chưa thanh toán",
-    "orderToShip": "Chờ giao",
-    "orderToReceive": "Chờ nhận",
-    "orderFinished": "Hoàn tất",
-    "recentHighlights": "Điểm nhấn gần đây",
-    "highlightUnknown": "Phần thưởng hiếm",
-    "storyFragmentsBadge": "Mảnh cốt truyện ×{{count}}",
-    "shareAchievements": "Thành tựu chia sẻ",
-    "shareAchievementRow": "{{type}}",
-    "highlightsEmptyTitle": "Chưa có điểm nhấn",
-    "highlightsEmptyDesc": "Mở hộp để thu thập phần thưởng hiếm tại đây",
-    "highlightsEmptyCta": "Đi mở hộp",
-    "achievementsEmptyTitle": "Chưa có huy hiệu chia sẻ",
-    "achievementsEmptyDesc": "Chia sẻ chiến thắng với bạn bè để mở khóa huy hiệu",
-    "achievementsEmptyCta": "Mời & chia sẻ"
+    "appEffectsCenter": "Trung tâm hiệu ứng"
   },
   "tabs": {
     "home": "Trang chủ",
@@ -165,6 +132,9 @@
     "prizeLine": "Phần thưởng trúng",
     "emptyTitle": "Chưa có đơn",
     "emptyDesc": "Khám phá hộp bí ẩn ở trang chủ",
+    "guestEmptyTitle": "Đăng nhập để xem đơn",
+    "guestEmptyDesc": "Đăng nhập để theo dõi thanh toán và giao hàng",
+    "goLogin": "Đăng nhập",
     "goShopping": "Xem ngay",
     "payNow": "Thanh toán",
     "details": "Chi tiết",
@@ -218,7 +188,10 @@
     "couponChip": "−{{amount}}",
     "probabilityRates": "Xác suất: Huyền thoại {{legendary}}% / Ẩn {{hidden}}% / Thường {{general}}%",
     "probabilityDynamicNote": "Xác suất thực tế có thể điều chỉnh theo người mới, chuỗi thua, rút nhiều lần và khung giờ.",
-    "probabilityAdjustedNote": "Xác suất hiển thị đã cá nhân hóa theo tài khoản và số lần rút này (người mới / chuỗi / giờ)."
+    "probabilityAdjustedNote": "Xác suất hiển thị đã cá nhân hóa theo tài khoản và số lần rút này (người mới / chuỗi / giờ).",
+    "oddsTitle": "Công bố xác suất",
+    "probabilityUnavailable": "Không tải được xác suất công bố — mở trang xác suất hoặc thử lại trước khi thanh toán.",
+    "physicalFulfillmentNote": "Đơn hàng hộp mù là hàng vật lý — xác nhận địa chỉ giao hàng trước khi thanh toán. Sau khi mở hộp có thể yêu cầu giao từ Kho."
   },
   "orderDetails": {
     "title": "Chi tiết đơn",
@@ -255,6 +228,9 @@
     "logisticsLabel": "Giao hàng",
     "payNow": "Thanh toán ngay",
     "payNowA11y": "Thanh toán đơn ngay",
+    "repayOddsTitle": "Xác nhận xác suất công bố",
+    "repayOddsBody": "Xác suất có thể đã đổi sau khi tạo đơn chưa thanh toán. Chỉ tiếp tục nếu bạn chấp nhận tỷ lệ trên.",
+    "repayOddsUnavailable": "Không tải được xác suất công bố — thử lại hoặc mở trang xác suất trước khi thanh toán",
     "confirmReceive": "Xác nhận đã nhận",
     "confirmReceiveTitle": "Xác nhận đã nhận",
     "confirmReceiveMessage": "Xác nhận bạn đã nhận hàng?",
@@ -401,6 +377,9 @@
     "fallbackBoxOrder": "Đơn hộp",
     "emptyTitle": "Kho trống",
     "emptyDesc": "Phần thưởng sau khi mở hộp sẽ hiện ở đây",
+    "guestEmptyTitle": "Đăng nhập để xem kho",
+    "guestEmptyDesc": "Phần thưởng mở hộp sẽ lưu tại đây để giao hoặc đăng bán",
+    "goLogin": "Đăng nhập",
     "goHome": "Mở hộp ngay",
     "goHomeOpen": "Về trang chủ",
     "shipSelectAll": "Chọn tất cả",
@@ -471,14 +450,21 @@
     "alipay": "Alipay",
     "wechatIcon": "W",
     "alipayIcon": "A",
-    "methodMock": "WeChat Pay (mô phỏng)",
+    "methodMock": "Thanh toán mô phỏng",
     "methodWechat": "WeChat Pay",
-    "methodHintMock": "Môi trường mô phỏng. Trước khi phát hành đặt EXPO_PUBLIC_PAYMENT_MODE=wechat.",
+    "methodHintMock": "Môi trường mô phỏng. Trước khi phát hành đặt EXPO_PUBLIC_PAYMENT_MODE=vnpay.",
     "methodHintWechat": "Mở thưởng sau khi thanh toán. Cài WeChat và hoàn tất ủy quyền.",
+    "vnpayPay": "VNPay",
+    "vnpayIcon": "V",
+    "mockIcon": "M",
     "prodChecklistMerchant": "Cấu hình mã merchant WeChat và notify URL trên server",
     "prodChecklistMode": "Đặt EXPO_PUBLIC_PAYMENT_MODE=wechat trong app",
     "prodChecklistDevClient": "Build Dev Client và liên kết react-native-wechat-lib",
-    "prodChecklistPrepay": "Kiểm thử /front/order/prepay/wechat và callback thanh toán"
+    "prodChecklistPrepay": "Kiểm thử /front/order/prepay/wechat và callback thanh toán",
+    "prodChecklistMerchantVnpay": "Cấu hình TMN code, hash secret và return/IPN URL VNPay trên server",
+    "prodChecklistModeVnpay": "Đặt EXPO_PUBLIC_PAYMENT_MODE=vnpay trong app",
+    "prodChecklistDevClientVnpay": "Xác minh deeplink / URL trả về mở đúng app",
+    "prodChecklistPrepayVnpay": "Kiểm thử /front/order/prepay/vnpay và màn hình trả về thanh toán"
   },
   "networkBanner": {
     "message": "Lỗi mạng — kiểm tra kết nối và thử lại"
@@ -602,6 +588,9 @@
     "emptyMarket": "Chưa có tin",
     "emptyMine": "Chưa đăng bán",
     "emptyPurchased": "Chưa mua",
+    "guestEmptyTitle": "Đăng nhập để xem đăng bán",
+    "guestEmptyDesc": "Đăng nhập để quản lý tin đăng và món đã mua",
+    "goLogin": "Đăng nhập",
     "goWarehouseList": "Đăng từ kho",
     "buyWithBalance": "Mua bằng số dư",
     "delist": "Gỡ bán",
@@ -642,6 +631,9 @@
     "title": "Coupon của tôi",
     "emptyTitle": "Chưa có coupon",
     "emptyDesc": "Nhận coupon từ sự kiện hoặc đơn hàng",
+    "guestEmptyTitle": "Đăng nhập để xem coupon",
+    "guestEmptyDesc": "Đăng nhập để xem coupon từ sự kiện và đơn hàng",
+    "goLogin": "Đăng nhập",
     "goWelfare": "Trung tâm phúc lợi",
     "statusAvailable": "Khả dụng",
     "useNow": "Dùng ngay"
@@ -677,7 +669,8 @@
     "apiMissing": "Chưa đặt EXPO_PUBLIC_API_BASE_URL",
     "mockPaymentMode": "Bản production vẫn dùng thanh toán mô phỏng (EXPO_PUBLIC_PAYMENT_MODE=mock)",
     "mockPaymentFlag": "EXPO_PUBLIC_MOCK_PAYMENT vẫn là true",
-    "sentrySdkMissing": "Đã có EXPO_PUBLIC_SENTRY_DSN nhưng chưa cài @sentry/react-native"
+    "sentrySdkMissing": "Đã có EXPO_PUBLIC_SENTRY_DSN nhưng chưa cài @sentry/react-native",
+    "supportContactMissing": "Chưa cấu hình hotline và email hỗ trợ (EXPO_PUBLIC_SUPPORT_PHONE / EXPO_PUBLIC_SUPPORT_EMAIL)"
   },
   "sharePoster": {
     "communityDraft": "Khoe hàng | {{boxName}} x{{count}}{{prize}}",
@@ -710,7 +703,11 @@
     "theme_asmr": "ASMR chữa lành",
     "theme_party": "Tiệc carnival"
   },
-  "profile": {
-    "appEffectsCenter": "Trung tâm hiệu ứng"
+  "actions": {
+    "iosRedeemBlocked": "Không thể đổi thưởng thành số dư ví trên iOS. Vui lòng yêu cầu giao hàng vật lý.",
+    "iosDecomposeBlocked": "Không thể phân hủy thành mảnh trên iOS. Vui lòng yêu cầu giao hàng.",
+    "iosExchangeBlocked": "Đổi mảnh không khả dụng trên iOS",
+    "iosExchangeBlockedHint": "Theo quy tắc App Store, phần thưởng rút thăm cần giao hàng vật lý. Dùng Kho → Giao hàng.",
+    "iosMarketplaceBuyBlocked": "Không thể mua bằng số dư ví trên iOS. Duyệt tin hoặc giao hàng từ Kho."
   }
 }

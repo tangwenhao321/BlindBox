@@ -31,6 +31,7 @@ type Props = {
   onBack: () => void;
   onOpenBox: (boxId: string) => void;
   onGoBrowse?: () => void;
+  onRequireLogin?: () => void;
 };
 
 async function resolveFavoriteBoxes(token: string, ids: string[], catalog: MysteryBox[]) {
@@ -59,7 +60,7 @@ async function resolveFavoriteBoxes(token: string, ids: string[], catalog: Myste
   return { resolved, failedIds };
 }
 
-export function FavoritesView({ catalogBoxes = [], onBack, onOpenBox, onGoBrowse }: Props) {
+export function FavoritesView({ catalogBoxes = [], onBack, onOpenBox, onGoBrowse, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -125,10 +126,16 @@ export function FavoritesView({ catalogBoxes = [], onBack, onOpenBox, onGoBrowse
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
             <EmptyState
-              title={t("favorites.emptyTitle")}
-              description={t("favorites.emptyDesc")}
-              actionLabel={onGoBrowse ? t("favorites.goBrowse") : undefined}
-              onAction={onGoBrowse}
+              title={token ? t("favorites.emptyTitle") : t("favorites.guestEmptyTitle")}
+              description={token ? t("favorites.emptyDesc") : t("favorites.guestEmptyDesc")}
+              actionLabel={
+                !token && onRequireLogin
+                  ? t("favorites.goLogin")
+                  : onGoBrowse
+                    ? t("favorites.goBrowse")
+                    : undefined
+              }
+              onAction={!token && onRequireLogin ? onRequireLogin : onGoBrowse}
             />,
           )}
           renderItem={({ item }) => (

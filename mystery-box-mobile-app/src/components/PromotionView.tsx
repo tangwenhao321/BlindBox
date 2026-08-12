@@ -33,9 +33,10 @@ type Props = {
   onBack: () => void;
   embedded?: boolean;
   referral?: ReferralStatsHook;
+  onRequireLogin?: () => void;
 };
 
-export function PromotionView({ onBack, embedded, referral }: Props) {
+export function PromotionView({ onBack, embedded, referral, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -189,7 +190,13 @@ export function PromotionView({ onBack, embedded, referral }: Props) {
           scrollEnabled={false}
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
-            <EmptyState title={t("promotion.emptyTitle")} description={t("promotion.emptyDesc")} variant="plain" />,
+            <EmptyState
+              title={token ? t("promotion.emptyTitle") : t("promotion.guestEmptyTitle")}
+              description={token ? t("promotion.emptyDesc") : t("promotion.guestEmptyDesc")}
+              variant="plain"
+              actionLabel={!token && onRequireLogin ? t("promotion.goLogin") : undefined}
+              onAction={!token ? onRequireLogin : undefined}
+            />,
           )}
           renderItem={({ item }) => (
             <View style={styles.row}>

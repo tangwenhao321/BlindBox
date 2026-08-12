@@ -197,4 +197,29 @@ public class UserService {
             throw new BusinessException(ResultCode.ParamSetIllegal, "密码至少 8 位且需包含字母和数字");
         }
     }
+
+    /**
+     * Bind a real phone onto a Zalo-created account that still has a synthetic {@code zalo:} phone.
+     */
+    public void bindPhone(String userId, String phone, String code) {
+        String normalizedPhone = phone == null ? "" : phone.trim();
+        authSmsOtpGuard.assertSmsVerified(normalizedPhone, code);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "用户不存在"));
+        String current = user.phone();
+        if (current == null || !current.startsWith("zalo:")) {
+            throw new BusinessException("PHONE_ALREADY_BOUND: 当前账号已绑定手机号");
+        }
+        UserTable userTable = UserTable.$;
+        userRepository.sql().createQuery(userTable)
+                .where(userTable.phone().eq(normalizedPhone))
+                .select(userTable.id())
+                .fetchOptional()
+                .ifPresent(existingId -> {
+                    if (!existingId.equals(userId)) {
+                        throw new BusinessException(ResultCode.StatusHasValid, "该手机号已被其他账号使用");
+                    }
+                });
+        userRepository.update(UserDraft.$.produce(draft -> draft.setId(userId).setPhone(normalizedPhone)));
+    }
 }

@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ListPageShell from '@/components/base/layout/list-page-shell.vue'
 import { request } from '@/utils/request'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type ShipRow = {
   id: string
@@ -157,7 +158,11 @@ onMounted(() => void load())
           </template>
         </el-table-column>
         <el-table-column prop="itemCount" label="件数" width="70" />
-        <el-table-column prop="payAmount" label="运费" width="90" />
+        <el-table-column prop="payAmount" label="运费" width="110">
+          <template #default="{ row }">
+            {{ formatAdminMoney(row.payAmount) }}
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="100">
           <template #default="{ row }">{{ statusLabel(row.status) }}</template>
         </el-table-column>
@@ -203,7 +208,7 @@ onMounted(() => void load())
   <el-dialog v-model="detailVisible" title="发货申请明细" width="560px">
     <template v-if="detail">
       <p><strong>地址：</strong>{{ detail.request.addressSnapshot }}</p>
-      <p><strong>运费：</strong>¥{{ detail.request.payAmount }}</p>
+      <p><strong>运费：</strong>{{ formatAdminMoney(detail.request.payAmount) }}</p>
       <p v-if="detail.request.rejectReason">
         <strong>驳回原因：</strong>{{ detail.request.rejectReason }}
       </p>

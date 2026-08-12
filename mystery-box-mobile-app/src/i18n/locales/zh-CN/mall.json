@@ -19,6 +19,6 @@
     "fallbackLife": "品质生活",
     "fallbackHot": "热销爆款",
     "boxNewcomer": "新人",
-    "boxA11y": "{{name}}，价格{{price}}元"
+    "boxA11y": "{{name}}，价格{{price}}"
   }
 }

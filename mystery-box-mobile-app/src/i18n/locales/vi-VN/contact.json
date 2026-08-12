@@ -1,7 +1,9 @@
 {
   "contact": {
     "noPhone": "Chưa cấu hình hotline — thử lại sau",
+    "noPhoneFallback": "Chưa có kênh hỗ trợ — thử lại sau hoặc để lại ghi chú trên App Store",
     "callHint": "Gọi: {{phone}}",
+    "emailHint": "Email: {{email}}",
     "noWecom": "WeCom không khả dụng — liên hệ qua Zalo hoặc hotline",
     "wecomShare": "Thêm WeCom: {{id}}",
     "wecomId": "WeChat ID: {{id}}",

@@ -11,6 +11,8 @@ import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.payment.config.MarketProperties;
 import io.github.qifan777.server.payment.entity.Payment;
 import io.github.qifan777.server.payment.entity.PaymentDraft;
+import io.github.qifan777.server.payment.gateway.MoMoPaymentGateway;
+import io.github.qifan777.server.payment.gateway.MoMoPrepayView;
 import io.github.qifan777.server.payment.gateway.PaymentGateway;
 import io.github.qifan777.server.payment.gateway.PaymentGatewayRegistry;
 import io.github.qifan777.server.payment.gateway.PaymentNotifyResult;
@@ -55,6 +57,7 @@ public class VipOrderService {
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final MarketProperties marketProperties;
     private final VNPayPaymentGateway vnpayPaymentGateway;
+    private final MoMoPaymentGateway momoPaymentGateway;
     private final PaymentNotifyLogService paymentNotifyLogService;
     private final PaymentRepository paymentRepository;
 
@@ -72,7 +75,15 @@ public class VipOrderService {
     }
 
     public Object save(VipOrderInput vipOrderInput, String clientIp) {
-        VipPackage vipPackage = vipPackageRepository.findById(vipOrderInput.getVipPackageId()).orElseThrow(() -> new BusinessException(ResultCode.NotFindError));
+        VipOrder activityOrder = createUnpaid(vipOrderInput);
+        PaymentGateway gateway = paymentGatewayRegistry.resolveForMarket();
+        return gateway.prepay(activityOrder.baseOrder(), 5, notifyPathForMarket(), clientIp);
+    }
+
+    /** Create unpaid VIP order (no gateway prepay) — use with channel-specific prepay endpoints. */
+    public VipOrder createUnpaid(VipOrderInput vipOrderInput) {
+        VipPackage vipPackage = vipPackageRepository.findById(vipOrderInput.getVipPackageId())
+                .orElseThrow(() -> new BusinessException(ResultCode.NotFindError));
         String orderId = OrderIds.next();
         VipOrder produce = VipOrderDraft.$.produce(vipOrderInput.toEntity(), draft -> {
             draft.setId(orderId)
@@ -81,16 +92,36 @@ public class VipOrderService {
                 baseOrderDraft.setId(orderId)
                         .setPayment(initPayment(vipPackage.price(), orderId))
                         .setRemark("userId:" + StpUtil.getLoginIdAsString() + ";vipPackageId:" + vipPackage.id())
-                        .setType(DictConstants.OrderType.VIP_ORDER)
-                ;
+                        .setType(DictConstants.OrderType.VIP_ORDER);
             });
         });
-        VipOrder activityOrder = vipOrderRepository.save(produce);
-        PaymentGateway gateway = paymentGatewayRegistry.resolveForMarket();
-        return gateway.prepay(activityOrder.baseOrder(), 5, notifyPathForMarket(), clientIp);
+        return vipOrderRepository.save(produce);
     }
 
     public Object prepay(String orderId, String clientIp) {
+        VipOrder vipOrder = requireUnpaidOwnedOrder(orderId);
+        PaymentGateway gateway = paymentGatewayRegistry.resolveForMarket();
+        return gateway.prepay(vipOrder.baseOrder(), 5, notifyPathForMarket(), clientIp);
+    }
+
+    public MoMoPrepayView prepayMoMo(String orderId, String clientIp) {
+        VipOrder vipOrder = requireUnpaidOwnedOrder(orderId);
+        return momoPaymentGateway.prepay(
+                vipOrder.baseOrder(),
+                5,
+                "/front/vip-order/notify/pay/momo",
+                clientIp);
+    }
+
+    /** Dev/integration: mark unpaid VIP order paid without a gateway (requires app.payment.mock-enabled). */
+    public String mockPay(String orderId) {
+        requireUnpaidOwnedOrder(orderId);
+        completeAfterPayment(orderId, "mock-" + orderId);
+        log.info("VIP mock pay completed orderId={}", orderId);
+        return orderId;
+    }
+
+    private VipOrder requireUnpaidOwnedOrder(String orderId) {
         VipOrder vipOrder = vipOrderRepository.findById(orderId, VipOrderRepository.COMPLEX_FETCHER_FOR_ADMIN)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单不存在"));
         if (!vipOrder.creator().id().equals(StpUtil.getLoginIdAsString())) {
@@ -101,8 +132,7 @@ public class VipOrderService {
         if (vipOrder.baseOrder().payment().payTime() != null) {
             throw new BusinessException("订单已支付");
         }
-        PaymentGateway gateway = paymentGatewayRegistry.resolveForMarket();
-        return gateway.prepay(vipOrder.baseOrder(), 5, notifyPathForMarket(), clientIp);
+        return vipOrder;
     }
 
     @SneakyThrows
@@ -172,6 +202,38 @@ public class VipOrderService {
         return VNPAY_NOTIFY_SUCCESS;
     }
 
+    public String paymentNotifyMoMo(Map<String, String> params) {
+        Optional<PaymentNotifyResult> parsed = momoPaymentGateway.parsePaymentNotify(null, params);
+        if (parsed.isEmpty()) {
+            return "{\"resultCode\":1,\"message\":\"invalid\"}";
+        }
+        PaymentNotifyResult result = parsed.get();
+        if (result.amountMinor() == null) {
+            log.warn("MoMo VIP IPN missing amount orderId={}", result.orderId());
+            return "{\"resultCode\":1,\"message\":\"invalid amount\"}";
+        }
+        VipOrder vipOrder = vipOrderRepository.findById(result.orderId(), VipOrderRepository.COMPLEX_FETCHER_FOR_ADMIN)
+                .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单不存在"));
+        if (!momoPaymentGateway.matchesPayAmount(result.amountMinor(), vipOrder.baseOrder().payment().payAmount())) {
+            log.warn("MoMo VIP IPN amount mismatch orderId={} amountMinor={}", result.orderId(), result.amountMinor());
+            return "{\"resultCode\":1,\"message\":\"invalid amount\"}";
+        }
+        String body = params.toString();
+        if (!paymentNotifyLogService.tryBegin(result.orderId(), result.transactionId(), "vip-momo", body)) {
+            log.info("重复 VIP MoMo 回调已忽略 orderId={}", result.orderId());
+            return "{\"resultCode\":0,\"message\":\"success\"}";
+        }
+        try {
+            completeAfterPayment(result.orderId(), result.transactionId());
+            paymentNotifyLogService.markProcessed(result.orderId(), "vip-momo", body);
+        } catch (Exception ex) {
+            paymentNotifyLogService.markFailed(result.orderId(), "vip-momo");
+            log.error("VIP MoMo notify failed orderId={}", result.orderId(), ex);
+            throw ex;
+        }
+        return "{\"resultCode\":0,\"message\":\"success\"}";
+    }
+
     /** Idempotent VIP payment completion for reconciliation jobs (missed IPN). */
     public void reconcilePayment(String orderId, String transactionId) {
         completeAfterPayment(orderId, transactionId == null ? orderId : transactionId);
@@ -203,6 +265,9 @@ public class VipOrderService {
                 : marketProperties.getPaymentProvider().trim().toLowerCase(Locale.ROOT);
         if ("vnpay".equals(provider) || "vn_pay".equals(provider)) {
             return "/front/vip-order/notify/pay/vnpay";
+        }
+        if ("momo".equals(provider) || "mo_mo".equals(provider)) {
+            return "/front/vip-order/notify/pay/momo";
         }
         return "/front/vip-order/notify/pay/wechat";
     }

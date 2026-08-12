@@ -2,7 +2,10 @@
   "ageGate": {
     "title": "年龄确认",
     "body": "盲盒商品具有随机性。下单前请确认您已年满 18 周岁，并同意平台相关协议。",
-    "confirm": "我已满 18 周岁",
-    "decline": "暂不下单"
+    "confirm": "确认我已满 18 岁",
+    "decline": "暂不下单",
+    "birthYearHint": "请填写出生年份以确认你已年满 18 周岁。",
+    "birthYearPlaceholder": "出生年份（YYYY）",
+    "birthYearInvalid": "请填写有效出生年份（需年满 18 岁）。"
   }
 }

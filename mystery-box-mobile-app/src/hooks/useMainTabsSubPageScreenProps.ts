@@ -98,7 +98,7 @@ export function useBoxDetailsScreenProps(offline: boolean) {
 }
 
 export function useMyOrdersScreenProps() {
-  const { goBack, pageLoading, resetTab } = useMainTabsShellViewState();
+  const { goBack, pageLoading, resetTab, onOpenLogin } = useMainTabsShellViewState();
   const orderViewProps = useMainTabsOrderViewProps();
   const authToken = useAuthToken();
   const warehouseQuery = useOrderWarehouseItems(authToken);
@@ -166,8 +166,9 @@ export function useMyOrdersScreenProps() {
       loadError: orderViewProps.ordersLoadError,
       onRetryLoad: orderViewProps.onRetryOrders,
       onGoShopping: () => resetTab("home"),
+      onRequireLogin: onOpenLogin,
     }),
-    [displayRows, goBack, listLoading, orderViewProps, resetTab, tabCounts, usesWarehouseData],
+    [displayRows, goBack, listLoading, onOpenLogin, orderViewProps, resetTab, tabCounts, usesWarehouseData],
   );
 }
 
@@ -317,7 +318,7 @@ export function useIpThemeScreenProps() {
 }
 
 export function useFavoritesScreenProps() {
-  const { goBack, resetTab } = useMainTabsShellViewState();
+  const { goBack, resetTab, onOpenLogin } = useMainTabsShellViewState();
   const boxViewProps = useMainTabsBoxViewProps();
   const catalogBoxes = useCatalogBoxList();
 
@@ -327,8 +328,9 @@ export function useFavoritesScreenProps() {
       onBack: goBack,
       onOpenBox: (boxId: string) => boxViewProps.onOpenDetails(boxId),
       onGoBrowse: () => resetTab("home"),
+      onRequireLogin: onOpenLogin,
     }),
-    [boxViewProps.onOpenDetails, catalogBoxes, goBack, resetTab],
+    [boxViewProps.onOpenDetails, catalogBoxes, goBack, onOpenLogin, resetTab],
   );
 }
 
@@ -374,14 +376,15 @@ export function useShipRequestsScreenProps() {
 }
 
 export function useExchangeMallScreenProps() {
-  const { goBack, resetTab } = useMainTabsShellViewState();
+  const { goBack, resetTab, onOpenLogin } = useMainTabsShellViewState();
 
   return useMemo(
     () => ({
       onBack: goBack,
       onGoWarehouse: () => resetTab("warehouse"),
+      onRequireLogin: onOpenLogin,
     }),
-    [goBack, resetTab],
+    [goBack, onOpenLogin, resetTab],
   );
 }
 
@@ -412,7 +415,7 @@ export function useProbabilityScreenProps() {
 }
 
 export function useCouponsScreenProps() {
-  const { goBack, resetTab, setView } = useMainTabsShellViewState();
+  const { goBack, resetTab, setView, onOpenLogin } = useMainTabsShellViewState();
   const boxViewProps = useMainTabsBoxViewProps();
 
   return useMemo(
@@ -421,8 +424,9 @@ export function useCouponsScreenProps() {
       onGoWelfare: () => navigateToWelfare(setView),
       onGoMall: () => resetTab("mall"),
       onOpenBox: (boxId: string) => void boxViewProps.onOpenDetails(boxId),
+      onRequireLogin: onOpenLogin,
     }),
-    [boxViewProps.onOpenDetails, goBack, resetTab, setView],
+    [boxViewProps.onOpenDetails, goBack, onOpenLogin, resetTab, setView],
   );
 }
 
@@ -489,7 +493,7 @@ export function useAddressFormScreenProps() {
 
 export function useWelfareScreenProps() {
   const { t } = useTranslation();
-  const { goBack } = useMainTabsShellViewState();
+  const { goBack, onOpenLogin } = useMainTabsShellViewState();
   const { featureViewProps } = useMainTabsAccountViewProps();
 
   return useMemo(
@@ -497,8 +501,9 @@ export function useWelfareScreenProps() {
       pageTitle: t("welfare.pageTitle"),
       onBack: goBack,
       onOpenCoupons: () => featureViewProps.onOpenFeature(FEATURE_KEYS.COUPONS),
+      onRequireLogin: onOpenLogin,
     }),
-    [featureViewProps.onOpenFeature, goBack, t],
+    [featureViewProps.onOpenFeature, goBack, onOpenLogin, t],
   );
 }
 
@@ -524,7 +529,7 @@ export function usePrivacyScreenProps() {
     () => ({
       title: t("settings.privacyPolicy"),
       onBack: goBack,
-      paragraphs: [t("privacyPage.p1"), t("privacyPage.p2"), t("privacyPage.p3")],
+      paragraphs: [t("privacyPage.p1"), t("privacyPage.p2"), t("privacyPage.p3"), t("privacyPage.p4"), t("privacyPage.p5")],
     }),
     [goBack, t],
   );
@@ -538,7 +543,7 @@ export function useTermsOfServiceScreenProps() {
     () => ({
       title: t("legal.termsTitle"),
       onBack: goBack,
-      paragraphs: [t("legal.termsP1"), t("legal.termsP2")],
+      paragraphs: [t("legal.termsP1"), t("legal.termsP2"), t("legal.termsP3"), t("legal.termsP4")],
     }),
     [goBack, t],
   );
@@ -552,14 +557,14 @@ export function useMinorDeclarationScreenProps() {
     () => ({
       title: t("legal.minorTitle"),
       onBack: goBack,
-      paragraphs: [t("legal.minorP1"), t("legal.minorP2")],
+      paragraphs: [t("legal.minorP1"), t("legal.minorP2"), t("legal.minorP3")],
     }),
     [goBack, t],
   );
 }
 
 export function usePaymentReturnScreenProps() {
-  const { resetTab } = useMainTabsShellViewState();
+  const { resetTab, onOpenLogin } = useMainTabsShellViewState();
   const nav = useMainTabsNav();
   const orderViewProps = useMainTabsOrderViewProps();
   const [params, setParams] = useState(() => peekPaymentReturnParams());
@@ -587,8 +592,9 @@ export function usePaymentReturnScreenProps() {
         nav.goBack();
       },
       onPaymentSettled: (orderId: string) => settlePaymentFromReturn(orderId),
+      onRequireLogin: onOpenLogin,
     }),
-    [nav, orderViewProps, params, resetTab],
+    [nav, onOpenLogin, orderViewProps, params, resetTab],
   );
 }
 

@@ -10,6 +10,8 @@
     "failTitle": "支付未完成",
     "failHint": "如已扣款请稍后在订单页刷新；也可重新发起支付。",
     "retryPay": "重新支付",
-    "backHome": "返回首页"
+    "backHome": "返回首页",
+    "loginRequired": "登录后可查看支付结果",
+    "goLogin": "去登录"
   }
 }

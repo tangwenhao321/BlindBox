@@ -2,6 +2,7 @@ package io.github.qifan777.server.vip.root.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.Objects;
+import io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.vip.root.entity.Vip;
 import io.github.qifan777.server.vip.root.entity.dto.VipInput;
@@ -26,6 +27,7 @@ import java.util.List;
 @Transactional
 public class VipForFrontController {
     private final VipRepository vipRepository;
+    private final IosDigitalGoodsGuard iosDigitalGoodsGuard;
 
     @GetMapping
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") Vip find() {
@@ -41,6 +43,7 @@ public class VipForFrontController {
 
     @PostMapping("save")
     public String save(@RequestBody @Validated VipInput vipInput) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         if (StringUtils.hasText(vipInput.getId())) {
             Vip vip = vipRepository.findById(vipInput.getId(), VipRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
             if (!vip.creator().id().equals(StpUtil.getLoginIdAsString())) {
@@ -52,6 +55,7 @@ public class VipForFrontController {
 
     @DeleteMapping
     public Boolean delete(@RequestBody List<String> ids) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         vipRepository.findByIds(ids, VipRepository.COMPLEX_FETCHER_FOR_FRONT).forEach(vip -> {
             if (!vip.creator().id().equals(StpUtil.getLoginIdAsString())) {
                 throw new BusinessException("只能删除自己的数据");

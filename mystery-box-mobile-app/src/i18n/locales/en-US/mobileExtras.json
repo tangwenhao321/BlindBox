@@ -32,11 +32,14 @@
   },
   "legal": {
     "termsTitle": "Terms of service",
-    "termsP1": "By using this app you agree to platform rules on random draws, shipping, and refunds.",
-    "termsP2": "Purchases are limited to users aged 18+. Contact support for account or order disputes.",
+    "termsP1": "By using Night Cabinet you agree to platform rules on random draws, inventory allocation, shipping, refunds, and anti-abuse measures. Odds shown at checkout are box-level disclosures; actual draws follow server inventory and published rules.",
+    "termsP2": "Purchases are limited to users aged 18+. After a box is revealed, refunds are generally unavailable except where required by law or system error (e.g. pity stock failure). Contact in-app support for disputes.",
     "minorTitle": "Minor declaration",
-    "minorP1": "Mystery box products involve random outcomes and are not suitable for minors.",
-    "minorP2": "Parents or guardians must not permit under-18 users to place orders on this platform."
+    "minorP1": "Mystery box products involve random outcomes and spending risk. They are not suitable for minors under 18.",
+    "minorP2": "Parents or guardians must not permit under-18 users to place orders. If you are under 18, decline this app and do not complete purchases.",
+    "termsP3": "Digital memberships sold on iOS must use Apple In-App Purchase when offered. Physical mystery-box goods may use third-party payment channels where permitted.",
+    "termsP4": "We may suspend accounts that engage in fraud, chargebacks abuse, or attempts to reverse-engineer draw outcomes.",
+    "minorP3": "We may request additional age confirmation and reserve the right to cancel underage orders."
   },
   "currency": {
     "ledgerTitle": "Recent activity",

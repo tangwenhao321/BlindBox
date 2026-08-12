@@ -43,12 +43,28 @@
         "EXPO_PUBLIC_CURRENCY": "VND",
         "EXPO_PUBLIC_PAYMENT_MODE": "vnpay",
         "EXPO_PUBLIC_MOCK_PAYMENT": "false",
-        "EXPO_PUBLIC_APP_VARIANT": "production-vn"
+        "EXPO_PUBLIC_APP_VARIANT": "production-vn",
+        "EXPO_PUBLIC_PRIVACY_URL": "",
+        "EXPO_PUBLIC_TERMS_URL": "",
+        "EXPO_PUBLIC_MINOR_DECLARATION_URL": "",
+        "EXPO_PUBLIC_APP_LINK_DOMAIN": "",
+        "EXPO_PUBLIC_IOS_APP_STORE_URL": "",
+        "EXPO_PUBLIC_SUPPORT_PHONE": "",
+        "EXPO_PUBLIC_SUPPORT_EMAIL": "",
+        "EXPO_PUBLIC_SENTRY_DSN": "",
+        "SENTRY_ORG": "",
+        "SENTRY_PROJECT": ""
       },
       "channel": "production-vn"
     }
   },
   "submit": {
-    "production": {}
+    "production": {},
+    "production-vn": {
+      "extends": "production",
+      "ios": {
+        "ascAppId": ""
+      }
+    }
   }
 }

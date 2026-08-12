@@ -7,6 +7,9 @@
     "level1": "一级成员",
     "level2": "二级成员",
     "emptyTitle": "暂无团队成员",
-    "emptyDesc": "邀请好友加入后可在此查看"
+    "emptyDesc": "邀请好友加入后可在此查看",
+    "guestEmptyTitle": "登录后查看团队",
+    "guestEmptyDesc": "登录后可邀请好友并查看团队成员",
+    "goLogin": "去登录"
   }
 }

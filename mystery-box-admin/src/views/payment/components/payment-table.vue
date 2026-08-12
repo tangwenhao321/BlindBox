@@ -5,6 +5,7 @@ import type { Scope } from '@/typings'
 import type { PaymentDto } from '@/apis/__generated/model/dto'
 import { useTableHelper } from '@/components/base/table/table-helper'
 import { userLabelProp } from '@/views/user/store/user-store'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type PaymentScope = Scope<PaymentDto['PaymentRepository/COMPLEX_FETCHER_FOR_ADMIN']>
 const paymentTableHelper = inject(
@@ -46,29 +47,29 @@ onMounted(() => {
           {{ row.payTime || '—' }}
         </template>
       </el-table-column>
-      <el-table-column label="实付金额" prop="payAmount" sortable="custom" width="100">
+      <el-table-column label="实付金额" prop="payAmount" sortable="custom" width="110">
         <template v-slot:default="{ row }: PaymentScope">
-          {{ row.payAmount }}
+          {{ formatAdminMoney(row.payAmount) }}
         </template>
       </el-table-column>
       <el-table-column label="VIP优惠" prop="vipAmount" sortable="custom" width="100">
         <template v-slot:default="{ row }: PaymentScope">
-          {{ row.vipAmount }}
+          {{ formatAdminMoney(row.vipAmount) }}
         </template>
       </el-table-column>
       <el-table-column label="优惠券减免" prop="couponAmount" sortable="custom" width="110">
         <template v-slot:default="{ row }: PaymentScope">
-          {{ row.couponAmount }}
+          {{ formatAdminMoney(row.couponAmount) }}
         </template>
       </el-table-column>
-      <el-table-column label="商品金额" prop="productAmount" sortable="custom" width="100">
+      <el-table-column label="商品金额" prop="productAmount" sortable="custom" width="110">
         <template v-slot:default="{ row }: PaymentScope">
-          {{ row.productAmount }}
+          {{ formatAdminMoney(row.productAmount) }}
         </template>
       </el-table-column>
-      <el-table-column label="配送费" prop="deliveryFee" sortable="custom" width="90">
+      <el-table-column label="配送费" prop="deliveryFee" sortable="custom" width="100">
         <template v-slot:default="{ row }: PaymentScope">
-          {{ row.deliveryFee }}
+          {{ formatAdminMoney(row.deliveryFee) }}
         </template>
       </el-table-column>
       <el-table-column

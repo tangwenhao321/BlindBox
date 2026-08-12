@@ -7,6 +7,8 @@ import type { ThemeColors } from "../../styles/themes";
 import { applyPityCompensateChoice } from "../../utils/pityCompensate";
 import { trackEvent } from "../../utils/analytics";
 import { ANALYTICS_EVENTS } from "../../utils/analyticsEvents";
+import { isIosDigitalGoodsRestricted } from "../../utils/iosDigitalGoodsGate";
+import { toast } from "../../utils/toast";
 
 type Props = {
   visible: boolean;
@@ -20,9 +22,14 @@ export function PityCompensateSheet({ visible, token, boxId, onClose, onComplete
   const { t } = useTranslation();
   const styles = useThemedStyles(buildPityCompensateStyles);
   const [submitting, setSubmitting] = useState<"WAIT" | "POINTS" | null>(null);
+  const pointsAllowed = !isIosDigitalGoodsRestricted();
 
   const submit = async (choice: "WAIT" | "POINTS") => {
     if (submitting) return;
+    if (choice === "POINTS" && !pointsAllowed) {
+      toast.info(t("api.errors.iosDigitalGoodsBlocked"));
+      return;
+    }
     setSubmitting(choice);
     try {
       const ok = await applyPityCompensateChoice(token, boxId, choice);
@@ -45,7 +52,11 @@ export function PityCompensateSheet({ visible, token, boxId, onClose, onComplete
       >
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()} accessibilityViewIsModal>
           <Text style={styles.title}>{t("boxDetails.pityCompensateTitle")}</Text>
-          <Text style={styles.message}>{t("boxDetails.pityCompensateBody")}</Text>
+          <Text style={styles.message}>
+            {pointsAllowed
+              ? t("boxDetails.pityCompensateBody")
+              : t("boxDetails.pityCompensateBodyIos")}
+          </Text>
           <View style={styles.actions}>
             <Pressable
               style={({ pressed }) => [
@@ -64,23 +75,25 @@ export function PityCompensateSheet({ visible, token, boxId, onClose, onComplete
                 <Text style={styles.waitText}>{t("boxDetails.pityCompensateWait")}</Text>
               )}
             </Pressable>
-            <Pressable
-              style={({ pressed }) => [
-                styles.btn,
-                styles.pointsBtn,
-                pressed || submitting ? styles.pressed : null,
-              ]}
-              disabled={!!submitting}
-              onPress={() => void submit("POINTS")}
-              accessibilityRole="button"
-              accessibilityLabel={t("boxDetails.pityCompensatePoints")}
-            >
-              {submitting === "POINTS" ? (
-                <ActivityIndicator color={styles.pointsText.color} />
-              ) : (
-                <Text style={styles.pointsText}>{t("boxDetails.pityCompensatePoints")}</Text>
-              )}
-            </Pressable>
+            {pointsAllowed ? (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.btn,
+                  styles.pointsBtn,
+                  pressed || submitting ? styles.pressed : null,
+                ]}
+                disabled={!!submitting}
+                onPress={() => void submit("POINTS")}
+                accessibilityRole="button"
+                accessibilityLabel={t("boxDetails.pityCompensatePoints")}
+              >
+                {submitting === "POINTS" ? (
+                  <ActivityIndicator color={styles.pointsText.color} />
+                ) : (
+                  <Text style={styles.pointsText}>{t("boxDetails.pityCompensatePoints")}</Text>
+                )}
+              </Pressable>
+            ) : null}
           </View>
         </Pressable>
       </Pressable>

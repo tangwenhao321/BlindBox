@@ -22,6 +22,11 @@
     "resumeUnpaidTitle": "Unpaid order exists",
     "resumeUnpaidMessage": "You have an unpaid order for «{{boxName}}» ({{orderId}}). Pay that order instead?",
     "resumeUnpaidPay": "Pay existing order",
-    "resumeUnpaidNew": "Create new order"
+    "resumeUnpaidNew": "Create new order",
+    "iosRedeemBlocked": "Redeeming prizes to wallet balance is not available on iOS. Please request shipping for physical fulfillment.",
+    "iosDecomposeBlocked": "Breaking prizes into fragments is not available on iOS. Please request shipping instead.",
+    "iosExchangeBlocked": "Fragment exchange is not available on iOS",
+    "iosExchangeBlockedHint": "App Store rules require physical fulfillment for chance-based prizes. Use Warehouse → Ship.",
+    "iosMarketplaceBuyBlocked": "Buying with wallet balance is not available on iOS. Browse listings or use shipping from Warehouse."
   }
 }

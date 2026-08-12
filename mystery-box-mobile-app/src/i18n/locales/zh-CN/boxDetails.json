@@ -50,6 +50,7 @@
     "pityNearOpen": "保底 {{current}}/{{threshold}}（还需 {{remaining}} 抽）",
     "pityCompensateTitle": "保底库存不足",
     "pityCompensateBody": "保底已触发，但高档赏品暂时售罄。可等待补货并保留进度，或领取积分补偿。",
+    "pityCompensateBodyIos": "保底已触发，但高档赏品暂时售罄。可等待补货并保留进度。iOS 版本暂不提供积分补偿。",
     "pityCompensateWait": "等待补货",
     "pityCompensatePoints": "领取积分",
     "pityCompensateChoose": "选择补偿方案",

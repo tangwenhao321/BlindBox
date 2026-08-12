@@ -1,6 +1,7 @@
 import { ORDER_STATUS } from "./config/constants";
 import i18n from "./i18n";
 import { getAppLocale } from "./utils/i18nLocale";
+import { formatCurrency } from "./utils/formatCurrency";
 import { resolveBoxImageUrl } from "./utils/boxImage";
 import type { ThemeColors } from "./styles/themes";
 import { getThemeColors } from "./styles/themes";
@@ -72,7 +73,9 @@ export function getOrderTimeLabel(order: Order) {
 export function getCouponDisplayName(coupon: CouponItem) {
   const name = coupon.name || coupon.coupon?.name || i18n.t("orderUtils.couponFallback");
   const amount = coupon.amount ?? coupon.coupon?.amount;
-  return amount != null ? i18n.t("orderUtils.couponWithAmount", { name, amount }) : name;
+  return amount != null
+    ? i18n.t("orderUtils.couponWithAmount", { name, amount: formatCurrency(Number(amount)) })
+    : name;
 }
 
 /** 展示用订单号：仅保留数字字符 */

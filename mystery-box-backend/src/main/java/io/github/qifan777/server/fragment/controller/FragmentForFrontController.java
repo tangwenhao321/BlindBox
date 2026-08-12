@@ -16,6 +16,7 @@ import java.util.Map;
 @Transactional
 public class FragmentForFrontController {
     private final UserFragmentService userFragmentService;
+    private final io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard iosDigitalGoodsGuard;
 
     @GetMapping("balance")
     public Map<String, Integer> balance() {
@@ -37,11 +38,13 @@ public class FragmentForFrontController {
             @PathVariable String skuId,
             @RequestHeader(value = "x-idempotency-key", required = false) String idempotencyKey
     ) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         userFragmentService.exchangeSku(StpUtil.getLoginIdAsString(), skuId, idempotencyKey);
     }
 
     @PostMapping("decompose")
     public void decompose(@RequestBody Map<String, String> body) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         userFragmentService.decomposeOrderItem(
                 StpUtil.getLoginIdAsString(),
                 body.get("orderItemId"),

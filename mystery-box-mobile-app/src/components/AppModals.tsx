@@ -9,7 +9,7 @@ import { MoMoCheckoutModal } from "./MoMoCheckoutModal";
 import { PaymentErrorSheet } from "./PaymentErrorSheet";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { MOCK_PAYMENT_ENABLED } from "../config/constants";
-import { getPaymentMode } from "../config/payment";
+import { resolvePaymentMode } from "../config/payment";
 import type { MysteryBox, PrepayResult, Product, VNPayPrepayResult, MoMoPrepayResult } from "../types";
 import { toast } from "../utils/toast";
 import { getRevealSpectatorShareToken } from "../utils/revealSpectatorTokenBridge";
@@ -249,7 +249,7 @@ export function AppModals(props: Props) {
         />
       </ErrorBoundary>
       <WechatPrepayModal
-        visible={!!prepaySession && getPaymentMode() === "wechat"}
+        visible={!!prepaySession && resolvePaymentMode() === "wechat"}
         orderId={prepaySession?.orderId || ""}
         payAmount={prepaySession?.payAmount || 0}
         token={token}
@@ -263,7 +263,7 @@ export function AppModals(props: Props) {
         onClaimAndReprepay={onRetentionReprepay}
       />
       <VNPayCheckoutModal
-        visible={!!vnpaySession && getPaymentMode() === "vnpay"}
+        visible={!!vnpaySession && resolvePaymentMode() === "vnpay"}
         orderId={vnpaySession?.orderId || ""}
         payAmount={vnpaySession?.payAmount || 0}
         token={token}
@@ -280,7 +280,7 @@ export function AppModals(props: Props) {
         onClaimAndReprepay={onRetentionReprepay}
       />
       <MoMoCheckoutModal
-        visible={!!momoSession && getPaymentMode() === "vnpay"}
+        visible={!!momoSession && resolvePaymentMode() === "vnpay"}
         orderId={momoSession?.orderId || ""}
         payAmount={momoSession?.payAmount || 0}
         token={token}

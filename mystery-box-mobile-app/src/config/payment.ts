@@ -57,6 +57,14 @@ export const PRODUCTION_PAYMENT_CHECKLIST = [
   "payment.prodChecklistPrepay",
 ] as const;
 
+export const PRODUCTION_PAYMENT_CHECKLIST_VNPAY = [
+  "payment.prodChecklistMerchantVnpay",
+  "payment.prodChecklistModeVnpay",
+  "payment.prodChecklistDevClientVnpay",
+  "payment.prodChecklistPrepayVnpay",
+] as const;
+
 export function getProductionPaymentChecklistLines(): string[] {
-  return PRODUCTION_PAYMENT_CHECKLIST.map((key) => i18n.t(key));
+  const keys = resolvePaymentMode() === "vnpay" ? PRODUCTION_PAYMENT_CHECKLIST_VNPAY : PRODUCTION_PAYMENT_CHECKLIST;
+  return keys.map((key) => i18n.t(key));
 }

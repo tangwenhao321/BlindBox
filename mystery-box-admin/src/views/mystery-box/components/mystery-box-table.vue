@@ -8,6 +8,7 @@ import type { MysteryBoxDto } from '@/apis/__generated/model/dto'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
 import { useTableHelper } from '@/components/base/table/table-helper'
 import { useTagStore } from '@/layout/store/tag-store'
+import { formatAdminMoney } from '@/utils/format-money'
 
 const tagStore = useTagStore()
 type MysteryBoxScope = Scope<MysteryBoxDto['MysteryBoxRepository/COMPLEX_FETCHER_FOR_ADMIN']>
@@ -135,7 +136,7 @@ const handleDelete = (ids: string[]) => {
         width="120"
       >
         <template v-slot:default="{ row }: MysteryBoxScope">
-          {{ row.price }}
+          {{ formatAdminMoney(row.price) }}
         </template>
       </el-table-column>
       <el-table-column

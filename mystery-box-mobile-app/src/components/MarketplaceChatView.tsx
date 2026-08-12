@@ -57,7 +57,10 @@ export function MarketplaceChatView({ listingId: listingIdProp, listingTitle: li
     }
     void fetchMarketplaceCredit(authToken)
       .then((c) => setMyUserId(c.userId || null))
-      .catch(() => setMyUserId(null));
+      .catch((error) => {
+        setMyUserId(null);
+        reportAppError(toAppError(error), "marketplace_chat_credit");
+      });
   }, [authToken]);
 
   const loadChat = useCallback(

@@ -489,10 +489,15 @@ onUnmounted(() => {
           ><el-statistic title="支付取消" :value="funnel.paymentCancel || 0"
         /></el-col>
         <el-col :span="6"
-          ><el-statistic title="微信发起支付" :value="funnel.payWechatRequested || 0"
+          ><el-statistic title="微信/渠道发起" :value="funnel.payWechatRequested || 0"
         /></el-col>
         <el-col :span="6"
           ><el-statistic title="VNPay 发起支付" :value="funnel.payVnpayRequested || 0"
+        /></el-col>
+      </el-row>
+      <el-row :gutter="12" style="margin-top: 8px" v-if="funnel">
+        <el-col :span="6"
+          ><el-statistic title="MoMo 发起支付" :value="funnel.payMomoRequested || 0"
         /></el-col>
       </el-row>
       <el-row :gutter="12" style="margin-top: 8px" v-if="funnel">

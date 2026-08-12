@@ -66,6 +66,7 @@ export const ANALYTICS_EVENTS = {
   NOTIFICATION_PERMISSION_DENIED: "notification_permission_denied",
   PUSH_TOKEN_REGISTERED: "push_token_registered",
   PUSH_TOKEN_REGISTER_FAIL: "push_token_register_fail",
+  PUSH_TOKEN_REGISTER_DEFERRED: "push_token_register_deferred",
   PUSH_TOKEN_UNREGISTERED: "push_token_unregistered",
   PUSH_TOKEN_UNREGISTER_FAIL: "push_token_unregister_fail",
   DEEP_LINK_OPEN: "deep_link_open",

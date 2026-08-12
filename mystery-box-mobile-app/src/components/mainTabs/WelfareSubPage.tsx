@@ -5,12 +5,13 @@ export type WelfareSubPageProps = {
   pageTitle: string;
   onBack: () => void;
   onOpenCoupons: () => void;
+  onRequireLogin?: () => void;
 };
 
-export function WelfareSubPage({ pageTitle, onBack, onOpenCoupons }: WelfareSubPageProps) {
+export function WelfareSubPage({ pageTitle, onBack, onOpenCoupons, onRequireLogin }: WelfareSubPageProps) {
   return (
     <SubPageScreen title={pageTitle} onBack={onBack}>
-      <WelfareView onOpenCoupons={onOpenCoupons} />
+      <WelfareView onOpenCoupons={onOpenCoupons} onRequireLogin={onRequireLogin} />
     </SubPageScreen>
   );
 }

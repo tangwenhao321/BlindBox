@@ -34,6 +34,7 @@ import {
   getRuntimeRevealParticlesEnabled,
   setRevealAnimationsEnabled,
   setRevealTextOnlyMode,
+  subscribeRevealTextOnlyMode,
 } from "../utils/revealSettings";
 import { getRuntimeFeatureFlags } from "../utils/runtimeFeatureFlags";
 const FPS_SAMPLE_MS = 2000;
@@ -106,6 +107,7 @@ export function useRevealDevice(authToken?: string | null) {
     AccessibilityInfo.isReduceMotionEnabled().then(setOsReduceMotion).catch(() => setOsReduceMotion(false));
     void getRevealAnimationsEnabled().then(setAnimationsEnabledState);
     void getRevealTextOnlyMode().then(setTextOnlyModeState);
+    const textOnlyUnsub = subscribeRevealTextOnlyMode(setTextOnlyModeState);
     AccessibilityInfo.isHighTextContrastEnabled?.()
       ?.then(setHighContrast)
       ?.catch(() => setHighContrast(false));
@@ -115,6 +117,7 @@ export function useRevealDevice(authToken?: string | null) {
       scheduleRevealGc("memory_warning");
     });
     return () => {
+      textOnlyUnsub();
       sub?.remove?.();
       oomUnsub();
       stopFpsMonitor();

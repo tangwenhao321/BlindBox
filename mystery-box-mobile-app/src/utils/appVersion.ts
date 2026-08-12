@@ -49,5 +49,13 @@ export function getLocalAppVersion(): LocalAppVersion {
 }
 
 export function isNativeAppUpdateSupported(): boolean {
-  return Platform.OS === "android" && Constants.appOwnership !== "expo";
+  if (Constants.appOwnership === "expo") return false;
+  return Platform.OS === "android" || Platform.OS === "ios";
+}
+
+export function resolveIosAppStoreUrl(fallback?: string | null): string | null {
+  const fromEnv = process.env.EXPO_PUBLIC_IOS_APP_STORE_URL?.trim();
+  if (fromEnv) return fromEnv;
+  const fromFallback = fallback?.trim();
+  return fromFallback || null;
 }

@@ -8,6 +8,7 @@
     "errors": {
       "sessionExpired": "登录已失效，请重新登录",
       "unauthorized": "未授权，请重新登录",
+      "loginLocked": "登录尝试过多，请稍后再试",
       "tokenInvalid": "登录凭证无效，请重新登录",
       "orderNotFound": "订单不存在",
       "boxNotFound": "盲盒不存在",
@@ -39,7 +40,19 @@
       "marketplaceInsufficientBalance": "余额不足，无法购买",
       "marketplaceCooling": "交易处于冷却期或冷却状态异常",
       "marketplaceUnauthorized": "无权执行该集市操作",
-      "marketplaceError": "集市操作失败，请稍后重试"
+      "marketplaceError": "集市操作失败，请稍后重试",
+      "phoneAlreadyBound": "当前账号已绑定手机号",
+      "phoneTaken": "该手机号已被其他账号使用",
+      "spendLimitDisabled": "平台未启用消费限额",
+      "spendLimitDailyExceeded": "已超出每日消费限额",
+      "spendLimitMonthlyExceeded": "已超出每月消费限额",
+      "spendLimitCoolingOff": "消费限额变更冷静期中，请稍后再试",
+      "spendLimitMustPositive": "限额必须大于 0",
+      "spendLimitOverCap": "限额不能超过平台上限",
+      "momoRefundUnavailable": "MoMo 退款通道未开通，已保留退款工单请人工处理",
+      "ageMustBe18": "仅年满 18 周岁用户可确认",
+      "ageRequired": "请先确认已满 18 周岁后再下单",
+      "iosDigitalGoodsBlocked": "iOS 版本暂不支持该数字商品操作"
     }
   }
 }

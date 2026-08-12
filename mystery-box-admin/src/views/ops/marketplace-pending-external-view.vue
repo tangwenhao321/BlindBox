@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ListPageShell from '@/components/base/layout/list-page-shell.vue'
 import request from '@/utils/request'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type PendingExternalTrade = {
   id: string
@@ -81,8 +82,16 @@ onMounted(() => void reload())
     <el-table v-loading="loading" :data="rows" border stripe class="section">
       <el-table-column prop="id" label="交易ID" min-width="160" show-overflow-tooltip />
       <el-table-column prop="productName" label="赏品" min-width="120" show-overflow-tooltip />
-      <el-table-column prop="price" label="价格" width="90" />
-      <el-table-column prop="sellerProceeds" label="卖家实收" width="100" />
+      <el-table-column prop="price" label="价格" width="110">
+        <template #default="{ row }">
+          {{ formatAdminMoney(row.price) }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="sellerProceeds" label="卖家实收" width="120">
+        <template #default="{ row }">
+          {{ formatAdminMoney(row.sellerProceeds) }}
+        </template>
+      </el-table-column>
       <el-table-column prop="sellerId" label="卖家" min-width="120" show-overflow-tooltip />
       <el-table-column prop="buyerId" label="买家" min-width="120" show-overflow-tooltip />
       <el-table-column prop="editedTime" label="进入待打款时间" width="180" />

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { OptimizedFlatList } from "./ui/OptimizedFlatList";
@@ -29,6 +29,7 @@ import { formatCurrency } from "../utils/formatCurrency";
 import { createMarketplaceListing } from "../services/marketplaceService";
 import { parseError } from "../api";
 import { toast } from "../utils/toast";
+import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 import { trackEvent } from "../utils/analytics";
 import { ANALYTICS_EVENTS } from "../utils/analyticsEvents";
 import { queueIfOffline } from "../utils/offlineSubmitGuard";
@@ -57,6 +58,7 @@ type Props = {
   onGoMarketplace?: () => void;
   onOpenShipRequests?: () => void;
   onOpenExchangeMall?: () => void;
+  onRequireLogin?: () => void;
 };
 
 function statusLabel(status: string) {
@@ -110,7 +112,9 @@ export function WarehouseView({
   onGoMarketplace,
   onOpenShipRequests,
   onOpenExchangeMall,
+  onRequireLogin,
 }: Props) {
+  const iosRedeemBlocked = isIosDigitalGoodsRestricted();
   const authToken = useAuthToken();
   const { t } = useTranslation();
   const { colors: themeColors } = useAppTheme();
@@ -377,7 +381,7 @@ export function WarehouseView({
                       <Text style={styles.redeemText}>{t("warehouse.shipApply")}</Text>
                     </Pressable>
                   ) : null}
-                  {canRedeem && onRedeemOrderItem ? (
+                  {canRedeem && onRedeemOrderItem && !iosRedeemBlocked ? (
                     <Pressable
                     style={styles.redeemBtn}
                     accessibilityRole="button"
@@ -400,7 +404,7 @@ export function WarehouseView({
                     <Text style={styles.redeemText}>{t("warehouse.redeemBalance")}</Text>
                   </Pressable>
                   ) : null}
-                  {canRedeem && onDecomposeOrderItem ? (
+                  {canRedeem && onDecomposeOrderItem && !iosRedeemBlocked ? (
                     <Pressable
                       style={styles.redeemBtn}
                       accessibilityRole="button"
@@ -421,7 +425,7 @@ export function WarehouseView({
                       <Text style={styles.redeemText}>{t("warehouse.decompose")}</Text>
                     </Pressable>
                   ) : null}
-                  {authToken && item.source !== "MARKETPLACE" ? (
+                  {authToken && item.source !== "MARKETPLACE" && !iosRedeemBlocked ? (
                     <Pressable
                       style={styles.redeemBtn}
                       accessibilityRole="button"
@@ -436,7 +440,7 @@ export function WarehouseView({
                   ) : null}
                 </View>
               ) : null}
-              {!warehouse.selectMode && canRedeem && warehouse.mainTab === "box" ? (
+              {!warehouse.selectMode && canRedeem && warehouse.mainTab === "box" && !iosRedeemBlocked ? (
                 <Pressable
                   style={styles.redeemBtn}
                   accessibilityRole="button"
@@ -465,11 +469,17 @@ export function WarehouseView({
           ) : listEmptyWhenOk(
               authToken && warehouse.apiError ? warehouse.apiError : null,
               <EmptyState
-                title={t("warehouse.emptyTitle")}
-                description={t("warehouse.emptyDesc")}
+                title={authToken ? t("warehouse.emptyTitle") : t("warehouse.guestEmptyTitle")}
+                description={authToken ? t("warehouse.emptyDesc") : t("warehouse.guestEmptyDesc")}
                 variant="plain"
-                actionLabel={onGoHome ? t("warehouse.goHomeOpen") : undefined}
-                onAction={onGoHome}
+                actionLabel={
+                  !authToken && onRequireLogin
+                    ? t("warehouse.goLogin")
+                    : onGoHome
+                      ? t("warehouse.goHomeOpen")
+                      : undefined
+                }
+                onAction={!authToken && onRequireLogin ? onRequireLogin : onGoHome}
               />,
             )
         }

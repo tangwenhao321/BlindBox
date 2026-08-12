@@ -34,6 +34,7 @@ import { toast } from "../utils/toast";
 import { getAppLocale } from "../utils/i18nLocale";
 import { normalizePhoneInput } from "../utils/loginValidation";
 import { resolveLegalLink } from "../utils/legalLinks";
+import { router } from "expo-router";
 
 type Props = {
   apiBaseUrl: string;
@@ -53,10 +54,10 @@ type Props = {
   onZaloLogin?: (payload: ZaloLoginPayload) => void | Promise<void>;
   smsCode?: string;
   onSmsCodeChange?: (value: string) => void;
-  onSendSmsCode?: () => void | Promise<void>;
+  onSendSmsCode?: () => void | boolean | Promise<void | boolean | { ok: boolean }>;
   loginSmsCode?: string;
   onLoginSmsCodeChange?: (value: string) => void;
-  onSendLoginSmsCode?: () => void | Promise<unknown>;
+  onSendLoginSmsCode?: () => void | boolean | Promise<void | boolean | { ok: boolean }>;
   termsAccepted?: boolean;
   onTermsToggle?: () => void;
   onForgotPassword?: () => void;
@@ -70,7 +71,9 @@ function openEnvLegalLink(url: string | undefined, view: "termsOfService" | "pri
   const target = resolveLegalLink(url, view);
   if (target.kind === "external") {
     void Linking.openURL(target.url);
+    return;
   }
+  router.push(target.href as never);
 }
 
 export function LoginScreen(props: Props) {
@@ -109,9 +112,9 @@ export function LoginScreen(props: Props) {
   const styles = useThemedStyles(buildLoginStyles);
   const screenStyles = useScreenStyles();
   const { zaloLoginEnabled } = useAppPublicConfig();
-  const showZaloButton = zaloLoginEnabled === true && typeof onZaloLogin === "function";
+  const showZaloButton = Platform.OS !== "ios" && zaloLoginEnabled === true && typeof onZaloLogin === "function";
   /** Coming-soon teaser only while the feature flag is off (enabled → real button). */
-  const showZaloComingSoon = zaloLoginEnabled !== true;
+  const showZaloComingSoon = Platform.OS !== "ios" && zaloLoginEnabled !== true;
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loginMethod, setLoginMethod] = useState<"password" | "sms">("password");
   const [showPassword, setShowPassword] = useState(false);

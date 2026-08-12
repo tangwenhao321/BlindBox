@@ -1,7 +1,7 @@
 import { trackEffectEvent } from "./telemetry";
 import { cancelRevealMotion, releaseRevealDraw } from "./revealAssetManager";
 import type { SharedValue } from "react-native-reanimated";
-import { setRevealTextOnlyMode } from "../utils/revealSettings";
+import { clearRevealSessionTextOnlyHeal, markRevealSessionTextOnlyHeal } from "../utils/revealSettings";
 
 let healInFlight = false;
 
@@ -15,7 +15,9 @@ export async function healStuckRevealOverlay(
   try {
     cancelRevealMotion(values);
     releaseRevealDraw(drawKey);
-    await setRevealTextOnlyMode(true);
+    // Session-only degrade — never persist text-only from a one-off render heal.
+    markRevealSessionTextOnlyHeal();
+    setTimeout(() => clearRevealSessionTextOnlyHeal(), 45_000);
     trackEffectEvent("reveal_render_heal", { flashStuckMs });
     return true;
   } finally {

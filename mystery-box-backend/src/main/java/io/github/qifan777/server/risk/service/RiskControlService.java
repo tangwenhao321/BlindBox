@@ -146,8 +146,8 @@ public class RiskControlService {
             );
             return count != null && count > 0;
         } catch (Exception ex) {
-            log.debug("linkedDevicesHaveOtherPaidUsers failed: {}", ex.getMessage());
-            return false;
+            log.warn("linkedDevicesHaveOtherPaidUsers failed (fail-closed): {}", ex.getMessage());
+            return true;
         }
     }
 
@@ -164,8 +164,8 @@ public class RiskControlService {
             );
             return distinctUsers != null && distinctUsers > limit;
         } catch (Exception ex) {
-            log.debug("device multi-user check failed: {}", ex.getMessage());
-            return false;
+            log.warn("device multi-user check failed (fail-closed): {}", ex.getMessage());
+            return true;
         }
     }
 
@@ -178,7 +178,9 @@ public class RiskControlService {
             try {
                 return exceedsVelocityRedis(key, now);
             } catch (Exception ex) {
-                log.debug("risk velocity redis failed, using memory: {}", ex.getMessage());
+                // Redis is multi-node source of truth — fail closed (treat as over limit).
+                log.warn("risk velocity redis failed (fail-closed): {}", ex.getMessage());
+                return true;
             }
         }
         return exceedsVelocityMemory(key, now);

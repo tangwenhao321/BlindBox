@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
-import { Modal, Pressable, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Modal, Pressable, Text, TextInput, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { confirmAgeCompliance, fetchAgeCompliance } from "../services/complianceService";
 import { parseError } from "../api";
@@ -8,7 +8,8 @@ import { toast } from "../utils/toast";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../styles/tokens";
 
-const STORAGE_KEY = "age_gate_confirmed_v1";
+const STORAGE_KEY = "age_gate_confirmed_v2";
+const MIN_AGE = 18;
 
 export async function isAgeGateConfirmed(): Promise<boolean> {
   const v = await AsyncStorage.getItem(STORAGE_KEY);
@@ -17,6 +18,14 @@ export async function isAgeGateConfirmed(): Promise<boolean> {
 
 export async function confirmAgeGate(): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, "1");
+}
+
+function isAdultBirthYear(yearRaw: string): boolean {
+  const year = Number.parseInt(yearRaw.trim(), 10);
+  if (!Number.isFinite(year) || year < 1900) return false;
+  const now = new Date();
+  const age = now.getFullYear() - year;
+  return age >= MIN_AGE && age < 120;
 }
 
 type Props = {
@@ -28,6 +37,8 @@ type Props = {
 
 export function AgeGateModal({ visible, authToken, onConfirmed, onDecline }: Props) {
   const { t } = useTranslation();
+  const [birthYear, setBirthYear] = useState("");
+  const yearOk = useMemo(() => isAdultBirthYear(birthYear), [birthYear]);
   const styles = useThemedStyles((colors) => ({
     mask: {
       flex: 1,
@@ -43,14 +54,25 @@ export function AgeGateModal({ visible, authToken, onConfirmed, onDecline }: Pro
     },
     title: { fontSize: typography.h3, fontWeight: "800", color: colors.textPrimary },
     body: { fontSize: typography.body, color: colors.textSecondary },
+    input: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+      color: colors.textPrimary,
+      fontSize: typography.body,
+    },
     primary: {
       backgroundColor: colors.brand,
       borderRadius: radius.md,
       padding: spacing.md,
-      alignItems: "center",
+      alignItems: "center" as const,
+      opacity: 1,
     },
-    primaryText: { color: colors.textOnBrand, fontWeight: "600" },
-    secondary: { padding: spacing.sm, alignItems: "center" },
+    primaryDisabled: { opacity: 0.45 },
+    primaryText: { color: colors.textOnBrand, fontWeight: "600" as const },
+    secondary: { padding: spacing.sm, alignItems: "center" as const },
     secondaryText: { fontSize: typography.body, color: colors.textSecondary },
   }));
 
@@ -60,15 +82,32 @@ export function AgeGateModal({ visible, authToken, onConfirmed, onDecline }: Pro
         <View style={styles.card}>
           <Text style={styles.title}>{t("ageGate.title")}</Text>
           <Text style={styles.body}>{t("ageGate.body")}</Text>
+          <Text style={styles.body}>{t("ageGate.birthYearHint")}</Text>
+          <TextInput
+            testID="ageGateBirthYearInput"
+            accessibilityLabel={t("ageGate.birthYearPlaceholder")}
+            value={birthYear}
+            onChangeText={setBirthYear}
+            keyboardType="number-pad"
+            maxLength={4}
+            placeholder={t("ageGate.birthYearPlaceholder")}
+            placeholderTextColor="#888"
+            style={styles.input}
+          />
           <Pressable
             testID="ageGateConfirmButton"
             accessibilityRole="button"
             accessibilityLabel={t("ageGate.confirm")}
-            style={styles.primary}
+            style={[styles.primary, !yearOk ? styles.primaryDisabled : null]}
+            disabled={!yearOk}
             onPress={async () => {
+              if (!isAdultBirthYear(birthYear)) {
+                toast.error(t("ageGate.birthYearInvalid"));
+                return;
+              }
               try {
                 if (authToken) {
-                  await confirmAgeCompliance(authToken);
+                  await confirmAgeCompliance(authToken, Number.parseInt(birthYear.trim(), 10));
                 }
                 await confirmAgeGate();
                 onConfirmed();
@@ -107,6 +146,7 @@ export function useAgeGate(authToken?: string | null) {
           setChecked(true);
           return;
         } catch {
+          // Fail closed when logged-in compliance check fails.
           setConfirmed(false);
           setChecked(true);
           return;

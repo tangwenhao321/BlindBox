@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
-import { getPaymentMode } from "../../config/payment";
+import { resolvePaymentMode } from "../../config/payment";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
@@ -13,7 +13,7 @@ type Props = {
 export function PaymentMethodBadge({ name, selected = true }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildPaymentBadgeStyles);
-  const mode = getPaymentMode();
+  const mode = resolvePaymentMode();
   const label =
     name ??
     (mode === "vnpay"
@@ -22,8 +22,8 @@ export function PaymentMethodBadge({ name, selected = true }: Props) {
         ? t("payment.methodMock")
         : t("payment.wechatPay"));
   const iconText =
-    mode === "vnpay" ? t("payment.vnpayIcon") : mode === "mock" ? t("payment.wechatIcon") : t("payment.wechatIcon");
-  const iconStyle = mode === "vnpay" ? styles.iconVnpay : styles.iconWechat;
+    mode === "vnpay" ? t("payment.vnpayIcon") : mode === "mock" ? t("payment.mockIcon") : t("payment.wechatIcon");
+  const iconStyle = mode === "vnpay" ? styles.iconVnpay : mode === "mock" ? styles.iconMock : styles.iconWechat;
 
   return (
     <View style={styles.row}>
@@ -53,6 +53,7 @@ function buildPaymentBadgeStyles(colors: ThemeColors) {
     },
     iconWechat: { backgroundColor: "#07C160" },
     iconVnpay: { backgroundColor: "#0066B3" },
+    iconMock: { backgroundColor: "#8B7355" },
     iconText: { color: "#fff", fontWeight: "900", fontSize: typography.body },
     name: { flex: 1, fontWeight: "700", color: colors.textPrimary, fontSize: typography.body },
     check: {

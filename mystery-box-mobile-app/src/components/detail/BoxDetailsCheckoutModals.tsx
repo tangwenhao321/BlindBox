@@ -116,7 +116,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
   } = props;
 
   const { t } = useTranslation();
-  const [agreedPay, setAgreedPay] = useState(true);
+  const [agreedPay, setAgreedPay] = useState(false);
   const [addressHintVisible, setAddressHintVisible] = useState(false);
   const ageGate = useAgeGate(authToken);
   const [ageGateVisible, setAgeGateVisible] = useState(false);
@@ -138,11 +138,18 @@ export function BoxDetailsCheckoutModals(props: Props) {
     if (!confirmVisible && !drawModalVisible) {
       return;
     }
+    setProbability(null);
     void fetchBoxProbability(activeBox.id, {
       token: authToken || undefined,
       drawCount,
     }).then(setProbability);
   }, [confirmVisible, drawModalVisible, activeBox.id, authToken, drawCount]);
+
+  useEffect(() => {
+    if (confirmVisible) {
+      setAgreedPay(false);
+    }
+  }, [confirmVisible, activeBox.id, drawCount]);
 
   const spendLimitMeta = useMemo(() => {
     if (!spendLimit?.enabled) {
@@ -228,7 +235,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
         productAmount={quotedProduct}
         batchDiscount={batchDiscount}
         deliveryFee={0}
-        hideShippingDetails
+        hideShippingDetails={false}
         couponAmount={Math.max(0, quoteCouponAmount - quoteRetentionDiscount)}
         retentionDiscountAmount={quoteRetentionDiscount}
         payAmount={displayPayAmount}

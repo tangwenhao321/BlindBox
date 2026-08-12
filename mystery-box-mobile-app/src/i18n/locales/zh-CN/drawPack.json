@@ -7,7 +7,7 @@
     "poolRemaining": "奖池余量 {{remaining}}/{{total}}",
     "wholeBox": "整盒 {{count}} 抽 · {{price}}",
     "wholeBoxEstimate": "整盒约 {{count}} 抽（以当前库存为准）",
-    "optionA11y": "{{label}}，{{price}}元{{best}}",
+    "optionA11y": "{{label}}，{{price}}{{best}}",
     "bestValue": "，最划算",
     "bestTag": "最划算",
     "addressRequired": "支付前需填写收货地址",

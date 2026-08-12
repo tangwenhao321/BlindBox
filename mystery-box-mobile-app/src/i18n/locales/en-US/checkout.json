@@ -50,6 +50,9 @@
     "spendLimitBlocked": "Spend limit exceeded — adjust in Settings",
     "probabilityRates": "Rates: Legendary {{legendary}}% / Hidden {{hidden}}% / Common {{general}}%",
     "probabilityDynamicNote": "Actual draw rates may adjust for new players, lose streaks, multi-draw, and time of day.",
-    "probabilityAdjustedNote": "Shown rates are personalized for your account and this draw count (newbie / streak / time)."
+    "probabilityAdjustedNote": "Shown rates are personalized for your account and this draw count (newbie / streak / time).",
+    "oddsTitle": "Probability disclosure",
+    "probabilityUnavailable": "Published odds could not be loaded — open the probability page before paying, or retry.",
+    "physicalFulfillmentNote": "Mystery-box orders are physical goods — confirm a delivery address before paying. After reveal you can request shipping from Warehouse."
   }
 }

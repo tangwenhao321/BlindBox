@@ -10,6 +10,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { fetchSpendLimit, updateSpendLimitPreference, verifyIdentity, fetchIdentityStatus, type SpendLimitView, type IdentityStatus } from "../services/complianceService";
 import { exportPrivacyData, requestAccountDeletion } from "../services/privacyService";
+import { registerExpoPushToken } from "../services/pushTokenService";
 import { applyAgeTierToRevealMinorMode, setMinorAudioScale } from "../effects/revealMinorMode";
 import { fetchNotificationPrefs, updateNotificationPrefs, type NotificationPrefs } from "../services/notificationPrefsService";
 import { useAppUpdateContext } from "../context/AppUpdateContext";
@@ -106,7 +107,7 @@ import type { ThemeColors } from "../styles/themes";
 import {
   getPaymentMethodHint,
   getPaymentMethodLabel,
-  getPaymentMode,
+  resolvePaymentMode,
   getWechatSdkAvailable,
   getProductionPaymentChecklistLines,
 } from "../config/payment";
@@ -127,6 +128,10 @@ import {
   type OfflineQueueSnapshot,
 } from "../offline/offlineMutationQueue";
 import { resolveOfflineActionLabel } from "../utils/offlineActionLabel";
+import { bindUserPhone, getCurrentUserInfo } from "../services/authService";
+import { OtpInput } from "./ui/OtpInput";
+import { sendAuthSmsCode } from "../utils/sendAuthSmsCode";
+import { normalizePhoneInput } from "../utils/loginValidation";
 import {
   getBiometricUnlockEnabled,
   isBiometricUnlockAvailable,
@@ -157,7 +162,7 @@ export function SettingsView({
   const authToken = useAuthToken();
   const { t, i18n } = useTranslation();
   const appUpdate = useAppUpdateContext();
-  const { mode: themeMode, setMode: setThemeMode } = useAppTheme();
+  const { mode: themeMode, setMode: setThemeMode, colors } = useAppTheme();
   const screenStyles = useScreenStyles();
   const styles = useThemedStyles(buildSettingsStyles);
   const { confirm } = useConfirmDialog();
@@ -214,6 +219,10 @@ export function SettingsView({
   const [notificationPrefsError, setNotificationPrefsError] = useState<string | null>(null);
   const [savingNotificationPref, setSavingNotificationPref] = useState(false);
   const [advancedEffectsExpanded, setAdvancedEffectsExpanded] = useState(false);
+  const [profilePhone, setProfilePhone] = useState<string | null>(null);
+  const [bindPhoneDraft, setBindPhoneDraft] = useState("");
+  const [bindPhoneCode, setBindPhoneCode] = useState("");
+  const [bindingPhone, setBindingPhone] = useState(false);
 
   useEffect(() => {
     void getBiometricUnlockEnabled().then(setBiometricUnlock);
@@ -285,6 +294,18 @@ export function SettingsView({
 
   useEffect(() => {
     if (!authToken) {
+      setProfilePhone(null);
+      setBindPhoneDraft("");
+      setBindPhoneCode("");
+      return;
+    }
+    void getCurrentUserInfo(authToken)
+      .then((profile) => setProfilePhone(profile.phone ?? null))
+      .catch(() => setProfilePhone(null));
+  }, [authToken]);
+
+  useEffect(() => {
+    if (!authToken) {
       setSpendLimit(null);
       setSpendLimitError(null);
       setIdentityStatus(null);
@@ -309,13 +330,18 @@ export function SettingsView({
         setSpendLimit(null);
         setSpendLimitError(parseError(error));
       });
-    void fetchIdentityStatus(authToken).then((status) => {
-      setIdentityStatus(status);
-      if (status) {
-        applyAgeTierToRevealMinorMode(status.ageTier, status.minor);
-        setMinorAudioScale(status.audioVolumeScale);
-      }
-    });
+    void fetchIdentityStatus(authToken)
+      .then((status) => {
+        setIdentityStatus(status);
+        if (status) {
+          applyAgeTierToRevealMinorMode(status.ageTier, status.minor);
+          setMinorAudioScale(status.audioVolumeScale);
+        }
+      })
+      .catch((error) => {
+        setIdentityStatus(null);
+        toast.error(parseError(error));
+      });
   }, [authToken]);
 
   useEffect(() => {
@@ -344,6 +370,10 @@ export function SettingsView({
       const saved = await updateNotificationPrefs(authToken, next);
       setNotificationPrefs(saved);
       setNotificationPrefsError(null);
+      const enabling = Object.values(patch).some((v) => v === true);
+      if (enabling) {
+        void registerExpoPushToken(authToken, { requestPermission: true });
+      }
       const changedKey = Object.keys(patch)[0];
       if (changedKey) {
         trackEvent(ANALYTICS_EVENTS.NOTIFICATION_PREF_CHANGE, {
@@ -360,7 +390,8 @@ export function SettingsView({
     }
   };
 
-  const mode = getPaymentMode();
+  const mode = resolvePaymentMode();
+  const needsPhoneBind = !!profilePhone && profilePhone.startsWith("zalo:");
   const productionWarnings = getProductionEnvWarnings();
   const crashStatus = getCrashMonitoringStatus();
   const loopbackApi =
@@ -414,7 +445,11 @@ export function SettingsView({
     if (!ok) return;
     setPrivacyBusy(true);
     try {
-      await requestAccountDeletion(authToken);
+      const result = await requestAccountDeletion(authToken);
+      if (!result.deleted) {
+        toast.error(t("settings.deleteAccountFailed"));
+        return;
+      }
       toast.success(t("settings.deleteAccountSuccess"));
       trackEvent(ANALYTICS_EVENTS.PRIVACY_DELETE);
       if (onLogout) {
@@ -609,6 +644,52 @@ export function SettingsView({
               />
             </View>
           ) : null}
+          {authToken && needsPhoneBind ? (
+            <View style={styles.spendLimitBlock} accessibilityRole="summary">
+              <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
+                {t("settings.bindPhoneTitle")}
+              </Text>
+              <Text style={styles.hint}>{t("settings.bindPhoneHint")}</Text>
+              <TextInput
+                style={styles.input}
+                keyboardType="phone-pad"
+                value={bindPhoneDraft}
+                onChangeText={setBindPhoneDraft}
+                placeholder={t("login.phonePlaceholder")}
+                placeholderTextColor={colors.textMuted}
+                accessibilityLabel={t("settings.bindPhoneTitle")}
+                editable={!bindingPhone}
+              />
+              <OtpInput
+                value={bindPhoneCode}
+                onChange={setBindPhoneCode}
+                disabled={bindingPhone}
+                onSendCode={() =>
+                  sendAuthSmsCode(bindPhoneDraft, {
+                    onNormalized: (phone) => setBindPhoneDraft(phone),
+                  })
+                }
+              />
+              <PrimaryButton
+                label={t("settings.bindPhoneSave")}
+                loading={bindingPhone}
+                disabled={bindingPhone || !bindPhoneDraft.trim() || bindPhoneCode.trim().length < 4}
+                onPress={() => {
+                  if (!authToken || bindingPhone) return;
+                  const phone = normalizePhoneInput(bindPhoneDraft);
+                  setBindingPhone(true);
+                  void bindUserPhone(authToken, phone, bindPhoneCode.trim())
+                    .then(() => {
+                      setProfilePhone(phone);
+                      setBindPhoneCode("");
+                      toast.success(t("settings.bindPhoneSuccess"));
+                    })
+                    .catch((error) => toast.error(parseError(error)))
+                    .finally(() => setBindingPhone(false));
+                }}
+              />
+            </View>
+          ) : null}
           {authToken ? (
             <View style={styles.spendLimitBlock}>
               <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
@@ -706,14 +787,13 @@ export function SettingsView({
                         fullName: identityName.trim() || undefined,
                       })
                         .then((result) => {
-                          if (!result) {
-                            toast.error(t("settings.identity.failed"));
-                            return;
-                          }
                           setIdentityStatus(result);
                           applyAgeTierToRevealMinorMode(result.ageTier, result.minor);
                           setMinorAudioScale(result.audioVolumeScale);
                           toast.success(t("settings.identity.success"));
+                        })
+                        .catch((error) => {
+                          toast.error(parseError(error) || t("settings.identity.failed"));
                         })
                         .finally(() => setIdentityBusy(false));
                     }}

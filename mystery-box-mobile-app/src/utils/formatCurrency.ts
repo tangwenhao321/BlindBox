@@ -6,12 +6,26 @@ const LOCALE_CURRENCY: Record<string, string> = {
   "en-US": "CNY",
 };
 
-/** Resolve display currency from env or locale. */
+let remoteCurrency: string | null = null;
+
+function marketFallbackCurrency(): string {
+  return process.env.EXPO_PUBLIC_DEFAULT_LOCALE?.trim() === "vi-VN" ? "VND" : "CNY";
+}
+
+/** Hydrate from /front/app/config when env currency is unset. */
+export function setRemoteCurrency(currency: string | null | undefined) {
+  const next = currency?.trim().toUpperCase() || null;
+  remoteCurrency = next;
+}
+
+/** Resolve display currency from env, remote config, or locale. */
 export function getAppCurrency(locale?: string): string {
   const env = process.env.EXPO_PUBLIC_CURRENCY?.trim().toUpperCase();
   if (env) return env;
+  if (remoteCurrency) return remoteCurrency;
   const loc = locale ?? getAppLocale();
-  return LOCALE_CURRENCY[loc] ?? "CNY";
+  if (loc === "en-US" && marketFallbackCurrency() === "VND") return "VND";
+  return LOCALE_CURRENCY[loc] ?? marketFallbackCurrency();
 }
 
 function fractionDigits(currency: string) {

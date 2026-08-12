@@ -1,7 +1,7 @@
 import type { HotBox } from "../services/homeService";
 import type { MysteryBox, MysteryBoxCategory, Product } from "../types";
 import i18n from "../i18n";
-import { formatCurrency } from "./formatCurrency";
+import { formatCurrency, getAppCurrency } from "./formatCurrency";
 export { formatMoney } from "./formatCurrency";
 
 /** Keep first occurrence when API or pagination returns duplicate ids. */
@@ -98,7 +98,8 @@ export function getPromoTag(box: MysteryBox) {
   }
   if (/保底/.test(`${box.name} ${box.category?.name || ""}`)) return i18n.t("boxDisplay.promoPity");
   if (box.category?.name) return box.category.name;
-  if (box.price <= 30) return i18n.t("boxDisplay.promoPriceSurprise", { price: formatCurrency(box.price) });
+  const promoCeiling = getAppCurrency() === "VND" ? 30000 : 30;
+  if (box.price <= promoCeiling) return i18n.t("boxDisplay.promoPriceSurprise", { price: formatCurrency(box.price) });
   return i18n.t("boxDisplay.promoDefault");
 }
 

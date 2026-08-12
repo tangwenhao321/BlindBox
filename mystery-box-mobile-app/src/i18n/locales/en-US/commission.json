@@ -7,6 +7,9 @@
     "defaultRemark": "Commission",
     "emptyTitle": "No commission records",
     "emptyDesc": "Earn commission when invitees purchase",
+    "guestEmptyTitle": "Sign in to view commission",
+    "guestEmptyDesc": "Sign in to track referral earnings",
+    "goLogin": "Sign in",
     "goPromotion": "Go to referrals"
   }
 }

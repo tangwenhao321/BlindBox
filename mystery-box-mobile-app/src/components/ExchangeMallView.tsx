@@ -24,13 +24,16 @@ import {
 import { toast } from "../utils/toast";
 import { parseError } from "../utils/apiErrorMessage";
 import { queueIfOffline } from "../utils/offlineSubmitGuard";
+import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 
 type Props = {
   onBack: () => void;
   onGoWarehouse?: () => void;
+  onRequireLogin?: () => void;
 };
 
-export function ExchangeMallView({ onBack, onGoWarehouse }: Props) {
+export function ExchangeMallView({ onBack, onGoWarehouse, onRequireLogin }: Props) {
+  const iosDigitalBlocked = isIosDigitalGoodsRestricted();
   const token = useAuthToken();
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -70,6 +73,21 @@ export function ExchangeMallView({ onBack, onGoWarehouse }: Props) {
     void reload();
   }, [reload]);
 
+  if (iosDigitalBlocked) {
+    return (
+      <View style={styles.page}>
+        <SubPageHeader title={t("exchangeMall.titleAdvanced")} onBack={onBack} />
+        <SubPageShelfAccent />
+        <EmptyState
+          title={t("actions.iosExchangeBlocked")}
+          description={t("actions.iosExchangeBlockedHint")}
+          actionLabel={onGoWarehouse ? t("exchangeMall.goWarehouse") : undefined}
+          onAction={onGoWarehouse}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.page}>
       <SubPageHeader title={t("exchangeMall.titleAdvanced")} onBack={onBack} />
@@ -103,11 +121,17 @@ export function ExchangeMallView({ onBack, onGoWarehouse }: Props) {
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
             <EmptyState
-              title={t("exchangeMall.emptyTitle")}
-              description={t("exchangeMall.emptyDesc")}
+              title={token ? t("exchangeMall.emptyTitle") : t("exchangeMall.guestEmptyTitle")}
+              description={token ? t("exchangeMall.emptyDesc") : t("exchangeMall.guestEmptyDesc")}
               variant="plain"
-              actionLabel={onGoWarehouse ? t("exchangeMall.goWarehouse") : undefined}
-              onAction={onGoWarehouse}
+              actionLabel={
+                !token && onRequireLogin
+                  ? t("exchangeMall.goLogin")
+                  : onGoWarehouse
+                    ? t("exchangeMall.goWarehouse")
+                    : undefined
+              }
+              onAction={!token && onRequireLogin ? onRequireLogin : onGoWarehouse}
             />,
           )}
           renderItem={({ item: sku }) => (

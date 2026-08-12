@@ -3,6 +3,7 @@ import { decomposeOrderItem } from "../../services/fragmentService";
 import { redeemOrderItemToBalance } from "../../services/orderService";
 import { formatCurrency } from "../../utils/formatCurrency";
 import { toast } from "../../utils/toast";
+import { isIosDigitalGoodsRestricted } from "../../utils/iosDigitalGoodsGate";
 import { queueIfOffline } from "../../utils/offlineSubmitGuard";
 import i18n from "../../i18n";
 import type { MainTabsBuildInput } from "../buildAppMainTabsProps";
@@ -72,6 +73,10 @@ export function buildOrderViewProps(input: OrderSlice) {
     orders,
     onRedeemOrderItem: async (orderItemId: string, productId: string) => {
       if (!token) return;
+      if (isIosDigitalGoodsRestricted()) {
+        toast.info(i18n.t("actions.iosRedeemBlocked"));
+        return;
+      }
       try {
         const amount = await redeemOrderItemToBalance(token, orderItemId, productId);
         await loadOrders(token);
@@ -83,6 +88,10 @@ export function buildOrderViewProps(input: OrderSlice) {
     },
     onDecomposeOrderItem: async (orderItemId: string, productId: string) => {
       if (!token) return;
+      if (isIosDigitalGoodsRestricted()) {
+        toast.info(i18n.t("actions.iosDecomposeBlocked"));
+        return;
+      }
       const perform = async () => {
         await decomposeOrderItem(token, orderItemId, productId);
         await loadOrders(token);

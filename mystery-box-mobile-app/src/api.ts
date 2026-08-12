@@ -1,4 +1,5 @@
 import axios, { type AxiosResponse } from "axios";
+import { Platform } from "react-native";
 import type { ApiResult } from "./types";
 import i18n from "./i18n";
 import { parseError } from "./utils/apiErrorMessage";
@@ -58,6 +59,9 @@ function shouldTriggerUnauthorized(url: string | undefined, code: number, status
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  headers: {
+    "X-Client-Platform": Platform.OS,
+  },
 });
 
 const RETRYABLE_METHODS = new Set(["get", "head"]);

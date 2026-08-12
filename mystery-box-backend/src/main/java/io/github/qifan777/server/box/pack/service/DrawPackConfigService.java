@@ -2,6 +2,8 @@ package io.github.qifan777.server.box.pack.service;
 
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.box.pack.model.DrawPackConfigView;
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
+import io.github.qifan777.server.payment.config.MarketProperties;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -18,6 +20,7 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 public class DrawPackConfigService {
     private final JdbcTemplate jdbcTemplate;
+    private final MarketProperties marketProperties;
 
     public List<DrawPackConfigView> listEnabled() {
         return jdbcTemplate.query(
@@ -78,14 +81,16 @@ public class DrawPackConfigService {
     }
 
     public BigDecimal applyBatchDiscount(BigDecimal unitPrice, int drawCount) {
+        String currency = marketProperties.getCurrency();
         return findByDrawCount(drawCount)
-                .map(config -> config.applyDiscount(unitPrice))
-                .orElse(unitPrice.multiply(BigDecimal.valueOf(drawCount)));
+                .map(config -> config.applyDiscount(unitPrice, currency))
+                .orElse(MoneyRounding.round(unitPrice.multiply(BigDecimal.valueOf(drawCount)), currency));
     }
 
     public BigDecimal batchDiscountAmount(BigDecimal unitPrice, int drawCount) {
-        BigDecimal original = unitPrice.multiply(BigDecimal.valueOf(drawCount));
-        return original.subtract(applyBatchDiscount(unitPrice, drawCount));
+        String currency = marketProperties.getCurrency();
+        BigDecimal original = MoneyRounding.round(unitPrice.multiply(BigDecimal.valueOf(drawCount)), currency);
+        return MoneyRounding.round(original.subtract(applyBatchDiscount(unitPrice, drawCount)), currency);
     }
 
     @Transactional

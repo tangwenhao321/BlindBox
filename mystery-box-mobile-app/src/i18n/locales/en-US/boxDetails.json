@@ -56,6 +56,7 @@
     "pityNearOpen": "Pity {{current}}/{{threshold}} ({{remaining}} draws to go)",
     "pityCompensateTitle": "Pity stock unavailable",
     "pityCompensateBody": "Pity triggered, but the high-tier prize is out of stock. Wait for restock and keep your progress, or take points compensation.",
+    "pityCompensateBodyIos": "Pity triggered, but the high-tier prize is out of stock. You can wait for restock and keep your progress. Points compensation is unavailable on iOS.",
     "pityCompensateWait": "Wait for restock",
     "pityCompensatePoints": "Take points",
     "pityCompensateChoose": "Choose compensation",

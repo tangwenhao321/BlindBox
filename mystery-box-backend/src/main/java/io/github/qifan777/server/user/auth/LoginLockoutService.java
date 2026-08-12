@@ -41,7 +41,9 @@ public class LoginLockoutService {
             try {
                 return Boolean.TRUE.equals(redisTemplate.hasKey(LOCK_KEY + key));
             } catch (Exception ex) {
-                log.warn("login lock check failed phoneHash={}", hash(key), ex);
+                // Redis is the multi-node source of truth — fail closed on outage.
+                log.warn("login lock check failed phoneHash={} (fail-closed)", hash(key), ex);
+                return true;
             }
         }
         Long until = localLocks.get(key);

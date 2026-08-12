@@ -225,6 +225,16 @@ public class MarketplaceService {
         if (price == null || price.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("MARKETPLACE_INVALID_PRICE: 挂牌价格须大于 0");
         }
+        BigDecimal minPrice = marketProperties.isVndMarket() ? BigDecimal.ONE : new BigDecimal("0.01");
+        if (price.compareTo(minPrice) < 0) {
+            throw new BusinessException(
+                    "MARKETPLACE_INVALID_PRICE: 挂牌价格不能低于 " + marketProperties.formatAmount(minPrice));
+        }
+        BigDecimal rounded = MoneyRounding.round(price, requireCurrency());
+        if (rounded == null || rounded.compareTo(minPrice) < 0) {
+            throw new BusinessException("MARKETPLACE_INVALID_PRICE: 挂牌价格须大于 0");
+        }
+        price = rounded;
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(orderId);
         if (!order.creator().id().equals(sellerUserId)) {
             throw new BusinessException("MARKETPLACE_UNAUTHORIZED: 只能出售自己订单中的赏品");
@@ -795,10 +805,17 @@ public class MarketplaceService {
         if (feeRate.compareTo(BigDecimal.ZERO) < 0 || feeRate.compareTo(BigDecimal.ONE) >= 0) {
             feeRate = new BigDecimal("0.05");
         }
-        String currency = marketProperties != null ? marketProperties.getCurrency() : "CNY";
+        String currency = requireCurrency();
         BigDecimal fee = MoneyRounding.round(price.multiply(feeRate), currency);
         BigDecimal sellerProceeds = MoneyRounding.round(price.subtract(fee).max(BigDecimal.ZERO), currency);
         return new FeeBreakdown(fee, sellerProceeds);
+    }
+
+    private String requireCurrency() {
+        if (marketProperties == null || !StringUtils.hasText(marketProperties.getCurrency())) {
+            throw new IllegalStateException("MARKET_CURRENCY_MISSING: marketProperties.currency is required");
+        }
+        return marketProperties.getCurrency().trim();
     }
 
     private void removeProductFromSellerOrderItem(String orderItemId, String productId) {

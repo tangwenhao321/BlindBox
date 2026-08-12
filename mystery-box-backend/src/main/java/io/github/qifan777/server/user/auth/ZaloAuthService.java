@@ -3,6 +3,8 @@ package io.github.qifan777.server.user.auth;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.dev33.satoken.secure.BCrypt;
+import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.model.LoginDevice;
 import io.github.qifan777.server.referral.service.ReferralService;
@@ -104,7 +106,8 @@ public class ZaloAuthService {
         User user = userRepository.save(UserDraft.$.produce(draft -> {
             draft.setPhone(syntheticPhone(profile.id()))
                     .setZaloOpenId(profile.id())
-                    .setPassword("123456")
+                    // Random bcrypt — Zalo accounts must not share the WeChat sentinel "123456".
+                    .setPassword(BCrypt.hashpw(IdUtil.fastSimpleUUID()))
                     .setNickname(nickname)
                     .setAvatar(trimTo(profile.pictureUrl(), 512))
                     .setStatus(DictConstants.UserStatus.NORMAL)

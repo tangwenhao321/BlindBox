@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { type SharedValue, type AnimatedStyle, runOnJS, useAnimatedReaction } from "react-native-reanimated";
 import type { StyleProp, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -222,8 +222,8 @@ export function OrderResultRevealPhase({
         ? t("revealOverlay.collectionEasterEgg")
         : undefined;
 
-  const useExpoRevealOverlay =
-    motionDriver === "expo-go" || staticFallback || Platform.OS === "android";
+  // Keep overlay driver aligned with motionDriver so multi-draw playToken stays in sync.
+  const useExpoRevealOverlay = motionDriver === "expo-go" || staticFallback;
 
   return (
     <>

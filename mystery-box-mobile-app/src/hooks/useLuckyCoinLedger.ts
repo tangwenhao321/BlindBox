@@ -7,6 +7,10 @@ export function useLuckyCoinLedger(token: string) {
   const { loadError, loading, runLoad } = useListLoad();
 
   const reload = useCallback(async () => {
+    if (!token) {
+      setEntries([]);
+      return;
+    }
     await runLoad(async () => {
       const items = await fetchLuckyCoinLedger(token);
       setEntries(items);

@@ -1,7 +1,7 @@
 package io.github.qifan777.server.payment.entity.dto;
 
 import io.github.qifan777.server.payment.entity.Payment;
-import io.github.qifan777.server.payment.entity.PaymentDraft;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 
@@ -19,17 +19,12 @@ public record PaymentCalculateView(
         BigDecimal savingsAmount,
         String currency
 ) {
-    public static PaymentCalculateView from(PaymentPriceView price, BigDecimal retentionDiscount) {
-        return from(price, retentionDiscount, null, null, "CNY");
-    }
-
     public static PaymentCalculateView from(
             PaymentPriceView price,
             BigDecimal retentionDiscount,
-            String suggestedCouponUserId,
-            BigDecimal savingsAmount
+            String currency
     ) {
-        return from(price, retentionDiscount, suggestedCouponUserId, savingsAmount, "CNY");
+        return from(price, retentionDiscount, null, null, currency);
     }
 
     public static PaymentCalculateView from(
@@ -39,6 +34,9 @@ public record PaymentCalculateView(
             BigDecimal savingsAmount,
             String currency
     ) {
+        if (!StringUtils.hasText(currency)) {
+            throw new IllegalArgumentException("currency is required for PaymentCalculateView");
+        }
         BigDecimal retention = retentionDiscount == null ? BigDecimal.ZERO : retentionDiscount;
         BigDecimal savings = savingsAmount == null ? BigDecimal.ZERO : savingsAmount;
         return new PaymentCalculateView(
@@ -50,7 +48,7 @@ public record PaymentCalculateView(
                 retention,
                 suggestedCouponUserId,
                 savings,
-                currency == null || currency.isBlank() ? "CNY" : currency
+                currency.trim()
         );
     }
 

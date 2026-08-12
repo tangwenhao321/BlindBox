@@ -110,10 +110,12 @@ describe("buildAppShellSlices", () => {
       setInviteCode: vi.fn(),
       restoreToken: vi.fn(),
       login: vi.fn(),
+      loginWithSms: vi.fn(),
       loginWithZalo: vi.fn(),
       register: vi.fn(),
       logout: vi.fn(),
       openLoginPage: vi.fn(),
+      clearInviteCode: vi.fn(),
       requireAuth: () => true,
     } satisfies AppAuthSession;
 

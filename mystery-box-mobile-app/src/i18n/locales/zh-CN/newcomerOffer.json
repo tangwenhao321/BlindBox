@@ -2,11 +2,11 @@
   "newcomerOffer": {
     "tag": "机会只有一次",
     "titleNewcomer": "新人",
-    "titleBox": "{{price}}元盲盒",
+    "titleBox": "{{price}}盲盒",
     "subtitlePrefix": "{{boxName}} · ",
     "subtitleBody": "此盲盒最高可开出价值 {{maxPrice}} 高端产品",
     "badge": "新人必买",
-    "pill": "首抽{{price}}元",
+    "pill": "首抽{{price}}",
     "guaranteeDefault": "本次开盒必出史诗以上商品",
     "emptyOffer": "暂无可用新人福利盲盒",
     "ctaA11y": "新人专享立即购买",

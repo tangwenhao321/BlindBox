@@ -78,7 +78,7 @@ public class UserSpendLimitPreferenceService {
             throw new BusinessException(label + "限额必须大于 0");
         }
         if (normalized.compareTo(serverMax) > 0) {
-            throw new BusinessException(label + "限额不能超过平台上限 " + serverMax.stripTrailingZeros().toPlainString() + " 元");
+            throw new BusinessException(label + "限额不能超过平台上限 " + marketProperties.formatAmount(serverMax));
         }
         return normalized;
     }

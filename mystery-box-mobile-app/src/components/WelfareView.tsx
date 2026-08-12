@@ -18,9 +18,10 @@ import { AnimatedRevealCard } from "./AnimatedRevealCard";
 
 type Props = {
   onOpenCoupons: () => void;
+  onRequireLogin?: () => void;
 };
 
-export function WelfareView({ onOpenCoupons }: Props) {
+export function WelfareView({ onOpenCoupons, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const { colors: themeColors } = useAppTheme();
@@ -38,6 +39,11 @@ export function WelfareView({ onOpenCoupons }: Props) {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    if (!token) {
+      setError(null);
+      setInitialLoading(false);
+      return;
+    }
     try {
       setError(null);
       const next = await getCheckInStatus(token);
@@ -52,6 +58,25 @@ export function WelfareView({ onOpenCoupons }: Props) {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  if (!token) {
+    return (
+      <View style={styles.root}>
+        <View style={styles.guestCard}>
+          <Text style={styles.guestTitle}>{t("welfare.guestEmptyTitle")}</Text>
+          <Text style={styles.guestDesc}>{t("welfare.guestEmptyDesc")}</Text>
+          {onRequireLogin ? (
+            <PrimaryButton
+              label={t("welfare.goLogin")}
+              accessibilityLabel={t("welfare.goLogin")}
+              onPress={onRequireLogin}
+              style={styles.checkBtn}
+            />
+          ) : null}
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.root}>
@@ -141,6 +166,16 @@ export function WelfareView({ onOpenCoupons }: Props) {
 function buildWelfareStyles(colors: ThemeColors) {
   return StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.bgPage, padding: layout.screenPaddingX, paddingTop: spacing.md },
+    guestCard: {
+      backgroundColor: colors.bgBrandSoft,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.chipBorder,
+      gap: spacing.sm,
+    },
+    guestTitle: { fontSize: typography.h4, fontWeight: "800", color: colors.textPrimary },
+    guestDesc: { color: colors.textSecondary, fontSize: typography.body, lineHeight: 22, marginBottom: spacing.sm },
     error: { color: colors.danger, marginBottom: spacing.sm, fontSize: typography.caption },
     hero: {
       borderRadius: radius.xl,
@@ -178,32 +213,30 @@ function buildWelfareStyles(colors: ThemeColors) {
       borderRadius: radius.lg,
       padding: spacing.lg,
       marginBottom: spacing.md,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.border,
-      ...shadows.cardSm,
+      borderWidth: 1,
+      borderColor: colors.borderSoft,
     },
-    cardTitle: { fontWeight: "800", fontSize: typography.bodyLg, color: colors.textPrimary },
-    meta: { marginTop: spacing.xs, color: colors.textSecondary, fontSize: typography.caption, lineHeight: 18 },
-    checkBtn: { marginTop: spacing.md },
-    weekRow: { flexDirection: "row", justifyContent: "space-between", marginTop: spacing.md, marginBottom: spacing.sm },
+    cardTitle: { ...font("bodySemiBold"), color: colors.textPrimary, fontSize: typography.bodyLg, marginBottom: spacing.xs },
+    meta: { color: colors.textSecondary, fontSize: typography.caption, marginBottom: spacing.md },
+    weekRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.xs, marginBottom: spacing.md },
     dayCell: {
+      width: 40,
       alignItems: "center",
-      padding: spacing.xs,
+      paddingVertical: spacing.xs,
       borderRadius: radius.sm,
       backgroundColor: colors.bgSoft,
-      minWidth: 40,
     },
-    dayChecked: { backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: colors.chipBorder },
-    dayText: { fontSize: 10, color: colors.textSecondary },
-    dayMark: { fontWeight: "700", color: colors.brand },
+    dayChecked: { backgroundColor: colors.bgBrandSoft },
+    dayText: { fontSize: typography.micro, color: colors.textMuted },
+    dayMark: { fontSize: typography.caption, color: colors.brand, fontWeight: "700" },
+    checkBtn: { marginTop: spacing.xs },
     linkCard: {
-      paddingVertical: spacing.lg,
-      alignItems: "center",
-      backgroundColor: colors.bgBrandSoft,
+      backgroundColor: colors.bgCard,
       borderRadius: radius.lg,
+      padding: spacing.lg,
       borderWidth: 1,
-      borderColor: colors.chipBorder,
+      borderColor: colors.borderSoft,
     },
-    linkText: { color: colors.brand, fontWeight: "800", fontSize: typography.body },
+    linkText: { color: colors.brand, fontWeight: "700", fontSize: typography.body },
   });
 }

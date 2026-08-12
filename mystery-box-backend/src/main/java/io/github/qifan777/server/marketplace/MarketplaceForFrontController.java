@@ -21,6 +21,7 @@ import java.util.Map;
 public class MarketplaceForFrontController {
     private final MarketplaceService marketplaceService;
     private final MarketplaceChatService marketplaceChatService;
+    private final io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard iosDigitalGoodsGuard;
 
     @GetMapping("listings")
     public List<MarketplaceService.MarketplaceListingView> listings(
@@ -56,6 +57,7 @@ public class MarketplaceForFrontController {
 
     @PostMapping("listings")
     public String create(@RequestBody @Validated CreateListingRequest request) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         return marketplaceService.createListing(
                 StpUtil.getLoginIdAsString(),
                 request.orderId(),
@@ -72,6 +74,7 @@ public class MarketplaceForFrontController {
 
     @PostMapping("listings/{id}/buy")
     public String buy(@PathVariable String id) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
         return marketplaceService.buyListing(StpUtil.getLoginIdAsString(), id);
     }
 

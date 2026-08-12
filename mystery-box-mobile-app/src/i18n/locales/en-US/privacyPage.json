@@ -1,7 +1,9 @@
 {
   "privacyPage": {
-    "p1": "We collect and use account, order, and device data only as needed to provide the service.",
-    "p2": "You can sign out anytime in Settings; contact support to delete your account.",
-    "p3": "Continued use means you agree to the terms of service and privacy policy."
+    "p1": "We collect account identifiers, order history, delivery addresses, device/app diagnostics, and payment status only as needed to operate Night Cabinet (mystery-box commerce), prevent fraud, and fulfill shipments.",
+    "p2": "You can export your data or delete your account in Settings → privacy controls. Deletion anonymizes your profile, disables login, and clears push tokens; some order records may be retained for legal, tax, and dispute resolution.",
+    "p3": "We do not sell personal data. Analytics and crash tools (when enabled) process technical logs under our processors’ terms. Contact support for privacy requests.",
+    "p4": "Payments are processed by licensed payment partners (e.g. VNPay / WeChat / App Store). We receive payment results, not full card numbers.",
+    "p5": "Continued use means you agree to the Terms of Service and this Privacy Policy. Users under 18 must not purchase random-draw products."
   }
 }

@@ -277,7 +277,10 @@ public class ReferralService {
             return;
         }
         BigDecimal rate = commissionRate != null ? commissionRate : new BigDecimal("0.05");
-        String currency = marketProperties != null ? marketProperties.getCurrency() : "CNY";
+        if (marketProperties == null || !org.springframework.util.StringUtils.hasText(marketProperties.getCurrency())) {
+            throw new IllegalStateException("MARKET_CURRENCY_MISSING: marketProperties.currency is required");
+        }
+        String currency = marketProperties.getCurrency().trim();
         BigDecimal commission = MoneyRounding.round(payAmount.multiply(rate), currency);
         if (commission.compareTo(BigDecimal.ZERO) <= 0) {
             return;

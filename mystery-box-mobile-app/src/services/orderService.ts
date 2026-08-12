@@ -18,6 +18,8 @@ type OrderRequestOptions = {
   slotNo?: number;
   /** Home recommend A/B variant; when omitted, taken from lastRecommendAttribution for this box. */
   recommendVariant?: string;
+  idempotencyScope?: IdempotencyScope;
+  idempotencySeed?: string;
 };
 
 type OrderPayload = {

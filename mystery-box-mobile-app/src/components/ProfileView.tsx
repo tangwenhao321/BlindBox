@@ -20,6 +20,7 @@ import { useScreenStyles } from "../styles/screenStyles";
 import { ORDER_STATUS } from "../config/constants";
 import { useAppPublicConfig } from "../hooks/useAppPublicConfig";
 import { FEATURE_KEYS, isFeatureVisibleForLocale, type FeatureKey } from "../config/featureRegistry";
+import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { layout, radius, shadows, spacing, typography, font } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
@@ -245,9 +246,10 @@ export function ProfileView(props: Props) {
         setCheckedToday(status.checkedToday);
         setCheckInStreak(status.streakDays ?? 0);
       })
-      .catch(() => {
+      .catch((error) => {
         setCheckedToday(null);
         setCheckInStreak(0);
+        toast.error(parseError(error));
       });
     const task = InteractionManager.runAfterInteractions(() => {
       setHonorLoading(true);
@@ -291,7 +293,8 @@ export function ProfileView(props: Props) {
       MORE_GRID.filter(
         (item) =>
           !("featureKey" in item && item.featureKey) ||
-          isFeatureVisibleForLocale(item.featureKey, getAppLocale(), publicConfig.featureFlags),
+          isFeatureVisibleForLocale(item.featureKey, getAppLocale(), publicConfig.featureFlags) &&
+          /* ios-vip-gate */ !(item.featureKey === FEATURE_KEYS.VIP && isIosDigitalGoodsRestricted()),
       ),
     [publicConfig.featureFlags],
   );

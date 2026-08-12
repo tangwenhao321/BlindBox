@@ -109,9 +109,9 @@ public class UserSpendLimitService {
         BigDecimal monthlySpent = sumPaidSince(userId, startOfMonth(LocalDate.now()), excludeOrderId);
         if (!withinLimits(dailySpent, monthlySpent, increment, effectiveDaily, effectiveMonthly)) {
             if (dailySpent.add(increment).compareTo(effectiveDaily) > 0) {
-                throw new BusinessException("已超出每日消费限额（" + effectiveDaily.stripTrailingZeros().toPlainString() + " 元）");
+                throw new BusinessException("已超出每日消费限额（" + marketProperties.formatAmount(effectiveDaily) + "）");
             }
-            throw new BusinessException("已超出每月消费限额（" + effectiveMonthly.stripTrailingZeros().toPlainString() + " 元）");
+            throw new BusinessException("已超出每月消费限额（" + marketProperties.formatAmount(effectiveMonthly) + "）");
         }
     }
 

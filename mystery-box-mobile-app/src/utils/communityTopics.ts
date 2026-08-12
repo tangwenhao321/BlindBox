@@ -20,7 +20,7 @@ export function formatCommunitySharePost(params: {
   const tag = params.topic ?? "晒单";
   const tier = params.qualityType ? `【${params.qualityType}】` : "";
   return i18n.t("communityTopics.shareDraft", {
-    tag,
+    tag: communityTopicDisplayLabel(tag),
     boxName: params.boxName,
     tier,
     productName: params.productName,

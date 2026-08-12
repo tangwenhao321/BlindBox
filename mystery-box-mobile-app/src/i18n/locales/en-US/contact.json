@@ -1,7 +1,9 @@
 {
   "contact": {
     "noPhone": "Support phone not configured — try again later",
+    "noPhoneFallback": "No support channel configured — try again later or leave an App Store review note",
     "callHint": "Call: {{phone}}",
+    "emailHint": "Email: {{email}}",
     "noWecom": "WeCom not configured — contact platform support",
     "wecomShare": "Add WeCom: {{id}}",
     "wecomId": "WeChat ID: {{id}}",

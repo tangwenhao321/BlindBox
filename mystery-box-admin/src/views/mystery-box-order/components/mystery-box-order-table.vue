@@ -9,6 +9,7 @@ import { Close, Promotion } from '@element-plus/icons-vue'
 import { useTableHelper } from '@/components/base/table/table-helper'
 import DictColumn from '@/components/dict/dict-column.vue'
 import { DictConstants } from '@/apis/__generated/model/enums/DictConstants'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type MysteryBoxOrderScope = Scope<
   MysteryBoxOrderDto['MysteryBoxOrderRepository/COMPLEX_FETCHER_FOR_ADMIN']
@@ -154,7 +155,11 @@ const batchImportLogistics = async () => {
                       <el-avatar :src="product.cover" />
                     </template>
                   </el-table-column>
-                  <el-table-column label="价格" prop="price" width="90" />
+                  <el-table-column label="价格" prop="price" width="110">
+                    <template v-slot:default="{ row: product }">
+                      {{ formatAdminMoney(product.price) }}
+                    </template>
+                  </el-table-column>
                   <el-table-column label="品质" prop="qualityType" width="100" />
                 </el-table>
               </template>
@@ -179,9 +184,9 @@ const batchImportLogistics = async () => {
                 {{ itemRow.mysteryBox?.tips }}
               </template>
             </el-table-column>
-            <el-table-column label="价格" width="90">
+            <el-table-column label="价格" width="110">
               <template v-slot:default="{ row: itemRow }: MysteryBoxOrderItemScope">
-                {{ itemRow.mysteryBox?.price }}
+                {{ formatAdminMoney(itemRow.mysteryBox?.price) }}
               </template>
             </el-table-column>
             <el-table-column label="封面" width="72">
@@ -207,24 +212,24 @@ const batchImportLogistics = async () => {
         </template>
       </el-table-column>
       <el-table-column label="支付详情">
-        <el-table-column label="VIP优惠" prop="payAmount" sortable="custom">
+        <el-table-column label="VIP优惠" prop="vipAmount">
           <template v-slot:default="{ row }: MysteryBoxOrderScope">
-            {{ row.baseOrder?.payment?.vipAmount }}
+            {{ formatAdminMoney(row.baseOrder?.payment?.vipAmount) }}
           </template>
         </el-table-column>
-        <el-table-column label="邮费" prop="payAmount" sortable="custom">
+        <el-table-column label="邮费" prop="deliveryFee">
           <template v-slot:default="{ row }: MysteryBoxOrderScope">
-            {{ row.baseOrder?.payment?.deliveryFee }}
+            {{ formatAdminMoney(row.baseOrder?.payment?.deliveryFee) }}
           </template>
         </el-table-column>
-        <el-table-column label="商品金额" prop="payAmount" sortable="custom">
+        <el-table-column label="商品金额" prop="productAmount">
           <template v-slot:default="{ row }: MysteryBoxOrderScope">
-            {{ row.baseOrder?.payment?.productAmount }}
+            {{ formatAdminMoney(row.baseOrder?.payment?.productAmount) }}
           </template>
         </el-table-column>
         <el-table-column label="实付金额" prop="payAmount" sortable="custom">
           <template v-slot:default="{ row }: MysteryBoxOrderScope">
-            {{ row.baseOrder?.payment?.payAmount }}
+            {{ formatAdminMoney(row.baseOrder?.payment?.payAmount) }}
           </template>
         </el-table-column>
         <el-table-column

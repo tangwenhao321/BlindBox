@@ -91,8 +91,8 @@ public class AdminActionOtpVerifier {
         try {
             return Boolean.TRUE.equals(redisTemplate.hasKey(LOCK_KEY + key));
         } catch (Exception ex) {
-            log.warn("admin otp lock check failed key={}", key, ex);
-            return false;
+            log.warn("admin otp lock check failed key={} (fail-closed)", key, ex);
+            return true;
         }
     }
 

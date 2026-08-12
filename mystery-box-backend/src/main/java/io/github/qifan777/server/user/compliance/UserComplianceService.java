@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -13,6 +14,16 @@ public class UserComplianceService {
     private final JdbcTemplate jdbcTemplate;
 
     public void confirmAge(String userId) {
+        confirmAge(userId, null);
+    }
+
+    public void confirmAge(String userId, Integer birthYear) {
+        if (birthYear != null) {
+            int age = LocalDate.now().getYear() - birthYear;
+            if (age < 18 || age >= 120) {
+                throw new BusinessException("仅年满 18 周岁用户可确认");
+            }
+        }
         jdbcTemplate.update(
                 """
                         INSERT INTO user_compliance (user_id, age_confirmed_at, created_time)

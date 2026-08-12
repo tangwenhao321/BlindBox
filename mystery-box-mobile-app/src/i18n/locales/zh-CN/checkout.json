@@ -50,6 +50,9 @@
     "spendLimitBlocked": "已超出消费限额，请在设置中调整",
     "probabilityRates": "公示概率：传说 {{legendary}}% / 隐藏 {{hidden}}% / 普通 {{general}}%",
     "probabilityDynamicNote": "实际抽奖概率可能因新人、连败、连抽、时段等因素动态调整。",
-    "probabilityAdjustedNote": "以上为按你的账号与本次抽数个性化后的概率（新人/连败/时段）。"
+    "probabilityAdjustedNote": "以上为按你的账号与本次抽数个性化后的概率（新人/连败/时段）。",
+    "oddsTitle": "概率公示",
+    "probabilityUnavailable": "无法加载公示概率，请先打开概率页或重试后再支付。",
+    "physicalFulfillmentNote": "盲盒订单为实物商品，支付前请确认收货地址；开盒后可在仓库申请发货。"
   }
 }

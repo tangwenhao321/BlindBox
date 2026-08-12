@@ -26,8 +26,13 @@ public class UserComplianceForFrontController {
     }
 
     @PostMapping("confirm-age")
-    public void confirmAge() {
-        userComplianceService.confirmAge(StpUtil.getLoginIdAsString());
+    public void confirmAge(@RequestBody(required = false) ConfirmAgeRequest body) {
+        userComplianceService.confirmAge(
+                StpUtil.getLoginIdAsString(),
+                body == null ? null : body.birthYear());
+    }
+
+    public record ConfirmAgeRequest(Integer birthYear) {
     }
 
     @GetMapping("spend-limit")

@@ -2,6 +2,7 @@ package io.github.qifan777.server.teamlottery;
 
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
+import io.github.qifan777.server.user.compliance.UserComplianceService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.babyfish.jimmer.client.ApiIgnore;
@@ -22,11 +23,14 @@ import java.util.List;
 public class TeamLotteryForFrontController {
     private final TeamLotteryService teamLotteryService;
     private final ClientIpResolver clientIpResolver;
+    private final UserComplianceService userComplianceService;
 
     @PostMapping
     public TeamLotteryService.TeamView create(@RequestBody CreateRequest body, HttpServletRequest request) {
+        String userId = StpUtil.getLoginIdAsString();
+        userComplianceService.assertAgeConfirmed(userId);
         return teamLotteryService.create(
-                StpUtil.getLoginIdAsString(),
+                userId,
                 body.boxId(),
                 body.deviceId(),
                 body.phoneHash(),
@@ -36,8 +40,10 @@ public class TeamLotteryForFrontController {
 
     @PostMapping("join")
     public TeamLotteryService.TeamView join(@RequestBody JoinRequest body, HttpServletRequest request) {
+        String userId = StpUtil.getLoginIdAsString();
+        userComplianceService.assertAgeConfirmed(userId);
         return teamLotteryService.join(
-                StpUtil.getLoginIdAsString(),
+                userId,
                 body.inviteCode(),
                 body.deviceId(),
                 body.phoneHash(),
@@ -67,9 +73,11 @@ public class TeamLotteryForFrontController {
 
     @PostMapping("{id}/draw")
     public TeamLotteryService.DrawResult draw(@PathVariable String id, @RequestBody DrawRequest body) {
+        String userId = StpUtil.getLoginIdAsString();
+        userComplianceService.assertAgeConfirmed(userId);
         // hitHidden from client is ignored; server derives HIDDEN from paid order prizes.
         return teamLotteryService.consumeDraw(
-                StpUtil.getLoginIdAsString(),
+                userId,
                 id,
                 body.orderId(),
                 body.resultJson()

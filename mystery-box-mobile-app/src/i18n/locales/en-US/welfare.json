@@ -9,6 +9,9 @@
     "lanternDaysLabel": "Lantern days",
     "streakMeta": "{{days}} lantern days · +{{coins}} lucky coins tonight",
     "checkInSuccess": "Lantern lit · +{{coins}} lucky coins",
-    "pageTitle": "Welfare hub"
+    "pageTitle": "Welfare hub",
+    "guestEmptyTitle": "Sign in for welfare",
+    "guestEmptyDesc": "Sign in to check in daily and view coupons",
+    "goLogin": "Sign in"
   }
 }

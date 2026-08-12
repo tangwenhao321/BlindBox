@@ -1,9 +1,21 @@
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAppTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useScreenStyles } from "../styles/screenStyles";
 import { OtpInput } from "./ui/OtpInput";
+import { PasswordStrengthBar } from "./ui/PasswordStrengthBar";
 import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 
@@ -18,7 +30,7 @@ type Props = {
   onPasswordChange: (v: string) => void;
   onClose: () => void;
   onSubmit: () => void;
-  onSendCode: () => void | Promise<unknown>;
+  onSendCode: () => void | boolean | Promise<void | boolean | { ok: boolean }>;
 };
 
 export function ForgotPasswordModal(props: Props) {
@@ -39,10 +51,14 @@ export function ForgotPasswordModal(props: Props) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(buildForgotPasswordStyles);
   const screenStyles = useScreenStyles();
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.mask}>
+      <KeyboardAvoidingView
+        style={styles.mask}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <View style={styles.card}>
           <Text style={styles.title}>{t("login.resetTitle")}</Text>
           <Text style={styles.hint}>{t("login.resetHint")}</Text>
@@ -63,16 +79,32 @@ export function ForgotPasswordModal(props: Props) {
             disabled={submitting}
             testID="forgotOtpInput"
           />
-          <TextInput
-            value={password}
-            onChangeText={onPasswordChange}
-            style={screenStyles.input}
-            secureTextEntry
-            placeholder={t("login.newPasswordPlaceholder")}
-            placeholderTextColor={colors.textMuted}
-            editable={!submitting}
-            accessibilityLabel={t("login.passwordLabel")}
-          />
+          <View style={styles.passwordRow}>
+            <TextInput
+              value={password}
+              onChangeText={onPasswordChange}
+              style={[screenStyles.input, styles.passwordInput]}
+              secureTextEntry={!showPassword}
+              textContentType="newPassword"
+              autoComplete="password-new"
+              placeholder={t("login.newPasswordPlaceholder")}
+              placeholderTextColor={colors.textMuted}
+              editable={!submitting}
+              accessibilityLabel={t("login.passwordLabel")}
+            />
+            <Pressable
+              style={styles.eyeBtn}
+              onPress={() => setShowPassword((v) => !v)}
+              disabled={submitting}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? t("login.hidePassword") : t("login.showPassword")}
+            >
+              <Text style={styles.eyeText}>
+                {showPassword ? t("login.hidePassword") : t("login.showPassword")}
+              </Text>
+            </Pressable>
+          </View>
+          <PasswordStrengthBar password={password} />
           <View style={styles.actions}>
             <Pressable
               style={styles.cancelBtn}
@@ -98,7 +130,7 @@ export function ForgotPasswordModal(props: Props) {
             </Pressable>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -109,6 +141,10 @@ function buildForgotPasswordStyles(colors: ThemeColors) {
     card: { backgroundColor: colors.bgCard, borderRadius: radius.lg, padding: spacing.lg },
     title: { fontSize: typography.h4, fontWeight: "800", marginBottom: spacing.xs, color: colors.textPrimary },
     hint: { fontSize: typography.caption, color: colors.textMuted, marginBottom: spacing.md },
+    passwordRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
+    passwordInput: { flex: 1, marginBottom: 0 },
+    eyeBtn: { paddingHorizontal: spacing.sm, paddingVertical: spacing.sm },
+    eyeText: { color: colors.link, fontWeight: "600", fontSize: typography.caption },
     actions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.md },
     cancelBtn: {
       flex: 1,

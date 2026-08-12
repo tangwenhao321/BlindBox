@@ -4,6 +4,7 @@ import { api } from '@/utils/api-instance'
 import type { Scope } from '@/typings'
 import type { VipOrderDto } from '@/apis/__generated/model/dto'
 import { useTableHelper } from '@/components/base/table/table-helper'
+import { formatAdminMoney } from '@/utils/format-money'
 
 type VipOrderScope = Scope<VipOrderDto['VipOrderRepository/COMPLEX_FETCHER_FOR_ADMIN']>
 const vipOrderTableHelper = inject(
@@ -60,7 +61,7 @@ onMounted(() => {
             }
           }: VipOrderScope"
         >
-          {{ payment.payAmount }}
+          {{ formatAdminMoney(payment.payAmount) }}
         </template>
       </el-table-column>
       <el-table-column

@@ -12,8 +12,11 @@
   "ageGate": {
     "title": "Xác nhận độ tuổi",
     "body": "Các mục trong hộp mù là ngẫu nhiên. Xác nhận bạn đủ 18 tuổi trở lên và chấp nhận các điều khoản của nền tảng trước khi đặt hàng.",
-    "confirm": "Tôi từ 18 tuổi trở lên",
-    "decline": "Không phải bây giờ"
+    "confirm": "Xác nhận tôi từ 18 tuổi",
+    "decline": "Không phải bây giờ",
+    "birthYearHint": "Nhập năm sinh để xác nhận bạn từ 18 tuổi trở lên.",
+    "birthYearPlaceholder": "Năm sinh (YYYY)",
+    "birthYearInvalid": "Nhập năm sinh hợp lệ (từ 18 tuổi)."
   },
   "analyticsQueue": {
     "message": "Đồng bộ hóa phân tích không thành công — {{count}} sự kiện đang chờ xử lý (sẽ thử lại khi trực tuyến)",
@@ -58,7 +61,19 @@
       "marketplaceInsufficientBalance": "Số dư không đủ để mua trên chợ",
       "marketplaceCooling": "Giao dịch đang trong thời gian làm mát hoặc trạng thái không hợp lệ",
       "marketplaceUnauthorized": "Bạn không được phép thực hiện thao tác chợ này",
-      "marketplaceError": "Thao tác chợ thất bại — thử lại sau"
+      "marketplaceError": "Thao tác chợ thất bại — thử lại sau",
+      "phoneAlreadyBound": "Tài khoản này đã liên kết số điện thoại",
+      "phoneTaken": "Số điện thoại đã được tài khoản khác sử dụng",
+      "spendLimitDisabled": "Nền tảng chưa bật giới hạn chi tiêu",
+      "spendLimitDailyExceeded": "Đã vượt giới hạn chi tiêu hôm nay",
+      "spendLimitMonthlyExceeded": "Đã vượt giới hạn chi tiêu tháng này",
+      "spendLimitCoolingOff": "Đang trong thời gian chờ đổi giới hạn — thử lại sau",
+      "spendLimitMustPositive": "Giới hạn phải lớn hơn 0",
+      "spendLimitOverCap": "Giới hạn không được vượt mức trần nền tảng",
+      "momoRefundUnavailable": "Kênh hoàn MoMo chưa mở — hỗ trợ sẽ xử lý thủ công",
+      "ageMustBe18": "Chỉ người từ 18 tuổi trở lên mới được xác nhận",
+      "ageRequired": "Vui lòng xác nhận đủ 18 tuổi trước khi đặt hàng",
+      "iosDigitalGoodsBlocked": "Thao tác hàng số này không khả dụng trên bản iOS App Store"
     }
   },
   "appLoading": {
@@ -144,6 +159,9 @@
     "defaultRemark": "Phí hoa hồng",
     "emptyTitle": "Không có bản ghi hoa hồng",
     "emptyDesc": "Kiếm hoa hồng khi người được mời mua hàng",
+    "guestEmptyTitle": "Đăng nhập để xem hoa hồng",
+    "guestEmptyDesc": "Đăng nhập để theo dõi hoa hồng từ lời mời",
+    "goLogin": "Đăng nhập",
     "goPromotion": "Truy cập mục giới thiệu"
   },
   "communityTopics": {
@@ -245,6 +263,9 @@
     "exchangeSuccess": "Đã đổi thành công",
     "emptyTitle": "Không có gì để đổi",
     "emptyDesc": "Phân tích giải thưởng kho để kiếm các mảnh vỡ",
+    "guestEmptyTitle": "Đăng nhập để đổi mảnh",
+    "guestEmptyDesc": "Đăng nhập để xem sản phẩm và đổi bằng mảnh",
+    "goLogin": "Đăng nhập",
     "goWarehouse": "Nhà kho",
     "skuMeta": "Chi phí {{cost}} · Cổ phiếu {{stock}} · {{percent}}%",
     "exchangeA11y": "Đổi {{name}}",
@@ -268,6 +289,9 @@
     "loadFailed": "Không thể tải mục yêu thích ({{id}}...)",
     "emptyTitle": "Không có mục yêu thích",
     "emptyDesc": "Thêm mục yêu thích từ thông tin hộp",
+    "guestEmptyTitle": "Đăng nhập để xem yêu thích",
+    "guestEmptyDesc": "Đăng nhập để đồng bộ hộp đã lưu",
+    "goLogin": "Đăng nhập",
     "goBrowse": "Duyệt",
     "unfavoriteA11y": "Gỡ bỏ mục ưa thích",
     "remove": "Xóa"
@@ -404,9 +428,11 @@
     "placeholder": "Nhập giá "
   },
   "privacyPage": {
-    "p1": "Chúng tôi chỉ thu thập và sử dụng dữ liệu tài khoản, đơn hàng và thiết bị khi cần thiết để cung cấp dịch vụ.",
-    "p2": "Bạn có thể đăng xuất bất cứ lúc nào trong Cài đặt; liên hệ với bộ phận hỗ trợ để xóa tài khoản của bạn.",
-    "p3": "Tiếp tục sử dụng có nghĩa là bạn đồng ý với các điều khoản dịch vụ và chính sách quyền riêng tư."
+    "p1": "Chúng tôi chỉ thu thập định danh tài khoản, lịch sử đơn hàng, địa chỉ giao hàng, nhật ký thiết bị/ứng dụng và trạng thái thanh toán khi cần để vận hành Night Cabinet, chống gian lận và giao hàng.",
+    "p2": "Bạn có thể xuất dữ liệu hoặc xóa tài khoản trong Cài đặt. Xóa sẽ ẩn danh hồ sơ, vô hiệu đăng nhập và xóa token đẩy; một số đơn có thể được giữ vì lý do pháp lý/thuế/tranh chấp.",
+    "p3": "Chúng tôi không bán dữ liệu cá nhân. Công cụ phân tích/crash (nếu bật) xử lý nhật ký kỹ thuật theo điều khoản nhà cung cấp. Liên hệ hỗ trợ cho yêu cầu quyền riêng tư.",
+    "p4": "Thanh toán do đối tác được cấp phép xử lý (ví dụ VNPay / WeChat / App Store). Chúng tôi nhận kết quả thanh toán, không lưu số thẻ đầy đủ.",
+    "p5": "Tiếp tục sử dụng nghĩa là bạn đồng ý Điều khoản dịch vụ và Chính sách quyền riêng tư. Người dưới 18 tuổi không được mua sản phẩm rút thăm ngẫu nhiên."
   },
   "prizeEffect": {
     "meta": "Bậc giải thưởng và cường độ hiệu ứng được đối sánh tự động"
@@ -416,8 +442,8 @@
     "noConfig": "Không có cấu hình xác suất",
     "legendary": "Huyền thoại: {{rate}}",
     "hidden": "Ẩn: {{rate}}",
-    "general": "được tính giá đồng như nhau",
-    "updatedAt": "Thời gian cập nhật",
+    "general": "Thường: {{rate}}",
+    "updatedAt": "Cập nhật: {{time}}",
     "historyTitle": "Thay đổi lịch sử",
     "historyRow": "{{time}} · Huyền thoại {{legendary}} / Ẩn {{hidden}} / Chung {{general}}",
     "disclaimer": "Mức là cấp hộp (điểm cơ bản được hiển thị dưới dạng phần trăm). Các đợt rút thăm thực tế tuân theo kiểm kê và quy tắc của máy chủ, và có thể điều chỉnh theo người mới, chuỗi thua, rút nhiều lần và khung giờ. Thay đổi được ghi lại. Sau khi thanh toán, xác minh rút thăm theo thứ tự chi tiết thông qua kiểm tra hạt giống/băm. Người dùng dưới 18 tuổi không thể mua. Chi tiêu có trách nhiệm. Xác nhận số lần rút thăm và số tiền trước khi thanh toán; sau khi mở thưởng về nguyên tắc không hoàn, chưa mở có thể gửi duyệt, lỗi hệ thống (hết hàng bảo hiểm) sẽ hoàn tự động. Câu hỏi: gửi phản hồi trong phần Hồ sơ — trả lời trong vòng 3 ngày làm việc.",
@@ -445,6 +471,9 @@
     "colTime": "Thời gian",
     "emptyTitle": "Không có hồ sơ giới thiệu",
     "emptyDesc": "Mời bạn bè kiếm hoa hồng tại đây",
+    "guestEmptyTitle": "Đăng nhập để xem giới thiệu",
+    "guestEmptyDesc": "Đăng nhập để chia sẻ mã mời và theo dõi người được mời",
+    "goLogin": "Đăng nhập",
     "posterBoxName": "Mời bạn bè",
     "feedSnippet": "{{name}} đã mở hộp {{product}}",
     "extrasMilestone": "Các mốc quan trọng: {{message}}",
@@ -493,7 +522,10 @@
     "level1": "Mức 1",
     "level2": "Tầng 2",
     "emptyTitle": "Thành viên của nhóm",
-    "emptyDesc": "Mời bạn bè xem tại đây"
+    "emptyDesc": "Mời bạn bè xem tại đây",
+    "guestEmptyTitle": "Đăng nhập để xem nhóm",
+    "guestEmptyDesc": "Đăng nhập để mời bạn và xem thành viên",
+    "goLogin": "Đăng nhập"
   },
   "trust": {
     "viewDisclosure": "Xem tiết lộ xác suất đầy đủ →"
@@ -513,7 +545,30 @@
     "checkInPendingSuffix": "· Không nhận phòng — truy cập Phúc lợi",
     "vipUntil": "VIP đến {{time}}",
     "noVip": "Không có VIP đang hoạt động — định giá tiêu chuẩn khi thanh toán",
+    "guestEmptyTitle": "Đăng nhập để xem quyền lợi VIP",
+    "guestEmptyDesc": "Đăng nhập để xem trạng thái VIP, cấp độ và ưu đãi",
+    "goLogin": "Đăng nhập",
     "benefitsTitle": "Quyền Lợi",
+    "packagesTitle": "Gói VIP",
+    "packagesHint": "Thanh toán thành công sẽ gia hạn VIP",
+    "packagesEmpty": "Hiện chưa có gói VIP để mua",
+    "packageFallback": "Gói VIP",
+    "packageDays": "{{days}} ngày",
+    "buyPackage": "Mua",
+    "buyWithMomo": "MoMo",
+    "buying": "Đang xử lý…",
+    "payOpenFailed": "Không mở được trang thanh toán",
+    "payWechatReady": "Đã tạo đơn WeChat — hoàn tất trong WeChat",
+    "payStarted": "Đã bắt đầu thanh toán",
+    "payReturnHint": "Quay lại và nhấn làm mới trạng thái sau khi thanh toán",
+    "paySuccess": "Đã xác nhận thanh toán VIP",
+    "pendingPayTitle": "Đang thanh toán",
+    "pendingPayHint": "Hoàn tất trong app ví, rồi làm mới trạng thái",
+    "refreshPayStatus": "Tôi đã thanh toán — làm mới",
+    "iosIapRequired": "Gói VIP trên iOS phải mua qua In-App Purchase của App Store. Thanh toán ví ngoài không khả dụng tại đây.",
+    "iosUnavailableTitle": "iOS chưa bán gói VIP",
+    "iosUnavailableDesc": "Để tuân thủ App Store, bản này không bán gói VIP. Giao hàng hộp vật lý không đổi.",
+    "goBack": "Quay lại",
     "benefit1": "Giảm giá cho khách VIP trả phòng (xem quyết toán)",
     "benefit2": "Tiếp cận sớm các hồ bơi hạn chế và điểm giao dịch nhỏ lẻ",
     "benefit3": "SLA ưu tiên hỗ trợ và vận chuyển",
@@ -548,7 +603,10 @@
     "lanternDaysLabel": "Ngày đèn",
     "streakMeta": "{{days}} ngày đèn · +{{coins}} xu may mắn tối nay",
     "checkInSuccess": "Đèn đã sáng · +{{coins}} xu may mắn",
-    "pageTitle": "Trung tâm phúc lợi"
+    "pageTitle": "Trung tâm phúc lợi",
+    "guestEmptyTitle": "Đăng nhập để nhận phúc lợi",
+    "guestEmptyDesc": "Đăng nhập để điểm danh mỗi ngày và xem coupon",
+    "goLogin": "Đăng nhập"
   },
   "winRecord": {
     "title": "Bảng tin trực tiếp",

@@ -10,6 +10,8 @@
     "failTitle": "Thanh toán chưa hoàn tất",
     "failHint": "Nếu đã bị trừ tiền, hãy làm mới trang đơn sau hoặc thanh toán lại.",
     "retryPay": "Thanh toán lại",
-    "backHome": "Về trang chủ"
+    "backHome": "Về trang chủ",
+    "loginRequired": "Đăng nhập để xem kết quả thanh toán",
+    "goLogin": "Đăng nhập"
   }
 }

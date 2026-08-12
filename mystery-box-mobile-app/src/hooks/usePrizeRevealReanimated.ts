@@ -36,6 +36,7 @@ import { lockRevealActions, lockRevealEndZone } from "../effects/revealActionLoc
 import { queueRevealA11yAnnounce } from "../effects/revealA11yAnnounce";
 import { shouldSkipShake } from "../effects/revealA11yTheme";
 import {
+  clearRevealSessionTextOnlyHeal,
   getRuntimeRevealShakeEnabled,
   getRuntimeRevealHapticEnabled,
 } from "../utils/revealSettings";
@@ -110,6 +111,7 @@ export function usePrizeRevealReanimated({
   onRevealComplete,
 }: Options) {
   const [showReveal, setShowReveal] = useState(false);
+  const [revealPlayToken, setRevealPlayToken] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [accelerateProgress, setAccelerateProgress] = useState(0);
   const [isAccelerating, setIsAccelerating] = useState(false);
@@ -235,7 +237,7 @@ export function usePrizeRevealReanimated({
     cancelAnimation(prizeCardOpacity);
     cancelAnimation(cardFlip);
     cancelAnimation(boxTeaserOpacity);
-    cancelScheduledRevealSounds({ fadeMs: getRevealRemoteConfig().audioFadeOutMs });
+    cancelScheduledRevealSounds({ fadeMs: 0, stopActive: true });
     Vibration.cancel();
   }, [
     boxTeaserOpacity,
@@ -366,6 +368,8 @@ export function usePrizeRevealReanimated({
 
       stopAll();
       resetMotion();
+      clearRevealSessionTextOnlyHeal();
+      setRevealPlayToken((token) => token + 1);
       setShowReveal(true);
       playingRef.current = true;
       setIsPaused(false);
@@ -422,7 +426,7 @@ export function usePrizeRevealReanimated({
         isFinaleDraw,
         soundEnabled,
         afterBoxTeaser: playBoxTeaser,
-        chargeMs: Math.max(profile.chargeMs, 900),
+        chargeMs: scaleRevealDuration(profile.chargeMs, effectivePacing, timingOpts),
         accelerateTier: accelTierRef.current,
         themeId: revealTheme.id,
       });
@@ -817,7 +821,7 @@ export function usePrizeRevealReanimated({
   return {
     motionDriver: "reanimated" as const,
     showReveal,
-    revealPlayToken: 0,
+    revealPlayToken,
     tier,
     profile,
     revealOpacity,

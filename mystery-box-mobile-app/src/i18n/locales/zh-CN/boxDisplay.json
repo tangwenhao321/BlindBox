@@ -5,7 +5,7 @@
     "promoLowStock": "仅剩 {{count}} 张 · 抢尾刀",
     "promoHot": "已售 {{count}} 张 · 热卖中",
     "promoPity": "保底系列 · 概率公示",
-    "promoPriceSurprise": "{{price}}元开启惊喜",
+    "promoPriceSurprise": "{{price}}开启惊喜",
     "promoDefault": "高爆率 · 正品保障"
   }
 }

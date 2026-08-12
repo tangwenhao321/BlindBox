@@ -5,6 +5,6 @@
     "pack10": "豪气十连",
     "pack50": "欧皇五十连",
     "drawCount": "{{count}}连",
-    "discountTag": "限时减{{amount}}元"
+    "discountTag": "限时减{{amount}}"
   }
 }

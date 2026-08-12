@@ -17,8 +17,13 @@ describe("vipService", () => {
     expect(profile?.id).toBe("vip-1");
   });
 
-  it("returns null on error", async () => {
+  it("returns null when token missing", async () => {
+    await expect(fetchCurrentVip("")).resolves.toBeNull();
+    expect(getMock).not.toHaveBeenCalled();
+  });
+
+  it("propagates api errors", async () => {
     getMock.mockRejectedValueOnce(new Error("404"));
-    await expect(fetchCurrentVip("tok")).resolves.toBeNull();
+    await expect(fetchCurrentVip("tok")).rejects.toThrow("404");
   });
 });

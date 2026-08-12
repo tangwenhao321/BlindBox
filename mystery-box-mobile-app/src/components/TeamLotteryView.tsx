@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -23,6 +23,8 @@ import { useAppTheme } from "../context/ThemeContext";
 import { parseError, toAppError } from "../api";
 import { reportAppError } from "../utils/crashReport";
 import { toast } from "../utils/toast";
+import { AgeGateModal, useAgeGate } from "./AgeGateModal";
+import { AgreementCheckbox } from "./ui/AgreementCheckbox";
 import { layout, radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import {
@@ -41,6 +43,7 @@ import {
 import { getBoxById, queryBoxes } from "../services/boxService";
 import {
   createOrder,
+  getMoMoPrepayParams,
   getOrderById,
   getVNPayPrepayParams,
   getWechatPrepayParams,
@@ -48,9 +51,17 @@ import {
 } from "../services/orderService";
 import { DEFAULT_QUERY_PAGE_SIZE, MOCK_PAYMENT_ENABLED } from "../config/constants";
 import { resolvePaymentMode } from "../config/payment";
+import { useAppPublicConfig } from "../hooks/useAppPublicConfig";
 import { isUnpaidOrder } from "../order-utils";
 import { invokeWechatPay } from "../utils/wechatPay";
 import type { MysteryBox, Order } from "../types";
+import {
+  fetchBoxProbability,
+  resolveDisplayRates,
+  type BoxProbability,
+} from "../services/probabilityService";
+
+const MOMO_ENV_ENABLED = process.env.EXPO_PUBLIC_MOMO_ENABLED === "true";
 
 type Props = {
   onBack: () => void;
@@ -76,6 +87,8 @@ async function waitUntilOrderPaid(authToken: string, orderId: string, attempts =
 export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
   const authToken = useAuthToken();
   const { t } = useTranslation();
+  const { momoEnabled: momoServerEnabled } = useAppPublicConfig();
+  const momoEnabled = MOMO_ENV_ENABLED && momoServerEnabled === true && resolvePaymentMode() === "vnpay";
   const { colors: themeColors } = useAppTheme();
   const styles = useThemedStyles(buildStyles);
   const [teams, setTeams] = useState<TeamLottery[]>([]);
@@ -93,6 +106,18 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [payWallet, setPayWallet] = useState<"default" | "momo">("default");
+  const ageGate = useAgeGate(authToken);
+  const [ageGateVisible, setAgeGateVisible] = useState(false);
+  const skipAgeGateOnceRef = useRef(false);
+  const [createOdds, setCreateOdds] = useState<BoxProbability | null>(null);
+  const [activeOdds, setActiveOdds] = useState<BoxProbability | null>(null);
+  const [activeOddsLoading, setActiveOddsLoading] = useState(false);
+  const [drawAgreed, setDrawAgreed] = useState(false);
+
+  useEffect(() => {
+    if (!momoEnabled && payWallet === "momo") setPayWallet("default");
+  }, [momoEnabled, payWallet]);
 
   useEffect(() => {
     const id = boxId.trim();
@@ -112,6 +137,47 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
       cancelled = true;
     };
   }, [boxId, authToken]);
+
+  // Load odds for create-team box picker
+  useEffect(() => {
+    const id = boxId.trim();
+    if (!id) {
+      setCreateOdds(null);
+      return;
+    }
+    let cancelled = false;
+    void fetchBoxProbability(id, { token: authToken }).then((prob) => {
+      if (!cancelled) setCreateOdds(prob);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [boxId, authToken]);
+
+  // Load odds for active team box before pay/draw
+  useEffect(() => {
+    const id = active?.boxId?.trim() ?? "";
+    if (!id || !authToken) {
+      setActiveOdds(null);
+      return;
+    }
+    let cancelled = false;
+    setActiveOddsLoading(true);
+    void fetchBoxProbability(id, { token: authToken, drawCount: 1 })
+      .then((prob) => {
+        if (!cancelled) setActiveOdds(prob);
+      })
+      .finally(() => {
+        if (!cancelled) setActiveOddsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [active?.boxId, authToken]);
+
+  useEffect(() => {
+    setDrawAgreed(false);
+  }, [active?.id, active?.boxId]);
 
   const openBoxPicker = useCallback(async () => {
     if (!authToken) {
@@ -250,6 +316,15 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
       await mockPayOrder(authToken, orderId);
       return getOrderById(authToken, orderId);
     }
+    if (mode === "vnpay" && payWallet === "momo" && momoEnabled) {
+      toast.info(t("teamLottery.completePayment"));
+      const prepay = await getMoMoPrepayParams(authToken, orderId);
+      if (!prepay?.deeplink) {
+        throw new Error(t("teamLottery.paymentRequired"));
+      }
+      await Linking.openURL(prepay.deeplink);
+      return waitUntilOrderPaid(authToken, orderId);
+    }
     if (mode === "vnpay") {
       toast.info(t("teamLottery.completePayment"));
       const prepay = await getVNPayPrepayParams(authToken, orderId);
@@ -270,6 +345,19 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
 
   const handleDraw = async () => {
     if (!authToken || !active || drawing) return;
+    if (ageGate.needsGate && !skipAgeGateOnceRef.current) {
+      setAgeGateVisible(true);
+      return;
+    }
+    skipAgeGateOnceRef.current = false;
+    if (!resolveDisplayRates(activeOdds)) {
+      toast.error(t("teamLottery.oddsUnavailable"));
+      return;
+    }
+    if (!drawAgreed) {
+      toast.info(t("teamLottery.agreeRequired"));
+      return;
+    }
     setDrawing(true);
     try {
       const orderId = await createOrder(authToken, active.boxId, undefined, 1);
@@ -341,6 +429,19 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
             <Text style={styles.btnText}>{t("teamLottery.create")}</Text>
           </Pressable>
         </View>
+        {boxId.trim() ? (
+          <Text style={styles.oddsLine}>
+            {(() => {
+              const rates = resolveDisplayRates(createOdds);
+              if (!rates) return t("teamLottery.oddsUnavailable");
+              return t("checkout.probabilityRates", {
+                legendary: (rates.legendaryRate / 100).toFixed(2),
+                hidden: (rates.hiddenRate / 100).toFixed(2),
+                general: (rates.generalRate / 100).toFixed(2),
+              });
+            })()}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.formRow}>
         <TextInput
@@ -380,7 +481,13 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
           }
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
-            <EmptyState title={t("teamLottery.empty")} description={t("teamLottery.emptyDesc")} variant="plain" />,
+            <EmptyState
+              title={authToken ? t("teamLottery.empty") : t("teamLottery.guestEmpty")}
+              description={authToken ? t("teamLottery.emptyDesc") : t("teamLottery.guestEmptyDesc")}
+              variant="plain"
+              actionLabel={!authToken && onRequireLogin ? t("teamLottery.goLogin") : undefined}
+              onAction={!authToken ? onRequireLogin : undefined}
+            />,
           )}
           ListHeaderComponent={
             active ? (
@@ -395,6 +502,21 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
                 </Text>
                 <Text style={styles.meta}>
                   {t("teamLottery.status")}: {active.status}
+                </Text>
+                <Text style={styles.oddsLine}>
+                  {t("teamLottery.oddsTitle")}
+                  {": "}
+                  {activeOddsLoading
+                    ? t("common.loading", { defaultValue: "Loading…" })
+                    : (() => {
+                        const rates = resolveDisplayRates(activeOdds);
+                        if (!rates) return t("teamLottery.oddsUnavailable");
+                        return t("checkout.probabilityRates", {
+                          legendary: (rates.legendaryRate / 100).toFixed(2),
+                          hidden: (rates.hiddenRate / 100).toFixed(2),
+                          general: (rates.generalRate / 100).toFixed(2),
+                        });
+                      })()}
                 </Text>
                 {members.length > 0 ? (
                   <Text style={styles.meta}>
@@ -412,12 +534,50 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
                       <Text style={styles.btnText}>{t("teamLottery.lock")}</Text>
                     </Pressable>
                   ) : null}
+                  {momoEnabled ? (
+                    <View style={styles.payRow}>
+                      <Pressable
+                        style={[styles.payChip, payWallet === "default" ? styles.payChipOn : null]}
+                        onPress={() => setPayWallet("default")}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: payWallet === "default" }}
+                      >
+                        <Text style={styles.payChipText}>{t("vnpay.methodLabel", { defaultValue: "VNPay" })}</Text>
+                      </Pressable>
+                      <Pressable
+                        style={[styles.payChip, payWallet === "momo" ? styles.payChipOn : null]}
+                        onPress={() => setPayWallet("momo")}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: payWallet === "momo" }}
+                      >
+                        <Text style={styles.payChipText}>{t("momo.methodLabel")}</Text>
+                      </Pressable>
+                    </View>
+                  ) : null}
+                  <View style={styles.agreeBlock}>
+                    <Text style={styles.oddsLine}>{t("checkout.physicalFulfillmentNote")}</Text>
+                    <AgreementCheckbox checked={drawAgreed} onToggle={() => setDrawAgreed((v) => !v)}>
+                      {t("checkout.agreeText")}
+                    </AgreementCheckbox>
+                  </View>
                   <Pressable
-                    style={[styles.btn, drawing ? styles.btnDisabled : null]}
+                    style={[
+                      styles.btn,
+                      drawing || !resolveDisplayRates(activeOdds) || !drawAgreed
+                        ? styles.btnDisabled
+                        : null,
+                    ]}
                     onPress={() => void handleDraw()}
-                    disabled={drawing}
+                    disabled={drawing || !resolveDisplayRates(activeOdds) || !drawAgreed}
                     accessibilityRole="button"
                     accessibilityLabel={drawing ? t("teamLottery.drawing") : t("teamLottery.draw")}
+                    accessibilityHint={
+                      !resolveDisplayRates(activeOdds)
+                        ? t("teamLottery.oddsUnavailable")
+                        : !drawAgreed
+                          ? t("teamLottery.agreeRequired")
+                          : undefined
+                    }
                   >
                     <Text style={styles.btnText}>{drawing ? t("teamLottery.drawing") : t("teamLottery.draw")}</Text>
                   </Pressable>
@@ -510,6 +670,17 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
           </View>
         </View>
       </Modal>
+      <AgeGateModal
+        visible={ageGateVisible}
+        authToken={authToken}
+        onConfirmed={() => {
+          ageGate.setConfirmed(true);
+          skipAgeGateOnceRef.current = true;
+          setAgeGateVisible(false);
+          void handleDraw();
+        }}
+        onDecline={() => setAgeGateVisible(false)}
+      />
     </View>
   );
 }
@@ -546,6 +717,17 @@ function buildStyles(colors: ThemeColors) {
     },
     btnText: { color: colors.textOnBrand, fontWeight: "700", fontSize: typography.caption },
     btnDisabled: { opacity: 0.55 },
+    payRow: { flexDirection: "row", gap: spacing.xs, marginBottom: spacing.sm, flexWrap: "wrap" },
+    payChip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.bgSoft,
+    },
+    payChipOn: { borderColor: colors.brand, backgroundColor: colors.bgBrandSoft },
+    payChipText: { fontSize: typography.caption, fontWeight: "700", color: colors.textPrimary },
     btnSecondary: {
       borderRadius: radius.md,
       paddingHorizontal: spacing.md,
@@ -574,6 +756,8 @@ function buildStyles(colors: ThemeColors) {
     cardOn: { borderColor: colors.brand },
     name: { fontWeight: "700", color: colors.textPrimary },
     meta: { color: colors.textSecondary, fontSize: typography.caption },
+    oddsLine: { color: colors.textSecondary, fontSize: typography.caption, marginTop: spacing.xs, lineHeight: 18 },
+    agreeBlock: { gap: spacing.sm, marginTop: spacing.sm, marginBottom: spacing.xs },
     actionRow: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
     chatLine: { color: colors.textMuted, fontSize: typography.caption, marginTop: 2 },
     modalBackdrop: {

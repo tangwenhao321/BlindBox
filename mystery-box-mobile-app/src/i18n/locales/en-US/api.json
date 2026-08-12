@@ -8,6 +8,7 @@
     "errors": {
       "sessionExpired": "Session expired — please sign in again",
       "unauthorized": "Unauthorized — please sign in again",
+      "loginLocked": "Too many login attempts — try again later",
       "tokenInvalid": "Invalid login token — please sign in again",
       "orderNotFound": "Order not found",
       "boxNotFound": "Mystery box not found",
@@ -39,7 +40,19 @@
       "marketplaceInsufficientBalance": "Insufficient balance for this marketplace purchase",
       "marketplaceCooling": "Trade is in cooling period or cooling state is invalid",
       "marketplaceUnauthorized": "You are not allowed to perform this marketplace action",
-      "marketplaceError": "Marketplace action failed — try again later"
+      "marketplaceError": "Marketplace action failed — try again later",
+      "phoneAlreadyBound": "This account already has a phone number",
+      "phoneTaken": "This phone number is already used by another account",
+      "spendLimitDisabled": "Spend limits are not enabled on this platform",
+      "spendLimitDailyExceeded": "Daily spend limit exceeded",
+      "spendLimitMonthlyExceeded": "Monthly spend limit exceeded",
+      "spendLimitCoolingOff": "Spend-limit cooling-off is active — try again later",
+      "spendLimitMustPositive": "Spend limit must be greater than 0",
+      "spendLimitOverCap": "Spend limit cannot exceed the platform cap",
+      "momoRefundUnavailable": "MoMo refund channel is unavailable — support will process manually",
+      "ageMustBe18": "Only users aged 18 or older can confirm",
+      "ageRequired": "Confirm you are 18+ before placing an order",
+      "iosDigitalGoodsBlocked": "This digital-goods action is unavailable on the iOS App Store build"
     }
   }
 }

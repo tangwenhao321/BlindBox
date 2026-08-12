@@ -35,14 +35,27 @@ async function readLocalExpoPushToken(): Promise<string | null> {
   }
 }
 
-export async function registerExpoPushToken(authToken: string): Promise<void> {
+export type RegisterPushOptions = {
+  /** When false (default), only register if permission already granted — do not prompt on login. */
+  requestPermission?: boolean;
+};
+
+export async function registerExpoPushToken(
+  authToken: string,
+  opts?: RegisterPushOptions,
+): Promise<void> {
   const Notifications = await loadExpoNotifications();
   if (!Notifications) return;
+  const requestPermission = opts?.requestPermission === true;
 
   try {
     const { status: existing } = await Notifications.getPermissionsAsync();
     let finalStatus = existing;
     if (existing !== "granted") {
+      if (!requestPermission) {
+        trackEvent("push_token_register_deferred", { status: existing });
+        return;
+      }
       const req = await Notifications.requestPermissionsAsync();
       finalStatus = req.status;
       if (finalStatus === "granted") {

@@ -2,6 +2,8 @@ package io.github.qifan777.server.box.draw;
 
 import io.github.qifan777.server.box.pack.model.DrawPackConfigView;
 import io.github.qifan777.server.dict.model.DictConstants;
+import io.github.qifan777.server.infrastructure.money.MoneyRounding;
+import io.github.qifan777.server.payment.config.MarketProperties;
 import io.github.qifan777.server.product.root.entity.Product;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,12 +16,18 @@ import java.util.List;
 
 /**
  * House-edge gate: expected prize cost (prefer {@code costPrice}, else retail) must stay under
- * effective unit revenue × (1 − minMargin − referralCommission), including pack discounts,
+ * effective unit revenue × (1 − minMargin − referralCommission − maxDiscount), including pack discounts,
  * worst-case dynamic odds, and amortized pity forceHigh cost.
  */
 @Component
 public class BoxExpectedValueGuard {
     private static final int BASE = DynamicProbabilityAdjuster.PROBABILITY_BASE;
+
+    private final MarketProperties marketProperties;
+
+    public BoxExpectedValueGuard(MarketProperties marketProperties) {
+        this.marketProperties = marketProperties;
+    }
 
     @Value("${app.draw.min-margin-ratio:0.15}")
     private BigDecimal minMarginRatio = new BigDecimal("0.15");
@@ -27,6 +35,13 @@ public class BoxExpectedValueGuard {
     /** Referral payout share of GMV — haircut from unit revenue before EV gate. */
     @Value("${app.referral.commission-rate:0.05}")
     private BigDecimal referralCommissionRate = new BigDecimal("0.05");
+
+    /**
+     * Conservative max discount vs list price (coupons / retention). Applied as extra revenue haircut
+     * so config-time EV still holds after typical checkout discounts.
+     */
+    @Value("${app.draw.max-discount-ratio:0.20}")
+    private BigDecimal maxDiscountRatio = new BigDecimal("0.20");
 
     public void assertRatesSum(int legendaryRate, int hiddenRate, int generalRate) {
         if (legendaryRate < 0 || hiddenRate < 0 || generalRate < 0) {
@@ -87,9 +102,18 @@ public class BoxExpectedValueGuard {
         if (commission.compareTo(new BigDecimal("0.5")) > 0) {
             commission = new BigDecimal("0.05");
         }
-        BigDecimal haircut = margin.add(commission);
+        BigDecimal discount = maxDiscountRatio == null
+                ? BigDecimal.ZERO
+                : maxDiscountRatio.max(BigDecimal.ZERO);
+        if (discount.compareTo(new BigDecimal("0.8")) > 0) {
+            discount = new BigDecimal("0.20");
+        }
+        BigDecimal haircut = margin.add(commission).add(discount);
         if (haircut.compareTo(BigDecimal.ONE) >= 0) {
-            haircut = margin;
+            haircut = margin.add(commission);
+            if (haircut.compareTo(BigDecimal.ONE) >= 0) {
+                haircut = margin;
+            }
         }
 
         List<Scenario> scenarios = buildScenarios(boxPrice, packs);
@@ -101,12 +125,14 @@ public class BoxExpectedValueGuard {
             ev = ev.add(pityAmortization(ev, products, rates, pityThreshold));
             BigDecimal maxEv = scenario.unitRevenue().multiply(BigDecimal.ONE.subtract(haircut));
             if (ev.compareTo(maxEv) > 0) {
+                String currency = marketProperties.getCurrency();
                 throw new BusinessException(
-                        "EV_GATE: 期望奖品成本 " + ev.setScale(2, RoundingMode.HALF_UP)
-                                + " 超过有效单价毛利闸门 " + maxEv.setScale(2, RoundingMode.HALF_UP)
+                        "EV_GATE: 期望奖品成本 " + MoneyRounding.round(ev, currency)
+                                + " 超过有效单价毛利闸门 " + MoneyRounding.round(maxEv, currency)
                                 + "（场景抽数=" + scenario.drawCount()
-                                + " 有效单价=" + scenario.unitRevenue().setScale(2, RoundingMode.HALF_UP)
+                                + " 有效单价=" + MoneyRounding.round(scenario.unitRevenue(), currency)
                                 + " × (1−margin " + margin + " −referral " + commission
+                                + " −discount " + discount
                                 + ")；成本优先 costPrice）");
             }
         }
@@ -122,7 +148,7 @@ public class BoxExpectedValueGuard {
             if (pack == null || !pack.enabled() || pack.drawCount() < 1) {
                 continue;
             }
-            BigDecimal total = pack.applyDiscount(boxPrice);
+            BigDecimal total = pack.applyDiscount(boxPrice, marketProperties.getCurrency());
             BigDecimal unit = total.divide(BigDecimal.valueOf(pack.drawCount()), 8, RoundingMode.HALF_UP);
             out.add(new Scenario(pack.drawCount(), unit));
         }

@@ -70,6 +70,13 @@ export async function updateUserInfo(token: string, payload: { nickname?: string
   return response.data.result;
 }
 
+/** Bind a real phone onto a Zalo account that still uses a synthetic zalo: phone. */
+export async function bindUserPhone(token: string, phone: string, code: string) {
+  await api.post("/front/user/bind-phone", { phone, code }, {
+    headers: buildAuthHeaders(token),
+  });
+}
+
 export async function resetPassword(phone: string, password: string, code: string) {
   const response = await api.put<ApiResult<TokenInfo>>("/front/user/password", { phone, password, code });
   return response.data.result.tokenValue;

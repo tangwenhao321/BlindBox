@@ -3,6 +3,12 @@
     "apiMissing": "未配置 EXPO_PUBLIC_API_BASE_URL",
     "mockPaymentMode": "生产环境仍为模拟支付（EXPO_PUBLIC_PAYMENT_MODE=mock）",
     "mockPaymentFlag": "EXPO_PUBLIC_MOCK_PAYMENT 仍为 true",
-    "sentrySdkMissing": "已配置 EXPO_PUBLIC_SENTRY_DSN 但未安装 @sentry/react-native"
+    "sentrySdkMissing": "已配置 EXPO_PUBLIC_SENTRY_DSN 但未安装 @sentry/react-native",
+    "privacyUrlMissing": "未配置真实 EXPO_PUBLIC_PRIVACY_URL（App Store 需要公开隐私政策链接）",
+    "termsUrlMissing": "未配置真实 EXPO_PUBLIC_TERMS_URL",
+    "appLinkDomainMissing": "未配置真实 EXPO_PUBLIC_APP_LINK_DOMAIN（已禁用 Universal Links）",
+    "minorDeclarationUrlMissing": "未配置真实 EXPO_PUBLIC_MINOR_DECLARATION_URL",
+    "iosAppStoreUrlMissing": "未配置 EXPO_PUBLIC_IOS_APP_STORE_URL（iOS 更新跳转会失败）",
+    "supportContactMissing": "客服电话与邮箱均未配置（EXPO_PUBLIC_SUPPORT_PHONE / EXPO_PUBLIC_SUPPORT_EMAIL）— 审核需要联系方式"
   }
 }

@@ -7,6 +7,9 @@
     "defaultRemark": "佣金",
     "emptyTitle": "暂无佣金记录",
     "emptyDesc": "邀请好友消费后可获得佣金",
+    "guestEmptyTitle": "登录后查看佣金",
+    "guestEmptyDesc": "登录后可查看邀请好友消费产生的佣金",
+    "goLogin": "去登录",
     "goPromotion": "去推广"
   }
 }

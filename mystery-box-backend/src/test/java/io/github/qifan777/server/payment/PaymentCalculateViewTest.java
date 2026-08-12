@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class PaymentCalculateViewTest {
 
@@ -19,7 +20,7 @@ class PaymentCalculateViewTest {
         price.setVipAmount(new BigDecimal("2.00"));
         price.setPayAmount(new BigDecimal("93.00"));
 
-        PaymentCalculateView view = PaymentCalculateView.from(price, new BigDecimal("5.00"));
+        PaymentCalculateView view = PaymentCalculateView.from(price, new BigDecimal("5.00"), "VND");
 
         assertThat(view.productAmount()).isEqualByComparingTo("100.00");
         assertThat(view.deliveryFee()).isEqualByComparingTo("8.00");
@@ -29,6 +30,7 @@ class PaymentCalculateViewTest {
         assertThat(view.retentionDiscount()).isEqualByComparingTo("5.00");
         assertThat(view.suggestedCouponUserId()).isNull();
         assertThat(view.savingsAmount()).isEqualByComparingTo("0");
+        assertThat(view.currency()).isEqualTo("VND");
     }
 
     @Test
@@ -44,11 +46,25 @@ class PaymentCalculateViewTest {
                 price,
                 BigDecimal.ZERO,
                 "coupon-user-1",
-                new BigDecimal("12.00")
+                new BigDecimal("12.00"),
+                "VND"
         );
 
         assertThat(view.suggestedCouponUserId()).isEqualTo("coupon-user-1");
         assertThat(view.savingsAmount()).isEqualByComparingTo("12.00");
+        assertThat(view.currency()).isEqualTo("VND");
+    }
+
+    @Test
+    void fromRequiresCurrency() {
+        PaymentPriceView price = new PaymentPriceView();
+        price.setProductAmount(BigDecimal.TEN);
+        price.setDeliveryFee(BigDecimal.ZERO);
+        price.setCouponAmount(BigDecimal.ZERO);
+        price.setVipAmount(BigDecimal.ZERO);
+        price.setPayAmount(BigDecimal.TEN);
+        assertThatThrownBy(() -> PaymentCalculateView.from(price, BigDecimal.ZERO, " "))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

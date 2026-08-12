@@ -21,9 +21,10 @@ type Props = {
   referral?: ReferralStatsHook;
   onInvite?: () => void;
   onOpenTeamLottery?: () => void;
+  onRequireLogin?: () => void;
 };
 
-export function TeamView({ onBack, embedded, referral, onInvite, onOpenTeamLottery }: Props) {
+export function TeamView({ onBack, embedded, referral, onInvite, onOpenTeamLottery, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const internalReferral = useReferralStats(token);
@@ -147,7 +148,13 @@ export function TeamView({ onBack, embedded, referral, onInvite, onOpenTeamLotte
           }
           ListEmptyComponent={listEmptyWhenOk(
             loadError,
-            <EmptyState title={t("team.emptyTitle")} description={t("team.emptyDesc")} variant="plain" />,
+            <EmptyState
+              title={token ? t("team.emptyTitle") : t("team.guestEmptyTitle")}
+              description={token ? t("team.emptyDesc") : t("team.guestEmptyDesc")}
+              variant="plain"
+              actionLabel={!token && onRequireLogin ? t("team.goLogin") : undefined}
+              onAction={!token ? onRequireLogin : undefined}
+            />,
           )}
           renderItem={({ item }) => (
             <View style={styles.row}>

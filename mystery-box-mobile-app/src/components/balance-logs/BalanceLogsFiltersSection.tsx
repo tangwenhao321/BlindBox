@@ -5,7 +5,7 @@ import { useScreenStyles } from "../../styles/screenStyles";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
-import { formatCurrency } from "../../utils/formatCurrency";
+import { formatCurrency, getAppCurrency } from "../../utils/formatCurrency";
 
 type Props = {
   orderKeyword: string;
@@ -27,6 +27,8 @@ type Props = {
   parseDate: (value: string) => Date;
   onPickerChange: (event: DateTimePickerEvent, selectedDate?: Date) => void;
 };
+
+const QUICK_MINS = getAppCurrency() === "VND" ? (["10000", "50000", "100000"] as const) : (["10", "50", "100"] as const);
 
 export function BalanceLogsFiltersSection(props: Props) {
   const { t } = useTranslation();
@@ -136,30 +138,19 @@ export function BalanceLogsFiltersSection(props: Props) {
           />
           <View style={styles.quickRow}>
             <Text style={styles.hint}>{t("balanceLogs.quickAmountLabel")}</Text>
-            <Pressable
-              style={[screenStyles.chipBtn, quickMin === "10" ? screenStyles.chipBtnActive : null]}
-              accessibilityRole="button"
-              accessibilityLabel={amountChip("10")}
-              onPress={() => applyQuickMin("10")}
-            >
-              <Text style={[screenStyles.chipText, quickMin === "10" ? screenStyles.chipTextActive : null]}>{amountChip("10")}</Text>
-            </Pressable>
-            <Pressable
-              style={[screenStyles.chipBtn, quickMin === "50" ? screenStyles.chipBtnActive : null]}
-              accessibilityRole="button"
-              accessibilityLabel={amountChip("50")}
-              onPress={() => applyQuickMin("50")}
-            >
-              <Text style={[screenStyles.chipText, quickMin === "50" ? screenStyles.chipTextActive : null]}>{amountChip("50")}</Text>
-            </Pressable>
-            <Pressable
-              style={[screenStyles.chipBtn, quickMin === "100" ? screenStyles.chipBtnActive : null]}
-              accessibilityRole="button"
-              accessibilityLabel={amountChip("100")}
-              onPress={() => applyQuickMin("100")}
-            >
-              <Text style={[screenStyles.chipText, quickMin === "100" ? screenStyles.chipTextActive : null]}>{amountChip("100")}</Text>
-            </Pressable>
+            {QUICK_MINS.map((value) => (
+              <Pressable
+                key={value}
+                style={[screenStyles.chipBtn, quickMin === value ? screenStyles.chipBtnActive : null]}
+                accessibilityRole="button"
+                accessibilityLabel={amountChip(value)}
+                onPress={() => applyQuickMin(value)}
+              >
+                <Text style={[screenStyles.chipText, quickMin === value ? screenStyles.chipTextActive : null]}>
+                  {amountChip(value)}
+                </Text>
+              </Pressable>
+            ))}
             <Pressable
               style={[screenStyles.chipBtn, !quickMin ? screenStyles.chipBtnActive : null]}
               accessibilityRole="button"

@@ -16,6 +16,10 @@
     "advancedEffects": "开箱实验室",
     "advancedEffectsHint": "音效、氛围、弹幕与揭晓实验室等进阶开关（默认收起）",
     "accountSection": "账号与安全",
+    "bindPhoneTitle": "绑定手机号",
+    "bindPhoneHint": "当前 Zalo 账号使用临时手机标识。绑定真实 +84 号码后可用于短信登录与客服。",
+    "bindPhoneSave": "绑定手机号",
+    "bindPhoneSuccess": "手机号绑定成功",
     "privacySection": "通知与隐私",
     "revealAnimations": "开盒动画",
     "revealAnimationsHint": "关闭后仅展示开奖结果（仍保留触觉/读屏提示）",
@@ -50,13 +54,13 @@
     "revealFlash": "强光闪光",
     "revealHaptic": "震动反馈",
     "spendLimitTitle": "消费限额",
-    "spendLimitDaily": "今日 {{spent}} / {{limit}} 元（剩余 {{remaining}}）",
-    "spendLimitMonthly": "本月 {{spent}} / {{limit}} 元（剩余 {{remaining}}）",
-    "spendLimitServerCap": "平台上限：日 {{daily}} 元 · 月 {{monthly}} 元",
+    "spendLimitDaily": "今日 {{spent}} / {{limit}}（剩余 {{remaining}}）",
+    "spendLimitMonthly": "本月 {{spent}} / {{limit}}（剩余 {{remaining}}）",
+    "spendLimitServerCap": "平台上限：日 {{daily}} · 月 {{monthly}}",
     "spendLimitExceeded": "已接近或超出限额，下单可能被拒绝",
     "spendLimitCoolingOff": "限额调整冷静期中，{{until}} 前不可修改",
-    "spendLimitUserDaily": "自定义日限额（元）",
-    "spendLimitUserMonthly": "自定义月限额（元）",
+    "spendLimitUserDaily": "自定义日限额",
+    "spendLimitUserMonthly": "自定义月限额",
     "spendLimitSave": "保存限额",
     "spendLimitSaved": "消费限额已更新",
     "spendLimitLoading": "加载中…",
@@ -162,6 +166,7 @@
       "verified": "已认证（{{tier}}）{{masked}}",
       "failed": "认证失败，请核对证件号",
       "success": "实名认证成功"
-    }
+    },
+    "deleteAccountFailed": "服务器未确认注销成功，请重试或联系客服。"
   }
 }

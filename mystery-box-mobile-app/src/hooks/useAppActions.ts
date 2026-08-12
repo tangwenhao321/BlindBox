@@ -9,7 +9,7 @@ import { markOnboardingDone } from "../components/OnboardingOverlay";
 import { markOnboardingCoachDone } from "../utils/onboardingCoachStorage";
 import { markUserHasPurchased } from "../utils/newcomerOffer";
 import { MOCK_PAYMENT_ENABLED } from "../config/constants";
-import { getPaymentMode, resolvePaymentMode } from "../config/payment";
+import { resolvePaymentMode } from "../config/payment";
 import {
   calculateOrderPrice,
   getOrderById,
@@ -31,6 +31,7 @@ import { consumePendingPaymentWallet, peekPendingPaymentWallet } from "../paymen
 const MOMO_ENABLED = process.env.EXPO_PUBLIC_MOMO_ENABLED === "true";
 import { validateAddressForm } from "../utils/addressValidation";
 import { toast } from "../utils/toast";
+import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 import { trackEvent } from "../utils/analytics";
 import { ANALYTICS_EVENTS } from "../utils/analyticsEvents";
 import { formatCurrency } from "../utils/formatCurrency";
@@ -513,7 +514,7 @@ export function useAppActions(params: Params) {
     freshPrepay = false,
   ) => {
     if (isOffline()) {
-      toast.info(i18n.t(getPaymentMode() === "vnpay" ? "actions.offlineVnpayPay" : "actions.offlineWechatPay"));
+      toast.info(i18n.t(resolvePaymentMode() === "vnpay" ? "actions.offlineVnpayPay" : "actions.offlineWechatPay"));
       return;
     }
     const amount = Number(payAmount ?? 0);
@@ -654,25 +655,31 @@ export function useAppActions(params: Params) {
   };
 
   const promptPityCompensateForBox = async (boxId: string) => {
+    const pointsAllowed = !isIosDigitalGoodsRestricted();
     const choice = await new Promise<"WAIT" | "POINTS" | null>((resolve) => {
+      const buttons = [
+        {
+          text: i18n.t("common.cancel"),
+          style: "cancel" as const,
+          onPress: () => resolve(null),
+        },
+        {
+          text: i18n.t("boxDetails.pityCompensateWait"),
+          onPress: () => resolve("WAIT"),
+        },
+      ];
+      if (pointsAllowed) {
+        buttons.push({
+          text: i18n.t("boxDetails.pityCompensatePoints"),
+          onPress: () => resolve("POINTS"),
+        });
+      }
       Alert.alert(
         i18n.t("boxDetails.pityCompensateTitle"),
-        i18n.t("boxDetails.pityCompensateBody"),
-        [
-          {
-            text: i18n.t("common.cancel"),
-            style: "cancel",
-            onPress: () => resolve(null),
-          },
-          {
-            text: i18n.t("boxDetails.pityCompensateWait"),
-            onPress: () => resolve("WAIT"),
-          },
-          {
-            text: i18n.t("boxDetails.pityCompensatePoints"),
-            onPress: () => resolve("POINTS"),
-          },
-        ],
+        pointsAllowed
+          ? i18n.t("boxDetails.pityCompensateBody")
+          : i18n.t("boxDetails.pityCompensateBodyIos"),
+        buttons,
         { cancelable: true, onDismiss: () => resolve(null) },
       );
     });
@@ -766,6 +773,10 @@ export function useAppActions(params: Params) {
   };
 
   const redeemToBalance = async (orderId: string) => {
+    if (isIosDigitalGoodsRestricted()) {
+      toast.info(i18n.t("actions.iosRedeemBlocked"));
+      return;
+    }
     const perform = async () => {
       try {
         const amount = await redeemMutation.mutateAsync(orderId);

@@ -16,7 +16,7 @@ import {
   warmupTierSounds,
 } from "../effects/sound";
 import { getExpoRevealTimeline } from "../effects/expoRevealTiming";
-import { getStepIdleMs, resolveHoldDuration } from "../effects/revealTiming";
+import { getStepIdleMs, resolveHoldDuration, scaleRevealDuration } from "../effects/revealTiming";
 import { trackEffectEvent } from "../effects/telemetry";
 import {
   accelerateDurationScale,
@@ -197,6 +197,14 @@ export function usePrizeRevealExpoGo({
         orderId,
       });
 
+      const timingOpts = {
+        reduceMotion,
+        lowPerf: false,
+        revealIndex,
+        totalReveals,
+        orderId,
+        accelerateScale: accelerateDurationScale(accelTierRef.current),
+      };
       const isFinaleDraw = revealIndex >= totalReveals - 1 && totalReveals > 1;
       playRevealSoundArc({
         tier,
@@ -206,22 +214,13 @@ export function usePrizeRevealExpoGo({
         isFinaleDraw,
         soundEnabled,
         afterBoxTeaser: showBoxTeaser,
-        chargeMs: Math.max(profile.chargeMs, 900),
+        chargeMs: scaleRevealDuration(profile.chargeMs, effectivePacing, timingOpts),
         accelerateTier: accelTier,
         themeId: revealTheme.id,
       });
       if (!reduceMotion) {
         Vibration.vibrate(profile.vibrationPattern);
       }
-
-      const timingOpts = {
-        reduceMotion,
-        lowPerf: false,
-        revealIndex,
-        totalReveals,
-        orderId,
-        accelerateScale: accelerateDurationScale(accelTierRef.current),
-      };
       const holdMs = resolveHoldDuration(
         effectivePacing,
         profile,

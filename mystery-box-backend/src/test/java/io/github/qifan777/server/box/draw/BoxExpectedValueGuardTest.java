@@ -2,6 +2,7 @@ package io.github.qifan777.server.box.draw;
 
 import io.github.qifan777.server.box.pack.model.DrawPackConfigView;
 import io.github.qifan777.server.dict.model.DictConstants;
+import io.github.qifan777.server.payment.config.MarketProperties;
 import io.github.qifan777.server.product.root.entity.Product;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,9 +24,12 @@ class BoxExpectedValueGuardTest {
 
     @BeforeEach
     void setUp() {
-        guard = new BoxExpectedValueGuard();
+        MarketProperties market = mock(MarketProperties.class);
+        when(market.getCurrency()).thenReturn("VND");
+        guard = new BoxExpectedValueGuard(market);
         ReflectionTestUtils.setField(guard, "minMarginRatio", new BigDecimal("0.15"));
         ReflectionTestUtils.setField(guard, "referralCommissionRate", new BigDecimal("0.05"));
+        ReflectionTestUtils.setField(guard, "maxDiscountRatio", BigDecimal.ZERO);
         adjuster = new DynamicProbabilityAdjuster();
         ReflectionTestUtils.setField(adjuster, "dynamicBoostCapPercent", 25);
     }
@@ -93,6 +97,21 @@ class BoxExpectedValueGuardTest {
                 5000,
                 0,
                 5000,
+                List.of(legendary, general)
+        ));
+    }
+
+    @Test
+    void rejectsWhenCouponHaircutBreaksMargin() {
+        ReflectionTestUtils.setField(guard, "maxDiscountRatio", new BigDecimal("0.50"));
+        Product legendary = product(DictConstants.QualityType.LEGENDARY, "80", null);
+        Product general = product(DictConstants.QualityType.GENERAL, "40", null);
+        // EV ≈ 0.2*80 + 0.8*40 = 48; list maxEv at 50% discount haircut + 20% margin/referral = 50*(1-0.7)=15 → reject
+        assertThrows(BusinessException.class, () -> guard.assertProfitable(
+                new BigDecimal("50"),
+                2000,
+                0,
+                8000,
                 List.of(legendary, general)
         ));
     }

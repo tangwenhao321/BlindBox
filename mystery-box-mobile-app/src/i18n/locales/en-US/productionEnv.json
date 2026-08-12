@@ -4,7 +4,13 @@
     "mockPaymentMode": "Production still uses mock pay (EXPO_PUBLIC_PAYMENT_MODE=mock)",
     "mockPaymentFlag": "EXPO_PUBLIC_MOCK_PAYMENT is still true",
     "sentrySdkMissing": "EXPO_PUBLIC_SENTRY_DSN set but @sentry/react-native not installed",
+    "privacyUrlMissing": "EXPO_PUBLIC_PRIVACY_URL missing or placeholder — App Store needs a public Privacy Policy URL",
+    "termsUrlMissing": "EXPO_PUBLIC_TERMS_URL missing or placeholder",
+    "appLinkDomainMissing": "EXPO_PUBLIC_APP_LINK_DOMAIN missing or placeholder — Universal Links disabled",
     "userBannerTitle": "Configuration notice",
-    "userBannerDismiss": "Dismiss"
+    "userBannerDismiss": "Dismiss",
+    "minorDeclarationUrlMissing": "EXPO_PUBLIC_MINOR_DECLARATION_URL missing or placeholder",
+    "iosAppStoreUrlMissing": "EXPO_PUBLIC_IOS_APP_STORE_URL missing — iOS update deep link will fail",
+    "supportContactMissing": "EXPO_PUBLIC_SUPPORT_PHONE and EXPO_PUBLIC_SUPPORT_EMAIL are both empty — App Review needs a contact path"
   }
 }

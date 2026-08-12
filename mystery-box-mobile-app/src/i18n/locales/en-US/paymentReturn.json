@@ -10,6 +10,8 @@
     "failTitle": "Payment not completed",
     "failHint": "If you were charged, refresh the order page later or try paying again.",
     "retryPay": "Pay again",
-    "backHome": "Back to home"
+    "backHome": "Back to home",
+    "loginRequired": "Sign in to see payment result",
+    "goLogin": "Sign in"
   }
 }

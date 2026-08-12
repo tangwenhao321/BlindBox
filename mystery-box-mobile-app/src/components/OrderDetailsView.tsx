@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
-import { Clipboard, Pressable, RefreshControl, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
+import { Clipboard, Alert, Pressable, RefreshControl, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { useTabletLayout } from "../hooks/useTabletLayout";
@@ -97,6 +97,8 @@ import { openContactSupport } from "../utils/contactSupport";
 import { resolveCarrierLabel } from "../utils/carrierLabel";
 import { usePendingPaymentCountdownLabels } from "../hooks/usePendingPaymentCountdownLabels";
 import type { Order } from "../types";
+import { resolveOrderBoxId } from "../utils/pityCompensate";
+import { fetchBoxProbability, resolveDisplayRates } from "../services/probabilityService";
 
 type Props = {
   order: Order;
@@ -141,6 +143,45 @@ export function OrderDetailsView(props: Props) {
   const countdownLabels = usePendingPaymentCountdownLabels();
   const carrierLabel = useMemo(() => resolveCarrierLabel(carrierCode, t), [carrierCode, t]);
   const canConfirmReceive = order.status === ORDER_STATUS.TO_BE_RECEIVED && !!onConfirmReceive;
+
+  const confirmPayWithOdds = useCallback(async () => {
+    const boxId = resolveOrderBoxId(order);
+    if (!boxId) {
+      toast.error(t("orderDetails.repayOddsUnavailable"));
+      return;
+    }
+    const drawCount = Math.max(
+      1,
+      (order.items ?? []).reduce((sum, item) => sum + Math.max(1, Number(item.mysteryBoxCount ?? 1)), 0),
+    );
+    const prob = await fetchBoxProbability(boxId, {
+      token: authToken || undefined,
+      drawCount,
+    });
+    const rates = resolveDisplayRates(prob);
+    if (!rates) {
+      toast.error(t("orderDetails.repayOddsUnavailable"));
+      return;
+    }
+    const ratesLine = t("checkout.probabilityRates", {
+      legendary: (rates.legendaryRate / 100).toFixed(2),
+      hidden: (rates.hiddenRate / 100).toFixed(2),
+      general: (rates.generalRate / 100).toFixed(2),
+    });
+    const ok = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        t("orderDetails.repayOddsTitle"),
+        `${ratesLine}\n\n${t("orderDetails.repayOddsBody")}`,
+        [
+          { text: t("common.cancel"), style: "cancel", onPress: () => resolve(false) },
+          { text: t("orderDetails.payNow"), onPress: () => resolve(true) },
+        ],
+        { cancelable: true, onDismiss: () => resolve(false) },
+      );
+    });
+    if (ok) onPay(order.id);
+  }, [authToken, onPay, order, t]);
+
   const prizeProducts = useMemo(() => normalizePrizeProducts(order), [order]);
   const sortedPrizes = useMemo(() => sortRevealSequence(prizeProducts), [prizeProducts]);
   const pendingPayment = order.status === ORDER_STATUS.TO_BE_PAID;
@@ -757,7 +798,7 @@ export function OrderDetailsView(props: Props) {
             <PrimaryButton
               label={t("orderDetails.payNow")}
               accessibilityLabel={t("orderDetails.payNowA11y")}
-              onPress={() => onPay(order.id)}
+              onPress={() => void confirmPayWithOdds()}
             />
           ) : null}
           {canConfirmReceive ? (

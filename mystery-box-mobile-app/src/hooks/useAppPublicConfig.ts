@@ -5,6 +5,7 @@ import { parseError } from "../api";
 import { ENTERPRISE_WECHAT_ID, SUPPORT_HOTLINE } from "../config/constants";
 
 import { setRemotePaymentMode } from "../config/payment";
+import { setRemoteCurrency } from "../utils/formatCurrency";
 
 import { syncRevealExperimentFromConfig } from "../effects/revealExperiment";
 import { syncFestivalTemplateCache } from "../effects/revealAssetManager";
@@ -225,6 +226,7 @@ function normalizeConfig(remote: AppPublicConfig): AppPublicConfig {
 
 function applyPaymentProvider(next: AppPublicConfig) {
   setRemotePaymentMode(next.paymentProvider ?? null);
+  setRemoteCurrency(next.currency ?? null);
 }
 
 function applyFeatureFlags(next: AppPublicConfig) {

@@ -11,7 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PageHeader } from "./PageHeader";
 import { useScreenStyles } from "../styles/screenStyles";
 import { useThemedStyles } from "../hooks/useThemedStyles";
-import { formatCurrency } from "../utils/formatCurrency";
+import { formatCurrency, formatMoney } from "../utils/formatCurrency";
 import { layout, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import { EmptyState } from "./EmptyState";
@@ -316,8 +316,8 @@ export function BalanceLogsView(props: Props) {
       [
         item.id,
         item.changeType,
-        Number(item.amount ?? 0).toFixed(2),
-        Number(item.balanceAfter ?? 0).toFixed(2),
+        formatMoney(Number(item.amount ?? 0)),
+        formatMoney(Number(item.balanceAfter ?? 0)),
         item.relatedOrderId ?? "",
         item.createdTime ?? "",
         (item.remark ?? "").replace(/,/g, " "),

@@ -42,6 +42,7 @@ type Props = {
   loadError?: string | null;
   onRetryLoad?: () => void;
   onGoShopping?: () => void;
+  onRequireLogin?: () => void;
 };
 
 export function MyOrdersView(props: Props) {
@@ -66,6 +67,7 @@ export function MyOrdersView(props: Props) {
     loadError,
     onRetryLoad,
     onGoShopping,
+    onRequireLogin,
   } = props;
   const authToken = useAuthToken();
   const { t } = useTranslation();
@@ -165,11 +167,17 @@ export function MyOrdersView(props: Props) {
         ListEmptyComponent={listEmptyWhenOk(
           loadError ?? null,
           <EmptyState
-            title={t("orders.emptyTitle")}
-            description={t("orders.emptyDesc")}
+            title={authToken ? t("orders.emptyTitle") : t("orders.guestEmptyTitle")}
+            description={authToken ? t("orders.emptyDesc") : t("orders.guestEmptyDesc")}
             variant="plain"
-            actionLabel={onGoShopping ? t("orders.goShopping") : undefined}
-            onAction={onGoShopping}
+            actionLabel={
+              !authToken && onRequireLogin
+                ? t("orders.goLogin")
+                : onGoShopping
+                  ? t("orders.goShopping")
+                  : undefined
+            }
+            onAction={!authToken && onRequireLogin ? onRequireLogin : onGoShopping}
           />,
         )}
         onEndReached={() => {

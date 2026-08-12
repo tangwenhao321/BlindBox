@@ -10,6 +10,7 @@ import { useTableHelper } from '@/components/base/table/table-helper'
 import { useTagStore } from '@/layout/store/tag-store'
 import DictColumn from '@/components/dict/dict-column.vue'
 import { DictConstants } from '@/apis/__generated/model/enums/DictConstants'
+import { formatAdminMoney } from '@/utils/format-money'
 type Product = ProductDto['ProductRepository/COMPLEX_FETCHER_FOR_ADMIN']
 const tagStore = useTagStore()
 type ProductScope = Scope<Product>
@@ -104,7 +105,7 @@ const handleDelete = (ids: string[]) => {
         width="120"
       >
         <template v-slot:default="{ row }: ProductScope">
-          {{ row.price }}
+          {{ formatAdminMoney(row.price) }}
         </template>
       </el-table-column>
       <el-table-column

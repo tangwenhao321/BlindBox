@@ -19,13 +19,63 @@ export async function setRevealAnimationsEnabled(enabled: boolean): Promise<void
   await AsyncStorage.setItem(sk(KEY_ANIM), enabled ? "1" : "0");
 }
 
-export async function getRevealTextOnlyMode(): Promise<boolean> {
+/** In-memory only — render-heal / crash recovery must not sticky-persist text-only. */
+let sessionTextOnlyHeal = false;
+const textOnlyListeners = new Set<(effective: boolean) => void>();
+
+function notifyTextOnlyListeners() {
+  const effective = sessionTextOnlyHeal;
+  void getRevealTextOnlyModePersisted().then((persisted) => {
+    const value = persisted || effective;
+    textOnlyListeners.forEach((listener) => {
+      try {
+        listener(value);
+      } catch {
+        /* ignore */
+      }
+    });
+  });
+}
+
+async function getRevealTextOnlyModePersisted(): Promise<boolean> {
   const raw = await AsyncStorage.getItem(sk(KEY_TEXT_ONLY));
   return raw === "1";
 }
 
+export async function getRevealTextOnlyMode(): Promise<boolean> {
+  const persisted = await getRevealTextOnlyModePersisted();
+  return persisted || sessionTextOnlyHeal;
+}
+
+export function isRevealSessionTextOnlyHeal(): boolean {
+  return sessionTextOnlyHeal;
+}
+
+export function markRevealSessionTextOnlyHeal(): void {
+  if (sessionTextOnlyHeal) return;
+  sessionTextOnlyHeal = true;
+  notifyTextOnlyListeners();
+}
+
+export function clearRevealSessionTextOnlyHeal(): void {
+  if (!sessionTextOnlyHeal) return;
+  sessionTextOnlyHeal = false;
+  notifyTextOnlyListeners();
+}
+
+export function subscribeRevealTextOnlyMode(listener: (effective: boolean) => void): () => void {
+  textOnlyListeners.add(listener);
+  return () => {
+    textOnlyListeners.delete(listener);
+  };
+}
+
 export async function setRevealTextOnlyMode(enabled: boolean): Promise<void> {
+  if (!enabled) {
+    sessionTextOnlyHeal = false;
+  }
   await AsyncStorage.setItem(sk(KEY_TEXT_ONLY), enabled ? "1" : "0");
+  notifyTextOnlyListeners();
 }
 
 export async function getRevealSoundEnabled(): Promise<boolean> {

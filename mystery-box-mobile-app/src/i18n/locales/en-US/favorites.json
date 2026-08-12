@@ -4,6 +4,9 @@
     "loadFailed": "Failed to load favorite ({{id}}…)",
     "emptyTitle": "No favorites",
     "emptyDesc": "Add favorites from box details",
+    "guestEmptyTitle": "Sign in to view favorites",
+    "guestEmptyDesc": "Sign in to sync your saved boxes",
+    "goLogin": "Sign in",
     "goBrowse": "Browse",
     "unfavoriteA11y": "Remove favorite",
     "remove": "Remove"
