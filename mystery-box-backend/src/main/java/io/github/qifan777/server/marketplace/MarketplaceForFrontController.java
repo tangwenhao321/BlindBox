@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.babyfish.jimmer.client.ApiIgnore;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import io.github.qifan777.server.user.compliance.UserComplianceService;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -22,6 +23,7 @@ public class MarketplaceForFrontController {
     private final MarketplaceService marketplaceService;
     private final MarketplaceChatService marketplaceChatService;
     private final io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard iosDigitalGoodsGuard;
+    private final UserComplianceService userComplianceService;
 
     @GetMapping("listings")
     public List<MarketplaceService.MarketplaceListingView> listings(
@@ -58,6 +60,7 @@ public class MarketplaceForFrontController {
     @PostMapping("listings")
     public String create(@RequestBody @Validated CreateListingRequest request) {
         iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
         return marketplaceService.createListing(
                 StpUtil.getLoginIdAsString(),
                 request.orderId(),
@@ -75,6 +78,7 @@ public class MarketplaceForFrontController {
     @PostMapping("listings/{id}/buy")
     public String buy(@PathVariable String id) {
         iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
         return marketplaceService.buyListing(StpUtil.getLoginIdAsString(), id);
     }
 

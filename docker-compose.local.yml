@@ -1,10 +1,11 @@
+# Local Docker for App + backend. Passwords via env (defaults are for local only).
 services:
   mysql:
     image: mysql:8.0
     container_name: mystery-box-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-localdev}
       MYSQL_DATABASE: mystery_box
       TZ: Asia/Shanghai
     ports:
@@ -21,7 +22,7 @@ services:
     image: redis:7-alpine
     container_name: mystery-box-redis
     restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass 123456
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-localdev}
     ports:
       - "6379:6379"
     volumes:

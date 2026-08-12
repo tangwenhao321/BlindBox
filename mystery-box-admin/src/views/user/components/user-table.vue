@@ -10,6 +10,7 @@ import type { UserDto } from '@/apis/__generated/model/dto'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
 import DictColumn from '@/components/dict/dict-column.vue'
 import { DictConstants } from '@/apis/__generated/model/enums/DictConstants'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 type UserScope = Scope<UserDto['UserRepository/COMPLEX_FETCHER_FOR_ADMIN']>
 const userStore = useUserStore()
@@ -48,7 +49,8 @@ const handleDelete = (ids: string[]) => {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
+  }).then(async () => {
+    if (!(await promptAndArmAdminActionOtp('删除用户'))) return
     api.userForAdminController.delete({ body: ids }).then((res) => {
       assertSuccess(res).then(() => reloadTableData())
     })

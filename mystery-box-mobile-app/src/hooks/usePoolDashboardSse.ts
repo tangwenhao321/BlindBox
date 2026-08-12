@@ -15,7 +15,8 @@ export function usePoolDashboardSse(
 
   useSsePoll<PoolDashboard>({
     path: `/front/mystery-box/${boxId}/pool-stream`,
-    enabled,
+    token,
+    enabled: enabled && Boolean(token),
     eventName: "POOL_UPDATE",
     pollMs: 3000,
     pollFetch,

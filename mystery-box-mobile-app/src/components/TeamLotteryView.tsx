@@ -42,6 +42,7 @@ import {
 } from "../services/teamLotteryService";
 import { getBoxById, queryBoxes } from "../services/boxService";
 import { queryAddresses } from "../services/addressService";
+import { fetchSpendLimit } from "../services/complianceService";
 import {
   createOrder,
   getMoMoPrepayParams,
@@ -362,6 +363,18 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
     }
     setDrawing(true);
     try {
+      try {
+        const spend = await fetchSpendLimit(authToken);
+        if (spend.enabled && (!spend.withinLimits || spend.purchaseAllowed === false)) {
+          toast.error(t("checkout.spendLimitBlocked"));
+          return;
+        }
+      } catch {
+        toast.error(t("checkout.spendLimitLoadFailed", {
+          defaultValue: "Could not verify spend limits — try again",
+        }));
+        return;
+      }
       const addresses = await queryAddresses(authToken);
       const addressId =
         addresses.find((a) => a.top)?.id || addresses[0]?.id || undefined;

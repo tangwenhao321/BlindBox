@@ -53,6 +53,9 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
     @Value("${security.rate-limit.spectator-get-per-minute:60}")
     private int spectatorGetPerMinute;
 
+    @Value("${security.rate-limit.sse-stream-per-minute:30}")
+    private int sseStreamPerMinute;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -119,6 +122,9 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         }
         if (uri.contains("/draw-queue")) {
             return drawQueuePerMinute;
+        }
+        if (uri.contains("/pool-stream") || uri.contains("/draw-feed/stream")) {
+            return Math.max(1, sseStreamPerMinute);
         }
         if (uri.contains("/front/reveal/spectator/")) {
             return Math.max(1, spectatorGetPerMinute);

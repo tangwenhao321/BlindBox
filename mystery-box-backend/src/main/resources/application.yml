@@ -62,6 +62,18 @@ security:
     prepay-per-minute: 20
     draw-queue-per-minute: 40
     spectator-get-per-minute: 60
+    sse-stream-per-minute: 30
+  sse:
+    # Prod profiles should set true — anonymous feed/pool SSE then requires login.
+    require-auth: false
+  ios:
+    digital-goods:
+      # Production App Store builds should set true (missing X-Client-Platform → treat as iOS).
+      fail-closed: false
+      require-attestation: false
+      app-store-channel: appstore
+  client-attestation-secret: ${CLIENT_ATTESTATION_SECRET:}
+  admin-action-totp-secret: ${ADMIN_ACTION_TOTP_SECRET:}
   idempotency:
     enabled: true
     # 15 minutes — covers client retries after a successful mutating response

@@ -53,6 +53,19 @@ export async function executePersistedOfflineMutation(item: PersistedOfflineMuta
   if (kind === "mockPayment" && !MOCK_PAYMENT_ENABLED && !__DEV__) {
     throw new Error("offline.mock_payment_disabled");
   }
+  if (
+    !__DEV__ &&
+    (kind === "createOrder" ||
+      kind === "redeem" ||
+      kind === "mockPayment" ||
+      kind === "marketplaceBuy" ||
+      kind === "marketplaceList" ||
+      kind === "applyRefund" ||
+      kind === "exchangeFragment" ||
+      kind === "decomposeOrderItem")
+  ) {
+    throw new Error("offline.money_kind_disabled");
+  }
   if (isIosDigitalGoodsRestricted() && IOS_BLOCKED_KINDS.has(kind)) {
     throw new Error("offline.ios_digital_goods_blocked");
   }

@@ -37,6 +37,10 @@ public class AdminActionOtpVerifier {
     @Value("${security.admin-action-otp:}")
     private String adminActionOtp;
 
+    /** Optional Base32 TOTP secret; when set, either static OTP or current TOTP code is accepted. */
+    @Value("${security.admin-action-totp-secret:}")
+    private String adminActionTotpSecret;
+
     public void assertValid(String otp) {
         String traceId = resolveTraceId();
         if (adminActionOtp == null || adminActionOtp.isBlank()) {
@@ -61,7 +65,9 @@ public class AdminActionOtpVerifier {
         }
         byte[] configured = adminActionOtp.trim().getBytes(StandardCharsets.UTF_8);
         byte[] provided = otp.trim().getBytes(StandardCharsets.UTF_8);
-        if (!MessageDigest.isEqual(configured, provided)) {
+        boolean staticOk = MessageDigest.isEqual(configured, provided);
+        boolean totpOk = TotpCodes.matches(adminActionTotpSecret, otp);
+        if (!staticOk && !totpOk) {
             recordOtpFailure(actorId);
             recordOtpFailure("ip:" + clientIp);
             log.warn("security_audit otp_failed_mismatch traceId={} actorId={} ip={} uri={}",

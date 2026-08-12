@@ -84,6 +84,14 @@ sms:
 security:
   default-admin:
     enabled: false
+  ios:
+    digital-goods:
+      fail-closed: true
+      require-attestation: ${IOS_REQUIRE_CLIENT_ATTESTATION:false}
+      app-store-channel: appstore
+  client-attestation-secret: ${CLIENT_ATTESTATION_SECRET:}
+  sse:
+    require-auth: true
   compliance:
     minor:
       verification-required: ${COMPLIANCE_VERIFICATION_REQUIRED:false}
@@ -93,6 +101,7 @@ security:
     # Distributed rate limit when Redis is available (default true for prod)
     distributed: ${RATE_LIMIT_DISTRIBUTED:true}
     trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
+    sse-stream-per-minute: ${RATE_LIMIT_SSE_STREAM_PER_MINUTE:30}
   analytics:
     enabled: ${ANALYTICS_ENABLED:true}
     retention-days: ${ANALYTICS_RETENTION_DAYS:90}

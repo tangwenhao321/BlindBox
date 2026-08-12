@@ -28,24 +28,57 @@ public class OrderDrawMetaService {
         return value == null ? "instant" : value;
     }
 
-    /** Persist fairness seed in DB (source of truth) and Redis (fast path). Never regenerate on miss. */
+    /** Persist fairness seed + public commit in DB (source of truth) and Redis (fast path). Never regenerate on miss. */
     public void saveFairnessSeed(String orderId, String seed) {
+        saveFairnessSeed(orderId, seed, null);
+    }
+
+    public void saveFairnessSeed(String orderId, String seed, String commit) {
         if (orderId == null || seed == null || seed.isBlank()) {
             return;
         }
         LocalDateTime now = LocalDateTime.now();
         jdbcTemplate.update(
                 """
-                        INSERT INTO order_draw_meta (order_id, fairness_seed, pool_reserved, created_time, edited_time)
-                        VALUES (?, ?, 0, ?, ?)
-                        ON DUPLICATE KEY UPDATE fairness_seed = VALUES(fairness_seed), edited_time = VALUES(edited_time)
+                        INSERT INTO order_draw_meta (order_id, fairness_seed, fairness_commit, pool_reserved, created_time, edited_time)
+                        VALUES (?, ?, ?, 0, ?, ?)
+                        ON DUPLICATE KEY UPDATE fairness_seed = VALUES(fairness_seed),
+                          fairness_commit = COALESCE(VALUES(fairness_commit), fairness_commit),
+                          edited_time = VALUES(edited_time)
                         """,
                 orderId,
                 seed,
+                commit,
                 now,
                 now
         );
         redisTemplate.opsForValue().set(fairnessKey(orderId), seed, TTL);
+        if (commit != null && !commit.isBlank()) {
+            redisTemplate.opsForValue().set(fairnessCommitKey(orderId), commit, TTL);
+        }
+    }
+
+    public String getFairnessCommit(String orderId) {
+        if (orderId == null || orderId.isBlank()) {
+            return null;
+        }
+        String cached = redisTemplate.opsForValue().get(fairnessCommitKey(orderId));
+        if (cached != null && !cached.isBlank()) {
+            return cached;
+        }
+        List<String> rows = jdbcTemplate.query(
+                "SELECT fairness_commit FROM order_draw_meta WHERE order_id = ? LIMIT 1",
+                (rs, i) -> rs.getString(1),
+                orderId
+        );
+        if (rows.isEmpty()) {
+            return null;
+        }
+        String commit = rows.get(0);
+        if (commit != null && !commit.isBlank()) {
+            redisTemplate.opsForValue().set(fairnessCommitKey(orderId), commit, TTL);
+        }
+        return commit;
     }
 
     public String getFairnessSeed(String orderId) {
@@ -170,6 +203,10 @@ public class OrderDrawMetaService {
 
     private static String fairnessKey(String orderId) {
         return "mystery-box:order-fairness-seed:" + orderId;
+    }
+
+    private static String fairnessCommitKey(String orderId) {
+        return "mystery-box:order-fairness-commit:" + orderId;
     }
 
     private static String slotKey(String orderId) {

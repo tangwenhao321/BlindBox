@@ -24,6 +24,7 @@ import io.github.qifan777.server.box.pack.service.DrawPackConfigService;
 import io.github.qifan777.server.box.pity.service.MysteryBoxUserPityService;
 import io.github.qifan777.server.box.product.service.PrizeStockService;
 import io.github.qifan777.server.box.queue.service.MysteryBoxDrawQueueService;
+import io.github.qifan777.server.box.draw.service.DrawFairnessService;
 import io.github.qifan777.server.logistics.service.OrderLogisticsService;
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.entity.dto.MystryBoxView;
@@ -136,6 +137,7 @@ public class MysteryBoxOrderService {
     private final MysteryBoxDrawQueueService mysteryBoxDrawQueueService;
     private final MysteryBoxPoolSlotService mysteryBoxPoolSlotService;
     private final OrderDrawMetaService orderDrawMetaService;
+    private final DrawFairnessService drawFairnessService;
     private final OrderLogisticsService orderLogisticsService;
     private final PurchaseLimitService purchaseLimitService;
     private final UserComplianceService userComplianceService;
@@ -190,17 +192,24 @@ public class MysteryBoxOrderService {
 
     @Transactional
     public String create(MysteryBoxOrderInput mysteryBoxOrderInput, String drawMode, Integer slotNo) {
-        return create(mysteryBoxOrderInput, drawMode, slotNo, null);
+        return create(mysteryBoxOrderInput, drawMode, slotNo, null, null);
+    }
+
+    @Transactional
+    public String create(MysteryBoxOrderInput mysteryBoxOrderInput, String drawMode, Integer slotNo,
+                         String recommendVariant) {
+        return create(mysteryBoxOrderInput, drawMode, slotNo, recommendVariant, null);
     }
 
     /**
      * @param recommendVariant optional A/B variant from home recommend carousel (header {@code x-recommend-variant}
      *                         or query {@code recommendVariant}). Persisted via analytics_event ORDER_CREATED
      *                         (no order meta JSON column).
+     * @param clientFairnessNonce optional client entropy mixed into fairness commit (header {@code x-client-fairness-nonce}).
      */
     @Transactional
     public String create(MysteryBoxOrderInput mysteryBoxOrderInput, String drawMode, Integer slotNo,
-                         String recommendVariant) {
+                         String recommendVariant, String clientFairnessNonce) {
         String userId = StpUtil.getLoginIdAsString();
         userComplianceService.assertAgeConfirmed(userId);
         minorProtectionService.assertPurchaseAllowed(userId);
@@ -229,7 +238,9 @@ public class MysteryBoxOrderService {
             mysteryBoxRepository.consumePool(item.getMysteryBoxId(), item.getMysteryBoxCount());
         }
         String orderId = OrderIds.next();
-        orderDrawMetaService.saveFairnessSeed(orderId, IdUtil.fastSimpleUUID());
+        DrawFairnessService.FairnessToken fairness =
+                drawFairnessService.issue(userId, null, orderId, clientFairnessNonce);
+        orderDrawMetaService.saveFairnessSeed(orderId, fairness.seed(), fairness.commit());
         orderDrawMetaService.markPoolReserved(orderId);
         PaymentCalculateView calculated = calculate(mysteryBoxOrderInput);
         userSpendLimitService.assertWithinLimit(userId, calculated.payAmount());
@@ -1388,6 +1399,7 @@ public class MysteryBoxOrderService {
     public java.math.BigDecimal redeemToBalance(String id) {
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(id);
         checkOwner(order);
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
         checkStatus(order, ProductOrderStatus.TO_BE_DELIVERED, ProductOrderStatus.TO_BE_RECEIVED);
         java.math.BigDecimal payCap = order.baseOrder().payment().payAmount();
         if (payCap == null || payCap.compareTo(java.math.BigDecimal.ZERO) <= 0) {

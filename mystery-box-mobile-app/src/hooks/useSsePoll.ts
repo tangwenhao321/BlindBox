@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { API_BASE_URL, buildAuthHeaders } from "../api";
+import { clientPlatformHeaders } from "../utils/clientAttestation";
 
 type SseOptions<T> = {
   path: string;
@@ -90,7 +91,10 @@ export function useSsePoll<T>(options: SseOptions<T>) {
       abort?.abort();
       abort = new AbortController();
       try {
-        const headers: Record<string, string> = { Accept: "text/event-stream" };
+        const headers: Record<string, string> = {
+          Accept: "text/event-stream",
+          ...clientPlatformHeaders(),
+        };
         if (token) Object.assign(headers, buildAuthHeaders(token) as Record<string, string>);
         const res = await fetch(`${API_BASE_URL}${path}`, { headers, signal: abort.signal });
         if (!res.ok || !res.body || typeof res.body.getReader !== "function") {

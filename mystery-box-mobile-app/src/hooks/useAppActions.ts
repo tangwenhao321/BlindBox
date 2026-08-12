@@ -495,16 +495,31 @@ export function useAppActions(params: Params) {
   };
 
   const payWithPrepay = async (orderId: string, prepay: PrepayResult) => {
-    const paid = await invokeWechatPay(prepay);
-    if (!paid) return false;
-    await syncOrders();
-    if (onPaymentSuccess) {
-      await onPaymentSuccess(orderId);
-    } else {
-      await clearRetentionOrderId();
-      await openOrderDetails(orderId);
+    const paidNative = await invokeWechatPay(prepay);
+    // Native invoke can fail-open after the user paid in WeChat; always poll briefly.
+    if (!paidNative) {
+      toast.info(i18n.t("teamLottery.waitingPayment", { defaultValue: "Confirming payment…" }));
     }
-    return true;
+    const attempts = paidNative ? 12 : 20;
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const order = await getOrderById(token, orderId);
+        if (!isUnpaidOrder(order)) {
+          await syncOrders();
+          if (onPaymentSuccess) {
+            await onPaymentSuccess(orderId);
+          } else {
+            await clearRetentionOrderId();
+            await openOrderDetails(orderId);
+          }
+          return true;
+        }
+      } catch {
+        /* keep polling */
+      }
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+    return false;
   };
 
   const requestPayment = async (

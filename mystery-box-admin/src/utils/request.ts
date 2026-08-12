@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { clearAdminToken, getAdminToken, isCookieAuthMode } from '@/utils/admin-auth-token'
+import { consumeAdminActionOtp } from '@/utils/admin-action-otp'
 
 const BASE_URL = import.meta.env.VITE_API_PREFIX
 const AUTH_ERROR_CODES = new Set([1001010, 1001007, 1001008])
@@ -21,6 +22,11 @@ request.interceptors.request.use((config) => {
   if (token) {
     config.headers = config.headers || {}
     config.headers.token = token
+  }
+  const otp = consumeAdminActionOtp()
+  if (otp) {
+    config.headers = config.headers || {}
+    config.headers['x-admin-action-otp'] = otp
   }
   return config
 })

@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import ListPageShell from '@/components/base/layout/list-page-shell.vue'
 import { request } from '@/utils/request'
 import { formatAdminMoney } from '@/utils/format-money'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 type ShipRow = {
   id: string
@@ -92,6 +93,7 @@ const confirmShip = async () => {
     ElMessage.warning('请填写物流单号')
     return
   }
+  if (!(await promptAndArmAdminActionOtp('仓库发货'))) return
   await request({
     url: `/admin/warehouse-ship-request/${shipTarget.value.id}/ship`,
     method: 'post',
@@ -109,6 +111,7 @@ const reject = async (row: ShipRow) => {
     cancelButtonText: '取消'
   }).catch(() => ({ value: null }))
   if (value == null) return
+  if (!(await promptAndArmAdminActionOtp('驳回发货并退款'))) return
   await request({
     url: `/admin/warehouse-ship-request/${row.id}/reject`,
     method: 'post',

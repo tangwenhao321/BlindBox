@@ -33,15 +33,4 @@ public class VipForFrontController {
         queryRequest.getQuery().setCreatorId(StpUtil.getLoginIdAsString());
         return vipRepository.findPage(queryRequest, VipRepository.COMPLEX_FETCHER_FOR_FRONT);
     }
-
-    /** Front clients must purchase VIP via /front/vip-order — never mutate VIP rows directly. */
-    @PostMapping("save")
-    public String save() {
-        throw new BusinessException("VIP_WRITE_FORBIDDEN: 请通过 VIP 订单购买");
-    }
-
-    @DeleteMapping
-    public Boolean delete() {
-        throw new BusinessException("VIP_WRITE_FORBIDDEN: 禁止删除 VIP 记录");
-    }
 }

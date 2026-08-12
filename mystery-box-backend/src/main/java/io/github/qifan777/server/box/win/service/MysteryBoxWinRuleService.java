@@ -11,6 +11,7 @@ import io.github.qifan777.server.box.win.repository.MysteryBoxWinHitLogRepositor
 import io.github.qifan777.server.box.win.repository.MysteryBoxWinRuleOpLogRepository;
 import io.github.qifan777.server.box.win.repository.MysteryBoxWinRuleRepository;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
+import io.github.qifan777.server.infrastructure.audit.AuditTrailService;
 import io.github.qifan777.server.product.root.entity.Product;
 import io.github.qifan777.server.product.root.repository.ProductRepository;
 import io.qifan.infrastructure.common.constants.ResultCode;
@@ -37,6 +38,7 @@ public class MysteryBoxWinRuleService {
     private final MysteryBoxWinRuleOpLogRepository mysteryBoxWinRuleOpLogRepository;
     private final ProductRepository productRepository;
     private final MysteryBoxRepository mysteryBoxRepository;
+    private final AuditTrailService auditTrailService;
     private final Map<String, Long> opCounters = new LinkedHashMap<>();
 
     @Value("${app.fairness.allow-win-rule-override:false}")
@@ -53,6 +55,9 @@ public class MysteryBoxWinRuleService {
         }
         if (remainingCount <= 0) {
             throw new BusinessException(ResultCode.ParamSetIllegal, "生效次数必须大于0");
+        }
+        if (!StringUtils.hasText(remark) || remark.trim().length() < 8) {
+            throw new BusinessException(ResultCode.ParamSetIllegal, "控奖规则必须填写合规披露备注（至少8字）");
         }
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "指定商品不存在"));
@@ -71,9 +76,24 @@ public class MysteryBoxWinRuleService {
                 .setRemainingCount(remainingCount)
                 .setEnabled(false)
                 .setApproved(false)
-                .setRemark(StringUtils.hasText(remark) ? remark : ""));
+                .setRemark(remark.trim()));
         String id = mysteryBoxWinRuleRepository.save(entity).id();
         logRuleOperation(id, "CREATE_PENDING", "规则已创建，待审批");
+        auditTrailService.record(
+                "WIN_RULE_CREATE",
+                StpUtil.getLoginIdAsString(),
+                "mystery_box_win_rule",
+                id,
+                null,
+                Map.of(
+                        "userId", userId,
+                        "mysteryBoxId", mysteryBoxId,
+                        "productId", productId,
+                        "remainingCount", remainingCount,
+                        "remark", remark.trim(),
+                        "disclosure", "admin_override_alters_draw_outcome"
+                )
+        );
         return id;
     }
 
@@ -104,6 +124,14 @@ public class MysteryBoxWinRuleService {
         MysteryBoxWinRule updated = MysteryBoxWinRuleDraft.$.produce(rule, draft -> draft.setEnabled(enabled));
         mysteryBoxWinRuleRepository.save(updated);
         logRuleOperation(id, enabled ? "ENABLE" : "DISABLE", "切换启用状态");
+        auditTrailService.record(
+                enabled ? "WIN_RULE_ENABLE" : "WIN_RULE_DISABLE",
+                StpUtil.getLoginIdAsString(),
+                "mystery_box_win_rule",
+                id,
+                null,
+                Map.of("enabled", enabled)
+        );
     }
 
     public void approveRule(String id) {
@@ -120,11 +148,27 @@ public class MysteryBoxWinRuleService {
                 .setEnabled(true));
         mysteryBoxWinRuleRepository.save(updated);
         logRuleOperation(id, "APPROVE", "规则审批通过并启用");
+        auditTrailService.record(
+                "WIN_RULE_APPROVE",
+                StpUtil.getLoginIdAsString(),
+                "mystery_box_win_rule",
+                id,
+                null,
+                Map.of("disclosure", "admin_override_alters_draw_outcome")
+        );
     }
 
     public void deleteRule(String id) {
         mysteryBoxWinRuleRepository.deleteById(id);
         logRuleOperation(id, "DELETE", "规则已删除");
+        auditTrailService.record(
+                "WIN_RULE_DELETE",
+                StpUtil.getLoginIdAsString(),
+                "mystery_box_win_rule",
+                id,
+                null,
+                Map.of()
+        );
     }
 
     public void recordHit(String ruleId,

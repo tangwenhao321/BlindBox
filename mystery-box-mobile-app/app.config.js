@@ -99,6 +99,34 @@ if (
   );
 }
 
+function isMissingLegalUrl(raw) {
+  const v = (raw || "").trim();
+  return !v || /example\.com|your-domain|localhost/i.test(v);
+}
+
+if (process.env.EAS_BUILD === "true" && isVnVariant) {
+  const missing = [];
+  if (isMissingLegalUrl(process.env.EXPO_PUBLIC_PRIVACY_URL)) missing.push("EXPO_PUBLIC_PRIVACY_URL");
+  if (isMissingLegalUrl(process.env.EXPO_PUBLIC_TERMS_URL)) missing.push("EXPO_PUBLIC_TERMS_URL");
+  if (isMissingLegalUrl(process.env.EXPO_PUBLIC_MINOR_DECLARATION_URL)) {
+    missing.push("EXPO_PUBLIC_MINOR_DECLARATION_URL");
+  }
+  if (isMissingLegalUrl(process.env.EXPO_PUBLIC_APP_LINK_DOMAIN)) {
+    missing.push("EXPO_PUBLIC_APP_LINK_DOMAIN");
+  }
+  if (
+    !(process.env.EXPO_PUBLIC_SUPPORT_PHONE || "").trim() &&
+    !(process.env.EXPO_PUBLIC_SUPPORT_EMAIL || "").trim()
+  ) {
+    missing.push("EXPO_PUBLIC_SUPPORT_PHONE|EMAIL");
+  }
+  if (missing.length) {
+    throw new Error(
+      `production-vn EAS build requires legal/support env: ${missing.join(", ")}`,
+    );
+  }
+}
+
 const displayName = isTestVariant
   ? "Night Cabinet Test"
   : isVnVariant

@@ -99,6 +99,10 @@ export function enqueueOfflineMutation(
   if (persist?.kind === "mockPayment" && !MOCK_PAYMENT_ENABLED && !__DEV__) {
     throw new Error("offline.mock_payment_disabled");
   }
+  // Release builds: never queue money-moving actions offline (avoid delayed/cross-session replay).
+  if (persist && MONEY_KINDS.has(persist.kind) && !__DEV__) {
+    throw new Error("offline.money_kind_disabled");
+  }
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
   const persisted = Boolean(persist);
   const queueLabel = normalizeQueueLabel(label, persist?.kind);
@@ -199,6 +203,11 @@ export async function hydrateOfflineMutationQueue(): Promise<number> {
     }
     // Drop legacy money mutations without ownerKey on hydrate when a session exists.
     if (!item.ownerKey && sessionKey && MONEY_KINDS.has(item.kind)) {
+      void removePersistedMutation(item.id);
+      continue;
+    }
+    // Drop money mutations on release builds (never replay createOrder/redeem/etc offline).
+    if (!__DEV__ && MONEY_KINDS.has(item.kind)) {
       void removePersistedMutation(item.id);
       continue;
     }

@@ -12,6 +12,11 @@ import {
   trackEvent,
 } from "../utils/analytics";
 import { getProductionEnvWarnings } from "../utils/productionEnvCheck";
+import {
+  authenticateBiometricUnlock,
+  getBiometricUnlockEnabled,
+  isBiometricUnlockAvailable,
+} from "../utils/biometricUnlock";
 import { toast } from "../utils/toast";
 
 type Params = {
@@ -50,12 +55,24 @@ export function useAppBootstrap(params: Params) {
       const savedToken = await restoreToken();
       // Hide splash as soon as token restore finishes; home catalog can continue in background.
       setLoading(false);
-      if (savedToken) {
-        try {
-          await onRestoreSuccess(savedToken);
-        } catch {
-          await onRestoreFail();
+      if (!savedToken) return;
+      try {
+        const bioEnabled = await getBiometricUnlockEnabled();
+        const bioAvailable = bioEnabled ? await isBiometricUnlockAvailable() : false;
+        if (bioEnabled && bioAvailable) {
+          const ok = await authenticateBiometricUnlock(
+            i18n.t("settings.biometricUnlockPrompt", {
+              defaultValue: "Unlock Night Cabinet",
+            }),
+          );
+          if (!ok) {
+            await onRestoreFail();
+            return;
+          }
         }
+        await onRestoreSuccess(savedToken);
+      } catch {
+        await onRestoreFail();
       }
     };
     if (loading) {

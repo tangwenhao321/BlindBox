@@ -3,6 +3,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ListPageShell from '@/components/base/layout/list-page-shell.vue'
 import request from '@/utils/request'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 const CONFIRM_TOKEN = 'REWRITE_ORDER_IDS'
 
@@ -172,6 +173,7 @@ const applyBatch = async () => {
       inputValidator: (value) => value === CONFIRM_TOKEN || `请输入 ${CONFIRM_TOKEN}`
     }
   )
+  if (!(await promptAndArmAdminActionOtp('订单主键改写'))) return
   loading.value = true
   try {
     lastResults.value =
@@ -201,6 +203,7 @@ const applyOne = async (legacyId: string) => {
       inputValidator: (value) => value === CONFIRM_TOKEN || `请输入 ${CONFIRM_TOKEN}`
     }
   )
+  if (!(await promptAndArmAdminActionOtp('订单主键改写'))) return
   loading.value = true
   try {
     const result = (await request({

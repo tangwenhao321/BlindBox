@@ -113,10 +113,11 @@ public class MysteryBoxOrderForFrontController {
                          @RequestHeader(value = "x-draw-mode", defaultValue = "instant") String drawMode,
                          @RequestHeader(value = "x-slot-no", required = false) Integer slotNo,
                          @RequestHeader(value = "x-recommend-variant", required = false) String recommendVariantHeader,
+                         @RequestHeader(value = "x-client-fairness-nonce", required = false) String clientFairnessNonce,
                          @RequestParam(value = "recommendVariant", required = false) String recommendVariantParam) {
         riskCheck(request, riskConfirm, deviceId);
         String recommendVariant = firstNonBlank(recommendVariantHeader, recommendVariantParam);
-        return mysteryBoxOrderService.create(mysteryBoxOrderInput, drawMode, slotNo, recommendVariant);
+        return mysteryBoxOrderService.create(mysteryBoxOrderInput, drawMode, slotNo, recommendVariant, clientFairnessNonce);
     }
 
     private static String firstNonBlank(String a, String b) {

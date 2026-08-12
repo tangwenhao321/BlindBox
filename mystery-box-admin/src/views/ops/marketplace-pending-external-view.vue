@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import ListPageShell from '@/components/base/layout/list-page-shell.vue'
 import request from '@/utils/request'
 import { formatAdminMoney } from '@/utils/format-money'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 type PendingExternalTrade = {
   id: string
@@ -42,6 +43,7 @@ const reload = async () => {
 
 const completeTrade = async (row: PendingExternalTrade) => {
   await ElMessageBox.confirm(`确认外部打款已完成？交易 ${row.id}`, '完成打款', { type: 'warning' })
+  if (!(await promptAndArmAdminActionOtp('完成外部打款'))) return
   await request({
     url: `/admin/marketplace/trades/${row.id}/complete-external`,
     method: 'post'
@@ -56,6 +58,7 @@ const failTrade = async (row: PendingExternalTrade) => {
     '失败退款',
     { type: 'error' }
   )
+  if (!(await promptAndArmAdminActionOtp('外部打款失败退款'))) return
   await request({
     url: `/admin/marketplace/trades/${row.id}/fail-external`,
     method: 'post'

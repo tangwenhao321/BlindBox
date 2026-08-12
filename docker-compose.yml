@@ -1,19 +1,20 @@
 # Local dependencies for mystery-box (MySQL + Redis)
 # Usage: docker compose up -d
+# Override passwords via env — never commit real production secrets.
 services:
   mysql:
     image: mysql:8.0
     container_name: mystery-box-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: Admin123#
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-CHANGE_ME_LOCAL_MYSQL}
       MYSQL_DATABASE: mystery_box
     ports:
       - "3306:3306"
     volumes:
       - mystery_box_mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pAdmin123#"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-CHANGE_ME_LOCAL_MYSQL}"]
       interval: 10s
       timeout: 5s
       retries: 10

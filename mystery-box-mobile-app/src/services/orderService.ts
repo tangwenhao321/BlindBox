@@ -68,6 +68,8 @@ async function buildOrderHeaders(
   if (options?.recommendVariant?.trim()) {
     headers["x-recommend-variant"] = options.recommendVariant.trim();
   }
+  // Client entropy for fairness commit = sha256(seed|nonce); keep locally to verify after reveal.
+  headers["x-client-fairness-nonce"] = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
   return headers;
 }
 

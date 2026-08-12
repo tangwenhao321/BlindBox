@@ -31,14 +31,4 @@ public class ProductForFrontController {
         queryRequest.getQuery().setCreatorId(StpUtil.getLoginIdAsString());
         return productRepository.findPage(queryRequest, ProductRepository.COMPLEX_FETCHER_FOR_FRONT);
     }
-
-    @PostMapping("save")
-    public String save() {
-        throw new BusinessException("PRODUCT_WRITE_FORBIDDEN: 前台禁止创建或修改商品");
-    }
-
-    @DeleteMapping
-    public Boolean delete() {
-        throw new BusinessException("PRODUCT_WRITE_FORBIDDEN: 前台禁止删除商品");
-    }
 }

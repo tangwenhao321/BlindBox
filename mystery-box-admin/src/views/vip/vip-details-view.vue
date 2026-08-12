@@ -7,6 +7,7 @@ import { assertFormValidate } from '@/utils/common'
 import { api } from '@/utils/api-instance'
 import { useFormHelper } from '@/components/base/form/form-helper'
 import { userLabelProp, userQueryOptions } from '@/views/user/store/user-store'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 const props = defineProps<{ id?: string }>()
 const formRef = ref<FormInstance>()
@@ -18,12 +19,12 @@ const rules = reactive<FormRules<VipInput>>({
 })
 const handleConfirm = () => {
   formRef.value?.validate(
-    assertFormValidate(() =>
-      api.vipForAdminController.save({ body: form.value }).then(async (res) => {
-        form.value.id = res
-        ElMessage.success('操作成功')
-      })
-    )
+    assertFormValidate(async () => {
+      if (!(await promptAndArmAdminActionOtp('保存 VIP'))) return
+      const res = await api.vipForAdminController.save({ body: form.value })
+      form.value.id = res
+      ElMessage.success('操作成功')
+    })
   )
 }
 onActivated(() => {

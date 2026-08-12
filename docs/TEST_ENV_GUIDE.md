@@ -210,10 +210,10 @@ EXPO_PUBLIC_PAYMENT_MODE=mock
 |------|-----------|
 | 管理端 | `https://www.jarcheng.top/test-admin` |
 | API | `https://www.jarcheng.top/test-api` |
-| 管理登录 | `admin_test` / `Admin@Test2026` |
-| App 测试用户 | `13900000001` / `Test@123456` |
+| 管理登录 | `admin_test` / 见服务器 `DEFAULT_ADMIN_PASSWORD` |
+| App 测试用户 | `13900000001` / 见测试种子密码（勿写入仓库） |
 | 短信验证码 | `000000`（mock） |
-| 高危 OTP | `TestEnvOtp2026!` |
+| 高危 OTP | 见服务器 `ADMIN_ACTION_OTP` |
 
 ---
 

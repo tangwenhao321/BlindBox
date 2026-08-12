@@ -7,6 +7,7 @@ import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.infrastructure.security.FrontOwnership;
 import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import io.github.qifan777.server.payment.gateway.PaymentGatewayRegistry;
+import io.github.qifan777.server.user.compliance.UserComplianceService;
 import io.github.qifan777.server.vip.order.entity.VipOrder;
 import io.github.qifan777.server.vip.order.entity.dto.VipOrderInput;
 import io.github.qifan777.server.vip.order.entity.dto.VipOrderSpec;
@@ -39,6 +40,7 @@ public class VipOrderForFrontController {
     private final PaymentGatewayRegistry paymentGatewayRegistry;
     private final ClientIpResolver clientIpResolver;
     private final IosDigitalGoodsGuard iosDigitalGoodsGuard;
+    private final UserComplianceService userComplianceService;
 
     @Value("${payment.mock-enabled:false}")
     private boolean mockPaymentEnabled;
@@ -60,6 +62,7 @@ public class VipOrderForFrontController {
     @PostMapping("save")
     public Object save(@RequestBody @Validated VipOrderInput vipOrderInput, HttpServletRequest request) {
         iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
         return vipOrderService.save(vipOrderInput, clientIpResolver.resolve(request));
     }
 
@@ -67,6 +70,7 @@ public class VipOrderForFrontController {
     @PostMapping("create")
     public String create(@RequestBody @Validated VipOrderInput vipOrderInput) {
         iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
         return vipOrderService.createUnpaid(vipOrderInput).id();
     }
 

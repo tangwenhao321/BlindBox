@@ -48,9 +48,14 @@ const form = reactive({
 })
 const adminOtp = ref('')
 
-const securedHeaders = () => ({
-  'x-admin-action-otp': adminOtp.value
-})
+const securedHeaders = () => {
+  if (!adminOtp.value.trim()) {
+    throw new Error('请先填写高危操作口令')
+  }
+  return {
+    'x-admin-action-otp': adminOtp.value.trim()
+  }
+}
 
 const resetForm = () => {
   form.userId = ''
@@ -194,13 +199,17 @@ const createRule = async () => {
     ElMessage.warning('请完整填写 userId / mysteryBoxId / productId 且次数大于 0')
     return
   }
+  if (!form.remark.trim() || form.remark.trim().length < 8) {
+    ElMessage.warning('合规披露备注至少 8 字（说明控奖用途与授权依据）')
+    return
+  }
   const userLabel = userOptions.value.find((it) => it.id === form.userId)?.label || form.userId
   const boxLabel =
     boxOptions.value.find((it) => it.id === form.mysteryBoxId)?.label || form.mysteryBoxId
   const productLabel =
     productOptions.value.find((it) => it.id === form.productId)?.label || form.productId
   await ElMessageBox.confirm(
-    `请确认创建指定中奖规则：\n\n用户：${userLabel}\n盲盒：${boxLabel}\n商品：${productLabel}\n生效次数：${form.remainingCount}\n\n命中后将替换订单项中奖结果中的第一个商品。`,
+    `请确认创建指定中奖规则（将改变抽赏结果，需合规披露）：\n\n用户：${userLabel}\n盲盒：${boxLabel}\n商品：${productLabel}\n生效次数：${form.remainingCount}\n备注：${form.remark.trim()}\n\n命中后将替换订单项中奖结果中的第一个商品。`,
     '确认创建规则',
     { type: 'warning', confirmButtonText: '确认创建', cancelButtonText: '取消' }
   )
@@ -221,40 +230,63 @@ const createRule = async () => {
     ElMessage.success('规则创建成功')
     resetForm()
     await loadRules()
+  } catch (e: any) {
+    if (e?.message === '请先填写高危操作口令') {
+      ElMessage.warning(e.message)
+    }
   } finally {
     submitting.value = false
   }
 }
 
 const toggleEnabled = async (row: WinRule) => {
-  await request({
-    url: `/admin/mystery-box-win-rule/${row.id}/enable?enabled=${!row.enabled}`,
-    method: 'post',
-    headers: securedHeaders()
-  })
-  ElMessage.success('状态更新成功')
-  await loadRules()
+  try {
+    await request({
+      url: `/admin/mystery-box-win-rule/${row.id}/enable?enabled=${!row.enabled}`,
+      method: 'post',
+      headers: securedHeaders()
+    })
+    ElMessage.success('状态更新成功')
+    await loadRules()
+  } catch (e: any) {
+    if (e?.message === '请先填写高危操作口令') {
+      ElMessage.warning(e.message)
+    }
+  }
 }
 
 const approveRule = async (row: WinRule) => {
-  await request({
-    url: `/admin/mystery-box-win-rule/${row.id}/approve`,
-    method: 'post',
-    headers: securedHeaders()
-  })
-  ElMessage.success('规则已审批')
-  await loadRules()
+  try {
+    await request({
+      url: `/admin/mystery-box-win-rule/${row.id}/approve`,
+      method: 'post',
+      headers: securedHeaders()
+    })
+    ElMessage.success('规则已审批')
+    await loadRules()
+  } catch (e: any) {
+    if (e?.message === '请先填写高危操作口令') {
+      ElMessage.warning(e.message)
+    }
+  }
 }
 
 const deleteRule = async (row: WinRule) => {
-  await ElMessageBox.confirm('删除后不可恢复，确认继续？', '提示', { type: 'warning' })
-  await request({
-    url: `/admin/mystery-box-win-rule/${row.id}`,
-    method: 'delete',
-    headers: securedHeaders()
-  })
-  ElMessage.success('删除成功')
-  await loadRules()
+  try {
+    await ElMessageBox.confirm('删除后不可恢复，确认继续？', '提示', { type: 'warning' })
+    await request({
+      url: `/admin/mystery-box-win-rule/${row.id}`,
+      method: 'delete',
+      headers: securedHeaders()
+    })
+    ElMessage.success('删除成功')
+    await loadRules()
+  } catch (e: any) {
+    if (e === 'cancel' || e === 'close') return
+    if (e?.message === '请先填写高危操作口令') {
+      ElMessage.warning(e.message)
+    }
+  }
 }
 
 onMounted(async () => {
@@ -330,7 +362,7 @@ onMounted(async () => {
         <el-input-number v-model="form.remainingCount" :min="1" :max="9999" />
       </el-form-item>
       <el-form-item label="备注">
-        <el-input v-model="form.remark" placeholder="可选" clearable />
+        <el-input v-model="form.remark" placeholder="必填：合规披露备注（≥8字）" clearable />
       </el-form-item>
       <el-form-item label="管理口令">
         <el-input

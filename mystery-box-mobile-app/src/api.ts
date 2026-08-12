@@ -1,11 +1,11 @@
 import axios, { type AxiosResponse } from "axios";
-import { Platform } from "react-native";
 import type { ApiResult } from "./types";
 import i18n from "./i18n";
 import { parseError } from "./utils/apiErrorMessage";
 import { AUTH_ERROR_CODES } from "./utils/apiErrorCodes";
 import { isPublicAuthApiPath } from "./utils/apiAuth";
 import { setOffline } from "./utils/connectivity";
+import { clientPlatformHeaders } from "./utils/clientAttestation";
 
 const envApiBaseUrl = (process.env.EXPO_PUBLIC_API_BASE_URL || "").trim();
 export const API_BASE_URL =
@@ -60,7 +60,7 @@ export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
-    "X-Client-Platform": Platform.OS,
+    ...clientPlatformHeaders(),
   },
 });
 
@@ -158,5 +158,6 @@ export { parseError, toAppError } from "./utils/apiErrorMessage";
 
 export const buildAuthHeaders = (token: string, extra?: Record<string, string>) => ({
   token,
+  ...clientPlatformHeaders(),
   ...extra,
 });

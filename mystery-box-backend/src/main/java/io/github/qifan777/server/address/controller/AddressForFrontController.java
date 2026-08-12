@@ -27,6 +27,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
@@ -72,27 +74,33 @@ public class AddressForFrontController {
             String district = nullableField(addressInput.getDistrict());
             boolean skipTencentGeocode = "vnpay".equalsIgnoreCase(marketProperties.getPaymentProvider());
             if (!skipTencentGeocode && (!StringUtils.hasText(province) || !StringUtils.hasText(city))) {
-                try {
-                    GeoCoderResponse geoCoderResponse = new RestTemplate().getForObject(
-                            "https://apis.map.qq.com/ws/geocoder/v1/?address=" + addressInput.getDetails() + "&key=" + tenantMapProperty.getKey(),
-                            GeoCoderResponse.class
-                    );
-                    if (geoCoderResponse != null
-                            && geoCoderResponse.getResult() != null
-                            && geoCoderResponse.getResult().getAddressComponents() != null) {
-                        GeoCoderResponse.Address addressComponents = geoCoderResponse.getResult().getAddressComponents();
-                        if (!StringUtils.hasText(province) && StringUtils.hasText(addressComponents.getProvince())) {
-                            province = addressComponents.getProvince();
+                String details = addressInput.getDetails();
+                if (StringUtils.hasText(details) && details.length() <= 200) {
+                    try {
+                        String encodedAddress = URLEncoder.encode(details.trim(), StandardCharsets.UTF_8);
+                        String encodedKey = URLEncoder.encode(
+                                String.valueOf(tenantMapProperty.getKey()), StandardCharsets.UTF_8);
+                        GeoCoderResponse geoCoderResponse = new RestTemplate().getForObject(
+                                "https://apis.map.qq.com/ws/geocoder/v1/?address=" + encodedAddress + "&key=" + encodedKey,
+                                GeoCoderResponse.class
+                        );
+                        if (geoCoderResponse != null
+                                && geoCoderResponse.getResult() != null
+                                && geoCoderResponse.getResult().getAddressComponents() != null) {
+                            GeoCoderResponse.Address addressComponents = geoCoderResponse.getResult().getAddressComponents();
+                            if (!StringUtils.hasText(province) && StringUtils.hasText(addressComponents.getProvince())) {
+                                province = addressComponents.getProvince();
+                            }
+                            if (!StringUtils.hasText(city) && StringUtils.hasText(addressComponents.getCity())) {
+                                city = addressComponents.getCity();
+                            }
+                            if (!StringUtils.hasText(district) && StringUtils.hasText(addressComponents.getDistrict())) {
+                                district = addressComponents.getDistrict();
+                            }
                         }
-                        if (!StringUtils.hasText(city) && StringUtils.hasText(addressComponents.getCity())) {
-                            city = addressComponents.getCity();
-                        }
-                        if (!StringUtils.hasText(district) && StringUtils.hasText(addressComponents.getDistrict())) {
-                            district = addressComponents.getDistrict();
-                        }
+                    } catch (Exception ex) {
+                        log.warn("geocode failed for address details={}, fallback to client fields", details, ex);
                     }
-                } catch (Exception ex) {
-                    log.warn("geocode failed for address details={}, fallback to client fields", addressInput.getDetails(), ex);
                 }
             }
             draft.setProvince(province);

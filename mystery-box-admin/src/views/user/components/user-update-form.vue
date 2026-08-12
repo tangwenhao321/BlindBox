@@ -10,6 +10,7 @@ import DictSelect from '@/components/dict/dict-select.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { DictConstants } from '@/apis/__generated/model/enums/DictConstants'
 import RemoteSelect from '@/components/base/form/remote-select.vue'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 const userStore = useUserStore()
 const { closeDialog, reloadTableData } = userStore
@@ -35,7 +36,8 @@ watch(
 )
 const handleConfirm = () => {
   updateFormRef.value?.validate(
-    assertFormValidate(() => {
+    assertFormValidate(async () => {
+      if (!(await promptAndArmAdminActionOtp('更新用户 / 封禁'))) return
       api.userForAdminController.update({ body: updateForm.value }).then(async (res) => {
         assertSuccess(res).then(() => {
           closeDialog()

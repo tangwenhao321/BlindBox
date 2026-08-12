@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class RevealSpectatorSessionStore {
 
-    public static final long TOKEN_TTL_MS = 30 * 60 * 1000L;
+    public static final long TOKEN_TTL_MS = 15 * 60 * 1000L;
     private static final String KEY_PREFIX = "reveal:spectator:";
     private static final String ORDER_INDEX_PREFIX = "reveal:spectator:order:";
 

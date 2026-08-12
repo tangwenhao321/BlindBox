@@ -40,6 +40,14 @@ app:
     allow-mock-otp: false
 
 security:
+  ios:
+    digital-goods:
+      fail-closed: true
+      require-attestation: ${IOS_REQUIRE_CLIENT_ATTESTATION:false}
+      app-store-channel: appstore
+  client-attestation-secret: ${CLIENT_ATTESTATION_SECRET:}
+  sse:
+    require-auth: true
   compliance:
     spend-limit:
       daily: 2000000
@@ -52,6 +60,7 @@ security:
   rate-limit:
     distributed: true
     trusted-proxy: true
+    sse-stream-per-minute: 30
 
 # Public management surface: health + info only.
 # Optional: management.server.port=9913 with include=health,info,prometheus for scrapers.

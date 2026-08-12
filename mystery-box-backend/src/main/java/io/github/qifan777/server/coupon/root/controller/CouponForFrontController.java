@@ -31,14 +31,4 @@ public class CouponForFrontController {
         queryRequest.getQuery().setCreatorId(StpUtil.getLoginIdAsString());
         return couponRepository.findPage(queryRequest, CouponRepository.COMPLEX_FETCHER_FOR_FRONT);
     }
-
-    @PostMapping("save")
-    public String save() {
-        throw new BusinessException("COUPON_WRITE_FORBIDDEN: 前台禁止创建或修改优惠券模板");
-    }
-
-    @DeleteMapping
-    public Boolean delete() {
-        throw new BusinessException("COUPON_WRITE_FORBIDDEN: 前台禁止删除优惠券模板");
-    }
 }

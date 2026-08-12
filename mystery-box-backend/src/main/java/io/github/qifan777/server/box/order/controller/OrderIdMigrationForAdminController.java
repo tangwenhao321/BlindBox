@@ -4,6 +4,7 @@ import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.box.order.OrderIdLookupService;
 import io.github.qifan777.server.box.order.OrderIdMigrationService;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ public class OrderIdMigrationForAdminController {
 
     private final OrderIdLookupService orderIdLookupService;
     private final OrderIdMigrationService orderIdMigrationService;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @GetMapping("audit")
     public OrderIdLookupService.LegacyOrderAuditView audit(
@@ -70,16 +72,20 @@ public class OrderIdMigrationForAdminController {
     @PostMapping("rewrite/{legacyId}")
     public OrderIdMigrationService.PkRewriteResult applyRewriteOne(
             @PathVariable String legacyId,
-            @RequestParam String confirm
+            @RequestParam String confirm,
+            @RequestHeader(value = "x-admin-action-otp", required = false) String otp
     ) {
+        adminActionOtpVerifier.assertValid(otp);
         return orderIdMigrationService.applyOne(legacyId, confirm, StpUtil.getLoginIdAsString());
     }
 
     @PostMapping("rewrite/batch")
     public List<OrderIdMigrationService.PkRewriteResult> applyRewriteBatch(
             @RequestParam(defaultValue = "10") int batchSize,
-            @RequestParam String confirm
+            @RequestParam String confirm,
+            @RequestHeader(value = "x-admin-action-otp", required = false) String otp
     ) {
+        adminActionOtpVerifier.assertValid(otp);
         return orderIdMigrationService.applyBatch(batchSize, confirm, StpUtil.getLoginIdAsString());
     }
 }

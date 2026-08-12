@@ -1,11 +1,13 @@
 package io.github.qifan777.server.warehouse;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @SaCheckPermission("/warehouse-ship-request")
 public class WarehouseShipForAdminController {
     private final WarehouseShipService warehouseShipService;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @PostMapping("query")
     public WarehouseShipService.AdminShipPage query(@RequestBody AdminQueryRequest request) {
@@ -29,12 +32,18 @@ public class WarehouseShipForAdminController {
     }
 
     @PostMapping("{id}/ship")
-    public void ship(@PathVariable String id, @RequestBody ShipRequest body) {
+    public void ship(@PathVariable String id,
+                     @RequestBody ShipRequest body,
+                     @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         warehouseShipService.fulfillForAdmin(id, body.trackingNumber(), body.carrierCode());
     }
 
     @PostMapping("{id}/reject")
-    public void reject(@PathVariable String id, @RequestBody(required = false) RejectRequest body) {
+    public void reject(@PathVariable String id,
+                       @RequestBody(required = false) RejectRequest body,
+                       @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         warehouseShipService.rejectForAdmin(id, body == null ? null : body.reason());
     }
 

@@ -10,6 +10,7 @@ import DictSelect from '@/components/dict/dict-select.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import { DictConstants } from '@/apis/__generated/model/enums/DictConstants'
 import RemoteSelect from '@/components/base/form/remote-select.vue'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 const userStore = useUserStore()
 const { closeDialog, reloadTableData } = userStore
@@ -34,14 +35,15 @@ watch(
 
 const handleConfirm = () => {
   createFormRef.value?.validate(
-    assertFormValidate(() =>
-      api.userForAdminController.create({ body: createForm.value }).then(async (res) => {
+    assertFormValidate(async () => {
+      if (!(await promptAndArmAdminActionOtp('创建用户'))) return
+      return api.userForAdminController.create({ body: createForm.value }).then(async (res) => {
         assertSuccess(res).then(() => {
           closeDialog()
           reloadTableData()
         })
       })
-    )
+    })
   )
 }
 const roleQueryOptions = async (keyword: string, roleIds: string[]) => {

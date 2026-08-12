@@ -24,7 +24,16 @@ export function queueIfOffline(
   persist?: OfflinePersistInput,
 ): boolean {
   if (!isOffline()) return false;
-  enqueueOfflineMutation(actionKey, run, persist);
+  try {
+    enqueueOfflineMutation(actionKey, run, persist);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message === "offline.money_kind_disabled" || message === "offline.mock_payment_disabled") {
+      toast.info(i18n.t("offline.blockSubmit", { action: resolveOfflineActionLabel(actionKey) }));
+      return true;
+    }
+    throw error;
+  }
   const action = resolveOfflineActionLabel(actionKey);
   toast.info(i18n.t("offline.queuedSubmitDetail", { action }));
   return true;

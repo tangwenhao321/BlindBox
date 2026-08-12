@@ -8,6 +8,7 @@ import type { VipDto } from '@/apis/__generated/model/dto'
 import { Delete, Edit, Plus } from '@element-plus/icons-vue'
 import { useTableHelper } from '@/components/base/table/table-helper'
 import { useTagStore } from '@/layout/store/tag-store'
+import { promptAndArmAdminActionOtp } from '@/utils/admin-action-otp'
 
 const tagStore = useTagStore()
 type VipScope = Scope<VipDto['VipRepository/COMPLEX_FETCHER_FOR_ADMIN']>
@@ -52,16 +53,17 @@ const handleBatchDelete = () => {
     })
   )
 }
-const handleDelete = (ids: string[]) => {
-  ElMessageBox.confirm('此操作将删除数据且无法恢复, 是否继续?', '警告', {
+const handleDelete = async (ids: string[]) => {
+  const confirmed = await ElMessageBox.confirm('此操作将删除数据且无法恢复, 是否继续?', '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    api.vipForAdminController.delete({ body: ids }).then((res) => {
-      assertSuccess(res).then(() => reloadTableData())
-    })
-  })
+  }).catch(() => false)
+  if (!confirmed) return
+  if (!(await promptAndArmAdminActionOtp('删除 VIP'))) return
+  const res = await api.vipForAdminController.delete({ body: ids })
+  await assertSuccess(res)
+  reloadTableData()
 }
 </script>
 <template>

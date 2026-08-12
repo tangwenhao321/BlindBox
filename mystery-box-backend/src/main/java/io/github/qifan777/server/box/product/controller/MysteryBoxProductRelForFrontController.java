@@ -31,14 +31,4 @@ public class MysteryBoxProductRelForFrontController {
         queryRequest.getQuery().setCreatorId(StpUtil.getLoginIdAsString());
         return mysteryBoxProductRelRepository.findPage(queryRequest, MysteryBoxProductRelRepository.COMPLEX_FETCHER_FOR_FRONT);
     }
-
-    @PostMapping("save")
-    public String save() {
-        throw new BusinessException("PRODUCT_REL_WRITE_FORBIDDEN: 前台禁止修改奖池关联");
-    }
-
-    @DeleteMapping
-    public Boolean delete() {
-        throw new BusinessException("PRODUCT_REL_WRITE_FORBIDDEN: 前台禁止删除奖池关联");
-    }
 }

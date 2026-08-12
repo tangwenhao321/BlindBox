@@ -13,8 +13,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.jdbc.core.JdbcTemplate;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qifan.infrastructure.common.exception.BusinessException;
 
 @Service
 @Slf4j
@@ -24,6 +27,7 @@ public class AnalyticsEventService {
     private static final int MAX_EVENT_NAME_LENGTH = 128;
     private static final int MAX_PAYLOAD_JSON_LENGTH = 8192;
     private static final int DEDUP_WINDOW_MINUTES = 30;
+    private static final int GUEST_MAX_EVENTS_PER_MINUTE = 120;
     private static final Set<String> DEDUP_WITHIN_WINDOW = Set.of(
             "app_open",
             "home_view",
@@ -35,6 +39,16 @@ public class AnalyticsEventService {
 
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final ConcurrentHashMap<String, GuestWindow> guestWindows = new ConcurrentHashMap<>();
+
+    private static final class GuestWindow {
+        volatile long windowStartMs;
+        final AtomicInteger count = new AtomicInteger();
+
+        GuestWindow(long now) {
+            this.windowStartMs = now;
+        }
+    }
 
     /**
      * Server-side analytics insert (order create attribution, payment reliability, etc.).
@@ -69,6 +83,9 @@ public class AnalyticsEventService {
     public int ingest(List<AnalyticsEventInput> payload, String actorId) {
         if (payload == null || payload.isEmpty()) {
             return 0;
+        }
+        if (actorId != null && actorId.startsWith("guest:")) {
+            assertGuestWithinQuota(actorId, Math.min(payload.size(), MAX_BATCH_SIZE));
         }
         List<AnalyticsEventInput> batch = payload.size() > MAX_BATCH_SIZE
                 ? payload.subList(0, MAX_BATCH_SIZE)
@@ -175,6 +192,23 @@ public class AnalyticsEventService {
                 DEDUP_WINDOW_MINUTES
         );
         return !hit.isEmpty();
+    }
+
+    private void assertGuestWithinQuota(String actorId, int incoming) {
+        long now = System.currentTimeMillis();
+        GuestWindow window = guestWindows.compute(actorId, (key, existing) -> {
+            if (existing == null || now - existing.windowStartMs >= 60_000L) {
+                return new GuestWindow(now);
+            }
+            return existing;
+        });
+        int next = window.count.addAndGet(Math.max(1, incoming));
+        if (next > GUEST_MAX_EVENTS_PER_MINUTE) {
+            throw new BusinessException("ANALYTICS_RATE_LIMITED: 游客埋点过于频繁");
+        }
+        if (guestWindows.size() > 10_000) {
+            guestWindows.entrySet().removeIf(e -> now - e.getValue().windowStartMs >= 120_000L);
+        }
     }
 
     private static String normalizeTraceActor(String actor) {

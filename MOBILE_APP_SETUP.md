@@ -10,8 +10,8 @@ docker compose -f docker-compose.local.yml up -d
 
 这会启动：
 
-- MySQL 8（`3306`，账号 `root`，密码 `123456`）
-- Redis（`6379`，密码 `123456`）
+- MySQL 8（`3306`，账号 `root`，密码见 `docker-compose.local.yml` / `DEV_DB_PASSWORD`）
+- Redis（`6379`，密码见 `docker-compose.local.yml`）
 
 `database.sql` 会自动初始化到 `mystery_box` 数据库。
 
@@ -257,7 +257,7 @@ npm run check   # TypeScript + 单元测试
 
 与 `application-dev.yml` 对齐时：
 
-- MySQL：`localhost:3306`，`root` / `Admin123#`，库 `mystery_box`
+- MySQL：`localhost:3306`，`root` / `$env:DEV_DB_PASSWORD`，库 `mystery_box`
 - Redis：`localhost:6379`（排队 ZSET、全收锁）
 
 启动示例：
@@ -269,7 +269,7 @@ cd mystery-box-main
 
 # 或仅后端
 cd mystery-box-backend
-$env:DEV_DB_PASSWORD='Admin123#'
+$env:DEV_DB_PASSWORD='CHANGE_ME'
 mvn spring-boot:run -Dspring-boot.run.profiles=dev
 ```
 

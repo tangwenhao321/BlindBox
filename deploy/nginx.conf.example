@@ -1,4 +1,5 @@
 # Example Nginx reverse proxy for production (adjust server_name / SSL).
+# Prefer same-origin: admin UI + /api on one host when using VITE_ADMIN_COOKIE_AUTH=true.
 upstream mystery_box_api {
     server 127.0.0.1:9912;
 }
@@ -25,10 +26,16 @@ server {
 }
 
 server {
-    listen 80;
+    listen 443 ssl http2;
     server_name admin.example.com;
     root /var/www/mystery-box-admin;
     index index.html;
+
+    # Strict CSP for production admin (do not copy Vite HMR unsafe-eval/inline from index.html meta).
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
 
     location / {
         try_files $uri $uri/ /index.html;
@@ -38,6 +45,10 @@ server {
         proxy_pass http://mystery_box_api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Harden Sa-Token cookie if upstream omits flags
+        proxy_cookie_flags token httponly secure samesite=strict;
     }
 
     location /uploads/ {

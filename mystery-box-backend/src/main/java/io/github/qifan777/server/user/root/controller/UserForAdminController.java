@@ -6,6 +6,7 @@ import cn.dev33.satoken.stp.StpUtil;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import io.github.qifan777.server.user.root.entity.User;
 import io.github.qifan777.server.user.root.entity.UserDraft;
 import io.github.qifan777.server.user.root.entity.dto.UserCreateInput;
@@ -34,6 +35,7 @@ import java.util.List;
 public class UserForAdminController {
     private final UserRepository userRepository;
     private final UserWalletService userWalletService;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @GetMapping("{id}")
     public @FetchBy(value = "USER_ROLE_FETCHER") User findById(@PathVariable String id) {
@@ -51,13 +53,17 @@ public class UserForAdminController {
     }
 
     @PostMapping
-    public String create(@RequestBody @Validated UserCreateInput userInput) {
+    public String create(@RequestBody @Validated UserCreateInput userInput,
+                         @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         User user = userInput.toEntity();
         return userRepository.insert(beforeSave(user, userInput.getRoleIds())).id();
     }
 
     @PutMapping
-    public String update(@RequestBody @Validated UserUpdateInput userInput) {
+    public String update(@RequestBody @Validated UserUpdateInput userInput,
+                         @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         User user = userInput.toEntity();
         if (user.status().equals(DictConstants.UserStatus.BANNED)) {
             StpUtil.kickout(user.id());
@@ -70,7 +76,9 @@ public class UserForAdminController {
 
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
+    public Boolean delete(@RequestBody List<String> ids,
+                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         userRepository.deleteAllById(ids);
         return true;
     }

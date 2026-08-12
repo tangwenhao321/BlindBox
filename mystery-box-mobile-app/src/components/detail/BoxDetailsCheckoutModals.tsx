@@ -168,7 +168,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
     if (!spendLimit?.enabled) {
       return { warning: null as string | null, blocked: false };
     }
-    if (!spendLimit.withinLimits) {
+    if (!spendLimit.withinLimits || spendLimit.purchaseAllowed === false) {
       return { warning: t("checkout.spendLimitBlocked"), blocked: true };
     }
     const dailyRemaining = spendLimit.dailyRemaining;

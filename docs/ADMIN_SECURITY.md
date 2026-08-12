@@ -70,9 +70,11 @@ Admin login is commonly used via Vite proxy in development and may be split acro
 
 ## Checklist
 
-- [x] Dual-mode available: header (default) vs `VITE_ADMIN_COOKIE_AUTH=true` cookie-primary
+- [x] Dual-mode available: header (default in dev) vs `VITE_ADMIN_COOKIE_AUTH=true` cookie-primary
+- [x] Production example enables cookie-primary (`.env.production.example`)
 - [x] `POST /admin/auth/logout` + admin client calls it before clearing local session
+- [x] `deploy/nginx.conf.example` includes strict CSP + `proxy_cookie_flags`
 - [ ] Production admin served same-origin with API when enabling cookie-primary (required)
-- [ ] Reverse-proxy CSP without Vite HMR exceptions
+- [ ] Reverse-proxy CSP without Vite HMR exceptions (apply nginx example)
 - [ ] Cookie `HttpOnly` + `Secure` + `SameSite` (prod YAML / Sa-Token 1.37)
 - [ ] Rotate admin credentials / revoke tokens after suspected XSS
