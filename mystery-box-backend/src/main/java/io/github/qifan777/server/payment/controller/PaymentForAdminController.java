@@ -2,6 +2,7 @@ package io.github.qifan777.server.payment.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import io.github.qifan777.server.payment.entity.Payment;
 import io.github.qifan777.server.payment.entity.dto.PaymentInput;
 import io.github.qifan777.server.payment.entity.dto.PaymentSpec;
@@ -25,6 +26,7 @@ import java.util.List;
 @Transactional
 public class PaymentForAdminController {
     private final PaymentRepository paymentRepository;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_ADMIN") Payment findById(@PathVariable String id) {
@@ -37,12 +39,16 @@ public class PaymentForAdminController {
     }
 
     @PostMapping("save")
-    public String save(@RequestBody @Validated PaymentInput paymentInput) {
+    public String save(@RequestBody @Validated PaymentInput paymentInput,
+                       @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         return paymentRepository.save(paymentInput.toEntity()).id();
     }
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
+    public Boolean delete(@RequestBody List<String> ids,
+                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         paymentRepository.deleteAllById(ids);
         return true;
     }

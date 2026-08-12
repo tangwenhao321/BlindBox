@@ -159,7 +159,7 @@ Write-Host "管理端: http://127.0.0.1:$TestAdminPort"
 Write-Host "API:    http://127.0.0.1:$TestApiPort"
 Write-Host "健康:   http://127.0.0.1:$TestApiPort/actuator/health"
 Write-Host ""
-Write-Host 'Admin login: admin_test / Admin@Test2026'
+Write-Host 'Admin login: admin_test / (DEFAULT_ADMIN_PASSWORD from env)'
 Write-Host 'App login: 13900000001 / Test@123456 (OTP mock: 000000)'
 Write-Host ""
 Write-Host "Mobile APK: mystery-box-test-harmony.apk (com.mysterybox.mobile.test)"

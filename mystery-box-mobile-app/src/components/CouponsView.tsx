@@ -80,7 +80,7 @@ export function CouponsView({ onBack, onGoWelfare, onGoMall, onOpenBox, onRequir
             const expiring = isCouponExpiringSoon(item);
             const daysLeft = daysUntilCouponExpiry(item);
             const mysteryBoxId = item.mysteryBoxId ?? item.coupon?.mysteryBoxId;
-            const canUse = expiring && (onGoMall || onOpenBox);
+            const canUse = Boolean(onGoMall || onOpenBox);
             return (
               <View
                 style={[styles.row, expiring ? styles.rowExpiring : null]}

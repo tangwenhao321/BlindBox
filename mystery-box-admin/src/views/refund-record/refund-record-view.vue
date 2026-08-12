@@ -63,6 +63,10 @@ const approve = async (row: RefundRow) => {
 }
 
 const reject = async (row: RefundRow) => {
+  if (!adminOtp.value.trim()) {
+    ElMessage.warning('请先填写高危操作口令')
+    return
+  }
   const { value } = await ElMessageBox.prompt('请输入驳回原因', '驳回退款', {
     confirmButtonText: '确定',
     cancelButtonText: '取消'
@@ -71,7 +75,8 @@ const reject = async (row: RefundRow) => {
   await request({
     url: `/admin/refund-record/${row.id}/reject`,
     method: 'post',
-    data: { reason: value }
+    data: { reason: value },
+    headers: { 'x-admin-action-otp': adminOtp.value.trim() }
   })
   ElMessage.success('已驳回')
   await load()
@@ -86,7 +91,7 @@ onMounted(() => void load())
       <el-space>
         <el-input
           v-model="adminOtp"
-          placeholder="高危操作口令（审批必填）"
+          placeholder="高危操作口令（通过/驳回必填）"
           show-password
           clearable
           style="width: 220px"

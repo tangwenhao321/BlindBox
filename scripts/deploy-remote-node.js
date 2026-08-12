@@ -2,6 +2,13 @@
 /**
  * Deploy mystery-box test env to remote server (password SSH from Windows).
  * Usage: node deploy-remote-node.js [--first-run]
+ *
+ * Required env (no hardcoded secrets):
+ *   SSH_HOST, SSH_PASSWORD
+ *   TEST_DB_PASSWORD, ADMIN_ACTION_OTP, DEFAULT_ADMIN_PASSWORD
+ * Optional:
+ *   DEPLOY_HOST (defaults to SSH_HOST), SSH_USER, SSH_PORT
+ *   TEST_DB_USERNAME (default root), PUBLIC_API_BASE_URL, PUBLIC_ADMIN_URL
  */
 const fs = require("fs");
 const path = require("path");
@@ -9,7 +16,29 @@ const os = require("os");
 const { execSync } = require("child_process");
 const { connect, exec, upload } = require("./ssh-remote");
 
-const HOST = process.env.DEPLOY_HOST || "120.26.181.145";
+function requireEnv(name) {
+  const v = process.env[name];
+  if (!v || !String(v).trim()) {
+    console.error(`Missing required env: ${name}`);
+    process.exit(1);
+  }
+  return String(v).trim();
+}
+
+const HOST = process.env.DEPLOY_HOST || process.env.SSH_HOST;
+if (!HOST) {
+  console.error("DEPLOY_HOST or SSH_HOST must be set.");
+  process.exit(1);
+}
+const DB_PASSWORD = requireEnv("TEST_DB_PASSWORD");
+const DB_USERNAME = process.env.TEST_DB_USERNAME || "root";
+const ADMIN_OTP = requireEnv("ADMIN_ACTION_OTP");
+const DEFAULT_ADMIN_PASSWORD = requireEnv("DEFAULT_ADMIN_PASSWORD");
+const PUBLIC_API_BASE_URL =
+  process.env.PUBLIC_API_BASE_URL || `http://${HOST}:9920/test-api`;
+const PUBLIC_ADMIN_URL =
+  process.env.PUBLIC_ADMIN_URL || `http://${HOST}:9920/test-admin`;
+
 const ROOT = path.join(__dirname, "..");
 const REMOTE_ROOT = "/opt/mystery-box-test";
 const REMOTE_SRC = `${REMOTE_ROOT}/src`;
@@ -25,27 +54,27 @@ TEST_SERVER_PORT=9913
 JAVA_OPTS="-Xms512m -Xmx1024m"
 TEST_DB_HOST=127.0.0.1
 TEST_DB_PORT=3306
-TEST_DB_USERNAME=root
-TEST_DB_PASSWORD="Admin123#"
+TEST_DB_USERNAME=${DB_USERNAME}
+TEST_DB_PASSWORD="${DB_PASSWORD.replace(/"/g, '\\"')}"
 REDIS_URL=redis://127.0.0.1:6379/1
 VITE_API_PREFIX=/test-admin/api
 VITE_BASE=/test-admin/
-PUBLIC_API_BASE_URL=http://120.26.181.145:9920/test-api
-PUBLIC_ADMIN_URL=http://120.26.181.145:9920/test-admin
-ADMIN_ACTION_OTP=TestEnvOtp2026!
-DEFAULT_ADMIN_PASSWORD=Admin@Test2026
+PUBLIC_API_BASE_URL=${PUBLIC_API_BASE_URL}
+PUBLIC_ADMIN_URL=${PUBLIC_ADMIN_URL}
+ADMIN_ACTION_OTP=${ADMIN_OTP}
+DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD}
 PAYMENT_MOCK_ENABLED=true
 APP_ANDROID_VERSION_CODE=6
 APP_ANDROID_VERSION_NAME=1.0.5
-APP_ANDROID_DOWNLOAD_URL=http://120.26.181.145/test-downloads/mystery-box-test.apk
-APP_ANDROID_RELEASE_NOTES=我的应用四列布局；修复再开一单与开奖概率；支持检查更新
+APP_ANDROID_DOWNLOAD_URL=http://${HOST}/test-downloads/mystery-box-test.apk
+APP_ANDROID_RELEASE_NOTES=test build
 UPLOAD_DIR=${REMOTE_ROOT}/data/uploads-test
 `;
 
 const PRIVATE_TEST_YML = `spring:
   datasource:
-    username: root
-    password: "Admin123#"
+    username: ${DB_USERNAME}
+    password: "${DB_PASSWORD.replace(/"/g, '\\"')}"
 
 wx:
   miniapp:
@@ -72,11 +101,11 @@ tenant:
     key: test-tenant-map-key
 
 security:
-  admin-action-otp: "TestEnvOtp2026!"
+  admin-action-otp: "${ADMIN_OTP.replace(/"/g, '\\"')}"
   default-admin:
     enabled: true
     account: admin_test
-    password: "Admin@Test2026"
+    password: "${DEFAULT_ADMIN_PASSWORD.replace(/"/g, '\\"')}"
 `;
 
 const NGINX_SNIPPET = `# mystery-box test — isolated port 9920 (do NOT edit ehpay.conf)
@@ -165,7 +194,6 @@ async function main() {
   });
 
   const jarPath = findJar();
-  const adminDist = path.join(ROOT, "mystery-box-admin", "dist");
   const srcArchive = path.join(TMP, "mystery-box-test-src.tar.gz");
   const adminArchive = path.join(TMP, "admin-dist.tar.gz");
 
@@ -192,9 +220,11 @@ async function main() {
         conn,
         `cat > /etc/nginx/conf.d/mystery-box-test.conf << 'NGXEOF'\n${NGINX_SNIPPET}\nNGXEOF`,
       );
+      // Escape single quotes for remote shell: ' -> '\''
+      const dbPassShell = DB_PASSWORD.replace(/'/g, `'\\''`);
       await exec(
         conn,
-        `docker exec ehpay-mysql mysql -uroot -p'Admin123#' -e "CREATE DATABASE IF NOT EXISTS mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"`,
+        `docker exec ehpay-mysql mysql -u${DB_USERNAME} -p'${dbPassShell}' -e "CREATE DATABASE IF NOT EXISTS mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"`,
       );
     }
 
@@ -229,7 +259,7 @@ async function main() {
     console.log("\n=== Deploy OK ===");
     console.log(`API:    http://${HOST}:9920/test-api`);
     console.log(`Admin:  http://${HOST}:9920/test-admin`);
-    console.log(`Login:  admin_test / Admin@Test2026`);
+    console.log(`Login:  admin_test / (DEFAULT_ADMIN_PASSWORD from env)`);
   } finally {
     conn.end();
   }

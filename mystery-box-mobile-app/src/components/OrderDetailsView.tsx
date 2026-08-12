@@ -97,6 +97,7 @@ import { openContactSupport } from "../utils/contactSupport";
 import { resolveCarrierLabel } from "../utils/carrierLabel";
 import { usePendingPaymentCountdownLabels } from "../hooks/usePendingPaymentCountdownLabels";
 import type { Order } from "../types";
+import { applyRefund } from "../services/refundService";
 import { resolveOrderBoxId } from "../utils/pityCompensate";
 import { fetchBoxProbability, resolveDisplayRates } from "../services/probabilityService";
 
@@ -143,6 +144,10 @@ export function OrderDetailsView(props: Props) {
   const countdownLabels = usePendingPaymentCountdownLabels();
   const carrierLabel = useMemo(() => resolveCarrierLabel(carrierCode, t), [carrierCode, t]);
   const canConfirmReceive = order.status === ORDER_STATUS.TO_BE_RECEIVED && !!onConfirmReceive;
+  const canApplyRefund =
+    (order.status === ORDER_STATUS.TO_BE_DELIVERED || order.status === ORDER_STATUS.TO_BE_RECEIVED) &&
+    !(order.items ?? []).some((item) => (item.products?.length ?? 0) > 0);
+  const [refundSubmitting, setRefundSubmitting] = useState(false);
 
   const confirmPayWithOdds = useCallback(async () => {
     const boxId = resolveOrderBoxId(order);
@@ -181,6 +186,31 @@ export function OrderDetailsView(props: Props) {
     });
     if (ok) onPay(order.id);
   }, [authToken, onPay, order, t]);
+
+  const submitRefund = useCallback(async () => {
+    if (!authToken || refundSubmitting || !canApplyRefund) return;
+    const ok = await confirm({
+      title: t("orderDetails.refundConfirmTitle"),
+      message: t("orderDetails.refundConfirmMessage"),
+      confirmLabel: t("orderDetails.applyRefund"),
+    });
+    if (!ok) return;
+    setRefundSubmitting(true);
+    try {
+      const amount = Number(order.baseOrder?.payment?.payAmount ?? 0);
+      await applyRefund(authToken, {
+        orderId: order.id,
+        reason: t("orderDetails.refundReasonDefault"),
+        amount,
+      });
+      toast.success(t("orderDetails.refundSubmitted"));
+      onRefresh();
+    } catch (error) {
+      toast.error(String(error instanceof Error ? error.message : error));
+    } finally {
+      setRefundSubmitting(false);
+    }
+  }, [authToken, canApplyRefund, confirm, onRefresh, order, refundSubmitting, t]);
 
   const prizeProducts = useMemo(() => normalizePrizeProducts(order), [order]);
   const sortedPrizes = useMemo(() => sortRevealSequence(prizeProducts), [prizeProducts]);
@@ -799,6 +829,14 @@ export function OrderDetailsView(props: Props) {
               label={t("orderDetails.payNow")}
               accessibilityLabel={t("orderDetails.payNowA11y")}
               onPress={() => void confirmPayWithOdds()}
+            />
+          ) : null}
+          {canApplyRefund ? (
+            <PrimaryButton
+              label={refundSubmitting ? t("common.loading", { defaultValue: "…" }) : t("orderDetails.applyRefund")}
+              variant="ghost"
+              disabled={refundSubmitting}
+              onPress={() => void submitRefund()}
             />
           ) : null}
           {canConfirmReceive ? (

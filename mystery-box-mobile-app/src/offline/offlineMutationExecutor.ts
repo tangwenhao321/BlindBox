@@ -29,7 +29,9 @@ import {
   invalidateOrderQueries,
 } from "../utils/invalidateAppQueries";
 import { getSessionAuthToken } from "../utils/authTokenStore";
+import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 import type { PersistedOfflineMutation } from "./offlineMutationTypes";
+import { MOCK_PAYMENT_ENABLED } from "../config/constants";
 
 function resolveOfflineToken(item: PersistedOfflineMutation): string {
   const session = getSessionAuthToken();
@@ -38,8 +40,22 @@ function resolveOfflineToken(item: PersistedOfflineMutation): string {
   throw new Error("offline.missing_auth");
 }
 
+const IOS_BLOCKED_KINDS = new Set([
+  "redeem",
+  "marketplaceBuy",
+  "marketplaceList",
+  "exchangeFragment",
+  "decomposeOrderItem",
+]);
+
 export async function executePersistedOfflineMutation(item: PersistedOfflineMutation): Promise<void> {
   const { kind, payload } = item;
+  if (kind === "mockPayment" && !MOCK_PAYMENT_ENABLED && !__DEV__) {
+    throw new Error("offline.mock_payment_disabled");
+  }
+  if (isIosDigitalGoodsRestricted() && IOS_BLOCKED_KINDS.has(kind)) {
+    throw new Error("offline.ios_digital_goods_blocked");
+  }
   const token = resolveOfflineToken(item);
   switch (kind) {
     case "saveAddress":

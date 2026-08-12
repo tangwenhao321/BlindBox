@@ -1,12 +1,14 @@
 const { connect, exec } = require("./ssh-remote");
+const { mysqlRootPassword, shellSingleQuote } = require("./deploy-secrets");
 
 async function main() {
+  const _dbPass = shellSingleQuote(mysqlRootPassword());
   const conn = await connect();
   try {
     console.log("Fixing DB collation...");
     await exec(
       conn,
-      `docker exec ehpay-mysql mysql -uroot -p'Admin123#' -N -e "
+      `docker exec ehpay-mysql mysql -uroot -p" + _dbPass + " -N -e "
 ALTER DATABASE mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 SELECT CONCAT('ALTER TABLE \\\`', table_name, '\\\` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;')
 FROM information_schema.tables WHERE table_schema='mystery_box_test' AND table_type='BASE TABLE';
@@ -14,12 +16,12 @@ FROM information_schema.tables WHERE table_schema='mystery_box_test' AND table_t
     );
     await exec(
       conn,
-      "docker exec -i ehpay-mysql mysql -uroot -p'Admin123#' mystery_box_test < /tmp/fix-collate.sql",
+      "docker exec -i ehpay-mysql mysql -uroot -p" + _dbPass + " mystery_box_test < /tmp/fix-collate.sql",
     );
     console.log("Seeding hot boxes + fragment catalog if empty...");
     await exec(
       conn,
-      `docker exec ehpay-mysql mysql -uroot -p'Admin123#' mystery_box_test -e "
+      `docker exec ehpay-mysql mysql -uroot -p" + _dbPass + " mystery_box_test -e "
 INSERT INTO ops_home_hot_box (id, mystery_box_id, sort_order, enabled, created_time)
 SELECT CONCAT('hot', LPAD(rn, 2, '0')), id, rn, 1, NOW(6)
 FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY edited_time DESC) rn FROM mystery_box LIMIT 6) t

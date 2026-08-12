@@ -106,6 +106,11 @@ public class VipOrderForFrontController {
             if (!vipOrder.creator().id().equals(StpUtil.getLoginIdAsString())) {
                 throw new BusinessException("只能删除自己的数据");
             }
+            if (vipOrder.baseOrder() != null
+                    && vipOrder.baseOrder().payment() != null
+                    && vipOrder.baseOrder().payment().payTime() != null) {
+                throw new BusinessException("VIP_ORDER_DELETE_FORBIDDEN: 已支付 VIP 订单不可删除");
+            }
         });
         vipOrderRepository.deleteAllById(ids);
         return true;

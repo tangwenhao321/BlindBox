@@ -19,12 +19,17 @@ public class WebCorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowCredentials(true);
         List<String> patterns = Arrays.stream(allowedOriginPatterns.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
-        config.setAllowedOriginPatterns(patterns.isEmpty() ? List.of("*") : patterns);
+        if (patterns.isEmpty()) {
+            patterns = List.of("http://localhost:*", "http://127.0.0.1:*");
+        }
+        boolean wildcardOnly = patterns.size() == 1 && "*".equals(patterns.get(0));
+        // Browsers reject credentialed requests with '*'; disable credentials for wildcard.
+        config.setAllowCredentials(!wildcardOnly);
+        config.setAllowedOriginPatterns(patterns);
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setExposedHeaders(List.of(TraceIdFilter.TRACE_ID_RESPONSE_HEADER, "X-Request-Id"));

@@ -7,9 +7,17 @@ Thumbs.db
 
 # ---- Secrets ----
 .env
+.env.*
+!.env.example
+!.env.*.example
+!.env.vn.example
 .env.local
 .env.*.local
-!.env.example
+!mystery-box-admin/.env.example
+!mystery-box-admin/.env.production.example
+!mystery-box-backend/.env.example
+!mystery-box-mobile-app/.env.example
+!mystery-box-mobile-app/.env.vn.example
 
 # ---- Node ----
 node_modules/

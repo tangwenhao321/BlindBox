@@ -829,7 +829,7 @@ public class MarketplaceService {
         if (orderItemId == null || orderItemId.isBlank()) {
             return;
         }
-        MysteryBoxOrderItem item = mysteryBoxOrderItemRepository.findById(orderItemId)
+        MysteryBoxOrderItem item = mysteryBoxOrderItemRepository.findByIdWithProductsForUpdate(orderItemId)
                 .orElseThrow(() -> new BusinessException("MARKETPLACE_ORDER_ITEM_NOT_FOUND: 订单项不存在"));
         List<ProductView> products = item.products() == null ? new ArrayList<>() : new ArrayList<>(item.products());
         boolean removed = products.removeIf(p -> productId.equals(p.getId()));

@@ -46,17 +46,26 @@ const {
 onMounted(() => {
   reloadTableData()
 })
-const handleClose = (row: { id: string }) => {
-  ElMessageBox.confirm('是否确认退款?', '警告', {
+const handleClose = async (row: { id: string }) => {
+  const otpRes = await ElMessageBox.prompt('请输入高危操作口令', '已支付订单退款', {
+    confirmButtonText: '下一步',
+    cancelButtonText: '取消',
+    inputType: 'password'
+  }).catch(() => ({ value: null }))
+  if (otpRes.value == null || !String(otpRes.value).trim()) return
+  const confirmed = await ElMessageBox.confirm('是否确认退款?', '警告', {
     confirmButtonText: '确定',
     cancelButtonText: '取消',
     type: 'warning'
-  }).then(() => {
-    api.mysteryBoxOrderForAdminController.paidCancelForAdmin({ id: row.id }).then(() => {
-      ElMessage.success('退款成功')
-      reloadTableData()
-    })
+  }).catch(() => false)
+  if (!confirmed) return
+  await request({
+    url: `/admin/mystery-box-order/${row.id}/paid/cancel`,
+    method: 'post',
+    headers: { 'x-admin-action-otp': String(otpRes.value).trim() }
   })
+  ElMessage.success('退款成功')
+  reloadTableData()
 }
 const handleDeliver = async (row: { id: string }) => {
   const trackingRes = await ElMessageBox.prompt('请输入物流单号', '发货', {

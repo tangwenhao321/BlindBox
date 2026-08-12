@@ -5,7 +5,11 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 
 $env:REDIS_URL = if ($env:REDIS_URL) { $env:REDIS_URL } else { "redis://127.0.0.1:6380/0" }
-$env:DEV_DB_PASSWORD = if ($env:DEV_DB_PASSWORD) { $env:DEV_DB_PASSWORD } else { "Admin123#" }
+$env:DEV_DB_PASSWORD = if ($env:DEV_DB_PASSWORD) { $env:DEV_DB_PASSWORD } elseif ($env:TEST_DB_PASSWORD) { $env:TEST_DB_PASSWORD } else { $null }
+if (-not $env:DEV_DB_PASSWORD) {
+  Write-Error "Set DEV_DB_PASSWORD or TEST_DB_PASSWORD before running. No hardcoded default."
+  exit 1
+}
 $env:ANDROID_HOME = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { "$env:LOCALAPPDATA\Android\Sdk" }
 
 function Test-PortOpen($port) {

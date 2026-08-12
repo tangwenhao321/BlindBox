@@ -1,11 +1,15 @@
 const { connect, exec } = require("./ssh-remote");
+const { mysqlDocker, assertDropConfirmed } = require("./deploy-secrets");
 
 async function main() {
+  assertDropConfirmed();
   const conn = await connect();
   try {
     await exec(
       conn,
-      "docker exec ehpay-mysql mysql -uroot -p'Admin123#' -e \"DROP DATABASE IF EXISTS mystery_box_test; CREATE DATABASE mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\"",
+      mysqlDocker(
+        `-e "DROP DATABASE IF EXISTS mystery_box_test; CREATE DATABASE mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"`,
+      ),
     );
     await exec(conn, "systemctl restart mystery-box-test");
     await exec(conn, "sleep 60");

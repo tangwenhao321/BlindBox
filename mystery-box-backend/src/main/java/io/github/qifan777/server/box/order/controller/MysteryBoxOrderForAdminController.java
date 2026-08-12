@@ -12,6 +12,7 @@ import io.github.qifan777.server.box.root.entity.dto.MystryBoxView;
 import io.github.qifan777.server.logistics.service.OrderLogisticsService;
 import io.github.qifan777.server.infrastructure.aop.NotRepeat;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class MysteryBoxOrderForAdminController {
     private final MysteryBoxOrderRepository mysteryBoxOrderRepository;
     private final MysteryBoxOrderService mysteryBoxOrderService;
     private final OrderLogisticsService orderLogisticsService;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_ADMIN") MysteryBoxOrder findById(@PathVariable String id) {
@@ -47,19 +49,25 @@ public class MysteryBoxOrderForAdminController {
     }
 
     @PostMapping("save")
-    public String save(@RequestBody @Validated MysteryBoxOrderInput mysteryBoxOrderInput) {
+    public String save(@RequestBody @Validated MysteryBoxOrderInput mysteryBoxOrderInput,
+                       @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         return mysteryBoxOrderRepository.save(mysteryBoxOrderInput.toEntity()).id();
     }
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
+    public Boolean delete(@RequestBody List<String> ids,
+                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         mysteryBoxOrderRepository.deleteAllById(ids);
         return true;
     }
 
     @PostMapping("{id}/paid/cancel")
     @NotRepeat
-    public String paidCancelForAdmin(@PathVariable String id) {
+    public String paidCancelForAdmin(@PathVariable String id,
+                                     @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         return mysteryBoxOrderService.paidCancelForAdmin(id);
     }
 

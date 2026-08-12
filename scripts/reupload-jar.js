@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { connect, exec, upload } = require("./ssh-remote");
+const { mysqlRootPassword, shellSingleQuote, assertDropConfirmed } = require("./deploy-secrets");
 
 function findJar() {
   const dir = path.join(__dirname, "../mystery-box-backend/target");
@@ -10,13 +11,15 @@ function findJar() {
 }
 
 async function main() {
+  assertDropConfirmed();
+  const _dbPass = shellSingleQuote(mysqlRootPassword());
   const jar = findJar();
   const localSize = fs.statSync(jar).size;
   const conn = await connect();
   try {
     await exec(
       conn,
-      "docker exec ehpay-mysql mysql -uroot -p'Admin123#' -e \"DROP DATABASE IF EXISTS mystery_box_test; CREATE DATABASE mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\"",
+      "docker exec ehpay-mysql mysql -uroot -p" + _dbPass + " -e \"DROP DATABASE IF EXISTS mystery_box_test; CREATE DATABASE mystery_box_test CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;\"",
     );
     await upload(conn, jar, "/tmp/mystery-box-backend.jar");
     await exec(

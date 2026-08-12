@@ -1,11 +1,16 @@
 # Repair failed Flyway migration and optionally restart backend
 param(
-    [string]$DbPassword = "Admin123#",
+    [string]$DbPassword = $env:TEST_DB_PASSWORD,
     [string]$DbUser = "root",
     [string]$DbHost = "localhost:3306",
     [string]$DbName = "mystery_box",
     [switch]$RestartBackend
 )
+
+if (-not $DbPassword) {
+    Write-Error "Pass -DbPassword or set TEST_DB_PASSWORD (no hardcoded default)."
+    exit 1
+}
 
 $ErrorActionPreference = "Stop"
 $Root = Split-Path -Parent $PSScriptRoot

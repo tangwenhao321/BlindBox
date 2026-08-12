@@ -41,6 +41,7 @@ import {
   type TeamLotteryMember,
 } from "../services/teamLotteryService";
 import { getBoxById, queryBoxes } from "../services/boxService";
+import { queryAddresses } from "../services/addressService";
 import {
   createOrder,
   getMoMoPrepayParams,
@@ -337,10 +338,11 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
     toast.info(t("teamLottery.completePayment"));
     const prepay = await getWechatPrepayParams(authToken, orderId);
     const paidNative = await invokeWechatPay(prepay);
+    // Native invoke can fail-open after the user paid in WeChat; always poll briefly.
     if (!paidNative) {
-      return null;
+      toast.info(t("teamLottery.waitingPayment", { defaultValue: "Confirming payment…" }));
     }
-    return waitUntilOrderPaid(authToken, orderId, 12, 1000);
+    return waitUntilOrderPaid(authToken, orderId, paidNative ? 12 : 20, 1000);
   };
 
   const handleDraw = async () => {
@@ -360,10 +362,22 @@ export function TeamLotteryView({ onBack, onRequireLogin }: Props) {
     }
     setDrawing(true);
     try {
-      const orderId = await createOrder(authToken, active.boxId, undefined, 1);
+      const addresses = await queryAddresses(authToken);
+      const addressId =
+        addresses.find((a) => a.top)?.id || addresses[0]?.id || undefined;
+      if (!addressId) {
+        toast.error(t("teamLottery.addressRequired", {
+          defaultValue: "Add a shipping address before drawing",
+        }));
+        return;
+      }
+      const orderId = await createOrder(authToken, active.boxId, addressId, 1);
       const paidOrder = await payTeamOrder(orderId);
       if (!paidOrder || isUnpaidOrder(paidOrder)) {
         toast.error(t("teamLottery.paymentRequired"));
+        toast.info(t("teamLottery.unpaidOrderHint", {
+          defaultValue: "If you already paid, open Orders to finish this unpaid order — do not draw again.",
+        }));
         return;
       }
       const products = (paidOrder.items ?? []).flatMap((item) => item.products ?? []);

@@ -120,18 +120,28 @@ export function BoxDetailsCheckoutModals(props: Props) {
   const [addressHintVisible, setAddressHintVisible] = useState(false);
   const ageGate = useAgeGate(authToken);
   const [ageGateVisible, setAgeGateVisible] = useState(false);
+  const [pendingAgeWallet, setPendingAgeWallet] = useState<"default" | "momo">("default");
   const [spendLimit, setSpendLimit] = useState<SpendLimitView | null>(null);
+  const [spendLimitLoadFailed, setSpendLimitLoadFailed] = useState(false);
   const [probability, setProbability] = useState<BoxProbability | null>(null);
   const estimatedPayDeadline = estimatePayDeadlineFromNow();
 
   useEffect(() => {
     if (!confirmVisible || !authToken) {
       setSpendLimit(null);
+      setSpendLimitLoadFailed(false);
       return;
     }
+    setSpendLimitLoadFailed(false);
     void fetchSpendLimit(authToken)
-      .then(setSpendLimit)
-      .catch(() => setSpendLimit(null));
+      .then((view) => {
+        setSpendLimit(view);
+        setSpendLimitLoadFailed(false);
+      })
+      .catch(() => {
+        setSpendLimit(null);
+        setSpendLimitLoadFailed(true);
+      });
   }, [confirmVisible, authToken, spendLimitRefreshKey]);
 
   useEffect(() => {
@@ -152,6 +162,9 @@ export function BoxDetailsCheckoutModals(props: Props) {
   }, [confirmVisible, activeBox.id, drawCount]);
 
   const spendLimitMeta = useMemo(() => {
+    if (spendLimitLoadFailed) {
+      return { warning: t("checkout.spendLimitLoadFailed", { defaultValue: "Could not verify spend limits — try again" }), blocked: true };
+    }
     if (!spendLimit?.enabled) {
       return { warning: null as string | null, blocked: false };
     }
@@ -165,11 +178,11 @@ export function BoxDetailsCheckoutModals(props: Props) {
           amount: formatCurrency(displayPayAmount),
           remaining: formatCurrencyOptional(dailyRemaining),
         }),
-        blocked: false,
+        blocked: true,
       };
     }
     return { warning: null, blocked: false };
-  }, [spendLimit, displayPayAmount, t]);
+  }, [spendLimit, spendLimitLoadFailed, displayPayAmount, t]);
 
   const submitOrder = () => {
     trackEvent("start_checkout", { boxId: activeBox.id, drawCount });
@@ -299,6 +312,7 @@ export function BoxDetailsCheckoutModals(props: Props) {
           setAddressHintVisible(false);
           if (!canSubmit) return;
           if (ageGate.needsGate) {
+            setPendingAgeWallet(wallet ?? "default");
             setAgeGateVisible(true);
             return;
           }
@@ -313,9 +327,9 @@ export function BoxDetailsCheckoutModals(props: Props) {
         onConfirmed={() => {
           ageGate.setConfirmed(true);
           setAgeGateVisible(false);
+          setPendingPaymentWallet(pendingAgeWallet);
           trackEvent("box_create_order_click", { boxId: activeBox.id, drawCount });
-          onConfirmVisibleChange(false);
-          onCreateOrder(drawMode, drawMode === "cabinet" ? selectedSlotNo ?? undefined : undefined);
+          submitOrder();
         }}
         onDecline={() => setAgeGateVisible(false)}
       />

@@ -20,6 +20,15 @@ public interface MysteryBoxOrderItemRepository extends JRepository<MysteryBoxOrd
                 .fetchOptional();
     }
 
+    /** Row lock to serialize redeem / marketplace prize claims on the same order item. */
+    default Optional<MysteryBoxOrderItem> findByIdWithProductsForUpdate(String id) {
+        return sql().createQuery(t)
+                .where(t.id().eq(id))
+                .select(t.fetch(MysteryBoxOrderItemFetcher.$.mysteryBoxOrderId().products()))
+                .forUpdate()
+                .fetchOptional();
+    }
+
     default void updateProducts(String id, List<ProductView> productViews) {
         sql()
                 .createUpdate(t)

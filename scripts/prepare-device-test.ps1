@@ -150,7 +150,11 @@ if (-not $SkipStart) {
     Write-Host "      docker compose -f docker-compose.local.yml up -d" -ForegroundColor Yellow
   }
   $env:REDIS_URL = if ($env:REDIS_URL) { $env:REDIS_URL } else { "redis://127.0.0.1:6380/0" }
-  $env:DEV_DB_PASSWORD = if ($env:DEV_DB_PASSWORD) { $env:DEV_DB_PASSWORD } else { "Admin123#" }
+  $env:DEV_DB_PASSWORD = if ($env:DEV_DB_PASSWORD) { $env:DEV_DB_PASSWORD } elseif ($env:TEST_DB_PASSWORD) { $env:TEST_DB_PASSWORD } else { $null }
+  if (-not $env:DEV_DB_PASSWORD) {
+    Write-Error "Set DEV_DB_PASSWORD or TEST_DB_PASSWORD (no hardcoded default)."
+    exit 1
+  }
   & (Join-Path $scripts "start-local.ps1")
 }
 

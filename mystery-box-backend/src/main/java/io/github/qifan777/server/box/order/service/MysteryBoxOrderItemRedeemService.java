@@ -34,7 +34,7 @@ public class MysteryBoxOrderItemRedeemService {
 
     @Transactional
     public BigDecimal redeemItemToBalance(String userId, String itemId, String productId) {
-        MysteryBoxOrderItem item = mysteryBoxOrderItemRepository.findByIdWithProducts(itemId)
+        MysteryBoxOrderItem item = mysteryBoxOrderItemRepository.findByIdWithProductsForUpdate(itemId)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "订单项不存在"));
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(item.mysteryBoxOrderId());
         if (!order.creator().id().equals(userId)) {

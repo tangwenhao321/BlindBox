@@ -2,9 +2,11 @@ package io.github.qifan777.server.user.wechat.service;
 
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
+import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
+import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.infrastructure.model.LoginDevice;
 import io.github.qifan777.server.user.root.entity.User;
 import io.github.qifan777.server.user.root.entity.UserDraft;
@@ -68,8 +70,7 @@ public class UserWeChatService {
                             .orElseGet(() -> {
                                 return userRepository.save(UserDraft.$.produce(draft -> {
                                     draft.setNickname("微信用户")
-                                            // 此处密码无需加密,
-                                            .setPassword("123456")
+                                            .setPassword(BCrypt.hashpw(IdUtil.fastSimpleUUID()))
                                             .setPhone(registerInput.getPhone());
                                 }));
                             });

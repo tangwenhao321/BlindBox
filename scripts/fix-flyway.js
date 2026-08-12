@@ -1,11 +1,13 @@
 const { connect, exec } = require("./ssh-remote");
+const { mysqlRootPassword, shellSingleQuote } = require("./deploy-secrets");
 
 async function main() {
+  const _dbPass = shellSingleQuote(mysqlRootPassword());
   const conn = await connect();
   try {
     await exec(
       conn,
-      "docker exec ehpay-mysql mysql -uroot -p'Admin123#' mystery_box_test -e \"UPDATE flyway_schema_history SET success=1 WHERE success=0;\"",
+      "docker exec ehpay-mysql mysql -uroot -p" + _dbPass + " mystery_box_test -e \"UPDATE flyway_schema_history SET success=1 WHERE success=0;\"",
     );
     await exec(conn, "systemctl restart mystery-box-test");
     await exec(conn, "sleep 50");

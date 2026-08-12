@@ -124,10 +124,10 @@ async function main() {
           h1("四、测试账号"),
           table([
             ["角色", "账号", "密码/验证码", "说明"],
-            ["管理端", "admin_test", "Admin@Test2026", "后台管理系统登录"],
-            ["App 用户", "13900000001", "Test@123456", "手机端测试账号"],
+            ["管理端", "admin_test", "见服务器 DEFAULT_ADMIN_PASSWORD", "后台管理系统登录"],
+            ["App 用户", "13900000001", "见测试账号文档 / 种子配置", "手机端测试账号"],
             ["短信验证码", "—", "000000", "Mock 模式，任意手机号可用此码"],
-            ["高危操作 OTP", "—", "TestEnvOtp2026!", "删除/敏感操作二次确认"],
+            ["高危操作 OTP", "—", "见服务器 ADMIN_ACTION_OTP", "删除/敏感操作二次确认"],
           ]),
 
           h1("五、测试 APK 安装"),
@@ -188,7 +188,7 @@ async function main() {
                   "systemctl restart mystery-box-test",
                   "curl http://127.0.0.1:9913/actuator/health",
                   "journalctl -u mystery-box-test -f",
-                  "docker exec ehpay-mysql mysql -uroot -p'Admin123#' mystery_box_test",
+                  "docker exec ehpay-mysql mysql -uroot -p\"$TEST_DB_PASSWORD\" mystery_box_test",
                 ].join("\n"),
                 font: "Consolas",
                 size: 20,

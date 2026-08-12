@@ -12,8 +12,8 @@ const isVnVariant = process.env.EXPO_PUBLIC_APP_VARIANT === "production-vn";
 const faceIdPermission =
   process.env.EXPO_PUBLIC_FACE_ID_PERMISSION?.trim() ||
   (isVnVariant
-    ? "Night Cabinet dùng Face ID để mở khóa ứng dụng an toàn."
-    : "Night Cabinet uses Face ID to unlock the app securely.");
+    ? "Night Cabinet có thể dùng Face ID để xác minh nhanh khi bạn bật khóa sinh trắc trong Cài đặt."
+    : "Night Cabinet may use Face ID for quick verification when you enable biometric lock in Settings.");
 const photosPermission =
   process.env.EXPO_PUBLIC_PHOTOS_PERMISSION?.trim() ||
   (isVnVariant

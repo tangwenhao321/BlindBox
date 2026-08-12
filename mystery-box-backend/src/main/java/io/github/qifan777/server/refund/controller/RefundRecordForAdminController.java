@@ -46,7 +46,9 @@ public class RefundRecordForAdminController {
     }
 
     @PostMapping("save")
-    public String save(@RequestBody @Validated RefundRecordInput refundRecordInput) {
+    public String save(@RequestBody @Validated RefundRecordInput refundRecordInput,
+                       @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         return refundRecordRepository.save(refundRecordInput.toEntity()).id();
     }
 
@@ -58,7 +60,10 @@ public class RefundRecordForAdminController {
     }
 
     @PostMapping("{id}/reject")
-    public void reject(@PathVariable String id, @RequestBody(required = false) RejectRequest body) {
+    public void reject(@PathVariable String id,
+                       @RequestBody(required = false) RejectRequest body,
+                       @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         refundRecordService.reject(id, body == null ? null : body.reason());
     }
 
@@ -66,7 +71,9 @@ public class RefundRecordForAdminController {
     }
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
+    public Boolean delete(@RequestBody List<String> ids,
+                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         refundRecordRepository.deleteAllById(ids);
         return true;
     }

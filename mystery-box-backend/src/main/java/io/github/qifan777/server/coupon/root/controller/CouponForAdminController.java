@@ -8,6 +8,7 @@ import io.github.qifan777.server.coupon.root.entity.dto.CouponSpec;
 import io.github.qifan777.server.coupon.root.repository.CouponRepository;
 import io.github.qifan777.server.coupon.root.service.CouponService;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import org.babyfish.jimmer.client.FetchBy;
@@ -28,6 +29,7 @@ import java.util.List;
 public class CouponForAdminController {
     private final CouponRepository couponRepository;
     private final CouponService couponService;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_ADMIN") Coupon findById(@PathVariable String id) {
@@ -45,13 +47,17 @@ public class CouponForAdminController {
     }
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
+    public Boolean delete(@RequestBody List<String> ids,
+                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         couponRepository.deleteAllById(ids);
         return true;
     }
 
     @PostMapping("gift")
-    public void gift(@RequestBody CouponGiftInput giftInput) {
+    public void gift(@RequestBody CouponGiftInput giftInput,
+                     @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         couponService.gift(giftInput);
     }
 }

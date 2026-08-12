@@ -12,7 +12,6 @@ import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,23 +38,11 @@ public class ProductCategoryForFrontController {
 
     @PostMapping("save")
     public String save(@RequestBody @Validated ProductCategoryInput productCategoryInput) {
-        if (StringUtils.hasText(productCategoryInput.getId())) {
-            ProductCategory productCategory = productCategoryRepository.findById(productCategoryInput.getId(), ProductCategoryRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
-            if (!productCategory.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能修改自己的数据");
-            }
-        }
-        return productCategoryRepository.save(productCategoryInput.toEntity()).id();
+        throw new BusinessException("PRODUCT_CATEGORY_WRITE_FORBIDDEN: 前台禁止创建或修改商品分类");
     }
 
     @DeleteMapping
     public Boolean delete(@RequestBody List<String> ids) {
-        productCategoryRepository.findByIds(ids, ProductCategoryRepository.COMPLEX_FETCHER_FOR_FRONT).forEach(productCategory -> {
-            if (!productCategory.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能删除自己的数据");
-            }
-        });
-        productCategoryRepository.deleteAllById(ids);
-        return true;
+        throw new BusinessException("PRODUCT_CATEGORY_WRITE_FORBIDDEN: 前台禁止删除商品分类");
     }
 }

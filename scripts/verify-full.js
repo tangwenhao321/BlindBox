@@ -7,10 +7,15 @@ const BASE = (process.argv[2] || "http://120.26.181.145/test-api").replace(/\/$/
 const ADMIN_BASE = BASE.replace("/test-api", "/test-admin");
 const ADMIN_API = `${ADMIN_BASE}/api`;
 
-const ADMIN_PHONE = "admin_test";
-const ADMIN_PASS = "Admin@Test2026";
-const MOBILE_PHONE = "13900000001";
-const MOBILE_PASS = "Test@123456";
+const ADMIN_PHONE = process.env.VERIFY_ADMIN_PHONE || "admin_test";
+const ADMIN_PASS = process.env.DEFAULT_ADMIN_PASSWORD || process.env.VERIFY_ADMIN_PASSWORD;
+const MOBILE_PHONE = process.env.VERIFY_MOBILE_PHONE || "13900000001";
+const MOBILE_PASS = process.env.VERIFY_MOBILE_PASSWORD || process.env.MOBILE_TEST_PASSWORD;
+
+if (!ADMIN_PASS || !MOBILE_PASS) {
+  console.error("Set DEFAULT_ADMIN_PASSWORD (or VERIFY_ADMIN_PASSWORD) and VERIFY_MOBILE_PASSWORD / MOBILE_TEST_PASSWORD");
+  process.exit(1);
+}
 
 const results = [];
 

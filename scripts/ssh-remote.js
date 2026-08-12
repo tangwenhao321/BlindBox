@@ -4,11 +4,16 @@ const { Client } = require("ssh2");
 const fs = require("fs");
 const path = require("path");
 
-const host = (require.main === module ? process.argv[2] : null) || process.env.SSH_HOST || "120.26.181.145";
+const host = (require.main === module ? process.argv[2] : null) || process.env.SSH_HOST;
 const cmd = process.argv.slice(3).join(" ") || "hostname && uname -a";
-const password = process.env.SSH_PASSWORD || "Admin123#";
+const password = process.env.SSH_PASSWORD;
 const user = process.env.SSH_USER || "root";
 const port = Number(process.env.SSH_PORT || 22);
+
+if (!host || !password) {
+  console.error("SSH_HOST and SSH_PASSWORD must be set (no hardcoded defaults).");
+  process.exit(1);
+}
 
 function connect() {
   return new Promise((resolve, reject) => {

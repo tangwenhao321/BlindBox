@@ -3,10 +3,14 @@
  * Does NOT touch ehpay Java processes, MySQL data, or Redis.
  */
 const { connect, exec } = require("./ssh-remote");
+const { requireEnv, mysqlRootPassword } = require("./deploy-secrets");
 
-const HOST = "120.26.181.145";
+const HOST = process.env.DEPLOY_HOST || process.env.SSH_HOST || requireEnv("SSH_HOST");
 const MB_PORT = 9920;
 const REMOTE_ROOT = "/opt/mystery-box-test";
+const DB_PASSWORD = mysqlRootPassword();
+const ADMIN_OTP = requireEnv("ADMIN_ACTION_OTP");
+const DEFAULT_ADMIN_PASSWORD = requireEnv("DEFAULT_ADMIN_PASSWORD");
 
 const MYSTERY_NGINX = `# mystery-box test — isolated port ${MB_PORT} (do NOT edit ehpay.conf)
 server {
@@ -70,14 +74,14 @@ JAVA_OPTS="-Xms512m -Xmx1024m"
 TEST_DB_HOST=127.0.0.1
 TEST_DB_PORT=3306
 TEST_DB_USERNAME=root
-TEST_DB_PASSWORD="Admin123#"
+TEST_DB_PASSWORD="${DB_PASSWORD.replace(/"/g, '\\"')}"
 REDIS_URL=redis://127.0.0.1:6379/1
 VITE_API_PREFIX=/test-admin/api
 VITE_BASE=/test-admin/
 PUBLIC_API_BASE_URL=http://${HOST}:${MB_PORT}/test-api
 PUBLIC_ADMIN_URL=http://${HOST}:${MB_PORT}/test-admin
-ADMIN_ACTION_OTP=TestEnvOtp2026!
-DEFAULT_ADMIN_PASSWORD=Admin@Test2026
+ADMIN_ACTION_OTP=${ADMIN_OTP}
+DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD}
 PAYMENT_MOCK_ENABLED=true
 UPLOAD_DIR=${REMOTE_ROOT}/data/uploads-test
 `;

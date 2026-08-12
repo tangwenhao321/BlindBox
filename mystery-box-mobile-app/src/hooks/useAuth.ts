@@ -168,6 +168,8 @@ export function useAuth() {
 
   const logout = async () => {
     setToken("");
+    const { clearOfflineMutationQueue } = await import("../offline/offlineMutationQueue");
+    clearOfflineMutationQueue();
     await clearRevealSessionForUser();
     await initRevealStorageNamespace(null);
     await clearToken();

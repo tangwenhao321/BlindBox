@@ -43,14 +43,11 @@ public class RefundRecordForFrontController {
         return refundRecordRepository.findPage(queryRequest, RefundRecordRepository.COMPLEX_FETCHER_FOR_FRONT);
     }
 
+    /** Create-only. Updates that change amount/status are forbidden. */
     @PostMapping("save")
     public String save(@RequestBody @Validated RefundRecordInput refundRecordInput) {
         if (StringUtils.hasText(refundRecordInput.getId())) {
-            RefundRecord refundRecord = refundRecordRepository.findById(refundRecordInput.getId(), RefundRecordRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
-            if (!refundRecord.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能修改自己的数据");
-            }
-            return refundRecordRepository.save(refundRecordInput.toEntity()).id();
+            throw new BusinessException("REFUND_UPDATE_FORBIDDEN: 退款申请创建后不可修改，请联系客服");
         }
         return refundRecordService.apply(
                 StpUtil.getLoginIdAsString(),
@@ -67,12 +64,6 @@ public class RefundRecordForFrontController {
 
     @DeleteMapping
     public Boolean delete(@RequestBody List<String> ids) {
-        refundRecordRepository.findByIds(ids, RefundRecordRepository.COMPLEX_FETCHER_FOR_FRONT).forEach(refundRecord -> {
-            if (!refundRecord.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能删除自己的数据");
-            }
-        });
-        refundRecordRepository.deleteAllById(ids);
-        return true;
+        throw new BusinessException("REFUND_DELETE_FORBIDDEN: 退款记录不可删除");
     }
 }

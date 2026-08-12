@@ -37,12 +37,11 @@ function base64UrlFromArrayBuffer(buffer: ArrayBuffer) {
 
 async function sha256Base64Url(input: string) {
   const data = new TextEncoder().encode(input);
-  if (typeof globalThis.crypto?.subtle?.digest === "function") {
-    const digest = await globalThis.crypto.subtle.digest("SHA-256", data);
-    return base64UrlFromArrayBuffer(digest);
+  if (typeof globalThis.crypto?.subtle?.digest !== "function") {
+    throw new Error("ZALO_PKCE_UNAVAILABLE: SHA-256 (Web Crypto) is required for Zalo login");
   }
-  // Without SubtleCrypto, still produce a deterministic challenge so the flow can run in tests.
-  return base64UrlFromArrayBuffer(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength));
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", data);
+  return base64UrlFromArrayBuffer(digest);
 }
 
 function extractCode(url: string | null | undefined): string | null {

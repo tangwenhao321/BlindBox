@@ -2,10 +2,8 @@ package io.github.qifan777.server.vip.root.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.Objects;
-import io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.vip.root.entity.Vip;
-import io.github.qifan777.server.vip.root.entity.dto.VipInput;
 import io.github.qifan777.server.vip.root.entity.dto.VipSpec;
 import io.github.qifan777.server.vip.root.repository.VipRepository;
 import io.qifan.infrastructure.common.exception.BusinessException;
@@ -14,11 +12,7 @@ import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("front/vip")
@@ -27,7 +21,6 @@ import java.util.List;
 @Transactional
 public class VipForFrontController {
     private final VipRepository vipRepository;
-    private final IosDigitalGoodsGuard iosDigitalGoodsGuard;
 
     @GetMapping
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") Vip find() {
@@ -41,27 +34,14 @@ public class VipForFrontController {
         return vipRepository.findPage(queryRequest, VipRepository.COMPLEX_FETCHER_FOR_FRONT);
     }
 
+    /** Front clients must purchase VIP via /front/vip-order — never mutate VIP rows directly. */
     @PostMapping("save")
-    public String save(@RequestBody @Validated VipInput vipInput) {
-        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
-        if (StringUtils.hasText(vipInput.getId())) {
-            Vip vip = vipRepository.findById(vipInput.getId(), VipRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
-            if (!vip.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能修改自己的数据");
-            }
-        }
-        return vipRepository.save(vipInput.toEntity()).id();
+    public String save() {
+        throw new BusinessException("VIP_WRITE_FORBIDDEN: 请通过 VIP 订单购买");
     }
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
-        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
-        vipRepository.findByIds(ids, VipRepository.COMPLEX_FETCHER_FOR_FRONT).forEach(vip -> {
-            if (!vip.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能删除自己的数据");
-            }
-        });
-        vipRepository.deleteAllById(ids);
-        return true;
+    public Boolean delete() {
+        throw new BusinessException("VIP_WRITE_FORBIDDEN: 禁止删除 VIP 记录");
     }
 }

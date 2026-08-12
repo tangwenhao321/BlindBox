@@ -12,7 +12,6 @@ import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,23 +38,11 @@ public class CouponCategoryRelForFrontController {
 
     @PostMapping("save")
     public String save(@RequestBody @Validated CouponCategoryRelInput couponCategoryRelInput) {
-        if (StringUtils.hasText(couponCategoryRelInput.getId())) {
-            CouponCategoryRel couponCategoryRel = couponCategoryRelRepository.findById(couponCategoryRelInput.getId(), CouponCategoryRelRepository.COMPLEX_FETCHER_FOR_FRONT).orElseThrow(() -> new BusinessException("数据不存在"));
-            if (!couponCategoryRel.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能修改自己的数据");
-            }
-        }
-        return couponCategoryRelRepository.save(couponCategoryRelInput.toEntity()).id();
+        throw new BusinessException("COUPON_CATEGORY_REL_WRITE_FORBIDDEN: 前台禁止修改优惠券与分类关联");
     }
 
     @DeleteMapping
     public Boolean delete(@RequestBody List<String> ids) {
-        couponCategoryRelRepository.findByIds(ids, CouponCategoryRelRepository.COMPLEX_FETCHER_FOR_FRONT).forEach(couponCategoryRel -> {
-            if (!couponCategoryRel.creator().id().equals(StpUtil.getLoginIdAsString())) {
-                throw new BusinessException("只能删除自己的数据");
-            }
-        });
-        couponCategoryRelRepository.deleteAllById(ids);
-        return true;
+        throw new BusinessException("COUPON_CATEGORY_REL_WRITE_FORBIDDEN: 前台禁止删除优惠券与分类关联");
     }
 }

@@ -13,6 +13,7 @@ import io.github.qifan777.server.Objects;
 import io.github.qifan777.server.address.entity.Address;
 import io.github.qifan777.server.address.entity.dto.AddressView;
 import io.github.qifan777.server.address.repository.AddressRepository;
+import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.box.item.repository.MysteryBoxOrderItemRepository;
 import io.github.qifan777.server.box.order.OrderIds;
 import io.github.qifan777.server.box.order.config.RedeemProperties;
@@ -1396,7 +1397,12 @@ public class MysteryBoxOrderService {
         }
         java.math.BigDecimal recoveryTotal = java.math.BigDecimal.ZERO;
         for (var line : order.items()) {
-            List<ProductView> products = line.products();
+            MysteryBoxOrderItem locked = mysteryBoxOrderItemRepository.findByIdWithProductsForUpdate(line.id())
+                    .orElse(null);
+            if (locked == null) {
+                continue;
+            }
+            List<ProductView> products = locked.products();
             if (products == null || products.isEmpty()) {
                 continue;
             }

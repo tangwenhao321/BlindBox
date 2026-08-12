@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const { connect, exec, upload } = require("./ssh-remote");
+const { mysqlRootPassword, shellSingleQuote } = require("./deploy-secrets");
 
 const SQL = `-- Seed fragment exchange catalog for test env
 DELETE FROM fragment_exchange_sku WHERE id LIKE 'fex%';
@@ -32,6 +33,7 @@ SELECT COUNT(*) AS sku_count FROM fragment_exchange_sku WHERE enabled = 1;
 `;
 
 async function main() {
+  const _dbPass = shellSingleQuote(mysqlRootPassword());
   const tmp = path.join(require("os").tmpdir(), "seed-fragments.sql");
   fs.writeFileSync(tmp, SQL);
   const conn = await connect();
@@ -39,7 +41,7 @@ async function main() {
     await upload(conn, tmp, "/tmp/seed-fragments.sql");
     await exec(
       conn,
-      "docker exec -i ehpay-mysql mysql -uroot -p'Admin123#' mystery_box_test < /tmp/seed-fragments.sql",
+      "docker exec -i ehpay-mysql mysql -uroot -p" + _dbPass + " mystery_box_test < /tmp/seed-fragments.sql",
     );
     await exec(
       conn,

@@ -66,15 +66,18 @@ export function PaymentReturnView({
     }
   }, [orderId, t, token]);
 
+  const [pollStartedAt] = useState(() => Date.now());
   const unpaid =
     loaded?.kind === "box"
       ? isUnpaidOrder(loaded.order)
       : loaded?.kind === "vip"
         ? !isVipOrderPaid(loaded.order)
         : true;
-  const gatewayFailed = responseCode != null && responseCode !== "" && responseCode !== "00";
-  const success = !!loaded && !unpaid && !gatewayFailed;
-  const failed = gatewayFailed || (!loading && loaded != null && unpaid);
+  // Gateway code is advisory only — async IPN / spoofable deep-link codes must not stop polling.
+  const gatewayHintFailed = responseCode != null && responseCode !== "" && responseCode !== "00";
+  const success = !!loaded && !unpaid;
+  const confirming = unpaid && !error && Date.now() - pollStartedAt < 90_000;
+  const failed = !loading && loaded != null && unpaid && !confirming;
   const payAmount =
     loaded?.kind === "box"
       ? Number(loaded.order.baseOrder?.payment?.payAmount ?? 0)
@@ -155,11 +158,22 @@ export function PaymentReturnView({
           )}
         </View>
       ) : null}
+      {confirming && !success && !failed ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" />
+          <Text style={styles.hint}>{t("paymentReturn.confirming")}</Text>
+          {gatewayHintFailed ? (
+            <Text style={styles.hint}>{t("paymentReturn.gatewayPendingHint", {
+              defaultValue: "Wallet returned a non-success code — still confirming with the server…",
+            })}</Text>
+          ) : null}
+        </View>
+      ) : null}
       {failed && !loading ? (
         <View style={styles.cardFail} accessibilityRole="alert">
           <Text style={styles.statusFail}>{t("paymentReturn.failTitle")}</Text>
           <Text style={styles.hint}>{t("paymentReturn.failHint")}</Text>
-          {onRetryPay && loaded?.kind === "box" ? (
+          {onRetryPay ? (
             <Pressable style={styles.primaryBtn} onPress={() => onRetryPay(orderId)} accessibilityRole="button">
               <Text style={styles.primaryBtnText}>{t("paymentReturn.retryPay")}</Text>
             </Pressable>

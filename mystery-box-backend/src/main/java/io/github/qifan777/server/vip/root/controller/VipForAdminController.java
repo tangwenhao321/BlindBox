@@ -2,6 +2,7 @@ package io.github.qifan777.server.vip.root.controller;
 
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
+import io.github.qifan777.server.infrastructure.security.AdminActionOtpVerifier;
 import io.github.qifan777.server.vip.root.entity.Vip;
 import io.github.qifan777.server.vip.root.entity.dto.VipInput;
 import io.github.qifan777.server.vip.root.entity.dto.VipSpec;
@@ -25,6 +26,7 @@ import java.util.List;
 @Transactional
 public class VipForAdminController {
     private final VipRepository vipRepository;
+    private final AdminActionOtpVerifier adminActionOtpVerifier;
 
     @GetMapping("{id}")
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_ADMIN") Vip findById(@PathVariable String id) {
@@ -37,12 +39,16 @@ public class VipForAdminController {
     }
 
     @PostMapping("save")
-    public String save(@RequestBody @Validated VipInput vipInput) {
+    public String save(@RequestBody @Validated VipInput vipInput,
+                       @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         return vipRepository.save(vipInput.toEntity()).id();
     }
 
     @DeleteMapping
-    public Boolean delete(@RequestBody List<String> ids) {
+    public Boolean delete(@RequestBody List<String> ids,
+                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
+        adminActionOtpVerifier.assertValid(otp);
         vipRepository.deleteAllById(ids);
         return true;
     }
