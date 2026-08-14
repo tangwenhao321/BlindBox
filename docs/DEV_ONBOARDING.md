@@ -38,6 +38,8 @@ Default Spring profiles are **`dev,private`** (`application.yml`).
 
 Migrations live under `src/main/resources/db/migration/`.
 
+**Do not import root `database.sql`** — it is an archived historical dump. Empty DB + Flyway on boot is the only supported path.
+
 ## 3. Mobile (`mystery-box-mobile-app`)
 
 ```bash
@@ -91,4 +93,6 @@ Never commit `application-private.yml` or real `.env` secrets.
 
 ## Bundle budget (CI)
 
-Mobile CI already runs `npm run check`. A light `scripts/check-bundle-budget.mjs` fails only if `package.json` dependency count looks insane. Enforcing a Metro/Android byte budget via `expo export` is deferred (TODO in that script and in `.github/workflows/mobile-app-ci.yml`).
+Mobile CI already runs `npm run check:ci`, which includes:
+- `scripts/check-bundle-budget.mjs` — fails if `package.json` direct dependency count looks insane
+- `scripts/check-bundle-export-budget.mjs` is available as `npm run check:bundle-export-budget` (soft ~40MB gate on existing `dist` / `dist-export` output). Override ceiling with `EXPO_EXPORT_BUDGET_BYTES`; skip with `SKIP_EXPO_EXPORT_BUDGET=1`. Use `npm run check:bundle-export-budget:strict` (or `EXPO_EXPORT_BUDGET_STRICT=1`) when an export dir must exist. Default PR CI does **not** run a full `expo export`; optional workflow: `.github/workflows/mobile-export-budget.yml` (`workflow_dispatch`, optional nightly cron commented).

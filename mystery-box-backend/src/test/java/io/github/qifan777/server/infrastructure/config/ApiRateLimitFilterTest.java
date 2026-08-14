@@ -56,4 +56,14 @@ class ApiRateLimitFilterTest {
         filter.doFilter(req2, resp2, new MockFilterChain());
         assertEquals(429, resp2.getStatus());
     }
+
+    @Test
+    void shortHashIsStableAndTruncated() {
+        String a = ApiRateLimitFilter.shortHash("same-token-value");
+        String b = ApiRateLimitFilter.shortHash("same-token-value");
+        String c = ApiRateLimitFilter.shortHash("other-token-value");
+        assertEquals(16, a.length());
+        assertEquals(a, b);
+        assertEquals(false, a.equals(c));
+    }
 }

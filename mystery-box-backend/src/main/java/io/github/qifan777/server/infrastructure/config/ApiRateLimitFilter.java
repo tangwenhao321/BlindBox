@@ -16,6 +16,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -67,13 +71,14 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         String clientKey = clientIp(request);
         String token = request.getHeader("token");
         if (token != null && !token.isBlank()) {
-            clientKey = clientKey + ":u:" + token.substring(0, Math.min(8, token.length()));
+            // Hash full token — avoid collisions and leaking token prefixes into Redis keys
+            clientKey = clientKey + ":u:" + shortHash(token);
         }
         String uri = request.getRequestURI();
         if (uri != null && uri.contains("/front/reveal/spectator/")) {
             String spectatorToken = uri.substring(uri.lastIndexOf('/') + 1);
             if (!spectatorToken.isBlank()) {
-                clientKey = clientKey + ":spectator:" + spectatorToken.substring(0, Math.min(12, spectatorToken.length()));
+                clientKey = clientKey + ":spectator:" + shortHash(spectatorToken);
             }
         }
         String key = nowWindow + ":" + request.getMethod() + ":" + clientKey;
@@ -123,7 +128,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         if (uri.contains("/draw-queue")) {
             return drawQueuePerMinute;
         }
-        if (uri.contains("/pool-stream") || uri.contains("/draw-feed/stream")) {
+        if (uri.contains("/pool-stream") || uri.contains("/draw-feed/stream") || uri.contains("/chat/stream")) {
             return Math.max(1, sseStreamPerMinute);
         }
         if (uri.contains("/front/reveal/spectator/")) {
@@ -144,7 +149,7 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
         if (uri.contains("/draw-queue") || uri.contains("/buyout-lock") || uri.contains("/oss/upload")) {
             return true;
         }
-        if (uri.contains("/pool-stream") || uri.contains("/draw-feed/stream")) {
+        if (uri.contains("/pool-stream") || uri.contains("/draw-feed/stream") || uri.contains("/chat/stream")) {
             return true;
         }
         if (uri.contains("/slots/") || uri.endsWith("/hint")) {
@@ -158,6 +163,18 @@ public class ApiRateLimitFilter extends OncePerRequestFilter {
 
     private String clientIp(HttpServletRequest request) {
         return clientIpResolver.resolve(request);
+    }
+
+    /** First 16 hex chars of SHA-256 — stable bucket without exposing raw secrets. */
+    static String shortHash(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash).substring(0, 16);
+        } catch (NoSuchAlgorithmException e) {
+            // SHA-256 is always present on modern JDKs; fall back without leaking full value
+            return Integer.toHexString(value.hashCode());
+        }
     }
 
     private static class Counter {

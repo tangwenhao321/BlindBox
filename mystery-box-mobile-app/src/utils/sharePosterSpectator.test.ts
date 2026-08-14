@@ -1,5 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
+import { resolveSpectatorShareToken } from "../services/spectatorService";
+import { resolveSpectatorPosterLink } from "./sharePosterSpectator";
+
 vi.mock("expo-linking", () => ({
   createURL: (path: string) => `mysterybox://${path}`,
 }));
@@ -12,9 +15,6 @@ vi.mock("../navigation/appViewRoutes", () => ({
   appViewToHref: (_view: string, params: { spectatorToken: string }) =>
     `reveal/spectator?spectatorToken=${params.spectatorToken}`,
 }));
-
-import { resolveSpectatorShareToken } from "../services/spectatorService";
-import { resolveSpectatorPosterLink } from "./sharePosterSpectator";
 
 describe("sharePosterSpectator", () => {
   beforeEach(() => {

@@ -12,19 +12,19 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { PayCountdownText } from "./ui/PayCountdownText";
-import { resolvePaymentMode } from "../config/payment";
+import { resolvePaymentMode , getPaymentMethodHint } from "../config/payment";
 import { measureAnchor, useOnboardingAnchors } from "../context/OnboardingAnchorContext";
 import { AgreementCheckbox } from "./ui/AgreementCheckbox";
 import { PaymentMethodBadge } from "./ui/PaymentMethodBadge";
 import { InlineSectionError } from "./ui/InlineSectionError";
 import { RemoteImage } from "./ui/RemoteImage";
+import { FairnessTrustRow } from "./FairnessTrustRow";
 import { useAppTheme } from "../context/ThemeContext";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useReduceMotion } from "../hooks/useReduceMotion";
 import { useLoopPulse } from "../effects/reanimated/useLoopPulse";
 import { font, radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
-import { getPaymentMethodHint } from "../config/payment";
 import { resolveBoxImageUrl } from "../utils/boxImage";
 import { formatCurrency, formatCurrencyDiscount } from "../utils/formatCurrency";
 import { openContactSupport } from "../utils/contactSupport";
@@ -529,6 +529,7 @@ export function ConfirmOrderModal({
                 ) : (
                   <Text style={styles.trustLine}>{t("checkout.probabilityUnavailable", { defaultValue: "Published odds could not be loaded — open the probability page before paying, or retry." })}</Text>
                 )}
+                <FairnessTrustRow compact />
               </View>
               <Pressable
                 onPress={() => setTermsExpanded((v) => !v)}

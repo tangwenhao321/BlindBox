@@ -5,6 +5,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+/**
+ * MoMo Partner properties — checkout gateway remains an <b>unwired stub</b> until
+ * create/IPN/HMAC/query/refund HTTP clients exist. Production keeps {@code enabled=false}.
+ */
 @Data
 @Component
 @ConfigurationProperties(prefix = "momo")

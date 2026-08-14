@@ -1,6 +1,6 @@
 /** Deep-merge locale namespace objects (later keys win). */
 export function mergeLocaleModules(
-  ...modules: ReadonlyArray<Record<string, unknown>>
+  ...modules: readonly Record<string, unknown>[]
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {};
   for (const mod of modules) {

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { AppState } from "react-native";
+import { AppState, InteractionManager } from "react-native";
 import { parseError, setOnUnauthorized } from "../api";
 import i18n from "../i18n";
 import { ORDER_REFRESH_INTERVAL_MS } from "../config/constants";
@@ -18,6 +18,7 @@ import {
   isBiometricUnlockAvailable,
 } from "../utils/biometricUnlock";
 import { toast } from "../utils/toast";
+import { preloadReanimatedRevealDriver, resolvePreferClassicRevealDriver } from "./usePrizeReveal";
 
 type Params = {
   token: string;
@@ -78,6 +79,14 @@ export function useAppBootstrap(params: Params) {
     if (loading) {
       restore();
     }
+  }, []);
+
+  useEffect(() => {
+    if (resolvePreferClassicRevealDriver({ lowPerfMode: false })) return;
+    const task = InteractionManager.runAfterInteractions(() => {
+      void preloadReanimatedRevealDriver();
+    });
+    return () => task.cancel();
   }, []);
 
   useEffect(() => {

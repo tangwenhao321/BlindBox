@@ -15,7 +15,12 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * MoMo wallet — stub deep-link for UI testing. Live Partner IPN must verify HMAC before enable.
+ * MoMo wallet checkout — <b>unwired stub</b> (not a live Partner integration).
+ *
+ * <p>Provides a stub deeplink for UI testing only. Partner create-order, IPN HMAC verification,
+ * query, and refund are not implemented; {@link #parsePaymentNotify} always fail-closes while
+ * stub/unwired. Production must keep {@code momo.enabled=false} (see {@code application-prod-vn.yml}).
+ * Do not delete this class — wire Partner APIs before flipping {@code stub}/{@code partner-wired}.
  */
 @Component
 @RequiredArgsConstructor

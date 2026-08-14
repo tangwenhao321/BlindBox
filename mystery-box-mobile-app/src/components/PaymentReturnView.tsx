@@ -26,6 +26,10 @@ type LoadedOrder =
   | { kind: "box"; order: Order }
   | { kind: "vip"; order: VipOrder };
 
+const POLL_BASE_MS = 2000;
+const POLL_MAX_MS = 10_000;
+const POLL_DEADLINE_MS = 90_000;
+
 export function PaymentReturnView({
   orderId,
   responseCode,
@@ -41,8 +45,11 @@ export function PaymentReturnView({
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState<LoadedOrder | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [pollAttempt, setPollAttempt] = useState(0);
+  const [nowTick, setNowTick] = useState(() => Date.now());
   const settledRef = useRef(false);
   const stopPollRef = useRef(false);
+  const [pollStartedAt] = useState(() => Date.now());
 
   const refresh = useCallback(async () => {
     if (!token || !orderId) {
@@ -66,7 +73,6 @@ export function PaymentReturnView({
     }
   }, [orderId, t, token]);
 
-  const [pollStartedAt] = useState(() => Date.now());
   const unpaid =
     loaded?.kind === "box"
       ? isUnpaidOrder(loaded.order)
@@ -76,12 +82,15 @@ export function PaymentReturnView({
   // Gateway code is advisory only — async IPN / spoofable deep-link codes must not stop polling.
   const gatewayHintFailed = responseCode != null && responseCode !== "" && responseCode !== "00";
   const success = !!loaded && !unpaid;
-  const confirming = unpaid && !error && Date.now() - pollStartedAt < 90_000;
+  const elapsedMs = nowTick - pollStartedAt;
+  const withinDeadline = elapsedMs < POLL_DEADLINE_MS;
+  const confirming = unpaid && !error && withinDeadline;
   const failed = !loading && loaded != null && unpaid && !confirming;
   const payAmount =
     loaded?.kind === "box"
       ? Number(loaded.order.baseOrder?.payment?.payAmount ?? 0)
       : Number(loaded?.order.baseOrder?.payment?.payAmount ?? 0);
+  const elapsedSec = Math.max(0, Math.floor(elapsedMs / 1000));
 
   useEffect(() => {
     if (success || failed) {
@@ -95,13 +104,40 @@ export function PaymentReturnView({
       setLoading(false);
       return;
     }
-    void refresh();
-    const timer = setInterval(() => {
-      if (stopPollRef.current) return;
-      void refresh();
-    }, 2500);
-    return () => clearInterval(timer);
-  }, [refresh, token]);
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let attempt = 0;
+
+    const scheduleNext = () => {
+      if (cancelled || stopPollRef.current) return;
+      if (Date.now() - pollStartedAt >= POLL_DEADLINE_MS) {
+        setNowTick(Date.now());
+        return;
+      }
+      const delay = attempt === 0 ? 0 : Math.min(POLL_MAX_MS, Math.round(POLL_BASE_MS * Math.pow(1.55, attempt - 1)));
+      timeoutId = setTimeout(() => {
+        void (async () => {
+          if (cancelled || stopPollRef.current) return;
+          attempt += 1;
+          setPollAttempt(attempt);
+          setNowTick(Date.now());
+          await refresh();
+          if (!cancelled && !stopPollRef.current) {
+            scheduleNext();
+          }
+        })();
+      }, delay);
+    };
+
+    scheduleNext();
+    const tick = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => {
+      cancelled = true;
+      stopPollRef.current = true;
+      if (timeoutId) clearTimeout(timeoutId);
+      clearInterval(tick);
+    };
+  }, [refresh, token, pollStartedAt]);
 
   useEffect(() => {
     if (!success || settledRef.current || !orderId || !onPaymentSettled) return;
@@ -115,7 +151,9 @@ export function PaymentReturnView({
       <View style={styles.root}>
         <Text style={styles.title}>{t("paymentReturn.title")}</Text>
         <Text style={styles.meta}>{t("paymentReturn.orderId", { id: formatOrderIdDisplay(orderId) })}</Text>
-        <Text style={styles.hint}>{t("paymentReturn.loginRequired")}</Text>
+        <View style={styles.cardNeutral} accessibilityRole="summary">
+          <Text style={styles.statusNeutral}>{t("paymentReturn.loginRequired")}</Text>
+        </View>
         {onRequireLogin ? (
           <Pressable style={styles.primaryBtn} onPress={onRequireLogin} accessibilityRole="button">
             <Text style={styles.primaryBtnText}>{t("paymentReturn.goLogin")}</Text>
@@ -132,13 +170,22 @@ export function PaymentReturnView({
     <View style={styles.root}>
       <Text style={styles.title}>{t("paymentReturn.title")}</Text>
       <Text style={styles.meta}>{t("paymentReturn.orderId", { id: formatOrderIdDisplay(orderId) })}</Text>
-      {loading && !loaded ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.hint}>{t("paymentReturn.confirming")}</Text>
+
+      {error ? (
+        <View style={styles.cardFail} accessibilityRole="alert">
+          <Text style={styles.statusFail}>{t("paymentReturn.loadFailed")}</Text>
+          <Text style={styles.hint}>{error}</Text>
+          <Pressable
+            style={styles.primaryBtn}
+            onPress={() => void refresh()}
+            accessibilityRole="button"
+            accessibilityLabel={t("paymentReturn.retryCheck")}
+          >
+            <Text style={styles.primaryBtnText}>{t("paymentReturn.retryCheck")}</Text>
+          </Pressable>
         </View>
       ) : null}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+
       {success ? (
         <View style={styles.cardOk} accessibilityRole="alert">
           <Text style={styles.statusOk}>{t("paymentReturn.successTitle")}</Text>
@@ -147,6 +194,7 @@ export function PaymentReturnView({
               amount: formatCurrency(payAmount),
             })}
           </Text>
+          <Text style={styles.hint}>{t("paymentReturn.successHint")}</Text>
           {loaded?.kind === "box" ? (
             <Pressable style={styles.primaryBtn} onPress={() => onGoOrder(orderId)} accessibilityRole="button">
               <Text style={styles.primaryBtnText}>{t("paymentReturn.viewOrder")}</Text>
@@ -158,28 +206,42 @@ export function PaymentReturnView({
           )}
         </View>
       ) : null}
+
       {confirming && !success && !failed ? (
-        <View style={styles.center}>
+        <View style={styles.cardNeutral} accessibilityRole="progressbar">
           <ActivityIndicator size="large" />
-          <Text style={styles.hint}>{t("paymentReturn.confirming")}</Text>
+          <Text style={styles.statusNeutral}>{t("paymentReturn.waitingTitle")}</Text>
+          <Text style={styles.hint}>{t("paymentReturn.waitingHint")}</Text>
+          <Text style={styles.metaLine}>
+            {t("paymentReturn.waitingProgress", { seconds: elapsedSec, attempt: Math.max(pollAttempt, 1) })}
+          </Text>
           {gatewayHintFailed ? (
-            <Text style={styles.hint}>{t("paymentReturn.gatewayPendingHint", {
-              defaultValue: "Wallet returned a non-success code — still confirming with the server…",
-            })}</Text>
+            <Text style={styles.hint}>{t("paymentReturn.gatewayPendingHint")}</Text>
           ) : null}
         </View>
       ) : null}
+
       {failed && !loading ? (
         <View style={styles.cardFail} accessibilityRole="alert">
           <Text style={styles.statusFail}>{t("paymentReturn.failTitle")}</Text>
           <Text style={styles.hint}>{t("paymentReturn.failHint")}</Text>
+          <Text style={styles.metaLine}>{t("paymentReturn.failTimedOut")}</Text>
           {onRetryPay ? (
             <Pressable style={styles.primaryBtn} onPress={() => onRetryPay(orderId)} accessibilityRole="button">
               <Text style={styles.primaryBtnText}>{t("paymentReturn.retryPay")}</Text>
             </Pressable>
           ) : null}
+          <Pressable
+            style={styles.secondaryOutlineBtn}
+            onPress={() => void refresh()}
+            accessibilityRole="button"
+            accessibilityLabel={t("paymentReturn.retryCheck")}
+          >
+            <Text style={styles.secondaryOutlineText}>{t("paymentReturn.retryCheck")}</Text>
+          </Pressable>
         </View>
       ) : null}
+
       <Pressable style={styles.secondaryBtn} onPress={onGoHome} accessibilityRole="button">
         <Text style={styles.secondaryBtnText}>{t("paymentReturn.backHome")}</Text>
       </Pressable>
@@ -192,9 +254,8 @@ function buildPaymentReturnStyles(colors: ThemeColors) {
     root: { flex: 1, padding: spacing.xl, backgroundColor: colors.bgPage },
     title: { fontSize: typography.h3, fontWeight: "800", color: colors.textPrimary },
     meta: { marginTop: spacing.xs, color: colors.textMuted, fontSize: typography.caption, marginBottom: spacing.lg },
-    center: { alignItems: "center", paddingVertical: spacing.xl },
+    metaLine: { marginTop: spacing.sm, color: colors.textMuted, fontSize: typography.micro },
     hint: { marginTop: spacing.sm, color: colors.textSecondary, fontSize: typography.body, lineHeight: 22 },
-    error: { color: colors.danger, marginBottom: spacing.md },
     cardOk: {
       backgroundColor: colors.successSoft,
       borderRadius: radius.lg,
@@ -211,16 +272,43 @@ function buildPaymentReturnStyles(colors: ThemeColors) {
       borderColor: colors.dangerBorder,
       marginBottom: spacing.md,
     },
+    cardNeutral: {
+      backgroundColor: colors.bgCard,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      marginBottom: spacing.md,
+      alignItems: "center",
+    },
     statusOk: { fontSize: typography.h4, fontWeight: "800", color: colors.success },
     statusFail: { fontSize: typography.h4, fontWeight: "800", color: colors.danger },
+    statusNeutral: {
+      marginTop: spacing.md,
+      fontSize: typography.h4,
+      fontWeight: "800",
+      color: colors.textPrimary,
+      textAlign: "center",
+    },
     primaryBtn: {
       marginTop: spacing.md,
       backgroundColor: colors.brand,
       borderRadius: radius.md,
       paddingVertical: spacing.md,
       alignItems: "center",
+      alignSelf: "stretch",
     },
     primaryBtnText: { color: colors.textOnBrand, fontWeight: "800" },
+    secondaryOutlineBtn: {
+      marginTop: spacing.sm,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: "center",
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
+      alignSelf: "stretch",
+    },
+    secondaryOutlineText: { color: colors.textPrimary, fontWeight: "700" },
     secondaryBtn: { alignItems: "center", paddingVertical: spacing.md },
     secondaryBtnText: { color: colors.link, fontWeight: "700" },
   });

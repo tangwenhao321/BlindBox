@@ -1,11 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("./i18nLocale", () => ({
-  getAppLocale: vi.fn(() => "zh-CN"),
-}));
-
-vi.stubEnv("EXPO_PUBLIC_CURRENCY", "");
-
 import { getAppLocale } from "./i18nLocale";
 import {
   formatCurrency,
@@ -13,6 +7,12 @@ import {
   formatCurrencyOptional,
   getAppCurrency,
 } from "./formatCurrency";
+
+vi.mock("./i18nLocale", () => ({
+  getAppLocale: vi.fn(() => "zh-CN"),
+}));
+
+vi.stubEnv("EXPO_PUBLIC_CURRENCY", "");
 
 describe("formatCurrency", () => {
   beforeEach(() => {

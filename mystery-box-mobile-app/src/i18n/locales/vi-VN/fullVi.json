@@ -282,7 +282,13 @@
     "quality": "Bậc {{type}}",
     "verifiedOk": "Đã kiểm",
     "verifiedBad": "Xác minh không hoàn thành",
-    "verifyHeader": "Xác minh tính công bằng của đơn hàng {{orderId}}"
+    "verifyHeader": "Xác minh tính công bằng của đơn hàng {{orderId}}",
+    "dailyBeaconTitle": "Đèn hiệu công bằng hôm nay",
+    "dailyBeaconLine": "{{day}} · {{short}}",
+    "dailyBeaconA11y": "Đèn hiệu công bằng {{day}}, tóm tắt {{short}}",
+    "dailyBeaconUnavailable": "Đèn hiệu chưa sẵn sàng",
+    "dailyBeaconProof": "Có thể xác minh",
+    "viewProbability": "Xác suất"
   },
   "favorites": {
     "title": "Yêu thích",

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { ApiClientError } from "../api";
+import { ApiClientError , api } from "../api";
+
+import { fetchSpectatorReveal, resolveSpectatorShareToken } from "./spectatorService";
 
 vi.mock("../api", async () => {
   const actual = await vi.importActual<typeof import("../api")>("../api");
@@ -12,9 +14,6 @@ vi.mock("../api", async () => {
     },
   };
 });
-
-import { api } from "../api";
-import { fetchSpectatorReveal, resolveSpectatorShareToken } from "./spectatorService";
 
 describe("spectatorService", () => {
   beforeEach(() => {

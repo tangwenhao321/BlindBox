@@ -2,8 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { AppView } from "../components/mainTabs/appViews";
 import type { TabKey } from "../components/ui/BottomTabBar";
 import type { MysteryBoxActivity } from "../services/activityService";
-import type { MysteryBox, Order, CouponItem, UserProfile } from "../types";
-import type { PaymentPriceView } from "../types";
+import type { MysteryBox, Order, CouponItem, UserProfile , PaymentPriceView } from "../types";
 import type { NavigateOptions } from "./useAppNavigation";
 
 export type MainTabsBuildInput = {

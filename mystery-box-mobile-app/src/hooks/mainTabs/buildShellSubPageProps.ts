@@ -1,7 +1,6 @@
 import { dedupeMysteryBoxes } from "../../utils/boxDisplay";
 import type { MysteryBoxActivity } from "../../services/activityService";
-import type { MysteryBox } from "../../types";
-import type { UserBalanceLog } from "../../types";
+import type { MysteryBox , UserBalanceLog } from "../../types";
 
 type BalanceLogsSlice = {
   token: string;

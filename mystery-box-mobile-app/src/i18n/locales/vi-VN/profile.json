@@ -1,7 +1,12 @@
 {
   "profile": {
     "moreTools": "Thêm",
-    "moreToolsHint": "Mời bạn, yêu thích, địa chỉ, trạng thái đơn hàng và hơn thế",
+    "moreToolsHint": "Duyệt theo người mới → mở hộp → kho → thêm",
+    "sectionOrders": "Trạng thái đơn",
+    "sectionNewcomer": "Ưu đãi người mới",
+    "sectionDraw": "Mở hộp & tương tác",
+    "sectionWarehouse": "Kho & giao hàng",
+    "sectionSecondary": "Hỗ trợ & phản hồi",
     "toolCouponsWallet": "Phiếu & ví",
     "toolSettings": "Cài đặt",
     "collectorLineDefault": "Tủ sưu tầm của bạn",

@@ -2,7 +2,17 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
-import { Pressable, RefreshControl, StyleSheet, Text, TextInput, View, type TextStyle } from "react-native";
+import {
+  AppState,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  type AppStateStatus,
+  type TextStyle,
+} from "react-native";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { RemoteImage } from "./ui/RemoteImage";
 import { SubPageHeader } from "./ui/SubPageHeader";
@@ -94,8 +104,31 @@ function MarketplaceCoolingLabel({
   const [nowTick, setNowTick] = useState(Date.now());
   useEffect(() => {
     if (coolingRemainingMs(coolingUntil, Date.now()) <= 0) return;
-    const timer = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(timer);
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = () => {
+      if (timer) return;
+      timer = setInterval(() => setNowTick(Date.now()), 1000);
+    };
+    const stop = () => {
+      if (timer) {
+        clearInterval(timer);
+        timer = undefined;
+      }
+    };
+    const onChange = (next: AppStateStatus) => {
+      if (next === "active") {
+        setNowTick(Date.now());
+        start();
+      } else {
+        stop();
+      }
+    };
+    if (AppState.currentState === "active") start();
+    const sub = AppState.addEventListener("change", onChange);
+    return () => {
+      stop();
+      sub.remove();
+    };
   }, [coolingUntil]);
   const coolingMs = coolingRemainingMs(coolingUntil, nowTick);
   if (coolingMs <= 0) return null;

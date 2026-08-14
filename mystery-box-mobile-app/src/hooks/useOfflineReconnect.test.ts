@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useOfflineReconnect } from "./useOfflineReconnect";
+
 const mocks = vi.hoisted(() => ({
   flushMock: vi.fn(),
   toastSuccess: vi.fn(),
@@ -51,8 +53,6 @@ vi.mock("react", async (importOriginal) => {
     },
   };
 });
-
-import { useOfflineReconnect } from "./useOfflineReconnect";
 
 function mountHook() {
   useOfflineReconnect();

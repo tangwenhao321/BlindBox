@@ -15,6 +15,8 @@
     "build-only": "vite build",
     "type-check": "vue-tsc --build --force",
     "e2e:smoke": "playwright test --config=playwright.config.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
     "api-admin": "node scripts/generate-api.js"
@@ -52,6 +54,8 @@
     "unplugin-vue-components": "^32.0.0",
     "uuid": "^9.0.1",
     "vite": "^5.0.10",
+    "vitest": "^3.2.4",
+    "happy-dom": "^17.4.4",
     "vue-tsc": "^3.2.7"
   }
 }

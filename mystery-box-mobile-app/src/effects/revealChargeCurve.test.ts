@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { buildChargeTensionDurations } from "./revealChargeCurve";
+
 vi.mock("./reanimated", () => ({
   Easing: {
     in: (fn: unknown) => fn,
@@ -13,8 +15,6 @@ vi.mock("./reanimated", () => ({
 vi.mock("./revealEasing", () => ({
   resolvePhaseEasing: () => "linear",
 }));
-
-import { buildChargeTensionDurations } from "./revealChargeCurve";
 
 describe("revealChargeCurve", () => {
   it("splits fast pacing into two equal segments without stall", () => {

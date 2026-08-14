@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Haptics from "expo-haptics";
-import { Clipboard, Alert, Pressable, RefreshControl, StyleSheet, Text, View, type TextStyle, type ViewStyle } from "react-native";
+import { Alert, RefreshControl, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { useTabletLayout } from "../hooks/useTabletLayout";
@@ -15,22 +14,23 @@ import {
 import { verifyRevealPayload, signRevealPayload } from "../effects/revealIntegrity";
 import { resolveCeremonyTier } from "../effects/ceremonyTier";
 import { resetRevealDriverTierForPaidReveal } from "../effects/revealDriverTier";
-import { revealLayerZIndex } from "../effects/revealLayerZIndex";
 import { REVEAL_BOOT_DELAY_MS } from "../effects/revealSessionController";
 import { prefetchRevealImages } from "../utils/imagePrefetch";
 import { usePrizeReveal } from "../hooks/usePrizeReveal";
 import { useRevealDevice } from "../hooks/useRevealDevice";
 import { useRevealGestureLock, isRevealGestureLocked, subscribeRevealGestureLock } from "../effects/revealGestureLock";
-import { getOrderBoxCover, getOrderBoxName, getOrderStatusLabel, getOrderStatusTheme, getOrderTimeLabel, formatOrderIdDisplay } from "../order-utils";
+import { getOrderBoxCover, getOrderBoxName, getOrderStatusLabel, getOrderStatusTheme } from "../order-utils";
 import { SubPageHeader } from "./ui/SubPageHeader";
-import { PrimaryButton } from "./ui/PrimaryButton";
-import { EmptyState } from "./EmptyState";
-import { SectionHeading } from "./ui/SectionHeading";
 import { ScreenScaffold } from "./ui/ScreenScaffold";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useAppTheme } from "../context/ThemeContext";
-import { layout, radius, spacing, typography } from "../styles/tokens";
-import type { ThemeColors } from "../styles/themes";
+import {
+  OrderDetailsActions,
+  OrderDetailsHeader,
+  OrderDetailsPrizes,
+  OrderDetailsTimeline,
+  buildOrderDetailsStyles,
+} from "./order-details";
 import {
   getRevealImmersiveReplay,
   getRevealReplayMode,
@@ -49,7 +49,9 @@ import {
   subscribeActiveReveal,
   subscribeSeenOrderReveal,
   validateRevealPrizes,
-} from "../effects/revealOrchestrator";
+
+  releaseRevealSession,
+  tryAcquireManualReplay} from "../effects/revealOrchestrator";
 import { useRevealSequence } from "../hooks/useRevealSequence";
 import { fetchOrderDrawIntegrity } from "../services/orderService";
 import { getAtmosphereOverrides, hydrateAtmosphereRevealOverrides } from "../effects/revealAtmosphereRuntime";
@@ -65,14 +67,12 @@ import {
 } from "../effects/revealSocialRoom";
 import { normalizeQualityTier } from "../utils/quality";
 import { loadRevealProgress } from "../utils/revealProgressStorage";
-import { OrderPrizeCard } from "./OrderPrizeCard";
 import { RevealLocalDanmaku } from "./ui/RevealLocalDanmaku";
 import { RevealReactionTicker } from "./ui/RevealReactionTicker";
 import { RevealPlayer } from "./ui/RevealPlayer";
 import { RevealSequenceChrome } from "./ui/RevealSequenceChrome";
 import { RevealStaticFallback } from "./ui/RevealStaticFallback";
 import { ProductStorySheet } from "./ui/ProductStorySheet";
-import { resolveProductStory } from "../effects/revealProductStory";
 import type { ProductStory } from "../effects/revealProductStory";
 import { shouldShowReturnWelcome, markReturnWelcomeShown } from "../effects/revealReturnWelcome";
 import { OrderShareCard } from "./OrderShareCard";
@@ -80,20 +80,13 @@ import { SharePosterModal } from "./SharePosterModal";
 import { buildOrderCommunityDraft } from "../utils/orderShareDraft";
 import { useAuthToken } from "../hooks/useAuthToken";
 import { useOrderDetailsAuxiliary } from "../hooks/useOrderDetailsAuxiliary";
-import { InlineSectionError } from "./ui/InlineSectionError";
-import { ListSkeleton } from "./ListSkeleton";
 import { toast } from "../utils/toast";
-import { formatCurrency, formatCurrencyDiscount, formatCurrencyOptional } from "../utils/formatCurrency";
+import { formatCurrencyOptional } from "../utils/formatCurrency";
 import { resolveProductImageUrl } from "../utils/boxImage";
 import { recordManualReplay } from "../effects/revealReplayLimiter";
 import { canGuestReplay, notifyGuestRevealBlocked, recordGuestReplay } from "../effects/revealGuestPolicy";
-import {
-  releaseRevealSession,
-  tryAcquireManualReplay,
-} from "../effects/revealOrchestrator";
+
 import { useRevealLifecycle } from "../hooks/useRevealLifecycle";
-import { PayCountdownText } from "./ui/PayCountdownText";
-import { openContactSupport } from "../utils/contactSupport";
 import { resolveCarrierLabel } from "../utils/carrierLabel";
 import { usePendingPaymentCountdownLabels } from "../hooks/usePendingPaymentCountdownLabels";
 import type { Order } from "../types";
@@ -115,6 +108,14 @@ type Props = {
 };
 
 export function OrderDetailsView(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <OrderDetailsViewInner {...props} />
+    </Suspense>
+  );
+}
+
+function OrderDetailsViewInner(props: Props) {
   const {
     order,
     canCancel,
@@ -708,107 +709,28 @@ export function OrderDetailsView(props: Props) {
           />
         }
       >
-        <View style={styles.statusRow}>
-          <Text style={[styles.statusChip, { backgroundColor: statusTheme.bg, color: statusTheme.text, borderColor: statusTheme.border }]}>
-            {getOrderStatusLabel(order.status)}
-          </Text>
-          <Text style={styles.payAmount}>{formatCurrencyOptional(typeof payAmount === "number" ? payAmount : null)}</Text>
-        </View>
-        {canPay && authToken ? (
-          <PayCountdownText
-            authToken={authToken}
-            orderId={order.id}
-            prefix={countdownLabels.prefix}
-            expiredLabel={countdownLabels.expiredLabel}
-            style={styles.payDeadline}
-          />
-        ) : null}
+        <OrderDetailsHeader
+          statusLabel={getOrderStatusLabel(order.status)}
+          statusTheme={statusTheme}
+          payAmountText={formatCurrencyOptional(typeof payAmount === "number" ? payAmount : null)}
+          canPay={canPay}
+          authToken={authToken}
+          orderId={order.id}
+          countdownPrefix={countdownLabels.prefix}
+          countdownExpiredLabel={countdownLabels.expiredLabel}
+          styles={styles}
+        />
 
-        <View style={styles.summaryCard}>
-          <SummaryRow styles={styles} label={t("orderDetails.boxLabel")} value={getOrderBoxName(order)} />
-          <SummaryRow styles={styles} label={t("orderDetails.orderTime")} value={getOrderTimeLabel(order)} />
-          <SummaryRow styles={styles} label={t("orderDetails.quantity")} value={String(order.items?.[0]?.mysteryBoxCount ?? "—")} />
-          {order.baseOrder?.payment?.couponAmount ? (
-            <SummaryRow styles={styles} label={t("orderDetails.couponLabel")} value={formatCurrencyDiscount(order.baseOrder.payment.couponAmount)} />
-          ) : null}
-          {order.baseOrder?.payment?.deliveryFee != null && order.baseOrder.payment.deliveryFee > 0.009 ? (
-            <SummaryRow styles={styles} label={t("orderDetails.deliveryFee")} value={formatCurrency(order.baseOrder.payment.deliveryFee)} />
-          ) : null}
-          <View style={styles.idRow}>
-            <Text style={styles.idLabel}>{t("orderDetails.orderId")}</Text>
-            <Pressable
-              onPress={() => {
-                Clipboard.setString(order.id);
-                toast.success(t("orderDetails.orderIdCopied"));
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={t("orderDetails.copy")}
-            >
-              <Text style={styles.idValue}>{formatOrderIdDisplay(order.id)} {t("orderDetails.copy")}</Text>
-            </Pressable>
-          </View>
-          {trackingNumber ? (
-            <>
-              {carrierLabel ? (
-                <SummaryRow styles={styles} label={t("orderDetails.carrierLabel")} value={carrierLabel} />
-              ) : null}
-              <View style={styles.idRow}>
-                <Text style={styles.idLabel}>{t("orderDetails.trackingNo")}</Text>
-                <Pressable
-                  onPress={() => {
-                    Clipboard.setString(trackingNumber);
-                    toast.success(t("orderDetails.trackingCopied"));
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("orderDetails.copyTrackingA11y")}
-                >
-                  <Text style={styles.idValue}>
-                    {trackingNumber} · {t("orderDetails.copy")}
-                  </Text>
-                </Pressable>
-              </View>
-              <View style={styles.logisticsCard}>
-                <Text style={styles.logisticsTitle}>{t("orderDetails.logisticsTimeline")}</Text>
-                {logisticsLoading ? <ListSkeleton variant="row" rows={2} /> : null}
-                {logisticsError ? (
-                  <InlineSectionError
-                    message={t("orderDetails.logisticsLoadFailed", { message: logisticsError })}
-                    onRetry={() => void reloadAuxiliary()}
-                    onContactSupport={() => void openContactSupport()}
-                  />
-                ) : null}
-                {!logisticsLoading && !logisticsError
-                  ? (logistics.length ? logistics : []).map((event, index) => {
-                      const sourceLabel =
-                        event.source === "KUAIDI100"
-                          ? t("orderDetails.logisticsSourceKuaidi100")
-                          : event.source === "MANUAL"
-                            ? t("orderDetails.logisticsSourceManual")
-                            : event.source
-                              ? t("orderDetails.logisticsSourceLocal")
-                              : null;
-                      return (
-                        <Text key={`${event.status}-${index}`} style={styles.logisticsStep}>
-                          {index === 0 ? "●" : "○"} {event.description}
-                          {sourceLabel ? ` · ${sourceLabel}` : null}
-                        </Text>
-                      );
-                    })
-                  : null}
-                {!logisticsLoading && !logisticsError && !logistics.length ? (
-                  <Text style={styles.logisticsStep}>● {t("orderDetails.logisticsInTransit")}</Text>
-                ) : null}
-                <Text style={styles.logisticsHint}>
-                  {logistics.some((e) => e.source === "KUAIDI100")
-                    ? t("orderDetails.logisticsMerged")
-                    : t("orderDetails.logisticsManual")}
-                </Text>
-              </View>
-            </>
-          ) : order.status === ORDER_STATUS.TO_BE_RECEIVED || order.status === ORDER_STATUS.TO_BE_DELIVERED ? (
-            <SummaryRow styles={styles} label={t("orderDetails.logisticsLabel")} value={t("orderDetails.logisticsPending")} />
-          ) : null}
-        </View>
+        <OrderDetailsTimeline
+          order={order}
+          carrierLabel={carrierLabel}
+          trackingNumber={trackingNumber}
+          logistics={logistics}
+          logisticsLoading={logisticsLoading}
+          logisticsError={logisticsError}
+          reloadAuxiliary={reloadAuxiliary}
+          styles={styles}
+        />
 
         {prizesUnveiled ? (
           <OrderShareCard
@@ -823,106 +745,38 @@ export function OrderDetailsView(props: Props) {
           />
         ) : null}
 
-        <View style={styles.actions}>
-          {canPay ? (
-            <PrimaryButton
-              label={t("orderDetails.payNow")}
-              accessibilityLabel={t("orderDetails.payNowA11y")}
-              onPress={() => void confirmPayWithOdds()}
-            />
-          ) : null}
-          {canApplyRefund ? (
-            <PrimaryButton
-              label={refundSubmitting ? t("common.loading", { defaultValue: "…" }) : t("orderDetails.applyRefund")}
-              variant="ghost"
-              disabled={refundSubmitting}
-              onPress={() => void submitRefund()}
-            />
-          ) : null}
-          {canConfirmReceive ? (
-            <PrimaryButton
-              label={t("orderDetails.confirmReceive")}
-              onPress={async () => {
-                const ok = await confirm({
-                  title: t("orderDetails.confirmReceiveTitle"),
-                  message: t("orderDetails.confirmReceiveMessage"),
-                  confirmLabel: t("orderDetails.confirmReceive"),
-                });
-                if (ok) {
-                  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                  onConfirmReceive?.(order.id);
-                }
-              }}
-            />
-          ) : null}
-          {canCancel ? (
-            <PrimaryButton label={t("orderDetails.cancelUnpaid")} variant="ghost" onPress={() => onCancel(order.id)} />
-          ) : null}
-        </View>
+        <OrderDetailsActions
+          canPay={canPay}
+          canApplyRefund={canApplyRefund}
+          canConfirmReceive={canConfirmReceive}
+          canCancel={canCancel}
+          refundSubmitting={refundSubmitting}
+          pendingPayment={pendingPayment}
+          hasPrizes={sortedPrizes.length > 0}
+          onPay={() => void confirmPayWithOdds()}
+          onRefund={() => void submitRefund()}
+          onConfirmReceive={() => onConfirmReceive?.(order.id)}
+          onCancel={() => onCancel(order.id)}
+          confirmReceive={confirm}
+          styles={styles}
+        />
 
-        {pendingPayment && sortedPrizes.length > 0 ? (
-          <Text style={styles.pendingPaymentHint}>{t("orderDetails.pendingPaymentHint")}</Text>
-        ) : null}
-
-        {!prizesUnveiled ? (
-          <View style={styles.prizeFreezeMask} pointerEvents="none">
-            <View style={styles.prizePlaceholder}>
-              <SectionHeading title={t("orderDetails.prizesSection")} />
-              <Text style={styles.prizeFrozenHint}>{t("orderDetails.revealInProgress")}</Text>
-            </View>
-          </View>
-        ) : null}
-
-        {prizesUnveiled && !(immersiveReplay && showReveal) ? (
-          <View style={styles.prizeBlock}>
-            <View style={styles.prizeHeaderRow}>
-              <SectionHeading title={t("orderDetails.prizesSection")} />
-              <View style={styles.replayBtnRow}>
-                <Pressable
-                  style={[styles.replayButton, replayBlocked ? styles.replayButtonDisabled : null]}
-                  onPress={replayFinale}
-                  disabled={replayBlocked}
-                  accessibilityRole="button"
-                  accessibilityLabel={t("orderDetails.replayFinale")}
-                >
-                  <Text style={styles.replayText}>{t("orderDetails.replayFinale")}</Text>
-                </Pressable>
-                {sortedPrizes.length > 1 &&
-                (replayPref === "all" ||
-                  (replayPref === "highlights" && replayPlaylistIndices.length > 1)) ? (
-                  <Pressable
-                    style={[styles.replayButton, replayBlocked ? styles.replayButtonDisabled : null]}
-                    onPress={startReplayAll}
-                    disabled={replayBlocked}
-                    accessibilityRole="button"
-                    accessibilityLabel={t("orderDetails.replayAll")}
-                  >
-                    <Text style={styles.replayText}>{t("orderDetails.replayAll")}</Text>
-                  </Pressable>
-                ) : null}
-              </View>
-            </View>
-            {hasOrderRevealBeenSeen(order.id) ? (
-              <Text style={styles.sessionReplayHint}>{t("orderDetails.sessionAutoPlayDone")}</Text>
-            ) : null}
-            {prizeProducts.length === 0 ? (
-              <EmptyState title={t("orderDetails.emptyPrizesTitle")} description={t("orderDetails.emptyPrizesDesc")} variant="plain" />
-            ) : (
-              <View style={isTablet ? styles.prizeGrid : undefined}>
-                {prizeProducts.map((product, index) => (
-                  <View key={`${product.id}-${index}`} style={isTablet ? styles.prizeGridItem : undefined}>
-                    <OrderPrizeCard
-                      product={product}
-                      duplicateIndex={prizeDuplicateMeta[index]?.duplicateIndex}
-                      duplicateCount={prizeDuplicateMeta[index]?.duplicateCount}
-                      onLongPressStory={() => setStorySheet(resolveProductStory(product.id, product.name))}
-                    />
-                  </View>
-                ))}
-              </View>
-            )}
-          </View>
-        ) : null}
+        <OrderDetailsPrizes
+          orderId={order.id}
+          prizesUnveiled={prizesUnveiled}
+          immersiveReplay={immersiveReplay}
+          showReveal={showReveal}
+          prizeProducts={prizeProducts}
+          prizeDuplicateMeta={prizeDuplicateMeta}
+          isTablet={isTablet}
+          replayBlocked={replayBlocked}
+          replayPref={replayPref}
+          replayPlaylistIndices={replayPlaylistIndices}
+          onReplayFinale={replayFinale}
+          onReplayAll={startReplayAll}
+          onStory={setStorySheet}
+          styles={styles}
+        />
 
       {showReveal ? <RevealReactionTicker visible testID="revealReactionTicker" /> : null}
       {showReveal ? <RevealLocalDanmaku visible={showReveal} useRoomReactions /> : null}
@@ -942,174 +796,3 @@ export function OrderDetailsView(props: Props) {
     </View>
   );
 }
-
-function SummaryRow({
-  label,
-  value,
-  styles,
-}: {
-  label: string;
-  value: string;
-  styles: {
-    summaryRow: ViewStyle;
-    summaryLabel: TextStyle;
-    summaryValue: TextStyle;
-  };
-}) {
-  return (
-    <View style={styles.summaryRow}>
-      <Text style={styles.summaryLabel}>{label}</Text>
-      <Text style={styles.summaryValue}>{value}</Text>
-    </View>
-  );
-}
-
-function buildOrderDetailsStyles(colors: ThemeColors) {
-  return StyleSheet.create({
-  page: { flex: 1, backgroundColor: colors.bgPage },
-  gestureShield: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: revealLayerZIndex.skipBar,
-  },
-  container: { paddingBottom: layout.screenPaddingBottom },
-  containerTablet: { maxWidth: 720, alignSelf: "center", width: "100%" },
-  prizeGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    justifyContent: "space-between",
-  },
-  prizeGridItem: { width: "48%" },
-  refundBanner: {
-    marginBottom: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.successSoft,
-    borderWidth: 1,
-    borderColor: colors.successSoftBorder,
-    gap: 4,
-  },
-  refundBannerTitle: { fontWeight: "800", color: colors.successStrong, fontSize: typography.body },
-  refundBannerSub: { color: colors.textSecondary, fontSize: typography.caption },
-  integrityBanner: {
-    marginBottom: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.dangerSoft,
-    borderWidth: 1,
-    borderColor: colors.dangerBorder,
-    gap: 4,
-  },
-  integrityTitle: { fontWeight: "800", color: colors.danger, fontSize: typography.body },
-  integritySub: { color: colors.textSecondary, fontSize: typography.caption, lineHeight: 18 },
-  statusRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: spacing.md,
-  },
-  statusChip: {
-    borderWidth: 1,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    fontWeight: "800",
-    fontSize: typography.caption,
-  },
-  payAmount: { fontSize: typography.h3, fontWeight: "900", color: colors.textPrimary },
-  payDeadline: { marginBottom: spacing.sm, color: colors.brand, fontWeight: "700", fontSize: typography.caption },
-  summaryCard: {
-    backgroundColor: colors.bgCard,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between", gap: spacing.md },
-  summaryLabel: { color: colors.textSecondary, fontSize: typography.caption },
-  summaryValue: { flex: 1, textAlign: "right", color: colors.textPrimary, fontWeight: "700", fontSize: typography.caption },
-  idRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: spacing.xs },
-  idLabel: { color: colors.textSecondary, fontSize: typography.caption },
-  idValue: { color: colors.brand, fontWeight: "700", fontSize: typography.caption },
-  logisticsCard: {
-    marginTop: spacing.sm,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.bgSoft,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.xs,
-  },
-  logisticsTitle: { fontWeight: "800", color: colors.textPrimary, fontSize: typography.caption },
-  logisticsStep: { color: colors.textSecondary, fontSize: typography.micro, lineHeight: 18 },
-  logisticsHint: { marginTop: spacing.xs, color: colors.textMuted, fontSize: typography.micro },
-  actions: { gap: spacing.sm, marginBottom: spacing.lg },
-  prizeBlock: { marginTop: spacing.xl, marginBottom: spacing.sm },
-  prizeHeaderRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: spacing.sm },
-  replayBtnRow: { flexDirection: "row", gap: spacing.xs, flexWrap: "wrap" },
-  controlsRow: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
-  replayButton: {
-    borderWidth: 1,
-    borderColor: colors.brand,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 5,
-    backgroundColor: colors.bgBrandSoft,
-  },
-  replayText: { color: colors.brand, fontSize: typography.caption, fontWeight: "700" },
-  sessionReplayHint: {
-    marginTop: spacing.xs,
-    color: colors.textSecondary,
-    fontSize: typography.micro,
-  },
-  replayButtonDisabled: { opacity: 0.45 },
-  pendingPaymentHint: {
-    marginBottom: spacing.sm,
-    color: colors.textMuted,
-    fontSize: typography.caption,
-  },
-  prizeFreezeMask: {
-    marginTop: spacing.xl,
-    borderRadius: radius.md,
-    backgroundColor: colors.bgSoft,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: "hidden",
-  },
-  prizePlaceholder: {
-    padding: spacing.lg,
-    gap: spacing.sm,
-    opacity: 0.55,
-  },
-  prizeFrozenHint: {
-    color: colors.textMuted,
-    fontSize: typography.caption,
-  },
-  skipRevealBar: {
-    position: "absolute",
-    top: 56,
-    right: spacing.lg,
-    zIndex: 2100,
-    flexDirection: "row",
-    gap: spacing.xs,
-    alignItems: "center",
-  },
-  skipRevealFloating: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.65)",
-    backgroundColor: "rgba(0,0,0,0.35)",
-  },
-  skipRevealText: { color: "#FFFFFF", fontWeight: "800" },
-  revealGapBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(6, 8, 18, 0.94)",
-    zIndex: revealLayerZIndex.gapBackdrop,
-  },
-  });
-}
-

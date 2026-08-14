@@ -3,5 +3,12 @@
   "compilerOptions": {
     "strict": true,
     "resolveJsonModule": true
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "eslint.config.js",
+    "metro.config.js",
+    "scripts"
+  ]
 }

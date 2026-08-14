@@ -1,3 +1,5 @@
+import { resetRevealPerformanceSession } from "./sessionPerf";
+
 export type RevealDriverTier = "reanimated" | "simple" | "static";
 
 let driverTier: RevealDriverTier = "reanimated";
@@ -22,8 +24,6 @@ export function degradeRevealDriverTier(): RevealDriverTier {
 export function resetRevealDriverTierForTests(): void {
   driverTier = "reanimated";
 }
-
-import { resetRevealPerformanceSession } from "./sessionPerf";
 
 /** Reset degraded tier before a paid reveal so paid draws use full motion (not stuck on static). */
 export function resetRevealDriverTierForPaidReveal(): void {

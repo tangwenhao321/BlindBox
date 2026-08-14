@@ -1,23 +1,131 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { request } from '@/utils/request'
+import { extractApiErrorMessage } from '@/utils/api-error'
+
+interface OpsCampaign {
+  id?: string
+  name?: string
+  status?: string
+}
+
+interface OpsSegment {
+  id?: string
+  name?: string
+}
+
+interface OpsMessageTask {
+  id: string
+  templateName?: string
+  status?: string
+}
+
+interface OpsTicket {
+  id: string
+  title?: string
+  status?: string
+  updatedAt?: string
+}
+
+interface OpsJobRun {
+  job_name?: string
+  status?: string
+  duration_ms?: number
+  started_at?: string
+  finished_at?: string
+  message?: string
+}
+
+interface OpsAuditEntry {
+  time?: string
+  action?: string
+  actorId?: string
+  objectType?: string
+  objectId?: string
+  traceId?: string
+}
+
+interface OpsFunnel {
+  exposure?: number
+  clicks?: number
+  createOrder?: number
+  pay?: number
+  share?: number
+  paymentFail?: number
+  paymentCancel?: number
+  payWechatRequested?: number
+  payVnpayRequested?: number
+  payMomoRequested?: number
+  totalEvents?: number
+  guestEventCount?: number
+  guestUniqueDevices?: number
+  registeredUniqueActors?: number
+}
+
+interface AnalyticsEvent {
+  at?: string
+  name?: string
+  actorId?: string
+  payload?: Record<string, unknown>
+}
+
+interface TrendPoint {
+  hour?: string
+  count: number
+}
+
+interface TopEvent {
+  name?: string
+  count: number
+}
+
+interface RetentionMetrics {
+  dau?: number
+  wau?: number
+  mau?: number
+  day1RetainedUsers?: number
+  day1RetentionRate?: number
+}
+
+interface PaymentFailReason {
+  reason?: string
+  count?: number
+}
+
+interface PaymentHealth {
+  successRate?: number
+  attempts?: number
+  success?: number
+  fail?: number
+  windowMinutes?: number
+  failReasons?: PaymentFailReason[]
+}
+
+interface LowStockAlert {
+  boxName?: string
+  productName?: string
+  stockRemaining?: number
+  stockTotal?: number
+}
+
+const asArray = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
 
 const loading = ref(false)
-const campaigns = ref<any[]>([])
-const segments = ref<any[]>([])
-const messageTasks = ref<any[]>([])
-const tickets = ref<any[]>([])
-const jobRuns = ref<any[]>([])
-const auditEntries = ref<any[]>([])
-const funnel = ref<any | null>(null)
+const campaigns = ref<OpsCampaign[]>([])
+const segments = ref<OpsSegment[]>([])
+const messageTasks = ref<OpsMessageTask[]>([])
+const tickets = ref<OpsTicket[]>([])
+const jobRuns = ref<OpsJobRun[]>([])
+const auditEntries = ref<OpsAuditEntry[]>([])
+const funnel = ref<OpsFunnel | null>(null)
 const funnelError = ref<string | null>(null)
 const analyticsPanelError = ref<string | null>(null)
-const analyticsEvents = ref<any[]>([])
-const trendPoints = ref<any[]>([])
-const topEvents = ref<any[]>([])
-const retention = ref<any | null>(null)
-const paymentHealth = ref<any | null>(null)
-const lowStockAlerts = ref<any[]>([])
+const analyticsEvents = ref<AnalyticsEvent[]>([])
+const trendPoints = ref<TrendPoint[]>([])
+const topEvents = ref<TopEvent[]>([])
+const retention = ref<RetentionMetrics | null>(null)
+const paymentHealth = ref<PaymentHealth | null>(null)
+const lowStockAlerts = ref<LowStockAlert[]>([])
 const lowStockThreshold = ref(5)
 const eventFilter = ref('')
 const guestOnly = ref(false)
@@ -29,7 +137,7 @@ const payFailAlertThreshold = ref(25)
 const traceActor = ref('')
 const traceEventName = ref('')
 const traceBoxId = ref('')
-const traceEvents = ref<any[]>([])
+const traceEvents = ref<AnalyticsEvent[]>([])
 const traceLoading = ref(false)
 let refreshTimer: ReturnType<typeof setInterval> | null = null
 
@@ -55,55 +163,62 @@ const reload = async () => {
       request({ url: '/admin/ops/jobs/recent?limit=20', method: 'get' }),
       request({ url: '/admin/ops/audit/latest?limit=15', method: 'get' })
     ])
-    campaigns.value = (cRes as unknown as any[]) || []
-    segments.value = (sRes as unknown as any[]) || []
-    messageTasks.value = (mRes as unknown as any[]) || []
-    tickets.value = (tRes as unknown as any[]) || []
-    jobRuns.value = (jRes as unknown as any[]) || []
-    auditEntries.value = (aRes as unknown as any[]) || []
+    campaigns.value = asArray<OpsCampaign>(cRes)
+    segments.value = asArray<OpsSegment>(sRes)
+    messageTasks.value = asArray<OpsMessageTask>(mRes)
+    tickets.value = asArray<OpsTicket>(tRes)
+    jobRuns.value = asArray<OpsJobRun>(jRes)
+    auditEntries.value = asArray<OpsAuditEntry>(aRes)
     const query = windowMinutes.value ? `?recentMinutes=${windowMinutes.value}` : ''
     try {
-      funnel.value = await request({ url: `/admin/ops/analytics/funnel${query}`, method: 'get' })
-    } catch (error: any) {
+      funnel.value = (await request({
+        url: `/admin/ops/analytics/funnel${query}`,
+        method: 'get'
+      })) as OpsFunnel
+    } catch (error: unknown) {
       funnel.value = null
-      funnelError.value = error?.message || '漏斗数据加载失败'
+      funnelError.value = extractApiErrorMessage(error, '漏斗数据加载失败')
     }
     try {
-      trendPoints.value =
-        ((await request({
+      trendPoints.value = asArray<TrendPoint>(
+        await request({
           url: `/admin/ops/analytics/trend${query}`,
           method: 'get'
-        })) as unknown as any[]) || []
-      topEvents.value =
-        ((await request({
+        })
+      )
+      topEvents.value = asArray<TopEvent>(
+        await request({
           url: `/admin/ops/analytics/top?limit=10${
             windowMinutes.value ? `&recentMinutes=${windowMinutes.value}` : ''
           }`,
           method: 'get'
-        })) as unknown as any[]) || []
+        })
+      )
       retention.value = (await request({
         url: '/admin/ops/analytics/retention',
         method: 'get'
-      })) as any
+      })) as RetentionMetrics
       paymentHealth.value = (await request({
         url: `/admin/ops/payment/health${query}`,
         method: 'get'
-      })) as any
-      analyticsEvents.value =
-        ((await request({
+      })) as PaymentHealth
+      analyticsEvents.value = asArray<AnalyticsEvent>(
+        await request({
           url: `/admin/ops/analytics/events?limit=200${
             windowMinutes.value ? `&recentMinutes=${windowMinutes.value}` : ''
           }`,
           method: 'get'
-        })) as unknown as any[]) || []
-    } catch (error: any) {
-      analyticsPanelError.value = error?.message || '分析面板数据加载失败'
+        })
+      )
+    } catch (error: unknown) {
+      analyticsPanelError.value = extractApiErrorMessage(error, '分析面板数据加载失败')
     }
-    lowStockAlerts.value =
-      ((await request({
+    lowStockAlerts.value = asArray<LowStockAlert>(
+      await request({
         url: `/admin/mystery-box/low-stock-alerts?threshold=${lowStockThreshold.value}`,
         method: 'get'
-      })) as unknown as any[]) || []
+      })
+    )
   } finally {
     loading.value = false
   }
@@ -112,12 +227,12 @@ const filteredAnalyticsEvents = computed(() => {
   const keyword = eventFilter.value.trim().toLowerCase()
   let list = analyticsEvents.value
   if (guestOnly.value) {
-    list = list.filter((item) => String(item?.actorId || '').startsWith('guest:'))
+    list = list.filter((item) => String(item.actorId || '').startsWith('guest:'))
   }
   if (!keyword) return list
   return list.filter((item) => {
-    const name = String(item?.name || '').toLowerCase()
-    const payload = JSON.stringify(item?.payload || {}).toLowerCase()
+    const name = String(item.name || '').toLowerCase()
+    const payload = JSON.stringify(item.payload || {}).toLowerCase()
     return name.includes(keyword) || payload.includes(keyword)
   })
 })
@@ -174,11 +289,12 @@ const loadTrace = async () => {
     if (windowMinutes.value) params.set('recentMinutes', String(windowMinutes.value))
     if (traceEventName.value.trim()) params.set('eventName', traceEventName.value.trim())
     if (traceBoxId.value.trim()) params.set('boxId', traceBoxId.value.trim())
-    traceEvents.value =
-      ((await request({
+    traceEvents.value = asArray<AnalyticsEvent>(
+      await request({
         url: `/admin/ops/analytics/trace?${params.toString()}`,
         method: 'get'
-      })) as unknown as any[]) || []
+      })
+    )
   } finally {
     traceLoading.value = false
   }
@@ -187,10 +303,10 @@ const exportTraceCsv = () => {
   const rows = [['at', 'name', 'actorId', 'payload']]
   traceEvents.value.forEach((item) => {
     rows.push([
-      String(item?.at || ''),
-      String(item?.name || ''),
-      String(item?.actorId || ''),
-      JSON.stringify(item?.payload || {})
+      String(item.at || ''),
+      String(item.name || ''),
+      String(item.actorId || ''),
+      JSON.stringify(item.payload || {})
     ])
   })
   const csv = rows
@@ -209,10 +325,10 @@ const exportCsv = () => {
   const rows = [['at', 'name', 'actorId', 'payload']]
   filteredAnalyticsEvents.value.forEach((item) => {
     rows.push([
-      String(item?.at || ''),
-      String(item?.name || ''),
-      String(item?.actorId || ''),
-      JSON.stringify(item?.payload || {})
+      String(item.at || ''),
+      String(item.name || ''),
+      String(item.actorId || ''),
+      JSON.stringify(item.payload || {})
     ])
   })
   const csv = rows

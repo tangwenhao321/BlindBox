@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getAppLocale } from "./i18nLocale";
+import { passwordStrength, validatePassword, validatePhone } from "./loginValidation";
+
 vi.mock("./i18nLocale", () => ({
   getAppLocale: vi.fn(() => "zh-CN"),
 }));
@@ -7,9 +10,6 @@ vi.mock("./i18nLocale", () => ({
 vi.mock("../i18n", () => ({
   default: { t: (key: string) => key },
 }));
-
-import { getAppLocale } from "./i18nLocale";
-import { passwordStrength, validatePassword, validatePhone } from "./loginValidation";
 
 describe("validatePhone", () => {
   beforeEach(() => {

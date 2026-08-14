@@ -5,6 +5,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+/**
+ * ZaloPay config — used by the <b>unwired</b> marketplace payout stub only.
+ * No checkout gateway exists yet. Production keeps {@code zalopay.enabled=false} /
+ * {@code stub=true} / {@code partner-wired=false} ({@code application-prod-vn.yml}).
+ */
 @Data
 @Component
 @ConfigurationProperties(prefix = "zalopay")

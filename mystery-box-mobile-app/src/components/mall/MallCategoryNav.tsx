@@ -9,7 +9,7 @@ import type { MysteryBoxCategory } from "../../types";
 import { dedupeMysteryBoxCategories } from "../../utils/boxDisplay";
 import { pickMallCategoryIcon, type MallCategoryIconName } from "../../utils/mallCategoryIcon";
 
-const FALLBACK: ReadonlyArray<{ id: string; nameKey: string; icon: MallCategoryIconName }> = [
+const FALLBACK: readonly { id: string; nameKey: string; icon: MallCategoryIconName }[] = [
   { id: "new", nameKey: "mall.fallbackNew", icon: "calendar-month-outline" },
   { id: "digital", nameKey: "mall.fallbackDigital", icon: "laptop" },
   { id: "apple", nameKey: "mall.fallbackApple", icon: "cellphone" },

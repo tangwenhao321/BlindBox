@@ -103,9 +103,12 @@ security:
       verification-required: ${COMPLIANCE_VERIFICATION_REQUIRED:false}
     identity:
       hash-secret: ${IDENTITY_HASH_SECRET:}
+  idempotency:
+    # Require x-idempotency-key on mutating front/admin writes (create order / prepay / marketplace buy, etc.)
+    required: true
   rate-limit:
-    # Distributed rate limit when Redis is available (default true for prod)
-    distributed: ${RATE_LIMIT_DISTRIBUTED:true}
+    # Hard-required for multi-instance prod (ProductionSafetyValidator refuses boot if false)
+    distributed: true
     trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
     sse-stream-per-minute: ${RATE_LIMIT_SSE_STREAM_PER_MINUTE:30}
   analytics:

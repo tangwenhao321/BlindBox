@@ -29,6 +29,28 @@ export type FairnessVerifyResult = {
   verified: boolean;
 };
 
+/** Published UTC-day beacon used to bind fairness commits (GET /front/fairness/daily-beacon). */
+export type FairnessDailyBeacon = {
+  dayUtc: string;
+  beacon: string;
+};
+
+function unwrapDailyBeacon(data: unknown): FairnessDailyBeacon | null {
+  if (!data || typeof data !== "object") return null;
+  const root = data as { dayUtc?: unknown; beacon?: unknown; result?: unknown };
+  if (typeof root.dayUtc === "string" && typeof root.beacon === "string" && root.beacon) {
+    return { dayUtc: root.dayUtc, beacon: root.beacon };
+  }
+  return unwrapDailyBeacon(root.result);
+}
+
+export async function fetchDailyBeacon(): Promise<FairnessDailyBeacon | null> {
+  const response = await api.get<FairnessDailyBeacon | { result?: FairnessDailyBeacon }>(
+    "/front/fairness/daily-beacon",
+  );
+  return unwrapDailyBeacon(response.data);
+}
+
 export async function verifyFairnessByOrder(orderId: string): Promise<FairnessVerifyResult[]> {
   const response = await api.get<FairnessVerifyResult[] | { result?: FairnessVerifyResult[] }>(
     `/front/fairness/order/${orderId}`,

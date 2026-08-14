@@ -3,8 +3,7 @@ import { computeOrderBadges } from "../utils/orderBadges";
 import type { TabKey } from "../components/ui/BottomTabBar";
 import type { WarehouseApiItem } from "../services/warehouseService";
 import type { Order } from "../types";
-import type { AppMainTabsInputSlices } from "./mainTabsSliceTypes";
-import type {
+import type { AppMainTabsInputSlices ,
   MainTabsAccountSlice,
   MainTabsAddressFormSlice,
   MainTabsAuthSlice,

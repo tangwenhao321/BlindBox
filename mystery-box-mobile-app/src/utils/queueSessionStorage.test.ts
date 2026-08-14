@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  clearActiveQueueSession,
+  getActiveQueueSession,
+  setActiveQueueSession,
+} from "./queueSessionStorage";
+
 const mockGetItem = vi.fn();
 const mockSetItem = vi.fn();
 const mockRemoveItem = vi.fn();
@@ -11,12 +17,6 @@ vi.mock("@react-native-async-storage/async-storage", () => ({
     removeItem: (...args: unknown[]) => mockRemoveItem(...args),
   },
 }));
-
-import {
-  clearActiveQueueSession,
-  getActiveQueueSession,
-  setActiveQueueSession,
-} from "./queueSessionStorage";
 
 describe("queueSessionStorage", () => {
   beforeEach(() => {

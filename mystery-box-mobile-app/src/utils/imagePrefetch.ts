@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 
-export async function prefetchRevealImages(uris: Array<string | undefined | null>) {
+export async function prefetchRevealImages(uris: (string | undefined | null)[]) {
   const unique = [...new Set(uris.map((u) => (u || "").trim()).filter(Boolean))];
   await Promise.all(
     unique.map((uri) =>

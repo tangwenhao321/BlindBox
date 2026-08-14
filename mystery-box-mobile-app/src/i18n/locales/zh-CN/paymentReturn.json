@@ -3,15 +3,22 @@
     "title": "支付结果",
     "orderId": "订单号 {{id}}",
     "confirming": "正在确认支付结果…",
+    "waitingTitle": "正在确认支付",
+    "waitingHint": "钱包已返回，我们正在与服务器核对到账状态，请稍候。",
+    "waitingProgress": "已等待 {{seconds}} 秒 · 第 {{attempt}} 次查询",
     "loadFailed": "加载订单失败",
+    "retryCheck": "重新查询",
     "successTitle": "支付成功",
     "successAmount": "已支付 {{amount}}",
+    "successHint": "订单已确认到账，可查看订单详情或返回首页。",
     "viewOrder": "查看订单",
     "failTitle": "支付未完成",
     "failHint": "如已扣款请稍后在订单页刷新；也可重新发起支付。",
+    "failTimedOut": "确认超时：服务端仍显示未支付。",
     "retryPay": "重新支付",
     "backHome": "返回首页",
     "loginRequired": "登录后可查看支付结果",
-    "goLogin": "去登录"
+    "goLogin": "去登录",
+    "gatewayPendingHint": "钱包返回了非成功码，仍在向服务器确认…"
   }
 }

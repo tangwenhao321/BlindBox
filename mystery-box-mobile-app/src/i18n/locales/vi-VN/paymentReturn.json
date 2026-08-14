@@ -3,15 +3,22 @@
     "title": "Kết quả thanh toán",
     "orderId": "Mã đơn {{id}}",
     "confirming": "Đang xác nhận thanh toán…",
+    "waitingTitle": "Đang xác nhận thanh toán",
+    "waitingHint": "Ví đã trả về. Chúng tôi đang đối chiếu với máy chủ — vui lòng chờ.",
+    "waitingProgress": "Đã chờ {{seconds}} giây · lần {{attempt}}",
     "loadFailed": "Không tải được đơn hàng",
+    "retryCheck": "Kiểm tra lại",
     "successTitle": "Thanh toán thành công",
     "successAmount": "Đã thanh toán {{amount}}",
+    "successHint": "Thanh toán đã được xác nhận. Xem đơn hàng hoặc về trang chủ.",
     "viewOrder": "Xem đơn hàng",
     "failTitle": "Thanh toán chưa hoàn tất",
     "failHint": "Nếu đã bị trừ tiền, hãy làm mới trang đơn sau hoặc thanh toán lại.",
+    "failTimedOut": "Hết thời gian xác nhận — máy chủ vẫn báo chưa thanh toán.",
     "retryPay": "Thanh toán lại",
     "backHome": "Về trang chủ",
     "loginRequired": "Đăng nhập để xem kết quả thanh toán",
-    "goLogin": "Đăng nhập"
+    "goLogin": "Đăng nhập",
+    "gatewayPendingHint": "Ví trả mã không thành công — vẫn đang xác nhận với máy chủ…"
   }
 }

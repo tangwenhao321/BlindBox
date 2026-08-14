@@ -12,6 +12,12 @@
     "quality": "品级 {{type}}",
     "verifiedOk": "验签通过",
     "verifiedBad": "验签异常",
-    "verifyHeader": "订单 {{orderId}} 公平验证"
+    "verifyHeader": "订单 {{orderId}} 公平验证",
+    "dailyBeaconTitle": "今日公平信标",
+    "dailyBeaconLine": "{{day}} · {{short}}",
+    "dailyBeaconA11y": "今日公平信标 {{day}}，摘要 {{short}}",
+    "dailyBeaconUnavailable": "信标暂不可用",
+    "dailyBeaconProof": "开奖可验证",
+    "viewProbability": "概率公示"
   }
 }

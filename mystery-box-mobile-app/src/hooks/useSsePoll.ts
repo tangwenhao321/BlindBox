@@ -1,4 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 import { API_BASE_URL, buildAuthHeaders } from "../api";
 import { clientPlatformHeaders } from "../utils/clientAttestation";
 
@@ -16,9 +17,21 @@ type SseOptions<T> = {
 
 const MAX_SSE_RETRIES = 8;
 
-/** SSE with polling fallback; auto-reconnects SSE with backoff when stream drops. */
+function useAppActive(): boolean {
+  const [active, setActive] = useState(AppState.currentState === "active");
+  useEffect(() => {
+    const onChange = (next: AppStateStatus) => setActive(next === "active");
+    const sub = AppState.addEventListener("change", onChange);
+    return () => sub.remove();
+  }, []);
+  return active;
+}
+
+/** SSE with polling fallback; pauses while app is backgrounded; reconnects with backoff. */
 export function useSsePoll<T>(options: SseOptions<T>) {
   const { path, token, enabled, eventName, pollMs, pollFetch, onData, onPollDegraded } = options;
+  const appActive = useAppActive();
+  const liveEnabled = enabled && appActive;
   const onPollDegradedRef = useRef(onPollDegraded);
   onPollDegradedRef.current = onPollDegraded;
   const onDataRef = useRef(onData);
@@ -27,7 +40,7 @@ export function useSsePoll<T>(options: SseOptions<T>) {
   pollFetchRef.current = pollFetch;
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!liveEnabled) return;
     let cancelled = false;
     let pollTimer: ReturnType<typeof setInterval> | undefined;
     let abort: AbortController | undefined;
@@ -137,5 +150,5 @@ export function useSsePoll<T>(options: SseOptions<T>) {
       if (retryTimer) clearTimeout(retryTimer);
       stopPoll();
     };
-  }, [path, token, enabled, eventName, pollMs]);
+  }, [path, token, liveEnabled, eventName, pollMs]);
 }

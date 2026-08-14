@@ -1,8 +1,10 @@
 package io.github.qifan777.server.marketplace;
 
 import cn.hutool.core.util.IdUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,8 +19,11 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarketplaceChatService {
     private final JdbcTemplate jdbcTemplate;
+    private final MarketplaceChatSseHub chatSseHub;
+    private final ObjectMapper objectMapper;
 
     public record ChatMessage(
             String id,
@@ -32,6 +37,10 @@ public class MarketplaceChatService {
 
     public List<ChatMessage> listChat(String listingId, String userId, int limit) {
         requireParticipant(listingId, userId);
+        return listChatUnchecked(listingId, limit);
+    }
+
+    private List<ChatMessage> listChatUnchecked(String listingId, int limit) {
         int size = Math.min(Math.max(limit, 1), 100);
         return jdbcTemplate.query(
                 """
@@ -74,6 +83,16 @@ public class MarketplaceChatService {
                 trimmed.substring(0, Math.min(trimmed.length(), 500)),
                 LocalDateTime.now()
         );
+        broadcastChat(listingId);
+    }
+
+    public void broadcastChat(String listingId) {
+        try {
+            List<ChatMessage> messages = listChatUnchecked(listingId, 50);
+            chatSseHub.broadcast(listingId, objectMapper.writeValueAsString(messages));
+        } catch (Exception ex) {
+            log.debug("marketplace chat broadcast failed listing={}: {}", listingId, ex.getMessage());
+        }
     }
 
     private void requireParticipant(String listingId, String userId) {

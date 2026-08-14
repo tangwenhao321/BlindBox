@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  getRevealCeremonyTemplateId,
+  getRevealEffectPresetId,
+  setRevealCeremonyTemplateId,
+  setRevealEffectPresetId,
+} from "./revealSettings";
+
 const { mockGetItem, mockSetItem } = vi.hoisted(() => ({
   mockGetItem: vi.fn(async (_key?: string) => null as string | null),
   mockSetItem: vi.fn(async (_key?: string, _value?: string) => undefined),
@@ -15,13 +22,6 @@ vi.mock("@react-native-async-storage/async-storage", () => ({
 vi.mock("./revealStorageNamespace", () => ({
   revealStorageKey: (base: string) => base,
 }));
-
-import {
-  getRevealCeremonyTemplateId,
-  getRevealEffectPresetId,
-  setRevealCeremonyTemplateId,
-  setRevealEffectPresetId,
-} from "./revealSettings";
 
 describe("revealSettings ceremony template", () => {
   beforeEach(() => {

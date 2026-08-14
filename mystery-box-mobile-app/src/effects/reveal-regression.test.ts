@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { clampMs, setRevealRemoteConfig, getRevealRemoteConfig } from "./revealRemote";
-import { resolvePhaseHandoffMs } from "./revealSequenceEngine";
+import { resolvePhaseHandoffMs , computeInterRevealGapMs } from "./revealSequenceEngine";
 import { resolvePersonaPack } from "./revealPersonaPack";
 import { signRevealPayload, verifyRevealPayload } from "./revealIntegrity";
 import { resolveWeeklyPoolId } from "./revealWeeklyContentPool";
@@ -17,7 +17,6 @@ import {
   subscribeRevealRoomReactions,
   subscribeRevealRoomProgress,
 } from "./revealSocialRoom";
-import { computeInterRevealGapMs } from "../effects/revealSequenceEngine";
 import { countDryStreakReveals } from "./revealCopyPool";
 
 describe("reveal regression bundle", () => {

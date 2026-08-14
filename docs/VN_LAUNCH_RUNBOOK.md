@@ -38,6 +38,18 @@ Checklist for launching the Vietnam market (`prod-vn` profile, VNPay, `vi-VN` mo
    - Create order in staging app → complete sandbox pay.
    - Confirm order → `PAID`, `mystery_box.payment.success` increments.
    - Send invalid signature replay → `mystery_box.payment.notify.rejected` increments; order stays unpaid.
+
+## MoMo / ZaloPay (unwired stubs — do not enable in prod-vn)
+
+Checkout and marketplace payout for MoMo/ZaloPay are **intentionally unwired stubs** kept in tree for future Partner work:
+
+| Surface | Classes | Prod-vn gate |
+| --- | --- | --- |
+| MoMo checkout | `MoMoPaymentGateway` (+ `payment.gateway` package-info) | `momo.enabled=false`, `stub=true`, `partner-wired=false` |
+| MoMo / ZaloPay marketplace payout | `*MarketplacePayoutGateway` | `isReady()==false`; keep `app.marketplace.payout-gateway=wallet` |
+| ZaloPay config | `ZaloPayProperties` | payout-only; no checkout gateway yet |
+
+`ProductionSafetyValidator` refuses offering stub MoMo or flipping `partner-wired` before Partner HTTP exists. Do not delete stub classes; do not set `enabled=true` until create/IPN/HMAC (checkout) or disbursement (payout) is implemented.
    - Check `payment_notify_log` row for idempotency.
 
 5. **Reconciliation**: `PaymentReconciliationJob` queries VNPay for stuck `PENDING_PAYMENT` orders after IPN outages.

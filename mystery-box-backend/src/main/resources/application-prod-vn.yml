@@ -57,6 +57,9 @@ sa-token:
     sameSite: Strict
 
 security:
+  sse:
+    # Anonymous feed/pool SSE is not allowed in prod-vn
+    require-auth: true
   compliance:
     spend-limit:
       daily: 2000000
@@ -67,8 +70,8 @@ security:
     identity:
       hash-secret: ${IDENTITY_HASH_SECRET:}
   rate-limit:
-    # Distributed limiter when Redis is available (required for multi-instance prod-vn)
-    distributed: ${RATE_LIMIT_DISTRIBUTED:true}
+    # Hard-required for multi-instance prod-vn (ProductionSafetyValidator refuses boot if false)
+    distributed: true
     trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
   idempotency:
     # Require x-idempotency-key on mutating front/admin writes (create order / prepay / marketplace buy, etc.)
@@ -108,7 +111,8 @@ vnpay:
   query-url: ${VNPAY_QUERY_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
   refund-url: ${VNPAY_REFUND_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
 
-# MoMo wallet — hard-disabled while Partner create/IPN/HMAC is unimplemented.
+# MoMo wallet — UNWIRED STUB (do not delete Java stubs). Hard-disabled while Partner
+# create/IPN/HMAC is unimplemented. ProductionSafetyValidator refuses enabled=true while stub.
 # partner-wired must stay false until HTTP clients exist (same pattern as eSMS).
 momo:
   enabled: false
@@ -119,6 +123,9 @@ momo:
   secret-key: ${MOMO_SECRET_KEY:}
   return-url: ${MOMO_RETURN_URL:mysterybox://payment-return}
 
+# ZaloPay — UNWIRED STUB for marketplace payout only (no checkout gateway yet).
+# Keep enabled=false / stub=true / partner-wired=false until Partner disbursement is wired.
+# ProductionSafetyValidator refuses partner-wired=true while disbursement is unimplemented.
 zalopay:
   enabled: ${ZALOPAY_ENABLED:false}
   stub: ${ZALOPAY_STUB:true}

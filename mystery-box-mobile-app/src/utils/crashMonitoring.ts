@@ -23,6 +23,8 @@ function loadSentry(): SentryModule | null {
 }
 
 export function initCrashMonitoring() {
+  // Enablement: set EXPO_PUBLIC_SENTRY_DSN in EAS secrets / .env (never commit).
+  // See docs/METRICS_ALERTS.md § How to enable (Mobile Sentry).
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
   if (!dsn) return;
   const Sentry = loadSentry();

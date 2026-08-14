@@ -25,10 +25,8 @@ import {
 import { clearRetentionOrderId, getRetentionOrderId } from "../utils/retentionStorage";
 import { rememberPaymentChannel } from "../payment/paymentChannelMemory";
 import { invokeWechatPay } from "../utils/wechatPay";
-import type { PrepayResult, VNPayPrepayResult, MoMoPrepayResult } from "../types";
+import type { PrepayResult, VNPayPrepayResult, MoMoPrepayResult , MysteryBox, Order } from "../types";
 import { consumePendingPaymentWallet, peekPendingPaymentWallet } from "../payment/paymentWalletPreference";
-
-const MOMO_ENABLED = process.env.EXPO_PUBLIC_MOMO_ENABLED === "true";
 import { validateAddressForm } from "../utils/addressValidation";
 import { toast } from "../utils/toast";
 import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
@@ -52,7 +50,9 @@ import { useCreateOrderMutation } from "../query/mutations/useCreateOrderMutatio
 import { useRedeemMutation } from "../query/mutations/useRedeemMutation";
 import { useSaveAddressMutation } from "../query/mutations/useSaveAddressMutation";
 import { invalidateOrderQueries } from "../utils/invalidateAppQueries";
-import type { MysteryBox, Order } from "../types";
+
+
+const MOMO_ENABLED = process.env.EXPO_PUBLIC_MOMO_ENABLED === "true";
 
 const PAYMENT_STALE_MS = 120_000;
 const paymentStaleTimers = new Map<string, ReturnType<typeof setTimeout>>();

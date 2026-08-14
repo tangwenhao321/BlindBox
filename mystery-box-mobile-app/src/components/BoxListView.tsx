@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ListRenderItem } from "./ui/OptimizedFlatList";
-import type { OptimizedListRef } from "./ui/OptimizedFlatList";
+import type { ListRenderItem , OptimizedListRef } from "./ui/OptimizedFlatList";
+
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAuthToken } from "../hooks/useAuthToken";
@@ -25,7 +25,7 @@ import { ListSkeleton } from "./ListSkeleton";
 import { font, layout, radius, shadows, spacing, typography } from "../styles/tokens";
 import { resolveBoxImageUrl } from "../utils/boxImage";
 import type { ThemeColors } from "../styles/themes";
-import type { MysteryBox } from "../types";
+import type { MysteryBox , Order } from "../types";
 import { trackEvent } from "../utils/analytics";
 import { getBestPackTeaser } from "../services/drawPackService";
 import { dedupeMysteryBoxes, isPitySeriesBox } from "../utils/boxDisplay";
@@ -38,7 +38,7 @@ import { WinRecordModal } from "./WinRecordModal";
 import { getRevealRemoteConfig } from "../effects/revealRemote";
 import { consumeWeeklyThemeBanner } from "../effects/revealThemeBanner";
 import { getAppLocale } from "../utils/i18nLocale";
-import type { Order } from "../types";
+
 
 type Props = {
   mode?: "home" | "mall";

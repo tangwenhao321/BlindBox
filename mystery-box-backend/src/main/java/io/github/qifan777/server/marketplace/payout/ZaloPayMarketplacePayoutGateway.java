@@ -8,8 +8,12 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 
 /**
- * Reserved: ZaloPay payout for VN marketplace settle.
- * Partner disbursement must be implemented first — credentials alone are insufficient ({@link #isReady()}).
+ * ZaloPay marketplace payout — <b>unwired stub</b>.
+ *
+ * <p>Reserved for VN marketplace seller settle. Partner disbursement HTTP is not implemented;
+ * {@link #isReady()} is always {@code false} (credentials alone are insufficient). Keep
+ * {@code app.marketplace.payout-gateway=wallet} until wired. Do not delete.
+ * There is no ZaloPay checkout gateway; config under {@code zalopay.*} is for future payout only.
  */
 @Slf4j
 @Component

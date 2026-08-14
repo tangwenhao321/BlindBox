@@ -79,3 +79,30 @@ See `docs/OPS_RUNBOOK.md` and `docs/REVEAL_AND_OPS.md`.
 - Admin: Playwright `tests/e2e/smoke.spec.js` (order-id-migration, warehouse-ship mocks).
 
 Run full preflight: `scripts/release-preflight.ps1 -RunBuild` (includes backend `mvn test`). Optional E2E: `-RunE2E` (Admin Playwright smoke + Maestro flow inventory).
+
+## How to enable (ops — no secrets in git)
+
+### Prometheus scrape
+
+1. Prefer a **private management port** in prod (`management.server.port`, expose `prometheus` only there). Public port stays `health,info` (see `application-prod.yml`).
+2. Point Prometheus at that scrape target; load rules from `infra/prometheus/alerts.yml`.
+3. Import Grafana dashboard `infra/grafana/dashboard-mystery-box.json`.
+
+### Mobile Sentry
+
+| Env / flag | Where | Purpose |
+|------------|--------|---------|
+| `EXPO_PUBLIC_SENTRY_DSN` | EAS secrets / `.env` (never commit) | Enables `initCrashMonitoring()` in `src/utils/crashMonitoring.ts` |
+| `@sentry/react-native` | optionalDependency / `npx expo install` | SDK must be present in the binary |
+| EAS profile `production-sentry` | `eas.json` | Build that uploads source maps when Sentry org tokens are configured in EAS |
+
+Without DSN, crash monitoring stays **disabled** (safe default). Status helpers: `getCrashMonitoringStatus()`.
+
+### Backend / Admin errors
+
+- Backend: Micrometer + optional APM agent; payment/warehouse/push counters above.
+- Admin: wire your preferred frontend error reporter separately; cookie-primary deploy is documented in `docs/ADMIN_SECURITY.md`.
+
+### Checklist alignment
+
+Code-side scaffolding for the items above is in-repo. Marking `RELEASE_CHECKLIST.md` §5 complete still requires **deploy-time** scrape targets, alert routing, and real DSN/secrets.

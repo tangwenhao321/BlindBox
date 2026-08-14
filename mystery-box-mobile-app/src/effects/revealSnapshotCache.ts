@@ -1,5 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { canGuestSaveSnapshot, notifyGuestRevealBlocked } from "./revealGuestPolicy";
+
 const KEY_PREFIX = "reveal_snapshot_v1:";
 
 export type RevealSnapshotTag =
@@ -41,8 +43,6 @@ export async function listRevealSnapshotsByTag(tag: RevealSnapshotTag, limit = 2
   const all = await listRecentRevealSnapshots(100);
   return all.filter((s) => s.tags?.includes(tag)).slice(0, limit);
 }
-
-import { canGuestSaveSnapshot, notifyGuestRevealBlocked } from "./revealGuestPolicy";
 
 export async function saveRevealSnapshot(snapshot: RevealSnapshot, hasAuth = true): Promise<boolean> {
   if (!canGuestSaveSnapshot(hasAuth)) {

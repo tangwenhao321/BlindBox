@@ -17,6 +17,7 @@ import { useAppUpdateContext } from "../context/AppUpdateContext";
 import { parseError } from "../api";
 import { toast } from "../utils/toast";
 import { setAppLocale, resolveAppLocale, type AppLocale } from "../utils/i18nLocale";
+import { dismissSimpleRevealTip, shouldShowSimpleRevealTip } from "../utils/uxGuideStorage";
 import {
   getRevealAnimationsEnabled,
   getRevealFeedTickerEnabled,
@@ -219,6 +220,7 @@ export function SettingsView({
   const [notificationPrefsError, setNotificationPrefsError] = useState<string | null>(null);
   const [savingNotificationPref, setSavingNotificationPref] = useState(false);
   const [advancedEffectsExpanded, setAdvancedEffectsExpanded] = useState(false);
+  const [simpleRevealTipVisible, setSimpleRevealTipVisible] = useState(false);
   const [profilePhone, setProfilePhone] = useState<string | null>(null);
   const [bindPhoneDraft, setBindPhoneDraft] = useState("");
   const [bindPhoneCode, setBindPhoneCode] = useState("");
@@ -236,6 +238,7 @@ export function SettingsView({
   useEffect(() => {
     void getRevealAnimationsEnabled().then(setRevealAnimations);
     void getRevealTextOnlyMode().then(setRevealTextOnly);
+    void shouldShowSimpleRevealTip().then(setSimpleRevealTipVisible);
     void getRevealSoundEnabled().then(setRevealSound);
     void getRevealFeedTickerEnabled().then((v) => setFeedTicker(v ?? true));
     void getRevealReplayPreference().then(setReplayPref);
@@ -939,6 +942,68 @@ export function SettingsView({
           />
         ) : null}
         <View style={screenStyles.screenCard}>
+          <Text style={[styles.label]} accessibilityRole="header">
+            {t("settings.simpleRevealTitle")}
+          </Text>
+          <Text style={styles.hint}>{t("settings.simpleRevealHint")}</Text>
+          {simpleRevealTipVisible ? (
+            <View style={styles.simpleRevealTip} accessibilityRole="summary">
+              <Text style={styles.simpleRevealTipText}>{t("settings.simpleRevealTip")}</Text>
+              <Pressable
+                onPress={() => {
+                  setSimpleRevealTipVisible(false);
+                  void dismissSimpleRevealTip();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t("settings.simpleRevealTipDismiss")}
+                hitSlop={8}
+              >
+                <Text style={styles.simpleRevealTipDismiss}>{t("settings.simpleRevealTipDismiss")}</Text>
+              </Pressable>
+            </View>
+          ) : null}
+          <View style={styles.switchRow}>
+            <View style={styles.switchTextCol}>
+              <Text style={styles.label}>{t("settings.revealTextOnly")}</Text>
+              <Text style={styles.hint}>{t("settings.revealTextOnlyHint")}</Text>
+            </View>
+            <Switch
+              value={revealTextOnly}
+              accessibilityLabel={t("settings.revealTextOnly")}
+              accessibilityHint={t("settings.revealTextOnlyHint")}
+              onValueChange={(v) => {
+                setRevealTextOnly(v);
+                void setRevealTextOnlyMode(v);
+                trackEvent(ANALYTICS_EVENTS.SETTINGS_TOGGLE, { key: "reveal_text_only", value: v });
+                if (v && revealAnimations) {
+                  setRevealAnimations(false);
+                  void setRevealAnimationsEnabled(false);
+                }
+              }}
+            />
+          </View>
+          <View style={styles.switchRow}>
+            <View style={styles.switchTextCol}>
+              <Text style={styles.label}>{t("settings.revealAnimations")}</Text>
+              <Text style={styles.hint}>{t("settings.revealAnimationsHint")}</Text>
+            </View>
+            <Switch
+              value={revealAnimations}
+              accessibilityLabel={t("settings.revealAnimations")}
+              accessibilityHint={t("settings.revealAnimationsHint")}
+              onValueChange={(v) => {
+                setRevealAnimations(v);
+                void setRevealAnimationsEnabled(v);
+                trackEvent(ANALYTICS_EVENTS.SETTINGS_TOGGLE, { key: "reveal_animations", value: v });
+                if (v && revealTextOnly) {
+                  setRevealTextOnly(false);
+                  void setRevealTextOnlyMode(false);
+                }
+              }}
+            />
+          </View>
+        </View>
+        <View style={screenStyles.screenCard}>
           <Pressable
             style={styles.advancedHeader}
             onPress={() => setAdvancedEffectsExpanded((v) => !v)}
@@ -1382,26 +1447,6 @@ export function SettingsView({
               }}
             />
           </View>
-          <View style={styles.switchRow}>
-            <View style={styles.switchTextCol}>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.revealAnimations")}</Text>
-              <Text style={styles.hint}>{t("settings.revealAnimationsHint")}</Text>
-            </View>
-            <Switch
-              value={revealAnimations}
-              accessibilityLabel={t("settings.revealAnimations")}
-              accessibilityHint={t("settings.revealAnimationsHint")}
-              onValueChange={(v) => {
-                setRevealAnimations(v);
-                void setRevealAnimationsEnabled(v);
-                trackEvent(ANALYTICS_EVENTS.SETTINGS_TOGGLE, { key: "reveal_animations", value: v });
-                if (v && revealTextOnly) {
-                  setRevealTextOnly(false);
-                  void setRevealTextOnlyMode(false);
-                }
-              }}
-            />
-          </View>
           <Text style={[styles.label, styles.gapTop]} accessibilityRole="header">
             {t("settings.revealPrefsTitle")}
           </Text>
@@ -1545,28 +1590,7 @@ export function SettingsView({
               />
             </View>
           ))}
-          <View style={styles.switchRow}>
-            <View style={styles.switchTextCol}>
-              <Text style={[styles.label, styles.gapTop]}>{t("settings.revealTextOnly")}</Text>
-              <Text style={styles.hint}>{t("settings.revealTextOnlyHint")}</Text>
-            </View>
-            <Switch
-              value={revealTextOnly}
-              accessibilityLabel={t("settings.revealTextOnly")}
-              accessibilityHint={t("settings.revealTextOnlyHint")}
-              onValueChange={(v) => {
-                setRevealTextOnly(v);
-                void setRevealTextOnlyMode(v);
-                trackEvent(ANALYTICS_EVENTS.SETTINGS_TOGGLE, { key: "reveal_text_only", value: v });
-                if (v && revealAnimations) {
-                  setRevealAnimations(false);
-                  void setRevealAnimationsEnabled(false);
-                }
-              }}
-            />
-          </View>
-
-              {onOpenEffectsCenter ? (
+          {onOpenEffectsCenter ? (
                 <Pressable
                   style={({ pressed }) => [screenStyles.secondaryBtn, pressed ? screenStyles.pressed : null]}
                   onPress={onOpenEffectsCenter}
@@ -1658,5 +1682,26 @@ function buildSettingsStyles(colors: ThemeColors) {
   advancedTitle: { fontSize: typography.body, color: colors.textPrimary, fontWeight: "800" },
   advancedChevron: { fontSize: typography.body, color: colors.textMuted, fontWeight: "700" },
   advancedBody: { marginTop: spacing.sm },
+  simpleRevealTip: {
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.bgSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    gap: spacing.sm,
+  },
+  simpleRevealTipText: {
+    fontSize: typography.caption,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  simpleRevealTipDismiss: {
+    fontSize: typography.caption,
+    fontWeight: "700",
+    color: colors.brand,
+    alignSelf: "flex-start",
+  },
   });
 }

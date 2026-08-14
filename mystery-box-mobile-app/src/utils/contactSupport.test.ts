@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { toast } from "./toast";
+import { openZaloSupport } from "./contactSupport";
+
 const linking = vi.hoisted(() => ({
   canOpenURL: vi.fn(async () => true),
   openURL: vi.fn(async () => undefined),
@@ -17,9 +20,6 @@ vi.mock("../i18n", () => ({
 vi.mock("./toast", () => ({
   toast: { info: vi.fn() },
 }));
-
-import { toast } from "./toast";
-import { openZaloSupport } from "./contactSupport";
 
 describe("openZaloSupport", () => {
   beforeEach(() => {

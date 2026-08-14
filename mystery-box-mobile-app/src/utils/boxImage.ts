@@ -7,7 +7,7 @@ import { API_BASE_URL } from "../api";
  */
 function loadLocalFallback(): number | null {
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
+     
     return require("../../assets/icon.png") as number;
   } catch {
     return null;

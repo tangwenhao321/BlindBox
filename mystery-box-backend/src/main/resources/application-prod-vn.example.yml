@@ -98,17 +98,21 @@ vnpay:
   query-url: ${VNPAY_QUERY_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
   refund-url: ${VNPAY_REFUND_URL:https://merchant.vnpay.vn/merchant_webapi/api/transaction}
 
-# MoMo hard-disabled while checkout gateway is stub. Do not set enabled=true until Partner API + momo.stub=false.
+# MoMo hard-disabled while checkout gateway is an unwired stub. Do not set enabled=true until Partner API + momo.stub=false + partner-wired=true.
 momo:
   enabled: false
   stub: true
+  partner-wired: ${MOMO_PARTNER_WIRED:false}
   partner-code: ${MOMO_PARTNER_CODE:}
   access-key: ${MOMO_ACCESS_KEY:}
   secret-key: ${MOMO_SECRET_KEY:}
   return-url: ${MOMO_RETURN_URL:mysterybox://payment-return}
 
+# ZaloPay — unwired marketplace payout stub only (no checkout). Keep enabled=false until Partner disbursement is wired.
 zalopay:
   enabled: ${ZALOPAY_ENABLED:false}
+  stub: ${ZALOPAY_STUB:true}
+  partner-wired: ${ZALOPAY_PARTNER_WIRED:false}
   app-id: ${ZALOPAY_APP_ID:}
   key1: ${ZALOPAY_KEY1:}
   key2: ${ZALOPAY_KEY2:}

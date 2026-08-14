@@ -49,6 +49,7 @@ public class DrawRealtimeSseController {
     public SseEmitter queueStream(@PathVariable String id) {
         assertLoggedIn();
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
+        final String[] lastFingerprint = {null};
         ScheduledFuture<?> future = sseScheduledExecutor.scheduleAtFixedRate(() -> {
             try {
                 if (!StpUtil.isLogin()) {
@@ -58,12 +59,16 @@ public class DrawRealtimeSseController {
                 }
                 MysteryBoxDrawQueueService.QueueStatus status =
                         drawQueueService.status(id, StpUtil.getLoginIdAsString());
-                emitter.send(SseEmitter.event().name("QUEUE_STATUS")
-                        .data(objectMapper.writeValueAsString(status)));
+                String fingerprint = objectMapper.writeValueAsString(status);
+                if (fingerprint.equals(lastFingerprint[0])) {
+                    return;
+                }
+                lastFingerprint[0] = fingerprint;
+                emitter.send(SseEmitter.event().name("QUEUE_STATUS").data(fingerprint));
             } catch (Exception ex) {
                 emitter.completeWithError(ex);
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, 3, TimeUnit.SECONDS);
         registerCleanup(emitter, future);
         return emitter;
     }

@@ -3,9 +3,11 @@ import { ElMessage } from 'element-plus'
 import router from '@/router'
 import { clearAdminToken, getAdminToken, isCookieAuthMode } from '@/utils/admin-auth-token'
 import { consumeAdminActionOtp } from '@/utils/admin-action-otp'
+import { appendDevTraceToMessage, isAuthErrorCode } from '@/utils/request-helpers'
+
+export { AUTH_ERROR_CODES, appendDevTraceToMessage, isAuthErrorCode } from '@/utils/request-helpers'
 
 const BASE_URL = import.meta.env.VITE_API_PREFIX
-const AUTH_ERROR_CODES = new Set([1001010, 1001007, 1001008])
 const cookieMode = isCookieAuthMode()
 
 const request = axios.create({
@@ -37,13 +39,11 @@ request.interceptors.response.use(
     const code = response?.data?.code
     let msg = response?.data?.msg || '请求失败'
     const traceId = response?.headers?.['x-trace-id'] as string | undefined
-    if (import.meta.env.DEV && traceId && code !== 1) {
-      msg = `${msg}（trace: ${traceId}）`
-    }
+    msg = appendDevTraceToMessage(msg, code, traceId)
     if (code && code !== 1) {
       ElMessage.warning({ message: msg })
     }
-    if (code && AUTH_ERROR_CODES.has(code)) {
+    if (isAuthErrorCode(code)) {
       clearAdminToken()
       router.push('/login')
     }

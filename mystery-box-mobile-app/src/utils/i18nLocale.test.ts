@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getStoredLocale } from "./i18nLocale";
+
 const mockGetItem = vi.fn();
 const mockSetItem = vi.fn();
 
@@ -13,8 +15,6 @@ vi.mock("@react-native-async-storage/async-storage", () => ({
 vi.mock("../i18n", () => ({
   default: { changeLanguage: vi.fn() },
 }));
-
-import { getStoredLocale } from "./i18nLocale";
 
 describe("getStoredLocale", () => {
   beforeEach(() => {

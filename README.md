@@ -82,11 +82,13 @@
 
 ### 后端启动
 
-1. 导入sql`database.sql`初始数据库
-2. 配置微信开放平台/微信支付/阿里云oss/腾讯地图apiKey
-3. 修改`application-dev.yml`中`mysql`和`redis`为你自己的密码
-4. 启动`ServerApplication`
-5. target/generated-sources/annotations右键mark directory as/generated source root
+1. 创建空库（如 `CREATE DATABASE mystery_box ...`），**不要**手工导入根目录 `database.sql`
+2. 配置微信开放平台/微信支付/阿里云oss/腾讯地图apiKey（见 `application-private.example.yml`）
+3. 修改 `application-dev.yml` / `application-private.yml` 中 `mysql` 和 `redis` 为你自己的密码
+4. 启动 `ServerApplication` — **Flyway 自动迁移**（脚本在 `mystery-box-backend/src/main/resources/db/migration/`）
+5. `target/generated-sources/annotations` 右键 mark directory as / generated source root
+
+> **Schema 真相源**：仅 Flyway。根目录 [`database.sql`](database.sql) 为历史快照（archived），仅供对照，勿用于新环境初始化。详情见 [`docs/DEV_ONBOARDING.md`](docs/DEV_ONBOARDING.md)。
 
 ### 后台管理启动
 
@@ -109,11 +111,14 @@
 | 微信小程序 / H5 商城 | 未纳入 | 独立渠道，需单独工程与支付合规 |
 | Apple IAP 内购 | 未纳入 | 需 App Store 商品与收据校验 |
 | 3D 开盒 / AR 展示 | 未纳入 | 高成本视觉方案，可后续 POC |
-| Admin HttpOnly Session + CSP | 规划中 | 当前 token 存 localStorage，生产需网关/WAF 配合 |
-| Grafana 告警 + Sentry Release | 规划中 | 后端 Micrometer 已暴露，待运维接入 |
+| Admin HttpOnly Session + CSP | **代码已就绪** | `.env.production` 已开 cookie-primary；部署需 same-origin nginx（见 `docs/ADMIN_SECURITY.md`） |
+| Grafana 告警 + Sentry Release | **代码/脚手架就绪；运维接线** | 规则见 `infra/prometheus/alerts.yml`、启用步骤见 `docs/METRICS_ALERTS.md`；DSN/密钥与路由由运维注入 |
+| MoMo / ZaloPay | **代码 stub 保留；未接线** | Checkout/payout 为 unwired stub；`prod-vn` 拒绝开通；见 `docs/VN_LAUNCH_RUNBOOK.md` |
 | Maestro 全量设备农场 | 规划中 | CI 已校验 33 flow；`check:ci` 含 flow 清单；设 `MAESTRO_RUN_DEVICE=1` 启用真机 nightly |
 
-已完成的核心工程能力：ShedLock 定时任务、Redis 幂等/限流、离线 mutation 队列、React Query 持久化、深链 `box/{id}`、Admin Playwright E2E（含真实后端 job）。
+**代码已完成 vs 仅运维**：以 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) 为准——勾选项为仓库内已落地；未勾选多为密钥、域名、Flyway 门禁、告警路由、法务与真机验收。
+
+已完成的核心工程能力：ShedLock 定时任务、Redis 幂等/限流、离线 mutation 队列、React Query 持久化、深链 `box/{id}`、Admin Playwright E2E（含真实后端 job）、Spring Boot **3.2.12**（3.2.x 末位 OSS patch）。
 
 ### Flyway 管理端菜单（v1.6+）
 

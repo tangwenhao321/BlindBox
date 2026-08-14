@@ -7,6 +7,7 @@ import { InlineSectionError } from "./ui/InlineSectionError";
 import { openContactSupport } from "../utils/contactSupport";
 import { EmptyState } from "./EmptyState";
 import { SeriesDrawStatisticsSection } from "./SeriesDrawStatisticsSection";
+import { FairnessTrustRow } from "./FairnessTrustRow";
 import { useListLoad } from "../hooks/useListLoad";
 import {
   fetchSeriesDrawStatistics,
@@ -115,6 +116,7 @@ export function FairnessVerifyView({ orderId, mysteryBoxId, onBack, missingOrder
         <EmptyState title={t("fairness.emptyTitle")} description={t("fairness.emptyDesc")} variant="plain" />
       ) : (
         <ScrollView contentContainerStyle={styles.scroll}>
+          <FairnessTrustRow compact={false} />
           {seriesStats ? <SeriesDrawStatisticsSection stats={seriesStats} compact /> : null}
           <Text style={styles.hint}>{t("fairness.hint")}</Text>
           {rows.map((row) => (

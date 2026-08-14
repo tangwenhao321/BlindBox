@@ -14,8 +14,9 @@ import java.util.Map;
 
 /**
  * @deprecated Prefer {@link UserComplianceForFrontController} identity endpoints
- * ({@code /front/user/compliance/identity}). Mobile uses the compliance path;
- * these legacy verify/status endpoints return {@code 410 Gone}.
+ * ({@code /front/user/compliance/identity}). Mobile already uses the compliance path
+ * ({@code complianceService.ts}); these legacy verify/status endpoints return {@code 410 Gone}
+ * and will be removed in a future major release once traffic is confirmed zero.
  */
 @Deprecated
 @ApiIgnore

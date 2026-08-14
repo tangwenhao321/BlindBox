@@ -9,7 +9,7 @@ export type MallCategoryIconName =
   | "gift-outline"
   | "cellphone-wireless";
 
-const CATEGORY_ICON_RULES: ReadonlyArray<{ pattern: RegExp; icon: MallCategoryIconName }> = [
+const CATEGORY_ICON_RULES: readonly { pattern: RegExp; icon: MallCategoryIconName }[] = [
   { pattern: /apple|iphone|ipad|mac/i, icon: "cellphone" },
   { pattern: /xiaomi|redmi|mi\b/i, icon: "cellphone-wireless" },
   { pattern: /digital|3c|computer|laptop|pc\b/i, icon: "laptop" },

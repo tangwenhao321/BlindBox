@@ -19,14 +19,6 @@ import {
   useMainTabsNav,
   useMainTabsOrders,
 } from "../context/MainTabsContext";
-
-function navigateToWelfare(setView: (view: "welfare") => void) {
-  if (!isAppViewAccessible("welfare")) {
-    toast.info(i18n.t("featureDisabled"));
-    return;
-  }
-  setView("welfare");
-}
 import { buildAccountViewProps } from "./mainTabs/buildAccountViewProps";
 import { dedupeMysteryBoxes } from "../utils/boxDisplay";
 import {
@@ -38,6 +30,14 @@ import {
   useMainTabsOrderViewProps,
   useMainTabsShellViewState,
 } from "./useMainTabsViewSlices";
+
+function navigateToWelfare(setView: (view: "welfare") => void) {
+  if (!isAppViewAccessible("welfare")) {
+    toast.info(i18n.t("featureDisabled"));
+    return;
+  }
+  setView("welfare");
+}
 
 function useCatalogBoxList() {
   const boxViewProps = useMainTabsBoxViewProps();

@@ -47,7 +47,7 @@ describe("revealSpectatorSnapshot", () => {
       total: 1,
       products: [{ id: "p1", name: "Prize", price: 1, cover: "https://cdn/p1.png" }],
     });
-    const products = snapshot.products as Array<Record<string, unknown>>;
+    const products = snapshot.products as Record<string, unknown>[];
     expect(products[0]?.cover).toBe("https://cdn/p1.png");
   });
 });

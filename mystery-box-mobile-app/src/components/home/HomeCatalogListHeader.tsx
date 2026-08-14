@@ -29,7 +29,7 @@ type Props = {
   token?: string;
   orders: Order[];
   bannerSlides: BannerSlide[];
-  tickerItems: Array<{ text: string; qualityType?: string | null }>;
+  tickerItems: { text: string; qualityType?: string | null }[];
   homeSummary: HomeSummary | null;
   recommendBoxes?: MysteryBox[];
   /** A/B variant for RECOMMEND_IMPRESSION analytics */
@@ -53,7 +53,7 @@ type Props = {
   onSortPress: (key: SortKey) => void;
 };
 
-const SORT_OPTIONS: Array<{ key: SortKey; labelKey: string }> = [
+const SORT_OPTIONS: { key: SortKey; labelKey: string }[] = [
   { key: "new", labelKey: "home.sortNew" },
   { key: "sales", labelKey: "home.sortPopularity" },
   { key: "price", labelKey: "home.sortPrice" },

@@ -18,9 +18,12 @@
     "web": "expo start --web",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "lint": "eslint . --max-warnings 150",
     "check": "tsc --noEmit && vitest run && npm run validate:maestro",
-    "check:ci": "tsc --noEmit && vitest run --reporter=verbose && npm run a11y:audit && npm run validate:maestro",
+    "check:ci": "tsc --noEmit && npm run lint && vitest run --reporter=verbose && npm run a11y:audit && npm run validate:maestro && npm run check:bundle-budget",
     "check:bundle-budget": "node scripts/check-bundle-budget.mjs",
+    "check:bundle-export-budget": "node scripts/check-bundle-export-budget.mjs",
+    "check:bundle-export-budget:strict": "node scripts/check-bundle-export-budget.mjs --strict",
     "_comment_maestro": "Optional device smoke: MAESTRO_RUN_DEVICE=1 npm run test:e2e (see .maestro/README.md)",
     "a11y:audit": "node scripts/a11y-pressable-audit.mjs && node scripts/a11y-audit.mjs",
     "validate:maestro": "node scripts/validate-maestro-flows.mjs",
@@ -93,6 +96,8 @@
   "devDependencies": {
     "@types/react": "~19.2.10",
     "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.39.5",
+    "eslint-config-expo": "^57.0.1",
     "typescript": "~5.9.2",
     "vitest": "^3.2.4"
   },

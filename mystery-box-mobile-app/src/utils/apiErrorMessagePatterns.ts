@@ -3,7 +3,7 @@
  * Token patterns (SCREAMING_SNAKE) are applied for every locale;
  * Chinese prose patterns are only used when locale is not zh-CN.
  */
-export const API_ERROR_TOKEN_PATTERNS: ReadonlyArray<{ pattern: RegExp; key: string }> = [
+export const API_ERROR_TOKEN_PATTERNS: readonly { pattern: RegExp; key: string }[] = [
   { pattern: /PITY_COMPENSATE_DENIED/, key: "api.errors.pityCompensateDenied" },
   { pattern: /PITY_STOCK_EXHAUSTED/, key: "api.errors.pityStockExhausted" },
   { pattern: /GENERAL_POOL_SOLD_OUT/, key: "api.errors.generalPoolSoldOut" },
@@ -30,7 +30,7 @@ export const API_ERROR_TOKEN_PATTERNS: ReadonlyArray<{ pattern: RegExp; key: str
 ];
 
 /** Map common backend Chinese messages to i18n keys (used when locale is not zh-CN). */
-export const API_ERROR_MESSAGE_PATTERNS: ReadonlyArray<{ pattern: RegExp; key: string }> = [
+export const API_ERROR_MESSAGE_PATTERNS: readonly { pattern: RegExp; key: string }[] = [
   { pattern: /订单不存在/, key: "api.errors.orderNotFound" },
   { pattern: /盲盒不存在/, key: "api.errors.boxNotFound" },
   { pattern: /用户不存在/, key: "api.errors.userNotFound" },

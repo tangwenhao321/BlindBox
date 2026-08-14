@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchSeriesDrawStatistics, verifyFairnessByOrder } from "./fairnessService";
+import { fetchDailyBeacon, fetchSeriesDrawStatistics, verifyFairnessByOrder } from "./fairnessService";
 
 const { getMock } = vi.hoisted(() => ({
   getMock: vi.fn(),
@@ -38,5 +38,20 @@ describe("fairnessService", () => {
     const stats = await fetchSeriesDrawStatistics("box-1");
     expect(stats.totalDraws).toBe(120);
     expect(stats.tiers[0]?.qualityType).toBe("LEGENDARY");
+  });
+
+  it("fetchDailyBeacon unwraps direct and result payloads", async () => {
+    getMock.mockResolvedValueOnce({
+      data: { dayUtc: "2026-08-14", beacon: "abc123def456" },
+    });
+    const direct = await fetchDailyBeacon();
+    expect(direct?.dayUtc).toBe("2026-08-14");
+    expect(direct?.beacon).toBe("abc123def456");
+
+    getMock.mockResolvedValueOnce({
+      data: { result: { dayUtc: "2026-08-15", beacon: "nested-beacon" } },
+    });
+    const nested = await fetchDailyBeacon();
+    expect(nested?.beacon).toBe("nested-beacon");
   });
 });

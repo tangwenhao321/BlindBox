@@ -12,6 +12,12 @@
     "quality": "Tier {{type}}",
     "verifiedOk": "Verified",
     "verifiedBad": "Verification failed",
-    "verifyHeader": "Order {{orderId}} fairness verification"
+    "verifyHeader": "Order {{orderId}} fairness verification",
+    "dailyBeaconTitle": "Today’s fairness beacon",
+    "dailyBeaconLine": "{{day}} · {{short}}",
+    "dailyBeaconA11y": "Fairness beacon for {{day}}, summary {{short}}",
+    "dailyBeaconUnavailable": "Beacon unavailable",
+    "dailyBeaconProof": "Verifiable draws",
+    "viewProbability": "Odds"
   }
 }

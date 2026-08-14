@@ -2,7 +2,7 @@ import { markRevealPerformanceDegraded } from "./sessionPerf";
 import { trackEffectEvent } from "./telemetry";
 
 const WINDOW = 40;
-const completions: Array<{ completed: boolean; skipped: boolean }> = [];
+const completions: { completed: boolean; skipped: boolean }[] = [];
 
 export type RevealAlertTier = "ok" | "warn" | "severe" | "critical";
 

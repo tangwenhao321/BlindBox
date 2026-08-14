@@ -1,3 +1,8 @@
+-- ARCHIVED (do not use for greenfield setup).
+-- SCHEMA SOURCE OF TRUTH: mystery-box-backend/src/main/resources/db/migration (Flyway).
+-- This dump is a historical snapshot for reference only. New environments: create empty DB,
+-- then start the backend so Flyway applies migrations. See docs/DEV_ONBOARDING.md.
+--
 -- SCHEMA NOTE (2026-05-26): 以 mystery-box-backend/src/main/resources/db/migration 为准。
 -- 本 dump 为历史快照；增量迁移摘要：
 --   V20260525_06 起：连拍配置、新人盒等

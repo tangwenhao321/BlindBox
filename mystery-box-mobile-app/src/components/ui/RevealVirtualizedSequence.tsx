@@ -14,7 +14,7 @@ export function RevealVirtualizedSequence({ products, revealIndex, renderItem }:
   const window = 1;
   const start = Math.max(0, revealIndex - window);
   const end = Math.min(products.length - 1, revealIndex + window);
-  const slice: Array<{ product: Product; index: number }> = [];
+  const slice: { product: Product; index: number }[] = [];
   for (let i = start; i <= end; i += 1) {
     slice.push({ product: products[i]!, index: i });
   }

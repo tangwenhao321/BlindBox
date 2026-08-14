@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { AppState, StyleSheet, View, type AppStateStatus } from "react-native";
 import { useTranslation } from "react-i18next";
 import { parseError, toAppError } from "../api";
 import { useAuthToken } from "../hooks/useAuthToken";
+import { useMarketplaceChatSse } from "../hooks/useMarketplaceChatSse";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import {
   clearMarketplaceChatParams,
@@ -19,7 +20,7 @@ import { reportAppError } from "../utils/crashReport";
 import { toast } from "../utils/toast";
 import { MarketplaceChatPanel } from "./marketplace/MarketplaceChatPanel";
 
-const CHAT_POLL_MS = 5_000;
+const UI_TICK_MS = 5_000;
 
 type Props = {
   listingId?: string;
@@ -42,13 +43,22 @@ export function MarketplaceChatView({ listingId: listingIdProp, listingTitle: li
   const [pollError, setPollError] = useState(false);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [appActive, setAppActive] = useState(AppState.currentState === "active");
 
   useEffect(() => () => clearMarketplaceChatParams(), []);
 
   useEffect(() => {
-    const timer = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(timer);
+    const onChange = (next: AppStateStatus) => setAppActive(next === "active");
+    const sub = AppState.addEventListener("change", onChange);
+    return () => sub.remove();
   }, []);
+
+  useEffect(() => {
+    if (!appActive) return;
+    setNowTick(Date.now());
+    const timer = setInterval(() => setNowTick(Date.now()), UI_TICK_MS);
+    return () => clearInterval(timer);
+  }, [appActive]);
 
   useEffect(() => {
     if (!authToken) {
@@ -63,14 +73,20 @@ export function MarketplaceChatView({ listingId: listingIdProp, listingTitle: li
       });
   }, [authToken]);
 
+  const applyMessages = useCallback((msgs: MarketplaceChatMessage[]) => {
+    setMessages(msgs);
+    setUpdatedAt(Date.now());
+    setPollError(false);
+  }, []);
+
+  useMarketplaceChatSse(authToken, listingId, !!authToken && !!listingId && appActive, applyMessages);
+
   const loadChat = useCallback(
     async (id: string, silent = false) => {
       if (!authToken) return;
       try {
         const msgs = await fetchMarketplaceListingChat(authToken, id);
-        setMessages(msgs);
-        setUpdatedAt(Date.now());
-        setPollError(false);
+        applyMessages(msgs);
       } catch (error) {
         if (silent) {
           setPollError(true);
@@ -81,15 +97,8 @@ export function MarketplaceChatView({ listingId: listingIdProp, listingTitle: li
         setPollError(true);
       }
     },
-    [authToken],
+    [authToken, applyMessages],
   );
-
-  useEffect(() => {
-    if (!authToken || !listingId) return;
-    void loadChat(listingId);
-    const timer = setInterval(() => void loadChat(listingId, true), CHAT_POLL_MS);
-    return () => clearInterval(timer);
-  }, [authToken, listingId, loadChat]);
 
   const handleSend = async () => {
     if (!authToken || !listingId || !body.trim() || sending) return;

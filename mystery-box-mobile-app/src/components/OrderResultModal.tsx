@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import {
   Modal,
   Pressable,
@@ -58,6 +58,14 @@ type Props = {
 };
 
 export function OrderResultModal(props: Props) {
+  return (
+    <Suspense fallback={null}>
+      <OrderResultModalInner {...props} />
+    </Suspense>
+  );
+}
+
+function OrderResultModalInner(props: Props) {
   const {
     visible,
     orderId,

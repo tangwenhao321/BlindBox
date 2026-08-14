@@ -32,7 +32,7 @@ import { resolveLustreIntensity, shouldReduceLustreMotion, getRevealRemoteConfig
 import { useRevealLayout } from "../../hooks/useRevealLayout";
 import { shouldSkipParticles, shouldSkipTeaser } from "../../effects/revealA11yTheme";
 import type { ReduceMotionLevel } from "../../effects/revealRemote";
-import { getRuntimeRevealFlashEnabled } from "../../utils/revealSettings";
+import { getRuntimeRevealFlashEnabled , getRuntimeRevealEffectPresetId , getRuntimeRevealA11yGesturesEnabled } from "../../utils/revealSettings";
 import { isRegionVisualBlocked } from "../../effects/revealRegionCompliance";
 import { useAppTheme } from "../../context/ThemeContext";
 import { effectProfileTierLabel, effectProfileTitle } from "../../utils/effectProfileI18n";
@@ -61,10 +61,8 @@ import { resolveRevealBreathPeriodMs, scaleBreathDurationMs } from "../../effect
 import { buildChargeTensionDurations, chargeSegmentEasing } from "../../effects/revealChargeCurve";
 import { rnSpring } from "../../effects/reanimated/springConfig";
 import { resolveRevealEffectPreset } from "../../effects/revealEffectPreset";
-import { getRuntimeRevealEffectPresetId } from "../../utils/revealSettings";
 import { resolveSessionFatigueScale } from "../../effects/revealSessionFatigue";
 import { resolveRevealAssetParticleScale } from "../../effects/revealAssetManager";
-import { getRuntimeRevealA11yGesturesEnabled } from "../../utils/revealSettings";
 import { RemoteImage } from "./RemoteImage";
 import { resolveBackdropDimAlpha } from "../../effects/revealAmbientLight";
 import { resolveRecordingSafeRevealFlags, startRevealRecordingMonitor } from "../../effects/revealRecordingMode";

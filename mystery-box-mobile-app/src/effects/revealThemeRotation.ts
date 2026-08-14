@@ -16,11 +16,11 @@ const LAST_SEEN_THEME_KEY = "reveal_theme_last_seen_v1";
 /** Catalog keys shown in Effects Center (classic + Doc2 packs). */
 export type UnlockableThemeKey = "classic" | DocThemeAlias;
 
-export const UNLOCKABLE_THEME_CATALOG: Array<{
+export const UNLOCKABLE_THEME_CATALOG: {
   key: UnlockableThemeKey;
   themeId: RevealThemeId;
   remoteAlias: string;
-}> = [
+}[] = [
   { key: "classic", themeId: "default", remoteAlias: "default" },
   { key: "asmr", themeId: "cute", remoteAlias: "asmr" },
   { key: "cyberpunk", themeId: "neon", remoteAlias: "cyberpunk" },

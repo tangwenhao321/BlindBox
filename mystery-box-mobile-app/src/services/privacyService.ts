@@ -4,8 +4,8 @@ import type { ApiResult } from "../types";
 export type PrivacyExportDump = {
   exportedAt?: string;
   profile?: Record<string, unknown>;
-  orders?: Array<Record<string, unknown>>;
-  addresses?: Array<Record<string, unknown>>;
+  orders?: Record<string, unknown>[];
+  addresses?: Record<string, unknown>[];
 };
 
 export type DeleteAccountResult = {

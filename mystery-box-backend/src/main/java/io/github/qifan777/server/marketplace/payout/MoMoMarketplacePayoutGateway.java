@@ -8,8 +8,11 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 
 /**
- * Reserved: MoMo payout for VN marketplace settle.
- * Partner disbursement must be implemented first — credentials alone are insufficient ({@link #isReady()}).
+ * MoMo marketplace payout — <b>unwired stub</b>.
+ *
+ * <p>Reserved for VN marketplace seller settle. Partner disbursement HTTP is not implemented;
+ * {@link #isReady()} is always {@code false} (credentials alone are insufficient). Keep
+ * {@code app.marketplace.payout-gateway=wallet} until wired. Do not delete.
  */
 @Slf4j
 @Component

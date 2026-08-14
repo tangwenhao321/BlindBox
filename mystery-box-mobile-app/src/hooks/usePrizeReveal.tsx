@@ -1,46 +1,47 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, use, useEffect, useRef, useState, type ReactNode } from "react";
 import { isRunningInExpoGo } from "expo";
-import type { Product } from "../types";
-import type { RevealPacing } from "../effects/revealSequence";
-import type { ReduceMotionLevel } from "../effects/revealRemote";
+import type { SharedValue } from "react-native-reanimated";
 import { trackEffectEvent } from "../effects/telemetry";
 import { getRevealDriverTier, type RevealDriverTier } from "../effects/revealDriverTier";
 import { isHarmonyLikeDevice } from "../effects/deviceProfile";
 import { usePrizeRevealExpoGo } from "./usePrizeRevealExpoGo";
-import { usePrizeRevealReanimated } from "./usePrizeRevealReanimated";
+import type { PrizeRevealOptions } from "./prizeRevealTypes";
 
-export type PrizeRevealOptions = {
-  products: Product[];
-  lowPerfMode: boolean;
-  reduceMotion: boolean;
-  reduceMotionLevel?: ReduceMotionLevel;
-  autoReplay: boolean;
-  soundEnabled: boolean;
-  revealIndex?: number;
-  totalReveals?: number;
-  showBoxTeaser?: boolean;
-  teaserVariant?: "full" | "mini";
-  pacing?: RevealPacing;
-  drawProducts?: Product[];
-  prizeName?: string;
-  prizeImageUri?: string;
-  boxName?: string;
-  boxCategoryName?: string;
-  orderId?: string;
-  isReplaySession?: boolean;
-  hasAuth?: boolean;
-  onRevealComplete?: () => void;
+export type { PrizeRevealOptions } from "./prizeRevealTypes";
+
+type ClassicPrizeRevealApi = ReturnType<typeof usePrizeRevealExpoGo> & {
+  driverTier: RevealDriverTier;
+  staticFallback: boolean;
+};
+
+/** Reanimated-only fields (kept structural so we don't type-import the lazy chunk). */
+type ReanimatedMotionFields = {
+  motionDriver: "reanimated";
+  revealOpacity: SharedValue<number>;
+  revealScale: SharedValue<number>;
+  titlePunch: SharedValue<number>;
+  rainProgress: SharedValue<number>;
+  confettiProgress: SharedValue<number>;
+  flashOpacity: SharedValue<number>;
+  shakeX: SharedValue<number>;
+  prizeCardScale: SharedValue<number>;
+  prizeCardOpacity: SharedValue<number>;
+  cardFlip: SharedValue<number>;
+  boxTeaserOpacity: SharedValue<number>;
 };
 
 export type PrizeRevealApi =
-  | (ReturnType<typeof usePrizeRevealExpoGo> & {
-      driverTier: RevealDriverTier;
-      staticFallback: boolean;
-    })
-  | (ReturnType<typeof usePrizeRevealReanimated> & {
-      driverTier: RevealDriverTier;
-      staticFallback: boolean;
-    });
+  | ClassicPrizeRevealApi
+  | (Omit<ClassicPrizeRevealApi, "motionDriver"> & ReanimatedMotionFields);
+
+/** Async chunk for the Reanimated ceremony pack — not loaded on classic/Expo Go startup. */
+function loadReanimatedDriverModule() {
+  return import("./usePrizeRevealReanimatedDriver");
+}
+
+const LazyReanimatedRevealDriver = lazy(() =>
+  loadReanimatedDriverModule().then((m) => ({ default: m.ReanimatedRevealDriver })),
+);
 
 function useDriverTierState(): RevealDriverTier {
   const [driverTier, setDriverTier] = useState(getRevealDriverTier);
@@ -92,14 +93,9 @@ function useClassicRevealDriver(options: PrizeRevealOptions): PrizeRevealApi {
 }
 
 function useReanimatedRevealDriver(options: PrizeRevealOptions): PrizeRevealApi {
-  const reanimated = usePrizeRevealReanimated(options);
-  const driverTier = useDriverTierState();
-  useRevealDriverTelemetry("reanimated", driverTier);
-  return {
-    ...reanimated,
-    driverTier,
-    staticFallback: driverTier === "static",
-  };
+  // Suspends until the ceremony pack chunk loads (caller needs a Suspense boundary).
+  const mod = use(loadReanimatedDriverModule());
+  return mod.useReanimatedRevealDriverApi(options) as PrizeRevealApi;
 }
 
 /** Classic-only path component — mounts Expo Go / RN Animated hook exclusively. */
@@ -114,21 +110,9 @@ export function ClassicRevealDriver({
   return children(reveal);
 }
 
-/** Reanimated-only path component — mounts Reanimated hook exclusively. */
-export function ReanimatedRevealDriver({
-  options,
-  children,
-}: {
-  options: PrizeRevealOptions;
-  children: (reveal: PrizeRevealApi) => ReactNode;
-}) {
-  const reveal = useReanimatedRevealDriver(options);
-  return children(reveal);
-}
-
 /**
  * Split-component gate: selects driver first, then mounts exactly one path.
- * Prefer this when the caller can use a render-prop (avoids dual hook work).
+ * Reanimated path is dynamically imported so startup does not load ceremony packs.
  */
 export function PrizeRevealDriver({
   options,
@@ -146,9 +130,11 @@ export function PrizeRevealDriver({
     );
   }
   return (
-    <ReanimatedRevealDriver key="reanimated" options={options}>
-      {children}
-    </ReanimatedRevealDriver>
+    <Suspense fallback={null}>
+      <LazyReanimatedRevealDriver key="reanimated" options={options}>
+        {children as never}
+      </LazyReanimatedRevealDriver>
+    </Suspense>
   );
 }
 
@@ -156,6 +142,9 @@ export function PrizeRevealDriver({
  * Hook entry: freezes driver on first render so only one underlying hook path runs.
  * Remount the host (or use {@link PrizeRevealDriver}) to switch drivers.
  * Expo Go / lowPerf / Harmony → classic; otherwise Reanimated (incl. production Android).
+ *
+ * When Reanimated is selected, this hook suspends via `use()` until the async chunk
+ * loads — wrap the host in `<Suspense>` (OrderDetailsView / OrderResultModal do).
  */
 export function usePrizeReveal(options: PrizeRevealOptions): PrizeRevealApi {
   const driverRef = useRef<"classic" | "reanimated" | null>(null);
@@ -169,4 +158,9 @@ export function usePrizeReveal(options: PrizeRevealOptions): PrizeRevealApi {
   }
   // eslint-disable-next-line react-hooks/rules-of-hooks -- frozen driver; only one path for this instance
   return useReanimatedRevealDriver(options);
+}
+
+/** Warm the Reanimated ceremony chunk after first paint (optional). */
+export function preloadReanimatedRevealDriver(): Promise<unknown> {
+  return loadReanimatedDriverModule();
 }

@@ -14,9 +14,16 @@
     },
     "preview": {
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": false
+      },
       "env": {
         "EXPO_PUBLIC_PAYMENT_MODE": "mock",
-        "EXPO_PUBLIC_MOCK_PAYMENT": "true"
+        "EXPO_PUBLIC_MOCK_PAYMENT": "true",
+        "EXPO_PUBLIC_APP_VARIANT": "preview"
       }
     },
     "production": {

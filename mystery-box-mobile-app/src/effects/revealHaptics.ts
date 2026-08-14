@@ -6,7 +6,7 @@ import { getRevealRemoteConfig } from "./revealRemote";
 import { getRuntimeRevealHapticEnabled } from "../utils/revealSettings";
 import { trackEffectEvent } from "./telemetry";
 
-const queue: Array<() => Promise<void>> = [];
+const queue: (() => Promise<void>)[] = [];
 let draining = false;
 
 async function drainQueue() {

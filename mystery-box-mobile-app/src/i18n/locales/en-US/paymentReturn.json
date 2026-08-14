@@ -3,15 +3,22 @@
     "title": "Payment result",
     "orderId": "Order {{id}}",
     "confirming": "Confirming payment…",
+    "waitingTitle": "Confirming payment",
+    "waitingHint": "Your wallet returned. We are verifying settlement with the server — please wait.",
+    "waitingProgress": "Waited {{seconds}}s · check {{attempt}}",
     "loadFailed": "Could not load order",
+    "retryCheck": "Check again",
     "successTitle": "Payment successful",
     "successAmount": "Paid {{amount}}",
+    "successHint": "Payment is confirmed. Open the order or return home.",
     "viewOrder": "View order",
     "failTitle": "Payment not completed",
     "failHint": "If you were charged, refresh the order page later or try paying again.",
+    "failTimedOut": "Confirmation timed out — the server still shows unpaid.",
     "retryPay": "Pay again",
     "backHome": "Back to home",
     "loginRequired": "Sign in to see payment result",
-    "goLogin": "Sign in"
+    "goLogin": "Sign in",
+    "gatewayPendingHint": "Wallet returned a non-success code — still confirming with the server…"
   }
 }

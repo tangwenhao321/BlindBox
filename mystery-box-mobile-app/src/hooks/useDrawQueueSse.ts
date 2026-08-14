@@ -31,7 +31,7 @@ export function useDrawQueueSse(
     token,
     enabled: enabled && !!token,
     eventName: "QUEUE_STATUS",
-    pollMs: 1000,
+    pollMs: 3000,
     pollFetch,
     onData: onStatus,
     onPollDegraded,

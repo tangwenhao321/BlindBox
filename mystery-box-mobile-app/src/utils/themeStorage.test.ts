@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getStoredThemeMode, setStoredThemeMode } from "./themeStorage";
+
 const mockGetItem = vi.fn();
 const mockSetItem = vi.fn();
 
@@ -9,8 +11,6 @@ vi.mock("@react-native-async-storage/async-storage", () => ({
     setItem: (...args: unknown[]) => mockSetItem(...args),
   },
 }));
-
-import { getStoredThemeMode, setStoredThemeMode } from "./themeStorage";
 
 describe("themeStorage", () => {
   beforeEach(() => {

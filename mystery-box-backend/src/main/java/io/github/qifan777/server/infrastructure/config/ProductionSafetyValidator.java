@@ -109,6 +109,15 @@ public class ProductionSafetyValidator {
     @Value("${app.logistics.partner-wired:false}")
     private boolean logisticsPartnerWired;
 
+    @Value("${security.idempotency.required:false}")
+    private boolean idempotencyRequired;
+
+    @Value("${security.sse.require-auth:false}")
+    private boolean sseRequireAuth;
+
+    @Value("${security.rate-limit.distributed:false}")
+    private boolean rateLimitDistributed;
+
     private final Environment environment;
 
     public ProductionSafetyValidator(Environment environment) {
@@ -123,6 +132,18 @@ public class ProductionSafetyValidator {
         if (paymentMockEnabled) {
             throw new IllegalStateException(
                     "Refusing to start: payment.mock-enabled=true is not allowed when spring.profiles.active includes prod");
+        }
+        if (!idempotencyRequired) {
+            throw new IllegalStateException(
+                    "Refusing to start: security.idempotency.required must be true in production");
+        }
+        if (!sseRequireAuth) {
+            throw new IllegalStateException(
+                    "Refusing to start: security.sse.require-auth must be true in production");
+        }
+        if (!rateLimitDistributed) {
+            throw new IllegalStateException(
+                    "Refusing to start: security.rate-limit.distributed must be true in production");
         }
         if (isDefaultOrWeakOtp(adminActionOtp)) {
             throw new IllegalStateException(

@@ -123,7 +123,7 @@ export function resolvePrizeTier(qualityType?: string): "GENERAL" | "HIDDEN" | "
   return "GENERAL";
 }
 
-export function resolveHighestTier(types: Array<string | undefined>): PrizeTier {
+export function resolveHighestTier(types: (string | undefined)[]): PrizeTier {
   const tiers = types.map(resolvePrizeTier);
   if (tiers.includes("LEGENDARY")) return "TREASURE_LEGEND";
   if (tiers.includes("HIDDEN")) return "HIDDEN";

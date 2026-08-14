@@ -6,7 +6,7 @@ import { getAppLocale } from "./i18nLocale";
 
 function resolveByPatterns(
   message: string,
-  patterns: ReadonlyArray<{ pattern: RegExp; key: string }>,
+  patterns: readonly { pattern: RegExp; key: string }[],
 ): string | null {
   for (const { pattern, key } of patterns) {
     if (pattern.test(message) && i18n.exists(key)) return i18n.t(key);

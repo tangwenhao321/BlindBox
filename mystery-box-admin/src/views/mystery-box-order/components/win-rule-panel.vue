@@ -3,10 +3,16 @@ import { onMounted, reactive, ref } from 'vue'
 import { request } from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { api } from '@/utils/api-instance'
+import type { MysteryBoxDto, ProductDto, UserDto } from '@/apis/__generated/model/dto'
 import {
   ADMIN_ACTION_GRANT_TOKEN,
   promptAndArmAdminActionOtp
 } from '@/utils/admin-action-otp'
+
+type AdminUser = UserDto['UserRepository/COMPLEX_FETCHER_FOR_ADMIN']
+type AdminMysteryBox = MysteryBoxDto['MysteryBoxRepository/COMPLEX_FETCHER_FOR_ADMIN']
+type AdminProduct = ProductDto['ProductRepository/COMPLEX_FETCHER_FOR_ADMIN']
+type SelectOption = { id: string; label: string }
 
 type WinRule = {
   id: string
@@ -20,12 +26,43 @@ type WinRule = {
   createdTime?: string
 }
 
+type WinHitLog = {
+  createdTime?: string
+  ruleId?: string
+  userId?: string
+  mysteryBoxOrderId?: string
+  mysteryBoxId?: string
+  originalProductId?: string
+  designatedProductId?: string
+  remark?: string
+}
+
+type WinOpLog = {
+  createdTime?: string
+  ruleId?: string
+  action?: string
+  operatorId?: string
+  detail?: string
+}
+
+const OTP_REQUIRED_HINT = '请先填写高危操作口令'
+
+const isOtpRequiredError = (e: unknown): boolean => {
+  if (e instanceof Error) return e.message.includes(OTP_REQUIRED_HINT)
+  if (e && typeof e === 'object' && 'message' in e) {
+    return String((e as { message?: unknown }).message || '').includes(OTP_REQUIRED_HINT)
+  }
+  return false
+}
+
+const isMessageBoxDismiss = (e: unknown): boolean => e === 'cancel' || e === 'close'
+
 const loading = ref(false)
 const logLoading = ref(false)
 const submitting = ref(false)
 const rules = ref<WinRule[]>([])
-const hitLogs = ref<any[]>([])
-const opLogs = ref<any[]>([])
+const hitLogs = ref<WinHitLog[]>([])
+const opLogs = ref<WinOpLog[]>([])
 const metrics = ref<Record<string, number>>({})
 const logQuery = reactive({
   userId: '',
@@ -39,9 +76,9 @@ const formatDateTime = (value: string) => {
   // Element Plus outputs "YYYY-MM-DD HH:mm:ss", backend expects ISO_LOCAL_DATE_TIME.
   return value.replace(' ', 'T')
 }
-const userOptions = ref<Array<{ id: string; label: string }>>([])
-const boxOptions = ref<Array<{ id: string; label: string }>>([])
-const productOptions = ref<Array<{ id: string; label: string }>>([])
+const userOptions = ref<SelectOption[]>([])
+const boxOptions = ref<SelectOption[]>([])
+const productOptions = ref<SelectOption[]>([])
 
 const form = reactive({
   userId: '',
@@ -54,7 +91,7 @@ const adminOtp = ref('')
 
 const securedHeaders = () => {
   if (!adminOtp.value.trim()) {
-    throw new Error('请先填写高危操作口令，或点击「解锁 5 分钟」')
+    throw new Error(`${OTP_REQUIRED_HINT}，或点击「解锁 5 分钟」`)
   }
   return {
     'x-admin-action-otp': adminOtp.value.trim()
@@ -107,7 +144,7 @@ const searchUsers = async (keyword: string) => {
       }
     }
   })
-  userOptions.value = (res.content || []).map((it: any) => ({
+  userOptions.value = (res.content || []).map((it: AdminUser) => ({
     id: it.id,
     label: `${it.nickname || '-'} (${it.phone || '-'})`
   }))
@@ -123,7 +160,7 @@ const searchBoxes = async (keyword: string) => {
       }
     }
   })
-  boxOptions.value = (res.content || []).map((it: any) => ({
+  boxOptions.value = (res.content || []).map((it: AdminMysteryBox) => ({
     id: it.id,
     label: `${it.name || '-'} (${it.id})`
   }))
@@ -136,8 +173,8 @@ const onBoxChange = async (boxId: string) => {
     return
   }
   const detail = await api.mysteryBoxForAdminController.findById({ id: boxId })
-  const products = (detail as any).products || []
-  productOptions.value = products.map((it: any) => ({
+  const products = detail.products || []
+  productOptions.value = products.map((it) => ({
     id: it.id,
     label: `${it.name || '-'} (${it.id})`
   }))
@@ -154,7 +191,7 @@ const searchProducts = async (keyword: string) => {
         }
       }
     })
-    productOptions.value = (res.content || []).map((it: any) => ({
+    productOptions.value = (res.content || []).map((it: AdminProduct) => ({
       id: it.id,
       label: `${it.name || '-'} (${it.id})`
     }))
@@ -194,7 +231,7 @@ const loadHitLogs = async () => {
       url: `/admin/mystery-box-win-rule/hit-log?${params.toString()}`,
       method: 'get'
     })
-    hitLogs.value = Array.isArray(res) ? res : []
+    hitLogs.value = Array.isArray(res) ? (res as WinHitLog[]) : []
   } finally {
     logLoading.value = false
   }
@@ -205,7 +242,7 @@ const loadOpLogs = async () => {
     url: '/admin/mystery-box-win-rule/op-log?limit=100',
     method: 'get'
   })
-  opLogs.value = Array.isArray(res) ? res : []
+  opLogs.value = Array.isArray(res) ? (res as WinOpLog[]) : []
 }
 
 const loadMetrics = async () => {
@@ -260,9 +297,9 @@ const createRule = async () => {
     ElMessage.success('规则创建成功')
     resetForm()
     await loadRules()
-  } catch (e: any) {
-    if (e?.message === '请先填写高危操作口令') {
-      ElMessage.warning(e.message)
+  } catch (e: unknown) {
+    if (isOtpRequiredError(e)) {
+      ElMessage.warning(OTP_REQUIRED_HINT)
     }
   } finally {
     submitting.value = false
@@ -278,9 +315,9 @@ const toggleEnabled = async (row: WinRule) => {
     })
     ElMessage.success('状态更新成功')
     await loadRules()
-  } catch (e: any) {
-    if (e?.message === '请先填写高危操作口令') {
-      ElMessage.warning(e.message)
+  } catch (e: unknown) {
+    if (isOtpRequiredError(e)) {
+      ElMessage.warning(OTP_REQUIRED_HINT)
     }
   }
 }
@@ -294,9 +331,9 @@ const approveRule = async (row: WinRule) => {
     })
     ElMessage.success('规则已审批')
     await loadRules()
-  } catch (e: any) {
-    if (e?.message === '请先填写高危操作口令') {
-      ElMessage.warning(e.message)
+  } catch (e: unknown) {
+    if (isOtpRequiredError(e)) {
+      ElMessage.warning(OTP_REQUIRED_HINT)
     }
   }
 }
@@ -311,10 +348,10 @@ const deleteRule = async (row: WinRule) => {
     })
     ElMessage.success('删除成功')
     await loadRules()
-  } catch (e: any) {
-    if (e === 'cancel' || e === 'close') return
-    if (e?.message === '请先填写高危操作口令') {
-      ElMessage.warning(e.message)
+  } catch (e: unknown) {
+    if (isMessageBoxDismiss(e)) return
+    if (isOtpRequiredError(e)) {
+      ElMessage.warning(OTP_REQUIRED_HINT)
     }
   }
 }

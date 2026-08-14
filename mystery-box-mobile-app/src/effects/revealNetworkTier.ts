@@ -1,4 +1,4 @@
-﻿export type RevealNetworkTier = "wifi" | "cellular" | "offline";
+export type RevealNetworkTier = "wifi" | "cellular" | "offline";
 
 const HIGH_RTT_MS = 300;
 /** Wifi heroes may request up to this width when layout/targetWidth is provided. */

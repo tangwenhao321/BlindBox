@@ -2,6 +2,10 @@
   "settings": {
     "advancedEffects": "Phòng thí nghiệm mở hộp",
     "advancedEffectsHint": "Âm thanh, không khí, danmaku và tùy chọn phòng thí nghiệm tiết lộ (thu gọn theo mặc định)",
+    "simpleRevealTitle": "Mở hộp đơn giản / hiệu năng",
+    "simpleRevealHint": "Dùng khi máy chậm hoặc tiết kiệm pin — không tự đổi tùy chọn hiện tại",
+    "simpleRevealTip": "Lần đầu mở hộp bị giật? Bật “Chỉ hiện chữ” bên dưới để hiện kết quả nhanh hơn.",
+    "simpleRevealTipDismiss": "Đã hiểu",
     "accountSection": "Tài khoản & bảo mật",
     "bindPhoneTitle": "Liên kết số điện thoại",
     "bindPhoneHint": "Tài khoản Zalo đang dùng số tạm. Liên kết số +84 thật để đăng nhập SMS và hỗ trợ.",

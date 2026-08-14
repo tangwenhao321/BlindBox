@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readCachedPublicConfig, writeCachedPublicConfig } from "./appPublicConfigCache";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 vi.mock("@react-native-async-storage/async-storage", () => ({
   default: {
     getItem: vi.fn(),
     setItem: vi.fn(),
   },
 }));
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 describe("appPublicConfigCache", () => {
   beforeEach(() => {

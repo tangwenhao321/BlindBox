@@ -47,7 +47,7 @@ import { applyPersonaPack } from "../effects/revealPersonaPack";
 import { recordRevealForFatigue, resolveSessionFatigueScale } from "../effects/revealSessionFatigue";
 import { recordRevealCompletion } from "../effects/revealTelemetryWaterline";
 import { scheduleRevealDrawRelease } from "../effects/revealAssetManager";
-import { warmupTierSounds } from "../effects/sound";
+import { warmupTierSounds , setRuntimeRevealSoundPack } from "../effects/sound";
 import { unlockStoryFragment } from "../effects/revealStoryFragments";
 import { useRevealCollectionEasterEgg } from "./useRevealCollectionEasterEgg";
 import { resetRevealDriverTierForPaidReveal } from "../effects/revealDriverTier";
@@ -63,7 +63,6 @@ import {
   publishRevealRoomReaction,
 } from "../effects/revealSocialRoom";
 import { useRevealSpectatorSessionSync } from "./useRevealSpectatorSessionSync";
-import { setRuntimeRevealSoundPack } from "../effects/sound";
 import { useRevealHardwareInput } from "../effects/revealHardwareInput";
 import { acquireRevealGestureLock } from "../effects/revealGestureLock";
 import { normalizeQualityTier } from "../utils/quality";
