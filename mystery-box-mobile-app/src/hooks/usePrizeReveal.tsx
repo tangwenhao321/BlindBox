@@ -6,6 +6,7 @@ import { getRevealDriverTier, type RevealDriverTier } from "../effects/revealDri
 import { isHarmonyLikeDevice } from "../effects/deviceProfile";
 import { usePrizeRevealExpoGo } from "./usePrizeRevealExpoGo";
 import type { PrizeRevealOptions } from "./prizeRevealTypes";
+import { RevealSuspenseFallback } from "../components/RevealSuspenseFallback";
 
 export type { PrizeRevealOptions } from "./prizeRevealTypes";
 
@@ -141,7 +142,7 @@ export function PrizeRevealDriver({
     );
   }
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RevealSuspenseFallback />}>
       <LazyReanimatedRevealDriver key="reanimated" options={options}>
         {children as never}
       </LazyReanimatedRevealDriver>

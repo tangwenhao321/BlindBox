@@ -17,6 +17,7 @@ import io.github.qifan777.server.payment.gateway.PaymentRefundResult;
 import io.github.qifan777.server.payment.gateway.VNPayPaymentGateway;
 import io.github.qifan777.server.infrastructure.model.WxPayPropertiesExtension;
 import io.github.qifan777.server.infrastructure.money.MoneyRounding;
+import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import io.github.qifan777.server.notification.service.UserNotificationService;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.infrastructure.error.MoneyPathErrorCode;
@@ -64,6 +65,7 @@ public class RefundRecordService {
     private final ObjectProvider<WarehouseShipService> warehouseShipService;
     private final ReferralService referralService;
     private final CouponService couponService;
+    private final ClientIpResolver clientIpResolver;
 
     @Value("${payment.mock-enabled:false}")
     private boolean paymentMockEnabled;
@@ -142,9 +144,9 @@ public class RefundRecordService {
         }
         boolean vnPayChannel = isVnPayChannel(payType);
 
-        // Mock / balance channel: credit wallet and finalize locally (stock + order).
-        // Do NOT treat isWxUnset alone as wallet when the order is VN_PAY — VN prod often has wx unset.
-        if (paymentMockEnabled || (!vnPayChannel && isWxUnset())) {
+        // Wallet credit only when mock pay is on. DictConstants.PayType has no BALANCE/WALLET;
+        // never treat isWxUnset as wallet for WeChat/gateway captures.
+        if (paymentMockEnabled) {
             userWalletService.credit(userId, record.amount(), "REFUND", "订单退款入账（模拟/余额通道）", record.orderId());
             finalizeLocalRefundSuccess(record, order, null);
             userNotificationService.push(userId, "REFUND", "退款已通过", formatRefundAmount(record.amount()) + " 已退回余额", record.orderId());
@@ -158,7 +160,7 @@ public class RefundRecordService {
                     tradeNo,
                     record.id(),
                     record.amount(),
-                    "127.0.0.1",
+                    clientIpResolver.resolveForRefund(),
                     preferredVnPayTxnTime(order));
             PaymentRefundResult result = refundResult.orElseThrow(() -> new BusinessException("VNPay 退款失败"));
             if (!result.success()) {
@@ -170,6 +172,12 @@ public class RefundRecordService {
             finalizeLocalRefundSuccess(record, order, result.gatewayRefundId());
             userNotificationService.push(userId, "REFUND", "退款已通过", formatRefundAmount(record.amount()) + " 已原路退回", record.orderId());
             return;
+        }
+
+        if (isWxUnset()) {
+            refundRecordRepository.save(RefundRecordDraft.$.produce(record, draft -> draft
+                    .setStatus(DictConstants.RefundStatus.REFUNDING)));
+            throw new BusinessException("微信退款通道未配置，已保留退款工单请人工处理");
         }
 
         String outRefundNo = record.id();
@@ -270,10 +278,14 @@ public class RefundRecordService {
                 || order.status().equals(DictConstants.ProductOrderStatus.TO_BE_DELIVERED)
                 || order.status().equals(DictConstants.ProductOrderStatus.REFUNDED));
 
-        // DRAW_INTEGRITY_EMPTY used to wait for admin; auto-settle like other stuck REFUNDING
-        // so paid-empty-prize users are not left hanging (mock/VNPay/WeChat query paths below).
+        // DRAW_INTEGRITY_EMPTY waits for admin approve — do not auto wallet-credit.
+        if (record.reason() != null && record.reason().contains(DRAW_INTEGRITY_EMPTY_REASON)) {
+            log.info("refund reconcile DRAW_INTEGRITY_EMPTY waits for admin refundId={} orderId={}",
+                    refundId, record.orderId());
+            return false;
+        }
 
-        if (paymentMockEnabled || (!vnPayChannel && isWxUnset())) {
+        if (paymentMockEnabled) {
             if (record.amount() != null && record.amount().compareTo(BigDecimal.ZERO) > 0) {
                 userWalletService.credit(userId, record.amount(), "REFUND", "退款对账入账（模拟/余额通道）", record.orderId());
             }
@@ -294,7 +306,7 @@ public class RefundRecordService {
                     tradeNo,
                     record.id(),
                     record.amount(),
-                    "127.0.0.1",
+                    clientIpResolver.resolveForRefund(),
                     preferredVnPayTxnTime(order));
             PaymentRefundResult result = refundResult.orElse(null);
             if (result == null || !result.success()) {
@@ -305,6 +317,12 @@ public class RefundRecordService {
             finalizeLocalRefundSuccess(record, order, result.gatewayRefundId());
             log.info("refund reconcile VNPay retry success refundId={} orderId={}", refundId, record.orderId());
             return true;
+        }
+
+        if (isWxUnset()) {
+            log.warn("refund reconcile WeChat unset — keep REFUNDING refundId={} orderId={}",
+                    refundId, record.orderId());
+            return false;
         }
 
         // WeChat: out_refund_no is the refund record id (set at refundV3 create time).

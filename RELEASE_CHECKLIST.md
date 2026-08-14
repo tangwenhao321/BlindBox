@@ -22,7 +22,7 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [ ] Admin high-risk unlock: `POST /admin/auth/action-grant` → subsequent calls may send `x-admin-action-otp: GRANT` (~5m Redis TTL).
 - [ ] Admin operation OTP/TOTP is distributed via secure channel and rotated regularly.
 - [ ] iOS App Attest **server require**: set `IOS_APP_ATTEST_ENABLED` / `IOS_APP_ATTEST_REQUIRE_HEADER` only after native DeviceCheck is wired (client already can send `X-Apple-App-Attest` via `EXPO_PUBLIC_APPLE_APP_ATTEST`).
-- [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE headers); EAS `production` / `production-vn` set `EXPO_PUBLIC_APP_CHANNEL=appstore`.
+- [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE headers); iOS production / production-vn resolve to `appstore` via `EXPO_PUBLIC_APP_VARIANT` (Android never reports `appstore`).
 - [x] Fairness daily beacon **client+API** wired: `GET /front/fairness/daily-beacon` + `FairnessTrustRow` at checkout — still verify publish/mix in staging (ops).
 
 ## 2) Payment & Order Reliability

@@ -24,8 +24,9 @@ import io.github.qifan777.server.risk.service.RiskControlService;
 import io.github.qifan777.server.user.privacy.UserPrivacyService;
 import io.github.qifan777.server.user.root.repository.UserRepository;
 import io.github.qifan777.server.user.root.repository.UserRoleRelRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -35,7 +36,7 @@ import java.util.regex.Pattern;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class UserService {
     private static final Pattern PASSWORD_LETTER = Pattern.compile(".*[A-Za-z].*");
@@ -51,6 +52,9 @@ public class UserService {
     private final UserPrivacyService userPrivacyService;
     private final RiskControlService riskControlService;
     private final LoginLockoutService loginLockoutService;
+
+    @Value("${sa-token.timeout:2592000}")
+    private long saTokenTimeoutSeconds;
 
     @SaIgnore
     public SaTokenInfo register(UserRegisterInput registerInput) {
@@ -76,7 +80,7 @@ public class UserService {
         }));
         StpUtil.login(user.id(), new SaLoginModel()
                 .setDevice(LoginDevice.BROWSER)
-                .setTimeout(60 * 60 * 24 * 30 * 36));
+                .setTimeout(saTokenTimeoutSeconds));
         Role role = roleRepository.findRoleByName("普通用户").orElseThrow(() -> new BusinessException("角色不存在，清联系管理员"));
         userRoleRelRepository.save(UserRoleRelDraft.$.produce(draft -> {
             draft.setRoleId(role.id())
@@ -121,7 +125,7 @@ public class UserService {
         loginLockoutService.clear(phone);
         StpUtil.login(databaseUser.id(), new SaLoginModel()
                 .setDevice(LoginDevice.BROWSER)
-                .setTimeout(60 * 60 * 24 * 30 * 36));
+                .setTimeout(saTokenTimeoutSeconds));
         return StpUtil.getTokenInfo();
     }
 
@@ -153,7 +157,7 @@ public class UserService {
         loginLockoutService.clear(phone);
         StpUtil.login(databaseUser.id(), new SaLoginModel()
                 .setDevice(LoginDevice.BROWSER)
-                .setTimeout(60 * 60 * 24 * 30 * 36));
+                .setTimeout(saTokenTimeoutSeconds));
         return StpUtil.getTokenInfo();
     }
 
@@ -186,7 +190,7 @@ public class UserService {
         loginLockoutService.clear(restInput.getPhone());
         StpUtil.login(save.id(), new SaLoginModel()
                 .setDevice(LoginDevice.BROWSER)
-                .setTimeout(60 * 60 * 24 * 30 * 36));
+                .setTimeout(saTokenTimeoutSeconds));
         return StpUtil.getTokenInfo();
     }
 

@@ -2,11 +2,18 @@ import { Platform } from "react-native";
 
 /**
  * App channel for digital-goods gating.
- * iOS App Store builds must set EXPO_PUBLIC_APP_CHANNEL=appstore so spoofing
- * X-Client-Platform: android cannot bypass IosDigitalGoodsGuard.
+ * iOS production / production-vn defaults to appstore (via EXPO_PUBLIC_APP_VARIANT)
+ * so spoofing X-Client-Platform alone cannot bypass IosDigitalGoodsGuard.
+ * Android never reports appstore — even if EXPO_PUBLIC_APP_CHANNEL was set that way in EAS.
  */
 export function resolveAppChannel(): string {
   const fromEnv = (process.env.EXPO_PUBLIC_APP_CHANNEL || "").trim();
+  if (Platform.OS === "android") {
+    if (fromEnv && fromEnv.toLowerCase() !== "appstore") {
+      return fromEnv;
+    }
+    return "android";
+  }
   if (fromEnv) return fromEnv;
   if (Platform.OS === "ios") {
     const variant = (process.env.EXPO_PUBLIC_APP_VARIANT || "").trim();

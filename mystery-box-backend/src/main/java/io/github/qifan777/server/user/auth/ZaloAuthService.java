@@ -22,6 +22,7 @@ import io.qifan.infrastructure.common.constants.ResultCode;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -44,6 +45,9 @@ public class ZaloAuthService {
     private final ReferralService referralService;
     private final RiskControlService riskControlService;
 
+    @Value("${sa-token.timeout:2592000}")
+    private long saTokenTimeoutSeconds;
+
     public SaTokenInfo login(ZaloAuthForFrontController.ZaloLoginRequest request, String deviceId) {
         String accessToken = resolveAccessToken(request);
         ZaloOAuthClient.ZaloProfile profile = zaloOAuthClient.fetchProfile(accessToken);
@@ -57,7 +61,7 @@ public class ZaloAuthService {
         }
         StpUtil.login(user.id(), new SaLoginModel()
                 .setDevice(LoginDevice.APP_ZALO)
-                .setTimeout(60L * 60 * 24 * 30 * 36));
+                .setTimeout(saTokenTimeoutSeconds));
         riskControlService.touchDeviceLink(user.id(), deviceId);
         return StpUtil.getTokenInfo();
     }

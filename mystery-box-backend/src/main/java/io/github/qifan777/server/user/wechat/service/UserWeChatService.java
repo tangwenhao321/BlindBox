@@ -22,9 +22,10 @@ import io.github.qifan777.server.user.wechat.entity.UserWeChatTable;
 import io.github.qifan777.server.user.wechat.model.UserWeChatRegisterInput;
 import io.github.qifan777.server.user.wechat.model.UserWeChatRegisterInputV2;
 import io.github.qifan777.server.user.wechat.repository.UserWeChatRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Transactional
 public class UserWeChatService {
 
@@ -42,6 +43,9 @@ public class UserWeChatService {
     private final ApplicationEventPublisher eventPublisher;
     private final ReferralService referralService;
     private final RiskControlService riskControlService;
+
+    @Value("${sa-token.timeout:2592000}")
+    private long saTokenTimeoutSeconds;
 
     @SneakyThrows
     public SaTokenInfo register(UserWeChatRegisterInput registerInput) {
@@ -81,7 +85,7 @@ public class UserWeChatService {
                     }));
                 });
         StpUtil.login(userWeChat.user().id(), new SaLoginModel().setDevice(LoginDevice.MP_WECHAT)
-                .setTimeout(60 * 60 * 24 * 30 * 36));
+                .setTimeout(saTokenTimeoutSeconds));
         referralService.bindInviterOnRegister(userWeChat.user().id(), registerInput.getInviteCode());
         riskControlService.touchDeviceLink(userWeChat.user().id(), deviceId);
         return StpUtil.getTokenInfo();

@@ -63,6 +63,8 @@ class RefundRecordServiceTest {
     @Mock private ObjectProvider<io.github.qifan777.server.warehouse.WarehouseShipService> warehouseShipService;
     @Mock private io.github.qifan777.server.warehouse.WarehouseShipService warehouseShip;
     @Mock private ReferralService referralService;
+    @Mock private io.github.qifan777.server.coupon.root.service.CouponService couponService;
+    @Mock private io.github.qifan777.server.infrastructure.util.ClientIpResolver clientIpResolver;
 
     @InjectMocks
     private RefundRecordService refundRecordService;
@@ -73,6 +75,9 @@ class RefundRecordServiceTest {
         ReflectionTestUtils.setField(refundRecordService, "wxMchId", "xxxx-unset");
         lenient().when(warehouseShipService.getIfAvailable()).thenReturn(warehouseShip);
         lenient().when(refundRecordRepository.claimSuccess(anyString(), any())).thenReturn(true);
+        lenient().when(refundRecordRepository.claimForGatewaySubmit(anyString())).thenReturn(true);
+        lenient().when(clientIpResolver.resolveForRefund()).thenReturn("10.0.0.1");
+        lenient().when(marketProperties.formatAmount(any(BigDecimal.class))).thenReturn("10");
     }
 
     @Test
@@ -83,19 +88,36 @@ class RefundRecordServiceTest {
         when(mysteryBoxOrderRepository.findByIdForFront("order-vn-1")).thenReturn(order);
         when(marketProperties.getCurrency()).thenReturn("VND");
         when(vnpayPaymentGateway.refund(
-                eq("order-vn-1"), eq("vnp-tx-1"), eq("refund-vn-1"), any(BigDecimal.class), anyString()))
+                eq("order-vn-1"), eq("vnp-tx-1"), eq("refund-vn-1"), any(BigDecimal.class), anyString(), any()))
                 .thenReturn(Optional.of(new PaymentRefundResult("refund-vn-1", "gw-ref-1", true, "ok")));
 
         refundRecordService.approve("refund-vn-1");
 
         verify(userWalletService, never()).credit(anyString(), any(), anyString(), anyString(), anyString());
         verify(vnpayPaymentGateway).refund(
-                eq("order-vn-1"), eq("vnp-tx-1"), eq("refund-vn-1"), any(BigDecimal.class), anyString());
+                eq("order-vn-1"), eq("vnp-tx-1"), eq("refund-vn-1"), any(BigDecimal.class), eq("10.0.0.1"), any());
         verify(prizeStockService).rollbackByOrderId("order-vn-1");
         verify(warehouseShip).cancelPendingForOrder("order-vn-1");
         verify(mysteryBoxOrderRepository).changeStatus("order-vn-1", DictConstants.ProductOrderStatus.REFUNDED);
         verify(refundRecordRepository).claimSuccess("refund-vn-1", "gw-ref-1");
         verify(mysteryBoxUserPityService).clearOnRefund("user-1", "box-1");
+    }
+
+    @Test
+    void approve_weChatUnset_keepsRefundingWithoutWalletCredit() {
+        RefundRecord record = refundRecord("refund-wx-unset", "order-wx-unset", "用户申请退款");
+        when(refundRecordRepository.findById(eq("refund-wx-unset"), any())).thenReturn(Optional.of(record));
+        MysteryBoxOrder order = orderWithPayType(
+                "order-wx-unset", "user-wxu", DictConstants.PayType.WE_CHAT_PAY, null);
+        when(mysteryBoxOrderRepository.findByIdForFront("order-wx-unset")).thenReturn(order);
+
+        org.junit.jupiter.api.Assertions.assertThrows(
+                io.qifan.infrastructure.common.exception.BusinessException.class,
+                () -> refundRecordService.approve("refund-wx-unset"));
+
+        verify(userWalletService, never()).credit(anyString(), any(), anyString(), anyString(), anyString());
+        verify(refundRecordRepository).save(any(RefundRecord.class));
+        verify(vnpayPaymentGateway, never()).refund(anyString(), any(), anyString(), any(), anyString(), any());
     }
 
     @Test
@@ -113,7 +135,7 @@ class RefundRecordServiceTest {
 
         verify(userWalletService).credit(
                 eq("user-2"), eq(BigDecimal.TEN), eq("REFUND"), anyString(), eq("order-mock-1"));
-        verify(vnpayPaymentGateway, never()).refund(anyString(), any(), anyString(), any(), anyString());
+        verify(vnpayPaymentGateway, never()).refund(anyString(), any(), anyString(), any(), anyString(), any());
         verify(prizeStockService).rollbackByOrderId("order-mock-1");
         verify(mysteryBoxOrderRepository).changeStatus("order-mock-1", DictConstants.ProductOrderStatus.REFUNDED);
         verify(refundRecordRepository).claimSuccess("refund-mock-1", null);

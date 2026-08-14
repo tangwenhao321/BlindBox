@@ -24,6 +24,7 @@ import { SubPageHeader } from "./ui/SubPageHeader";
 import { ScreenScaffold } from "./ui/ScreenScaffold";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { useAppTheme } from "../context/ThemeContext";
+import { RevealSuspenseFallback } from "./RevealSuspenseFallback";
 import {
   OrderDetailsActions,
   OrderDetailsHeader,
@@ -109,7 +110,7 @@ type Props = {
 
 export function OrderDetailsView(props: Props) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RevealSuspenseFallback />}>
       <OrderDetailsViewInner {...props} />
     </Suspense>
   );

@@ -32,6 +32,7 @@ import { shouldAskRevealPreference, markRevealPreferenceAsked } from "../utils/r
 import { setRevealAnimationsEnabled, setRevealTextOnlyMode } from "../utils/revealSettings";
 import { useAppPublicConfig } from "../hooks/useAppPublicConfig";
 import { RevealCoachTips } from "./ui/RevealCoachTips";
+import { RevealSuspenseFallback } from "./RevealSuspenseFallback";
 
 type Props = {
   visible: boolean;
@@ -58,7 +59,7 @@ type Props = {
 
 export function OrderResultModal(props: Props) {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RevealSuspenseFallback />}>
       <OrderResultModalInner {...props} />
     </Suspense>
   );

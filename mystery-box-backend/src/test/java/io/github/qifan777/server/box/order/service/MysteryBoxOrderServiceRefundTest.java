@@ -67,6 +67,7 @@ class MysteryBoxOrderServiceRefundTest {
     @Mock private UserWalletService userWalletService;
     @Mock private PlatformTransactionManager transactionManager;
     @Mock private org.springframework.beans.factory.ObjectProvider<io.github.qifan777.server.warehouse.WarehouseShipService> warehouseShipService;
+    @Mock private io.github.qifan777.server.infrastructure.util.ClientIpResolver clientIpResolver;
 
     @InjectMocks
     private MysteryBoxOrderRefundService refundService;
@@ -75,6 +76,7 @@ class MysteryBoxOrderServiceRefundTest {
     void setUp() {
         ReflectionTestUtils.setField(refundService, "paymentMockEnabled", false);
         ReflectionTestUtils.setField(refundService, "wxMchId", "xxxx-unset");
+        when(clientIpResolver.resolveForRefund()).thenReturn("10.0.0.1");
     }
 
     @Test
@@ -132,6 +134,30 @@ class MysteryBoxOrderServiceRefundTest {
 
         verify(userWalletService, never()).credit(anyString(), any(), anyString(), anyString(), anyString());
         verify(refundRecordService).finalizeLocalRefundSuccess(any(), eq(order), eq("g"), eq(false));
+    }
+
+    @Test
+    void pityRefund_weChatUnset_keepsRefundingWithoutWalletCredit() {
+        MysteryBoxOrder order = order(
+                "order-pity-wx",
+                "user-wx",
+                DictConstants.ProductOrderStatus.TO_BE_PAID,
+                DictConstants.PayType.WE_CHAT_PAY,
+                null,
+                true);
+        when(mysteryBoxOrderRepository.findByIdForFront("order-pity-wx")).thenReturn(order);
+        when(refundRecordService.isVnPayChannel(DictConstants.PayType.WE_CHAT_PAY)).thenReturn(false);
+
+        ReflectionTestUtils.invokeMethod(
+                refundService,
+                "doExecutePityStockGatewayRefund",
+                "order-pity-wx",
+                "wx-tx",
+                "wechat");
+
+        verify(userWalletService, never()).credit(anyString(), any(), anyString(), anyString(), anyString());
+        verify(refundRecordRepository, org.mockito.Mockito.atLeastOnce()).save(any(RefundRecord.class));
+        verify(refundRecordService, never()).finalizeLocalRefundSuccess(any(), any(), any(), anyBoolean());
     }
 
     @Test

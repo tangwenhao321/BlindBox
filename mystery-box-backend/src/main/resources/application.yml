@@ -202,6 +202,9 @@ app:
     fee-rate: ${MARKETPLACE_FEE_RATE:0.05}
     payout-gateway: ${MARKETPLACE_PAYOUT_GATEWAY:wallet}
     external-payout-timeout-hours: ${MARKETPLACE_EXTERNAL_PAYOUT_TIMEOUT_HOURS:24}
+  # Fallback IP for VNPay refund/query when no HTTP request is bound (jobs).
+  vnpay:
+    refund-client-ip: ${APP_VNPAY_REFUND_CLIENT_IP:0.0.0.0}
   # local | ekyc_vendor — local = checksum/format validation; ekyc_vendor requires vendor wiring
   identity:
     provider: ${APP_IDENTITY_PROVIDER:local}

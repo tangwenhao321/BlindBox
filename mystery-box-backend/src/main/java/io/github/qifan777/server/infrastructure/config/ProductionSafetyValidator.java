@@ -118,6 +118,12 @@ public class ProductionSafetyValidator {
     @Value("${security.rate-limit.distributed:false}")
     private boolean rateLimitDistributed;
 
+    @Value("${security.ios.app-attest.enabled:false}")
+    private boolean iosAppAttestEnabled;
+
+    @Value("${security.ios.app-attest.require-header:false}")
+    private boolean iosAppAttestRequireHeader;
+
     private final Environment environment;
 
     public ProductionSafetyValidator(Environment environment) {
@@ -214,7 +220,29 @@ public class ProductionSafetyValidator {
         validateMarketplacePayoutGateway();
         warnLocalIdentityOnProdVn();
         refuseUnreadyEkycVendor();
+        warnAppAttestScaffold();
+        warnVnEsmsUnwired();
         log.info("Production safety checks passed (payment.mock-enabled=false, OTP configured, CORS restricted)");
+    }
+
+    private void warnAppAttestScaffold() {
+        if (iosAppAttestEnabled && iosAppAttestRequireHeader) {
+            log.error(
+                    "security.ios.app-attest.enabled=true and require-header=true, but Apple DeviceCheck / "
+                            + "App Attest server verify is NOT implemented — header presence only (scaffold). "
+                            + "Do not treat this as cryptographic attestation until verify is wired.");
+        }
+    }
+
+    private void warnVnEsmsUnwired() {
+        if (!isVnEsmsProvider()) {
+            return;
+        }
+        if (!zaloEnabled) {
+            log.error(
+                    "sms.provider=vn_esms but app.auth.zalo-enabled=false: VnSmsProvider never sends until "
+                            + "partner HTTP exists — OTP will fail. Wire eSMS partner client or enable Zalo auth.");
+        }
     }
 
     private void warnLocalIdentityOnProdVn() {

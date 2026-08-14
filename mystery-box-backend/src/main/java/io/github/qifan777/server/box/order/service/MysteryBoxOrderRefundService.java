@@ -15,6 +15,7 @@ import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.model.WxPayPropertiesExtension;
 import io.github.qifan777.server.infrastructure.money.MoneyRounding;
+import io.github.qifan777.server.infrastructure.util.ClientIpResolver;
 import io.github.qifan777.server.notification.service.UserNotificationService;
 import io.github.qifan777.server.payment.gateway.PaymentRefundResult;
 import io.github.qifan777.server.payment.gateway.VNPayPaymentGateway;
@@ -67,6 +68,7 @@ public class MysteryBoxOrderRefundService {
     private final VNPayPaymentGateway vnpayPaymentGateway;
     private final UserWalletService userWalletService;
     private final PlatformTransactionManager transactionManager;
+    private final ClientIpResolver clientIpResolver;
     /** Lazy to avoid cycle with WarehouseShipService → MysteryBoxOrderService. */
     private final ObjectProvider<io.github.qifan777.server.warehouse.WarehouseShipService> warehouseShipService;
 
@@ -109,7 +111,8 @@ public class MysteryBoxOrderRefundService {
             refundRecordRepository.save(refundRecord);
             throw new BusinessException("MoMo 退款通道未开通，已保留退款工单请人工处理");
         }
-        boolean walletOrMock = paymentMockEnabled || (!vnPayChannel && isWxUnset());
+        // Wallet only for mock pay — never treat WeChat-unset as balance/wallet for gateway orders.
+        boolean walletOrMock = paymentMockEnabled;
         // Sync paths (mock/wallet + VNPay) restore stock here; WeChat leaves rollback to refund notify.
         if ((walletOrMock || vnPayChannel)
                 && (ProductOrderStatus.TO_BE_DELIVERED.equals(mysteryBoxOrder.status())
@@ -131,7 +134,7 @@ public class MysteryBoxOrderRefundService {
                     tradeNo,
                     refundOrderId,
                     payAmount,
-                    "127.0.0.1",
+                    clientIpResolver.resolveForRefund(),
                     preferredVnPayTxnTime(mysteryBoxOrder));
             PaymentRefundResult result = refundResult.orElseThrow(() -> new BusinessException("VNPay 退款失败"));
             if (!result.success()) {
@@ -141,6 +144,10 @@ public class MysteryBoxOrderRefundService {
             refundRecordService.finalizeLocalRefundSuccess(
                     refundRecord, mysteryBoxOrder, result.gatewayRefundId(), false);
             return refundOrderId;
+        }
+        if (isWxUnset()) {
+            refundRecordRepository.save(refundRecord);
+            throw new BusinessException("微信退款通道未配置，已保留退款工单请人工处理");
         }
         WxPayRefundV3Request wxPayRefundV3Request = new WxPayRefundV3Request()
                 .setOutTradeNo(id)
@@ -237,7 +244,7 @@ public class MysteryBoxOrderRefundService {
             if (refundRecordService.isMoMoRefundUnsupported(payType)) {
                 refundRecordRepository.save(refundRecord);
                 log.warn("Paid-after-cancel MoMo refund ticket kept REFUNDING orderId={}", orderId);
-            } else if (paymentMockEnabled || (!vnPayChannel && isWxUnset())) {
+            } else if (paymentMockEnabled) {
                 if (payAmount != null && payAmount.compareTo(BigDecimal.ZERO) > 0) {
                     userWalletService.credit(userId, payAmount, "REFUND", "超时取消后到账自动退款", orderId);
                 }
@@ -249,7 +256,7 @@ public class MysteryBoxOrderRefundService {
                         transactionId,
                         refundOrderId,
                         payAmount,
-                        "127.0.0.1",
+                        clientIpResolver.resolveForRefund(),
                         preferredVnPayTxnTime(mysteryBoxOrder));
                 PaymentRefundResult result = refundResult.orElseThrow(() -> new BusinessException("VNPay 退款失败"));
                 if (!result.success()) {
@@ -258,6 +265,9 @@ public class MysteryBoxOrderRefundService {
                 refundRecordService.finalizeLocalRefundSuccess(
                         refundRecord, mysteryBoxOrder, result.gatewayRefundId(), false);
                 refundSettled = true;
+            } else if (isWxUnset()) {
+                refundRecordRepository.save(refundRecord);
+                throw new BusinessException("微信退款通道未配置，已保留退款工单请人工处理");
             } else {
                 // Align with pity / admin paid-cancel: submit WeChat refund immediately.
                 BigDecimal safeAmount = payAmount == null ? BigDecimal.ZERO : payAmount;
@@ -389,12 +399,12 @@ public class MysteryBoxOrderRefundService {
         boolean vnPayChannel = refundRecordService.isVnPayChannel(payType);
         boolean refundSettled = false;
         try {
-            // Align with RefundRecordService.approve: never wallet-credit VN_PAY when wx is unset.
+            // Never wallet-credit WeChat/gateway when wx is unset — keep REFUNDING for ops.
             if (refundRecordService.isMoMoRefundUnsupported(payType)) {
                 refundRecordRepository.save(refundRecord);
                 mysteryBoxOrderRepository.changeStatus(orderId, ProductOrderStatus.CLOSED);
                 log.warn("Pity MoMo refund ticket kept REFUNDING orderId={}", orderId);
-            } else if (paymentMockEnabled || (!vnPayChannel && isWxUnset())) {
+            } else if (paymentMockEnabled) {
                 if (payAmount != null && payAmount.compareTo(BigDecimal.ZERO) > 0) {
                     userWalletService.credit(userId, payAmount, "REFUND", "保底库存不足自动退款", orderId);
                 }
@@ -407,7 +417,7 @@ public class MysteryBoxOrderRefundService {
                         transactionId,
                         refundOrderId,
                         payAmount,
-                        "127.0.0.1",
+                        clientIpResolver.resolveForRefund(),
                         preferredVnPayTxnTime(mysteryBoxOrder));
                 PaymentRefundResult result = refundResult.orElseThrow(() -> new BusinessException("VNPay 退款失败"));
                 if (!result.success()) {
@@ -416,6 +426,10 @@ public class MysteryBoxOrderRefundService {
                 refundRecordService.finalizeLocalRefundSuccess(
                         refundRecord, mysteryBoxOrder, result.gatewayRefundId(), false);
                 refundSettled = true;
+            } else if (isWxUnset()) {
+                refundRecordRepository.save(refundRecord);
+                mysteryBoxOrderRepository.changeStatus(orderId, ProductOrderStatus.CLOSED);
+                throw new BusinessException("微信退款通道未配置，已保留退款工单请人工处理");
             } else {
                 WxPayRefundV3Request wxPayRefundV3Request = new WxPayRefundV3Request()
                         .setOutTradeNo(orderId)

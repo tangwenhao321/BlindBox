@@ -81,4 +81,24 @@ class ProductionSafetyValidatorTest {
         ReflectionTestUtils.setField(validator, "identityProvider", "ekyc_vendor");
         method.invoke(validator);
     }
+
+    @Test
+    void warnAppAttestScaffoldInvokesWhenEnabledAndRequireHeader() throws Exception {
+        ProductionSafetyValidator validator = new ProductionSafetyValidator(new MockEnvironment());
+        ReflectionTestUtils.setField(validator, "iosAppAttestEnabled", true);
+        ReflectionTestUtils.setField(validator, "iosAppAttestRequireHeader", true);
+        Method method = ProductionSafetyValidator.class.getDeclaredMethod("warnAppAttestScaffold");
+        method.setAccessible(true);
+        method.invoke(validator);
+    }
+
+    @Test
+    void warnVnEsmsUnwiredInvokesWhenProviderSetWithoutZalo() throws Exception {
+        ProductionSafetyValidator validator = new ProductionSafetyValidator(new MockEnvironment());
+        ReflectionTestUtils.setField(validator, "smsProvider", "vn_esms");
+        ReflectionTestUtils.setField(validator, "zaloEnabled", false);
+        Method method = ProductionSafetyValidator.class.getDeclaredMethod("warnVnEsmsUnwired");
+        method.setAccessible(true);
+        method.invoke(validator);
+    }
 }

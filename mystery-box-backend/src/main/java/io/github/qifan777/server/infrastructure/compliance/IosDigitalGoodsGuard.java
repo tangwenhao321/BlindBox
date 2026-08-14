@@ -16,13 +16,18 @@ import java.util.HexFormat;
 /**
  * App Store Guideline 3.1.1 — block digital wallet / fragment loops for iOS App Store clients.
  * <p>
- * Signals (any may trigger the block):
+ * Blocks when:
  * <ul>
  *   <li>{@code X-Client-Platform: ios}</li>
  *   <li>missing platform when {@code fail-closed=true}</li>
- *   <li>{@code X-App-Channel} matching App Store channel (blocks platform spoof)</li>
  * </ul>
- * Optional HMAC attestation and App Attest header raise the bar until full Apple verify is wired.
+ * {@code X-App-Channel: appstore} alone does <strong>not</strong> block Android (historical EAS
+ * builds sometimes set that env for all platforms). Channel may still be inspected for App Attest
+ * scaffolding once the client is already treated as iOS / fail-closed.
+ * <p>
+ * <strong>App Attest scaffold is non-verifying:</strong> a non-blank {@code X-Apple-App-Attest}
+ * header (or interim HMAC shape) is accepted; Apple DeviceCheck / App Attest server verify is
+ * <em>not</em> implemented yet.
  */
 @Component
 public class IosDigitalGoodsGuard {
@@ -38,9 +43,6 @@ public class IosDigitalGoodsGuard {
 
     @Value("${security.ios.digital-goods.require-attestation:false}")
     private boolean requireAttestation;
-
-    @Value("${security.ios.digital-goods.app-store-channel:appstore}")
-    private String appStoreChannel;
 
     @Value("${security.client-attestation-secret:}")
     private String attestationSecret;
@@ -59,23 +61,19 @@ public class IosDigitalGoodsGuard {
     public void rejectIfIosAppStoreClient() {
         HttpServletRequest request = currentRequest();
         String platform = resolveHeader(request, HEADER);
-        String channel = resolveHeader(request, CHANNEL_HEADER);
+        // Never block Android — even if X-App-Channel is mis-set to appstore.
+        if (platform != null && platform.equalsIgnoreCase("android")) {
+            return;
+        }
         boolean treatAsAppStore =
                 (platform != null && platform.equalsIgnoreCase("ios"))
-                        || (failClosed && !StringUtils.hasText(platform))
-                        || isAppStoreChannel(channel);
+                        || (failClosed && !StringUtils.hasText(platform));
         if (!treatAsAppStore) {
             return;
         }
         assertAppAttestIfRequired(request);
         assertAttestationIfRequired(request);
         throw new BusinessException("IOS_DIGITAL_GOODS_BLOCKED");
-    }
-
-    private boolean isAppStoreChannel(String channel) {
-        return StringUtils.hasText(appStoreChannel)
-                && StringUtils.hasText(channel)
-                && appStoreChannel.trim().equalsIgnoreCase(channel.trim());
     }
 
     private void assertAppAttestIfRequired(HttpServletRequest request) {
