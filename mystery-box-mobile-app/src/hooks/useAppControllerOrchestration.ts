@@ -92,6 +92,7 @@ export function useAppControllerOrchestration(): AppControllerOrchestrationResul
   const { wallet, newcomer, refreshServerNotifications, refreshWarehouseBadge, warehousePendingCount, warehousePendingCountApproximate } = account;
   const { loadBalanceLogs, resetWallet } = wallet;
   const warehouseOrderQuery = useOrderWarehouseItems(token);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   const warehouseOrderItems = warehouseOrderQuery.data?.items ?? [];
   const warehouseTotalQuery = useQuery({
     queryKey: queryKeys.warehouse.count(token, false),

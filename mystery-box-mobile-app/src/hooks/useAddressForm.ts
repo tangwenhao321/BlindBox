@@ -6,10 +6,6 @@ import { getAppLocale } from "../utils/i18nLocale";
 
 export const VI_ADDRESS_SEP = " · ";
 
-function regionOptionsForLocale() {
-  return getAppLocale() === "vi-VN" ? getVietnamRegionOptions() : CHINA_REGION_OPTIONS;
-}
-
 function splitChinaAddressDetails(details: string) {
   const trimmed = details.trim();
   const options = CHINA_REGION_OPTIONS;

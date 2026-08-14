@@ -11,5 +11,7 @@ export function useThemedStyles<T extends NamedStyles<T>>(
   deps: readonly unknown[] = [],
 ): T {
   const { colors } = useAppTheme();
+  // factory is a stable module-level builder; deps spread is the public extension API.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- themed StyleSheet factory API
   return useMemo(() => StyleSheet.create(factory(colors)), [colors, ...deps]);
 }

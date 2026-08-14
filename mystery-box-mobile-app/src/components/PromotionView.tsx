@@ -85,6 +85,8 @@ export function PromotionView({ onBack, embedded, referral, onRequireLogin }: Pr
 
   useEffect(() => {
     void reload();
+    // Reload when auth token changes; reload identity is intentionally omitted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- token-gated refresh only
   }, [token]);
 
   const invite = async () => {

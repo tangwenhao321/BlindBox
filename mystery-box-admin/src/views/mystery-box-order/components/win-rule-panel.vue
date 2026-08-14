@@ -22,6 +22,8 @@ type WinRule = {
   remainingCount: number
   enabled: boolean
   approved: boolean
+  approvedById?: string
+  approvedTime?: string
   remark: string
   createdTime?: string
 }
@@ -59,6 +61,7 @@ const isMessageBoxDismiss = (e: unknown): boolean => e === 'cancel' || e === 'cl
 
 const loading = ref(false)
 const logLoading = ref(false)
+const opLogLoading = ref(false)
 const submitting = ref(false)
 const rules = ref<WinRule[]>([])
 const hitLogs = ref<WinHitLog[]>([])
@@ -67,6 +70,13 @@ const metrics = ref<Record<string, number>>({})
 const logQuery = reactive({
   userId: '',
   mysteryBoxOrderId: '',
+  startTime: '',
+  endTime: ''
+})
+const opLogQuery = reactive({
+  ruleId: '',
+  action: '',
+  operatorId: '',
   startTime: '',
   endTime: ''
 })
@@ -238,11 +248,23 @@ const loadHitLogs = async () => {
 }
 
 const loadOpLogs = async () => {
-  const res = await request({
-    url: '/admin/mystery-box-win-rule/op-log?limit=100',
-    method: 'get'
-  })
-  opLogs.value = Array.isArray(res) ? (res as WinOpLog[]) : []
+  opLogLoading.value = true
+  try {
+    const params = new URLSearchParams()
+    params.set('limit', '100')
+    if (opLogQuery.ruleId) params.set('ruleId', opLogQuery.ruleId)
+    if (opLogQuery.action) params.set('action', opLogQuery.action)
+    if (opLogQuery.operatorId) params.set('operatorId', opLogQuery.operatorId)
+    if (opLogQuery.startTime) params.set('createdTimeStart', formatDateTime(opLogQuery.startTime))
+    if (opLogQuery.endTime) params.set('createdTimeEnd', formatDateTime(opLogQuery.endTime))
+    const res = await request({
+      url: `/admin/mystery-box-win-rule/op-log?${params.toString()}`,
+      method: 'get'
+    })
+    opLogs.value = Array.isArray(res) ? (res as WinOpLog[]) : []
+  } finally {
+    opLogLoading.value = false
+  }
 }
 
 const loadMetrics = async () => {
@@ -261,6 +283,15 @@ const resetLogQuery = async () => {
   await loadHitLogs()
 }
 
+const resetOpLogQuery = async () => {
+  opLogQuery.ruleId = ''
+  opLogQuery.action = ''
+  opLogQuery.operatorId = ''
+  opLogQuery.startTime = ''
+  opLogQuery.endTime = ''
+  await loadOpLogs()
+}
+
 const createRule = async () => {
   if (!form.userId || !form.mysteryBoxId || !form.productId || form.remainingCount <= 0) {
     ElMessage.warning('请完整填写 userId / mysteryBoxId / productId 且次数大于 0')
@@ -276,7 +307,7 @@ const createRule = async () => {
   const productLabel =
     productOptions.value.find((it) => it.id === form.productId)?.label || form.productId
   await ElMessageBox.confirm(
-    `请确认创建指定中奖规则（将改变抽赏结果，需合规披露）：\n\n用户：${userLabel}\n盲盒：${boxLabel}\n商品：${productLabel}\n生效次数：${form.remainingCount}\n备注：${form.remark.trim()}\n\n命中后将替换订单项中奖结果中的第一个商品。`,
+    `请确认创建指定中奖规则（将改变抽赏结果，需合规披露）：\n\n用户：${userLabel}\n盲盒：${boxLabel}\n商品：${productLabel}\n生效次数：${form.remainingCount}\n备注：${form.remark.trim()}\n\n创建后为「待审批 / 停用」，审批通过后才会启用并生效。`,
     '确认创建规则',
     { type: 'warning', confirmButtonText: '确认创建', cancelButtonText: '取消' }
   )
@@ -294,9 +325,9 @@ const createRule = async () => {
         remark: form.remark
       }
     })
-    ElMessage.success('规则创建成功')
+    ElMessage.success('规则已创建（待审批，审批后才会启用）')
     resetForm()
-    await loadRules()
+    await Promise.all([loadRules(), loadOpLogs()])
   } catch (e: unknown) {
     if (isOtpRequiredError(e)) {
       ElMessage.warning(OTP_REQUIRED_HINT)
@@ -307,6 +338,10 @@ const createRule = async () => {
 }
 
 const toggleEnabled = async (row: WinRule) => {
+  if (!row.approved) {
+    ElMessage.warning('规则尚未审批，不能启用；请先点击「审批」')
+    return
+  }
   try {
     await request({
       url: `/admin/mystery-box-win-rule/${row.id}/enable?enabled=${!row.enabled}`,
@@ -314,7 +349,7 @@ const toggleEnabled = async (row: WinRule) => {
       headers: securedHeaders()
     })
     ElMessage.success('状态更新成功')
-    await loadRules()
+    await Promise.all([loadRules(), loadOpLogs()])
   } catch (e: unknown) {
     if (isOtpRequiredError(e)) {
       ElMessage.warning(OTP_REQUIRED_HINT)
@@ -324,14 +359,20 @@ const toggleEnabled = async (row: WinRule) => {
 
 const approveRule = async (row: WinRule) => {
   try {
+    await ElMessageBox.confirm(
+      `审批通过后规则将自动启用并可能改变抽赏结果。\n\n规则ID：${row.id}\n用户：${row.userId}\n备注：${row.remark || '-'}`,
+      '确认审批启用',
+      { type: 'warning', confirmButtonText: '审批并启用', cancelButtonText: '取消' }
+    )
     await request({
       url: `/admin/mystery-box-win-rule/${row.id}/approve`,
       method: 'post',
       headers: securedHeaders()
     })
-    ElMessage.success('规则已审批')
-    await loadRules()
+    ElMessage.success('规则已审批并启用')
+    await Promise.all([loadRules(), loadOpLogs()])
   } catch (e: unknown) {
+    if (isMessageBoxDismiss(e)) return
     if (isOtpRequiredError(e)) {
       ElMessage.warning(OTP_REQUIRED_HINT)
     }
@@ -347,7 +388,7 @@ const deleteRule = async (row: WinRule) => {
       headers: securedHeaders()
     })
     ElMessage.success('删除成功')
-    await loadRules()
+    await Promise.all([loadRules(), loadOpLogs()])
   } catch (e: unknown) {
     if (isMessageBoxDismiss(e)) return
     if (isOtpRequiredError(e)) {
@@ -451,7 +492,7 @@ onMounted(async () => {
       </el-form-item>
     </el-form>
     <el-alert
-      title="合规：生产默认 app.fairness.allow-win-rule-override=false，开启前需法务批准；备注≥8字；操作/命中需可导出审计。命中后会替换中奖结果中的第一个商品。"
+      title="合规流程：新建规则默认为「待审批 / 停用」→ 审批通过后自动启用；未审批不能启用。生产默认 app.fairness.allow-win-rule-override=false；备注≥8字；操作/命中日志可筛选查询并可导出 CSV。"
       type="warning"
       show-icon
       :closable="false"
@@ -471,20 +512,30 @@ onMounted(async () => {
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="审批" width="110">
+      <el-table-column label="审批" width="200">
         <template #default="{ row }">
           <el-tag :type="row.approved ? 'success' : 'warning'">
             {{ row.approved ? '已审批' : '待审批' }}
           </el-tag>
+          <div v-if="row.approved && (row.approvedById || row.approvedTime)" class="approve-meta">
+            {{ row.approvedById || '-' }}
+            <span v-if="row.approvedTime"> · {{ row.approvedTime }}</span>
+          </div>
         </template>
       </el-table-column>
       <el-table-column prop="remark" label="备注" min-width="140" />
-      <el-table-column label="操作" width="250" fixed="right">
+      <el-table-column label="操作" width="260" fixed="right">
         <template #default="{ row }">
           <el-button v-if="!row.approved" link type="success" @click="approveRule(row)"
-            >审批</el-button
+            >审批并启用</el-button
           >
-          <el-button link type="primary" @click="toggleEnabled(row)">
+          <el-button
+            link
+            type="primary"
+            :disabled="!row.approved"
+            :title="row.approved ? '' : '须先审批'"
+            @click="toggleEnabled(row)"
+          >
             {{ row.enabled ? '停用' : '启用' }}
           </el-button>
           <el-button link type="danger" @click="deleteRule(row)">删除</el-button>
@@ -554,8 +605,67 @@ onMounted(async () => {
       <el-table-column prop="designatedProductId" label="指定商品ID" min-width="160" />
       <el-table-column prop="remark" label="备注" min-width="120" />
     </el-table>
+
     <div class="panel-title" style="margin-top: 18px">规则操作日志（最近 100 条）</div>
-    <el-table :data="opLogs" border>
+    <el-form :inline="true" class="rule-form">
+      <el-form-item label="规则ID">
+        <el-input
+          v-model="opLogQuery.ruleId"
+          clearable
+          placeholder="按规则ID筛选"
+          style="width: 200px"
+        />
+      </el-form-item>
+      <el-form-item label="动作">
+        <el-select
+          v-model="opLogQuery.action"
+          clearable
+          placeholder="动作"
+          style="width: 160px"
+        >
+          <el-option label="CREATE_PENDING" value="CREATE_PENDING" />
+          <el-option label="APPROVE" value="APPROVE" />
+          <el-option label="ENABLE" value="ENABLE" />
+          <el-option label="DISABLE" value="DISABLE" />
+          <el-option label="DELETE" value="DELETE" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="操作人">
+        <el-input
+          v-model="opLogQuery.operatorId"
+          clearable
+          placeholder="操作人ID"
+          style="width: 160px"
+        />
+      </el-form-item>
+      <el-form-item label="开始时间">
+        <el-date-picker
+          v-model="opLogQuery.startTime"
+          type="datetime"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          placeholder="开始时间"
+          clearable
+          style="width: 220px"
+        />
+      </el-form-item>
+      <el-form-item label="结束时间">
+        <el-date-picker
+          v-model="opLogQuery.endTime"
+          type="datetime"
+          value-format="YYYY-MM-DD HH:mm:ss"
+          format="YYYY-MM-DD HH:mm:ss"
+          placeholder="结束时间"
+          clearable
+          style="width: 220px"
+        />
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="loadOpLogs">查询</el-button>
+        <el-button @click="resetOpLogQuery">重置</el-button>
+      </el-form-item>
+    </el-form>
+    <el-table v-loading="opLogLoading" :data="opLogs" border>
       <el-table-column prop="createdTime" label="时间" min-width="170" />
       <el-table-column prop="ruleId" label="规则ID" min-width="180" />
       <el-table-column prop="action" label="动作" min-width="120" />
@@ -579,5 +689,13 @@ onMounted(async () => {
 
 .rule-form {
   margin-bottom: 12px;
+}
+
+.approve-meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #909399;
+  line-height: 1.3;
+  word-break: break-all;
 }
 </style>

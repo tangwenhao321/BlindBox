@@ -2,6 +2,21 @@
 
 Micrometer counters and gauges exposed by the mystery-box backend. Wire these into Prometheus/Grafana (or your APM) and set alerts before production traffic.
 
+## Marketplace chat SSE
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `mystery_box.marketplace.chat.sse.active` | Gauge | Open chat SSE connections |
+| `mystery_box.marketplace.chat.sse.opened` | Counter | Connections opened |
+| `mystery_box.marketplace.chat.sse.closed` | Counter | Connections closed |
+| `mystery_box.marketplace.chat.sse.broadcasts` | Counter | Broadcast fan-outs |
+| `mystery_box.marketplace.chat.sse.quota_rejected` | Counter | Quota / IP / listing caps hit |
+
+**Suggested alerts**
+
+- **Quota rejects**: `rate(mystery_box_marketplace_chat_sse_quota_rejected_total[5m]) > 0` sustained — raise caps or investigate abuse.
+- **Active connections spike**: `mystery_box_marketplace_chat_sse_active > 250` (near global cap 300).
+
 ## Payment lifecycle
 
 | Metric | Type | Description |

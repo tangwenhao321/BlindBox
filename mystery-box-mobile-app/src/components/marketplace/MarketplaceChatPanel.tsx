@@ -103,6 +103,7 @@ export function MarketplaceChatPanel({
       listRef.current?.scrollToEnd({ animated: true });
     });
     return () => cancelAnimationFrame(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [visible, thread.length, messages[0]?.id]);
 
   const renderItem: ListRenderItem<MarketplaceChatMessage> = ({ item }) => {

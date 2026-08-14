@@ -33,6 +33,7 @@ export function useUserWallet(token: string) {
       return;
     }
     setCrashMonitoringUser({ id: userProfile.id, phone: userProfile.phone });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [token, userProfile?.id, userProfile?.phone]);
 
   const refreshBalance = useCallback(

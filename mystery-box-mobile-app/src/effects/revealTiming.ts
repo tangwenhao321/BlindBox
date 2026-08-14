@@ -8,7 +8,6 @@ import { getRuntimeRevealRhythmPreset, rhythmPresetScale } from "../utils/reveal
 import { mergeCeremonyTemplateScale } from "./revealCeremonyTemplate";
 import { resolveEffectiveCeremonyTemplateId } from "./revealCeremonyTemplateAuto";
 import { resolveActiveEmotionProfile } from "./revealEmotionProfiles";
-import { getRevealRemoteConfig } from "./revealRemote";
 import { resolveMemberRevealPerks } from "./revealMemberPerks";
 import { resolveOrientationEffectScale } from "./revealOrientationAdapt";
 

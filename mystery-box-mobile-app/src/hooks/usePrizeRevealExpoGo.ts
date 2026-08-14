@@ -1,3 +1,11 @@
+/**
+ * QUARANTINED — Expo Go lightweight reveal path (RN Animated, no Reanimated worklets).
+ *
+ * Do not import this hook from product UI. The sole selection gate is
+ * `resolvePreferClassicRevealDriver` / `usePrizeReveal` in `./usePrizeReveal`.
+ * Production and dev-client builds use the lazy Reanimated driver instead;
+ * this module stays only so Expo Go (`Constants.appOwnership === "expo"`) can run.
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Vibration } from "react-native";
 import type { Product } from "../types";
@@ -52,7 +60,7 @@ type Options = {
   onRevealComplete?: () => void;
 };
 
-/** Expo Go: React Native Animated 开箱（不依赖 Reanimated worklet）。 */
+/** Quarantined Expo Go driver — mounted only via the single gate in usePrizeReveal. */
 export function usePrizeRevealExpoGo({
   products,
   reduceMotion,
@@ -91,7 +99,10 @@ export function usePrizeRevealExpoGo({
     if (!product) return resolveCeremonyTier({ id: "", name: "", price: 0 } as Product, drawProducts);
     return resolveCeremonyTier(product, drawProducts ?? products);
   }, [products, drawProducts]);
-  const surpriseThemeId = useMemo(() => rollSurpriseThemeId(), [orderId]);
+  const surpriseThemeId = useMemo(() => {
+    void orderId;
+    return rollSurpriseThemeId();
+  }, [orderId]);
   const revealTheme = useMemo(
     () =>
       resolveRevealTheme({
@@ -141,7 +152,7 @@ export function usePrizeRevealExpoGo({
       : i18n.t("revealA11y.gotPrizeNoName", { tier: label });
     queueRevealA11yAnnounce(msg);
     onRevealComplete?.();
-  }, [onRevealComplete, prizeName, products, tier, revealIndex, totalReveals]);
+  }, [onRevealComplete, prizeName, products, tier]);
 
   const stopAll = useCallback((hard = false) => {
     playingRef.current = false;
@@ -246,6 +257,7 @@ export function usePrizeRevealExpoGo({
         finishReveal();
       }, totalMs);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [
       products.length,
       pacing,

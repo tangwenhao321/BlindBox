@@ -50,6 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    // eslint-disable-next-line no-console -- intentional diagnostics
     console.error("App render error", error, info.componentStack);
     reportAppError(error, info.componentStack?.slice(0, 120));
   }

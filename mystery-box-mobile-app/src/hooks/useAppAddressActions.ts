@@ -1,8 +1,8 @@
 import { useConfirmDialog } from "../context/ConfirmDialogContext";
 import { parseError } from "../api";
 import i18n from "../i18n";
-import { deleteAddresses, setDefaultAddress } from "../services/addressService";import { toast } from "../utils/toast";
-import { mergeAddressForSave } from "./useAddressForm";
+import { deleteAddresses, setDefaultAddress } from "../services/addressService";
+import { toast } from "../utils/toast";
 import type { Address } from "../types";
 import type { AppView } from "../components/mainTabs/appViews";
 

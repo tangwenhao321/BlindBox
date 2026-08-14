@@ -49,7 +49,7 @@ export function MyOrdersView(props: Props) {
   const {
     displayRows,
     tabCounts,
-    orders,
+    orders: _orders,
     orderStatusFilter,
     setOrderStatusFilter,
     orderKeyword,

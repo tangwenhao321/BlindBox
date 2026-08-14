@@ -1,4 +1,3 @@
-import { detectLowPerfDevice } from "./deviceProfile";
 
 export type PerfDegradeLevel = 0 | 1 | 2 | 3;
 

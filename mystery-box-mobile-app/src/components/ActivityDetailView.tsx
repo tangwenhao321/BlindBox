@@ -35,8 +35,13 @@ type BoxCard = {
   price?: number;
 };
 
-function formatCountdown(endTime: string, endedLabel: string, partsLabel: (h: number, m: number, s: number) => string) {
-  const diff = new Date(endTime).getTime() - Date.now();
+function formatCountdown(
+  endTime: string,
+  endedLabel: string,
+  partsLabel: (h: number, m: number, s: number) => string,
+  nowMs: number,
+) {
+  const diff = new Date(endTime).getTime() - nowMs;
   if (diff <= 0) return endedLabel;
   const hours = Math.floor(diff / 3600000);
   const minutes = Math.floor((diff % 3600000) / 60000);
@@ -72,7 +77,7 @@ export function ActivityDetailView({ activity, catalogBoxes = [], onBack, onOpen
     () =>
       formatCountdown(activity.endTime, t("activity.ended"), (hours, minutes, seconds) =>
         t("activity.countdownParts", { hours, minutes, seconds }),
-      ),
+      now),
     [activity.endTime, now, t],
   );
 

@@ -93,6 +93,7 @@ export function useBoxDetailsScreenProps(offline: boolean) {
       offline,
       skipOnboardingCoach: boxViewProps.skipOnboardingCoach,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [boxViewProps, featureViewProps.onOpenFeature, goBack, isLoggedIn, offline, onOpenLogin],
   );
 }
@@ -102,6 +103,7 @@ export function useMyOrdersScreenProps() {
   const orderViewProps = useMainTabsOrderViewProps();
   const authToken = useAuthToken();
   const warehouseQuery = useOrderWarehouseItems(authToken);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   const warehouseItems = warehouseQuery.data?.items ?? [];
   const warehouseLoading = warehouseQuery.isLoading || warehouseQuery.isFetching;
   const warehouseTotalQuery = useQuery({
@@ -132,6 +134,7 @@ export function useMyOrdersScreenProps() {
 
   useEffect(() => {
     if (authToken) void warehouseQuery.refetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [authToken, warehouseQuery.refetch]);
 
   const listLoading = pageLoading || (authToken ? warehouseLoading && warehouseItems.length === 0 : false);
@@ -251,6 +254,7 @@ export function useRefundsScreenProps() {
         nav.navigate("orders");
       },
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [goBack, nav, orderViewProps.onOpenOrderDetails, orders],
   );
 }
@@ -330,6 +334,7 @@ export function useFavoritesScreenProps() {
       onGoBrowse: () => resetTab("home"),
       onRequireLogin: onOpenLogin,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [boxViewProps.onOpenDetails, catalogBoxes, goBack, onOpenLogin, resetTab],
   );
 }
@@ -426,6 +431,7 @@ export function useCouponsScreenProps() {
       onOpenBox: (boxId: string) => void boxViewProps.onOpenDetails(boxId),
       onRequireLogin: onOpenLogin,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [boxViewProps.onOpenDetails, goBack, onOpenLogin, resetTab, setView],
   );
 }
@@ -479,6 +485,7 @@ export function useActivityDetailScreenProps() {
       onBack: goBack,
       onOpenBox: (boxId: string) => void boxViewProps.onOpenDetails(boxId),
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [activityDetailProps.activity, activityDetailProps.catalogBoxes, boxViewProps.onOpenDetails, goBack],
   );
 }
@@ -503,6 +510,7 @@ export function useWelfareScreenProps() {
       onOpenCoupons: () => featureViewProps.onOpenFeature(FEATURE_KEYS.COUPONS),
       onRequireLogin: onOpenLogin,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [featureViewProps.onOpenFeature, goBack, onOpenLogin, t],
   );
 }

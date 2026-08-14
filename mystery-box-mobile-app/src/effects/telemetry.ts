@@ -12,6 +12,7 @@ export function trackEffectEvent(event: string, payload?: Record<string, unknown
     void recordRevealBehavior(behavior);
   }
   if (__DEV__) {
+    // eslint-disable-next-line no-console -- intentional diagnostics
     console.log("[effect]", event, merged);
   }
 }

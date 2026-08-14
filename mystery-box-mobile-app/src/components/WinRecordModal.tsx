@@ -85,7 +85,10 @@ export function WinRecordModal({ visible, boxId, token, products, onClose }: Pro
     [products, t],
   );
 
-  const lines = feed.length ? feed : loadError ? [] : fallbackLines;
+  const lines = useMemo(
+    () => (feed.length ? feed : loadError ? [] : fallbackLines),
+    [feed, loadError, fallbackLines],
+  );
   const filteredLines = useMemo(
     () => filterItemsByQuality(lines, qualityFilter),
     [lines, qualityFilter],

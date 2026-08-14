@@ -55,6 +55,8 @@ vi.mock("react", async (importOriginal) => {
 });
 
 function mountHook() {
+  // Test harness mounts the hook outside a component on purpose.
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- vitest harness
   useOfflineReconnect();
 }
 

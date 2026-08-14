@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { layout, spacing } from "../../styles/tokens";
+import { layout } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 
 type Props = {

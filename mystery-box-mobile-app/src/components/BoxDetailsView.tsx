@@ -129,7 +129,7 @@ export function BoxDetailsView(props: Props) {
 
   const products = activeBox.products || [];
   const hasAddress = addresses.length > 0 && !!selectedAddressId;
-  const [carouselIndex, setCarouselIndex] = useState(0);
+  const [_carouselIndex, setCarouselIndex] = useState(0);
   const [drawModalVisible, setDrawModalVisible] = useState(false);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [winModalVisible, setWinModalVisible] = useState(false);
@@ -250,7 +250,7 @@ export function BoxDetailsView(props: Props) {
         toast.info(t("boxDetails.queueLeaveHint"));
       }
     };
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     trackEvent("box_detail_view", { boxId: activeBox.id, boxName: activeBox.name });
@@ -297,8 +297,6 @@ export function BoxDetailsView(props: Props) {
     const t = setTimeout(() => measureAnchor(openBtnRef, "openBox", setAnchor), 400);
     return () => clearTimeout(t);
   }, [activeBox.id, setAnchor]);
-
-  const featured = carouselItems[carouselIndex] || carouselItems[0];
 
   return (
     <SafeAreaView style={styles.page} edges={["left", "right"]}>

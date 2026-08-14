@@ -248,6 +248,7 @@ export function useCheckoutController(input: CheckoutControllerInput): CheckoutC
       savingAddress: checkout.savingAddress,
       saveAddress: checkout.saveAddress,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [
       checkout.formRealName,
       checkout.formPhoneNumber,
@@ -305,6 +306,7 @@ export function useCheckoutController(input: CheckoutControllerInput): CheckoutC
       createOrder: checkout.createOrder,
       openOrderDetailsPage: checkout.openOrderDetailsPage,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [
       token,
       newcomer,

@@ -244,3 +244,25 @@ groups:
           description: >
             Counter mystery_box.refund.reconcile.failed. Inspect backend logs for
             "refund reconcile failed" and payment_reliability refund_reconcile events.
+
+      - alert: MysteryBoxMarketplaceChatSseQuotaRejected
+        expr: sum(rate(mystery_box_marketplace_chat_sse_quota_rejected_total[5m])) > 0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Marketplace chat SSE quota rejects
+          description: >
+            Connections hitting global/IP/listing caps. Check MarketplaceChatSseHub
+            and mystery_box.marketplace.chat.sse.active near 300.
+
+      - alert: MysteryBoxMarketplaceChatSseNearCap
+        expr: max(mystery_box_marketplace_chat_sse_active) > 250
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: Marketplace chat SSE near global connection cap
+          description: Active chat SSE connections above 250 (cap 300). Scale or investigate fan-out.

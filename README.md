@@ -113,12 +113,13 @@
 | 3D 开盒 / AR 展示 | 未纳入 | 高成本视觉方案，可后续 POC |
 | Admin HttpOnly Session + CSP | **代码已就绪** | `.env.production` 已开 cookie-primary；部署需 same-origin nginx（见 `docs/ADMIN_SECURITY.md`） |
 | Grafana 告警 + Sentry Release | **代码/脚手架就绪；运维接线** | 规则见 `infra/prometheus/alerts.yml`、启用步骤见 `docs/METRICS_ALERTS.md`；DSN/密钥与路由由运维注入 |
+| Spring Boot 4.x | **延期专项** | 见 [`docs/SPRING_BOOT_4_MIGRATION.md`](docs/SPRING_BOOT_4_MIGRATION.md)；当前 3.2.12 |
 | MoMo / ZaloPay | **代码 stub 保留；未接线** | Checkout/payout 为 unwired stub；`prod-vn` 拒绝开通；见 `docs/VN_LAUNCH_RUNBOOK.md` |
-| Maestro 全量设备农场 | 规划中 | CI 已校验 33 flow；`check:ci` 含 flow 清单；设 `MAESTRO_RUN_DEVICE=1` 启用真机 nightly |
+| Maestro 全量设备农场 | **清单 nightly；真机可选** | `maestro-nightly.yml` 每晚校验 flow；设 `MAESTRO_RUN_DEVICE=1` 跑真机 |
 
 **代码已完成 vs 仅运维**：以 [`RELEASE_CHECKLIST.md`](RELEASE_CHECKLIST.md) 为准——勾选项为仓库内已落地；未勾选多为密钥、域名、Flyway 门禁、告警路由、法务与真机验收。
 
-已完成的核心工程能力：ShedLock 定时任务、Redis 幂等/限流、离线 mutation 队列、React Query 持久化、深链 `box/{id}`、Admin Playwright E2E（含真实后端 job）、Spring Boot **3.2.12**（3.2.x 末位 OSS patch）。
+已完成的核心工程能力：ShedLock 定时任务、Redis 幂等/限流、离线 mutation 队列、React Query 持久化、深链 `box/{id}`、Admin Playwright E2E（含真实后端 job）、Spring Boot **3.2.12**（3.2 末位 OSS patch；升级到受支持的 4.x 为独立迁移波次）。
 
 ### Flyway 管理端菜单（v1.6+）
 

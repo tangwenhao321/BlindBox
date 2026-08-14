@@ -22,10 +22,10 @@ import { ListErrorBanner } from "./ui/ListErrorBanner";
 import { listEmptyWhenOk, shouldShowListSkeleton } from "./ui/listScreenHelpers";
 import { ListFooterLoading } from "./ui/ListFooterLoading";
 import { ListSkeleton } from "./ListSkeleton";
-import { font, layout, radius, shadows, spacing, typography } from "../styles/tokens";
+import { font, layout, radius, spacing, typography } from "../styles/tokens";
 import { resolveBoxImageUrl } from "../utils/boxImage";
 import type { ThemeColors } from "../styles/themes";
-import type { MysteryBox , Order } from "../types";
+import type { MysteryBox, Order } from "../types";
 import { trackEvent } from "../utils/analytics";
 import { getBestPackTeaser } from "../services/drawPackService";
 import { dedupeMysteryBoxes, isPitySeriesBox } from "../utils/boxDisplay";
@@ -71,13 +71,7 @@ type Props = {
 
 type HomeTab = { key: string; label: string; kind: "all" | "category" | "pity"; categoryId?: string };
 
-const SORT_OPTIONS = [
-  { key: "new", labelKey: "home.sortNew" },
-  { key: "sales", labelKey: "home.sortPopularity" },
-  { key: "price", labelKey: "home.sortPrice" },
-] as const;
-
-type SortKey = (typeof SORT_OPTIONS)[number]["key"];
+type SortKey = "new" | "sales" | "price";
 
 export const BoxListView = memo(function BoxListView(props: Props) {
   const {

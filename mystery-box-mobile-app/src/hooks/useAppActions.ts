@@ -563,7 +563,7 @@ export function useAppActions(params: Params) {
         rememberPaymentChannel("momo");
         trackEvent(ANALYTICS_EVENTS.PAYMENT_MOMO_REQUESTED, { orderId, payAmount: serverAmount });
         onMoMoPrepayReady?.({ orderId, payAmount: serverAmount, prepay });
-      } catch (error) {
+      } catch (_error) {
         try {
           const prepay = await retryMoMoPrepayParams(
             token,
@@ -601,7 +601,7 @@ export function useAppActions(params: Params) {
         const serverAmount = Number(prepay?.payAmount ?? amount);
         rememberPaymentChannel("vnpay");
         onVnpayPrepayReady?.({ orderId, payAmount: serverAmount, prepay });
-      } catch (error) {
+      } catch (_error) {
         try {
           const prepay = await retryVNPayPrepayParams(
             token,
@@ -643,7 +643,7 @@ export function useAppActions(params: Params) {
         return;
       }
       onPrepayReady?.({ orderId, payAmount: amount, prepay });
-    } catch (error) {
+    } catch (_error) {
       try {
         const prepay = await retryWechatPrepayParams(
           token,

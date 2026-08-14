@@ -80,7 +80,7 @@ export function RevealFeedTicker({ visible, boxId }: Props) {
     !recordingFlags.hideTicker &&
     !isRevealMinorModeActive() &&
     (userTicker ?? true);
-  const hideMs = useMemo(() => resolveTickerHideMs(), [item]);
+  const hideMs = useMemo(() => resolveTickerHideMs(), []);
 
   useDrawFeedSse(boxId ?? null, enabled, (items) => {
     const next = items.find(

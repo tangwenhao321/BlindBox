@@ -231,7 +231,7 @@ function OrderDetailsViewInner(props: Props) {
   const [gestureLocked, setGestureLocked] = useState(isRevealGestureLocked());
   const [integrityFailed, setIntegrityFailed] = useState(false);
   const [serverIntegrityFailed, setServerIntegrityFailed] = useState(false);
-  const integrityToastRef = useRef(false);
+  const _integrityToastRef = useRef(false);
   const [storySheet, setStorySheet] = useState<ProductStory | null>(null);
   const initialRevealBootRef = useRef<string | null>(null);
   const revealedIdsRef = useRef<string[]>([]);
@@ -489,6 +489,7 @@ function OrderDetailsViewInner(props: Props) {
         : undefined,
       trigger: () => triggerReveal(undefined, true),
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [
     playlistIndex,
     triggerReveal,

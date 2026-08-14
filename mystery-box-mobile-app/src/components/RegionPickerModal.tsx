@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Modal, Pressable, StyleSheet, Text, TextInput } from "react-native";
 import { useTranslation } from "react-i18next";
 import { OptimizedFlatList } from "./ui/OptimizedFlatList";
 import { useAppTheme } from "../context/ThemeContext";
@@ -28,7 +28,7 @@ export function RegionPickerModal({ visible, selected, title, optionList, onClos
   const regionOptions = useMemo(() => {
     if (optionList?.length) return optionList;
     return getAppLocale() === "vi-VN" ? getVietnamRegionOptions() : [...CHINA_REGION_OPTIONS];
-  }, [visible, optionList]);
+  }, [optionList]);
 
   const filteredOptions = useMemo(() => {
     const q = keyword.trim().toLowerCase();

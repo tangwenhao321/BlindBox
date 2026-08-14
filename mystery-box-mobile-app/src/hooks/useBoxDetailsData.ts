@@ -5,12 +5,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { parseError } from "../api";
 import type { DrawPackOption } from "../components/DrawPackModal";
 import type { MysteryBoxInsight } from "../services/boxInsightService";
-import type { PityProgress } from "../services/pityService";
-import { calcPackPrice, DEFAULT_DRAW_PACK_CONFIGS, getBestPackTeaser, type DrawPackConfig } from "../services/drawPackService";
+import { calcPackPrice, DEFAULT_DRAW_PACK_CONFIGS, getBestPackTeaser } from "../services/drawPackService";
 import type { PurchaseLimitStatus } from "../services/purchaseLimitService";
 import type { PoolDashboard } from "../services/poolDashboardService";
-import type { TrustMeta } from "../services/trustMetaService";
-import type { SeriesDrawStatistics } from "../services/fairnessService";
 import { toggleFavorite } from "../services/welfareService";
 import { invalidateFavoriteQueries } from "../utils/invalidateAppQueries";
 import { getDrawPackProgressHint } from "../utils/drawPackMath";
@@ -50,7 +47,7 @@ export function useBoxDetailsData(params: Params) {
     activeBox,
     drawCount,
     isLoggedIn,
-    hasAddress,
+    hasAddress: _hasAddress,
     resumeConfirmCheckout,
     onResumeConfirmHandled,
     onOpenConfirmCheckout,
@@ -64,7 +61,7 @@ export function useBoxDetailsData(params: Params) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
 
-  const products = activeBox.products || [];
+  const products = useMemo(() => activeBox.products || [], [activeBox.products]);
   const carouselItems = useMemo(
     () => sortProductsForCarousel(products, activeBox),
     [products, activeBox],
@@ -75,7 +72,7 @@ export function useBoxDetailsData(params: Params) {
   const purchaseLimitQuery = usePurchaseLimitQuery(authToken, activeBox.id, isLoggedIn);
   const favoriteIdsQuery = useFavoriteIdsQuery(authToken, isLoggedIn);
 
-  const drawConfigs = drawPackQuery.data ?? [];
+  const drawConfigs = useMemo(() => drawPackQuery.data ?? [], [drawPackQuery.data]);
   const auxiliary = auxiliaryQuery.data;
   const [insightOverride, setInsightOverride] = useState<MysteryBoxInsight | null>(null);
   const [poolDashboardOverride, setPoolDashboardOverride] = useState<PoolDashboard | null>(null);
@@ -99,7 +96,7 @@ export function useBoxDetailsData(params: Params) {
   const poolRemaining =
     poolDashboard?.poolRemaining ?? insight?.poolRemaining ?? activeBox.poolRemaining ?? poolTotal;
   const poolProgress = poolTotal > 0 ? Math.min(1, poolRemaining / poolTotal) : 0;
-  const prizeLines = insight?.prizeLines ?? [];
+  const prizeLines = useMemo(() => insight?.prizeLines ?? [], [insight?.prizeLines]);
   const filteredPrizeLines = useMemo(() => {
     if (!selectedTier) return prizeLines;
     const tier = selectedTier.toUpperCase();

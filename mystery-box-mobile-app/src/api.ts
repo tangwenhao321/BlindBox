@@ -1,7 +1,6 @@
-import axios, { type AxiosResponse } from "axios";
+import axios, { isAxiosError, type AxiosResponse } from "axios";
 import type { ApiResult } from "./types";
 import i18n from "./i18n";
-import { parseError } from "./utils/apiErrorMessage";
 import { AUTH_ERROR_CODES } from "./utils/apiErrorCodes";
 import { isPublicAuthApiPath } from "./utils/apiAuth";
 import { setOffline } from "./utils/connectivity";
@@ -13,6 +12,7 @@ export const API_BASE_URL =
   (__DEV__ ? "http://127.0.0.1:9912" : "");
 
 if (!API_BASE_URL) {
+  // eslint-disable-next-line no-console -- intentional diagnostics
   console.warn(
     "[mystery-box] EXPO_PUBLIC_API_BASE_URL is not set. Configure it in .env before running the app.",
   );
@@ -74,7 +74,7 @@ type RetryConfig = { __retryCount?: number };
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (!axios.isAxiosError(error) || !error.config) {
+    if (!isAxiosError(error) || !error.config) {
       return Promise.reject(error);
     }
     const config = error.config as typeof error.config & RetryConfig;
@@ -122,7 +122,7 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (!axios.isAxiosError(error)) {
+    if (!isAxiosError(error)) {
       if (error instanceof Error && error.message) {
         return Promise.reject(error);
       }

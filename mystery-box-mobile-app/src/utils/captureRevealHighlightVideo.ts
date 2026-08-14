@@ -21,6 +21,8 @@ type FfmpegModule = {
 
 async function loadFfmpeg(): Promise<FfmpegModule | null> {
   try {
+    // Optional native module; may be absent in Expo Go / web.
+    // eslint-disable-next-line import/no-unresolved -- optional peer
     return (await import("ffmpeg-kit-react-native")) as FfmpegModule;
   } catch {
     return null;

@@ -11,6 +11,8 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [x] Guest analytics ingestion gated by `security.analytics.enabled` (`AnalyticsForOpsController.ingestGuest`).
 - [x] Prod default `app.fairness.allow-win-rule-override=false` (`application-prod.yml` / `application-prod-vn.yml`).
 - [x] Win-rule audit CSV: `GET /admin/mystery-box-win-rule/export-audit.csv`.
+- [x] Win-rule approvals required before enable: create → pending; `POST .../{id}/approve` sets approved+enabled; `POST .../{id}/enable` rejects unapproved; admin panel wires approve UX.
+- [x] Win-rule op/hit logs queryable in admin: `GET .../op-log` (ruleId/action/operatorId/time) + `GET .../hit-log` (userId/orderId/time) tables in `win-rule-panel.vue`.
 - [x] Admin cookie auth: `.env.production` sets `VITE_ADMIN_COOKIE_AUTH=true` + `VITE_API_PREFIX=/api`; confirm same-origin nginx + CSP at deploy.
 - [x] Prod YAML: `security.idempotency.required=true`, `security.sse.require-auth=true`, `security.rate-limit.distributed=true` (enforced by `ProductionSafetyValidator`).
 
@@ -19,11 +21,9 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [ ] Optional `ADMIN_ACTION_TOTP_SECRET` (Base32) for rotating TOTP alongside static OTP.
 - [ ] Admin high-risk unlock: `POST /admin/auth/action-grant` → subsequent calls may send `x-admin-action-otp: GRANT` (~5m Redis TTL).
 - [ ] Admin operation OTP/TOTP is distributed via secure channel and rotated regularly.
-- [ ] `mystery_box_win_rule` approvals are required before enabling (process / ops).
-- [ ] `mystery_box_win_rule_op_log` and `mystery_box_win_hit_log` are queryable in admin (verify in deployed env).
-- [ ] iOS App Attest scaffold: set `IOS_APP_ATTEST_ENABLED` / `IOS_APP_ATTEST_REQUIRE_HEADER` only after client ships `X-Apple-App-Attest`.
-- [ ] Mobile sends `X-App-Channel` (App Store builds: `appstore`) via `clientAttestation.ts`.
-- [ ] Fairness daily beacon published: `GET /front/fairness/daily-beacon` (mixed into draw commits) — enable/verify in staging.
+- [ ] iOS App Attest **server require**: set `IOS_APP_ATTEST_ENABLED` / `IOS_APP_ATTEST_REQUIRE_HEADER` only after native DeviceCheck is wired (client already can send `X-Apple-App-Attest` via `EXPO_PUBLIC_APPLE_APP_ATTEST`).
+- [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE headers); EAS `production` / `production-vn` set `EXPO_PUBLIC_APP_CHANNEL=appstore`.
+- [x] Fairness daily beacon **client+API** wired: `GET /front/fairness/daily-beacon` + `FairnessTrustRow` at checkout — still verify publish/mix in staging (ops).
 
 ## 2) Payment & Order Reliability
 
@@ -60,7 +60,7 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [x] EAS profiles: `eas.json` (development / preview / production / production-sentry)
 - [x] Order ID migration tooling: Admin preflight API, audit log, `scripts/staging-order-id-migration.ps1`
 - [x] Admin cookie auth: `.env.production` sets `VITE_ADMIN_COOKIE_AUTH=true` + `VITE_API_PREFIX=/api` (confirm same-origin nginx at deploy; see `docs/ADMIN_SECURITY.md`)
-- [x] Spring Boot parent on latest OSS **3.2.x** patch (`3.2.12`) — stay on 3.2 line until a planned minor upgrade.
+- [x] Spring Boot parent on latest OSS **3.2.x** patch (`3.2.12`) — final OSS patch for 3.2 (EOL). **Deferred:** jump to supported 4.x is a separate migration wave (Jimmer/Sa-Token/wx-java compatibility), not inlined here.
 
 ### Ops / gate on each release
 - [ ] Backend compile passes: `mvn -DskipTests compile`

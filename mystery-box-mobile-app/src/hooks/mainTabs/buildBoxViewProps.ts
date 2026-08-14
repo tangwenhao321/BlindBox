@@ -77,7 +77,7 @@ export function buildBoxViewProps(input: BoxSlice) {
     setSelectedAddressId,
     creatingOrder,
     refreshAllWithLoading,
-    loadMallBoxes,
+    loadMallBoxes: _loadMallBoxes,
     loadMoreBoxes,
     loadMoreMallBoxes,
     refreshMallCatalog,

@@ -1,7 +1,7 @@
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { radius, spacing, typography } from "../../styles/tokens";
+import { radius, spacing } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 
 type Props = {

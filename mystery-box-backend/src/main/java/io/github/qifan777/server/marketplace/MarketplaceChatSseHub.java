@@ -28,6 +28,7 @@ public class MarketplaceChatSseHub {
     private static final int MAX_PER_IP = 20;
 
     private final ClientIpResolver clientIpResolver;
+    private final MarketplaceChatMetrics chatMetrics;
     private final ConcurrentHashMap<String, Set<SseEmitter>> chatEmitters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<SseEmitter, String> emitterIps = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, AtomicInteger> ipCounts = new ConcurrentHashMap<>();
@@ -35,21 +36,25 @@ public class MarketplaceChatSseHub {
 
     public void register(String listingId, SseEmitter emitter) {
         if (globalConnections.get() >= MAX_GLOBAL_CONNECTIONS) {
+            chatMetrics.quotaRejected();
             throw new BusinessException("SSE_QUOTA_EXCEEDED: 实时连接过多，请稍后重试");
         }
         String ip = resolveIp();
         AtomicInteger ipCount = ipCounts.computeIfAbsent(ip, ignored -> new AtomicInteger());
         if (ipCount.get() >= MAX_PER_IP) {
+            chatMetrics.quotaRejected();
             throw new BusinessException("SSE_QUOTA_EXCEEDED: 该网络连接过多，请稍后重试");
         }
         Set<SseEmitter> emitters = chatEmitters.computeIfAbsent(listingId, ignored -> ConcurrentHashMap.newKeySet());
         if (emitters.size() >= MAX_PER_LISTING) {
+            chatMetrics.quotaRejected();
             throw new BusinessException("SSE_QUOTA_EXCEEDED: 该会话连接过多，请稍后重试");
         }
         if (emitters.add(emitter)) {
             globalConnections.incrementAndGet();
             emitterIps.put(emitter, ip);
             ipCount.incrementAndGet();
+            chatMetrics.opened();
         }
     }
 
@@ -67,6 +72,7 @@ public class MarketplaceChatSseHub {
                     ipCounts.remove(ip, count);
                 }
             }
+            chatMetrics.closed();
         }
         if (emitters.isEmpty()) {
             chatEmitters.remove(listingId);
@@ -78,6 +84,7 @@ public class MarketplaceChatSseHub {
         if (emitters == null || emitters.isEmpty()) {
             return;
         }
+        chatMetrics.broadcast();
         List<SseEmitter> dead = new ArrayList<>();
         for (SseEmitter emitter : emitters) {
             try {

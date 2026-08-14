@@ -60,7 +60,7 @@ export function buildAccountViewProps(input: AccountSlice) {
     openFeaturePage,
     goBack,
     orders,
-    unreadMessageCount,
+    unreadMessageCount: _unreadMessageCount,
     refreshServerNotifications,
     setReadNotificationIds,
     openOrderDetailsPage,

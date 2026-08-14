@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import type { AppModals, OrderResultState } from "../components/AppModals";
 import { MOCK_PAYMENT_ENABLED } from "../config/constants";
-import type { MysteryBox, PrepayResult, Product, VNPayPrepayResult, MoMoPrepayResult } from "../types";
+import type { MysteryBox, PrepayResult, VNPayPrepayResult, MoMoPrepayResult } from "../types";
 import { getOrderById } from "../services/orderService";
 import { isUnpaidOrder } from "../order-utils";
 import { registerPaymentShellBridge } from "../payment/paymentShellBridge";
@@ -119,7 +119,7 @@ export function buildAppModalsProps(input: AppModalsBuildInput): ComponentProps<
     setActiveBox,
     navigate,
     createOrder,
-    openOrderDetailsPage,
+    openOrderDetailsPage: _openOrderDetailsPage,
     sharePosterVisible,
     setSharePosterVisible,
   } = input;

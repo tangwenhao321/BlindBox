@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 import {
   Modal,
-  Pressable,
   StyleSheet,
   View,
 } from "react-native";

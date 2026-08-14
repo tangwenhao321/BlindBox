@@ -1,6 +1,7 @@
 // @ts-check
 const { defineConfig, globalIgnores } = require("eslint/config");
 const expoConfig = require("eslint-config-expo/flat");
+const tsEslint = require("@typescript-eslint/eslint-plugin");
 
 /**
  * Expo 55 flat config.
@@ -28,10 +29,25 @@ module.exports = defineConfig([
   ]),
   expoConfig,
   {
+    plugins: {
+      "@typescript-eslint": tsEslint,
+    },
     rules: {
       "no-console": "warn",
       // Prefer the TS-aware rule from expo; base rule double-counts every hit.
       "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          vars: "all",
+          args: "none",
+          caughtErrors: "all",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
       "react-hooks/exhaustive-deps": "warn",
       // High-churn React Compiler rules — not actionable at scale yet.
       "react-hooks/set-state-in-effect": "off",

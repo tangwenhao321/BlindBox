@@ -79,6 +79,7 @@ export function useAppBootstrap(params: Params) {
     if (loading) {
       restore();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, []);
 
   useEffect(() => {
@@ -94,6 +95,7 @@ export function useAppBootstrap(params: Params) {
       void Promise.resolve(onUnauthorized());
     });
     return () => setOnUnauthorized(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [token]);
 
   useEffect(() => {
@@ -132,6 +134,7 @@ export function useAppBootstrap(params: Params) {
       stopPolling();
       subscription.remove();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [token, view, selectedOrder, autoRefreshOrders]);
 
   useEffect(() => {

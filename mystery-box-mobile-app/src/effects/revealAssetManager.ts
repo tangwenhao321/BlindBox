@@ -4,12 +4,6 @@ import { getRevealRemoteConfig } from "./revealRemote";
 import { isRevealWeakNetworkMode } from "./revealWeakNetwork";
 import { trackEffectEvent } from "./telemetry";
 import { loadFestivalTemplateAssets } from "./revealFestivalBundle";
-import {
-  setRevealPrefetchAllowed,
-  setRevealPrefetchFpsHealthy,
-  shouldAllowRevealPrefetch,
-} from "./revealPrefetchGate";
-
 export {
   setRevealPrefetchAllowed,
   setRevealPrefetchFpsHealthy,

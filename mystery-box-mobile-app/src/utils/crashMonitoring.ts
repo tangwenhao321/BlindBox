@@ -16,6 +16,8 @@ type SentryModule = {
 
 function loadSentry(): SentryModule | null {
   try {
+    // Optional dependency — keep require so missing package does not break bundle.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports -- optional Sentry
     return require("@sentry/react-native") as SentryModule;
   } catch {
     return null;
@@ -30,6 +32,7 @@ export function initCrashMonitoring() {
   const Sentry = loadSentry();
   if (!Sentry) {
     if (__DEV__) {
+      // eslint-disable-next-line no-console -- intentional diagnostics
       console.warn("[crashMonitoring] EXPO_PUBLIC_SENTRY_DSN set but @sentry/react-native is not installed");
     }
     return;

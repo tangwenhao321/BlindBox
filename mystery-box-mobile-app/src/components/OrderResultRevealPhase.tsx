@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { type SharedValue, type AnimatedStyle, runOnJS, useAnimatedReaction } from "react-native-reanimated";
 import type { StyleProp, ViewStyle } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -16,7 +16,6 @@ import { RevealCollectionHint } from "./ui/RevealCollectionHint";
 import { RevealPlayStateIndicator, type RevealPlayState } from "./ui/RevealPlayStateIndicator";
 import { LustreLegendFlashOverlay } from "./ui/LustreLegendFlashOverlay";
 import { RevealSequenceChrome } from "./ui/RevealSequenceChrome";
-import { RevealStaticFallback } from "./ui/RevealStaticFallback";
 import { getRevealFocusMode } from "../effects/revealFocusMode";
 import { useRevealGestureLock } from "../effects/revealGestureLock";
 import { RevealOverlay } from "./ui/RevealOverlay";
@@ -214,13 +213,6 @@ export function OrderResultRevealPhase({
     },
     [reanimatedReveal?.flashOpacity],
   );
-
-  const easterEggHint =
-    collectionEasterEgg?.seriesComplete
-      ? t("orderResult.seriesCompleteBody")
-      : collectionEasterEgg?.showEasterEgg
-        ? t("revealOverlay.collectionEasterEgg")
-        : undefined;
 
   // Keep overlay driver aligned with motionDriver so multi-draw playToken stays in sync.
   const useExpoRevealOverlay = motionDriver === "expo-go" || staticFallback;

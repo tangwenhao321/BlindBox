@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, StyleSheet, Text, useWindowDimensions } from "react-native";
 import { useTranslation } from "react-i18next";
 import Animated, {
   cancelAnimation,

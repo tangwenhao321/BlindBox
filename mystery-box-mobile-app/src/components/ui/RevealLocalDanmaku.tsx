@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { subscribeRevealRoomReactions } from "../../effects/revealSocialRoom";
 import { getRuntimeRevealDanmakuEnabled } from "../../utils/revealSettings";

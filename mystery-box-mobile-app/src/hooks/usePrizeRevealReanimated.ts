@@ -11,7 +11,6 @@ import {
   cancelAnimation,
   Easing,
   rnSpring,
-  runOnJS,
   useSharedValue,
   withDelay,
   withSequence,
@@ -165,7 +164,10 @@ export function usePrizeRevealReanimated({
     if (!product) return resolveCeremonyTier({ id: "", name: "", price: 0 } as Product, drawProducts);
     return resolveCeremonyTier(product, drawProducts ?? products);
   }, [products, drawProducts]);
-  const surpriseThemeId = useMemo(() => rollSurpriseThemeId(), [orderId]);
+  const surpriseThemeId = useMemo(() => {
+    void orderId;
+    return rollSurpriseThemeId();
+  }, [orderId]);
   const revealTheme = useMemo(
     () =>
       resolveRevealTheme({
@@ -309,6 +311,7 @@ export function usePrizeRevealReanimated({
       assetKeyRef.current = null;
     }
     onRevealComplete?.();
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [onRevealComplete, prizeName, prizeImageUri, products, tier, orderId, revealIndex, totalReveals]);
 
   useEffect(() => {
@@ -450,7 +453,6 @@ export function usePrizeRevealReanimated({
       const popDelay = scaleRevealDuration(140, effectivePacing, timingOpts);
       const flipSpringMs = resolveFlipSpringMs(effectivePacing, isUltimate, isCeremony);
       const phaseAlign = alignRevealPhaseStart(revealIndex, totalReveals);
-      const minHoldMs = popDelay + flipDelay + flipSpringMs;
       const chargeMs = scaleRevealDuration(profile.chargeMs, effectivePacing, timingOpts);
       const burstStart = chargeMs > 0 && (isCeremony || isHiddenTier) ? chargeMs : 0;
       const flashStart = burstStart + phaseAlign.flashDelayMs;
@@ -643,6 +645,7 @@ export function usePrizeRevealReanimated({
         if (playingRef.current) finishReveal();
       }, safetyMs);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [
       products.length,
       stopAll,

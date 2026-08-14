@@ -48,6 +48,7 @@ export function DrawQueuePanel({
       void notifyQueueYourTurn({ authToken });
     }
     prevCanDraw.current = queueStatus.canDraw;
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [mode, queueStatus?.canDraw, t]);
 
   useEffect(() => {

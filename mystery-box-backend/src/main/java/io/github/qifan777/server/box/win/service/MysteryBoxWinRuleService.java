@@ -211,7 +211,18 @@ public class MysteryBoxWinRuleService {
     }
 
     public List<MysteryBoxWinRuleOpLog> queryLatestOpLogs(int limit) {
-        return mysteryBoxWinRuleOpLogRepository.findLatest(limit <= 0 ? 50 : limit);
+        return queryLatestOpLogs(limit, null, null, null, null, null);
+    }
+
+    public List<MysteryBoxWinRuleOpLog> queryLatestOpLogs(int limit,
+                                                          String ruleId,
+                                                          String action,
+                                                          String operatorId,
+                                                          LocalDateTime createdTimeStart,
+                                                          LocalDateTime createdTimeEnd) {
+        int safeLimit = limit <= 0 ? 50 : Math.min(limit, 500);
+        return mysteryBoxWinRuleOpLogRepository.findLatestWithFilters(
+                safeLimit, ruleId, action, operatorId, createdTimeStart, createdTimeEnd);
     }
 
     /**

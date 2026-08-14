@@ -139,12 +139,12 @@ export function ProfileView(props: Props) {
     useCallback(() => {
       if (!appUpdate.supported) return;
       void appUpdate.checkForUpdate({ silent: true });
-    }, [appUpdate.supported, appUpdate.checkForUpdate]),
+    }, [appUpdate]),
   );
 
   const handleCheckUpdate = useCallback(() => {
     void appUpdate.checkForUpdate({ manual: true });
-  }, [appUpdate.checkForUpdate]);
+  }, [appUpdate]);
 
   const showUpdateBadge =
     appUpdate.supported &&

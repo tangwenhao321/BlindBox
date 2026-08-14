@@ -209,6 +209,7 @@ export function RevealSummaryBurst({
       cancelAnimation(opacity);
       cancelAnimation(scale);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [visible, phase, opacity, scale, onDone, holdMs]);
 
   const hostStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
@@ -259,6 +260,7 @@ export function RevealSummaryBurst({
           heroScale.value = withSpring(heroZoomed ? 1.18 : 1, rnSpring(6, 140));
         },
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [phase, skipHero, heroOpacity, heroScale, heroZoomed],
   );
 

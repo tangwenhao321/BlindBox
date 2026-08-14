@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   ceremonyTierToDisplayQuality,
   resolveCeremonyTier,
-  resolveHighestCeremonyTier,
 } from "./ceremonyTier";
 
 describe("ceremonyTier", () => {

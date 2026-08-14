@@ -2,7 +2,6 @@ import type { Product } from "../types";
 import {
   ceremonyTierRank,
   resolveCeremonyTier,
-  type CeremonyTier,
 } from "./ceremonyTier";
 import { resolvePrizeTier } from "./config";
 

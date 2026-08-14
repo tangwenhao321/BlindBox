@@ -62,6 +62,7 @@ export function trackEvent(name: TrackableEventName, payload: EventPayload = {})
     }
     void persistQueue();
     if (__DEV__) {
+      // eslint-disable-next-line no-console -- intentional diagnostics
       console.log("[track]", event.name, event.payload);
     }
   });

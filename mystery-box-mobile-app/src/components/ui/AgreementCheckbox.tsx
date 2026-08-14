@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
-import { radius, spacing, typography } from "../../styles/tokens";
+import { spacing, typography } from "../../styles/tokens";
 import type { ThemeColors } from "../../styles/themes";
 
 type Props = {

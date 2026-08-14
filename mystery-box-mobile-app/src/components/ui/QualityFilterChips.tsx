@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { radius, spacing, typography } from "../../styles/tokens";

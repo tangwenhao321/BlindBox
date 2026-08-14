@@ -24,7 +24,7 @@ import { resolveTierVoiceLineUri } from "./revealVoiceLines";
 
 export { setMinorAudioScale, resolveTierVoiceLineUri };
 
-let audioReady = false;
+let _audioReady = false;
 
 /** Runtime theme pack drives which dedicated SFX bank is loaded. */
 export type ThemeSoundBank = "classic" | "cyberpunk" | "asmr" | "party" | "adventure";
@@ -208,7 +208,7 @@ async function ensureAudio() {
     if (typeof audio.setIsAudioActiveAsync === "function") {
       await audio.setIsAudioActiveAsync(true);
     }
-    audioReady = true;
+    _audioReady = true;
     return true;
   } catch {
     try {
@@ -219,10 +219,10 @@ async function ensureAudio() {
       if (typeof audio.setIsAudioActiveAsync === "function") {
         await audio.setIsAudioActiveAsync(true);
       }
-      audioReady = true;
+      _audioReady = true;
       return true;
     } catch {
-      audioReady = false;
+      _audioReady = false;
       return false;
     }
   }

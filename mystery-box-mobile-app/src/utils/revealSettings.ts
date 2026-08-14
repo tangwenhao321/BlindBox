@@ -169,7 +169,6 @@ const KEY_SOUND_AMBIENT = "reveal_sound_ambient_v1";
 const KEY_SOUND_CHARGE = "reveal_sound_charge_v1";
 const KEY_SOUND_REVEAL = "reveal_sound_reveal_v1";
 const KEY_SOUND_FINALE = "reveal_sound_finale_v1";
-const KEY_VOICE_LINE = "reveal_voice_line_v1";
 const KEY_FEED_OPT_OUT = "reveal_feed_opt_out_v1";
 const KEY_RECORDING_SAFE = "reveal_recording_safe_v1";
 const KEY_EFFECT_PRESET = "reveal_effect_preset_v1";

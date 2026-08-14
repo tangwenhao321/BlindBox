@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AppView } from "../components/mainTabs/appViews";
 import { useAppOrderActions } from "./useAppOrderActions";
 import { useAppAddressActions } from "./useAppAddressActions";
@@ -44,8 +44,8 @@ export function useAppCheckoutOrchestration(input: AppCheckoutOrchestrationInput
     activeBox,
     setActiveBox,
     addresses,
-    addressesLoading,
-    addressesLoadError,
+    addressesLoading: _addressesLoading,
+    addressesLoadError: _addressesLoadError,
     selectedAddressId,
     setSelectedAddressId,
     loadAddresses,

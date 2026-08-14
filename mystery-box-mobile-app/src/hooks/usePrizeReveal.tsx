@@ -1,5 +1,5 @@
 import { lazy, Suspense, use, useEffect, useRef, useState, type ReactNode } from "react";
-import { isRunningInExpoGo } from "expo";
+import Constants from "expo-constants";
 import type { SharedValue } from "react-native-reanimated";
 import { trackEffectEvent } from "../effects/telemetry";
 import { getRevealDriverTier, type RevealDriverTier } from "../effects/revealDriverTier";
@@ -56,14 +56,25 @@ function useDriverTierState(): RevealDriverTier {
 }
 
 /**
- * Select reveal motion driver before mounting hooks.
- * Production Android prefers Reanimated unless Expo Go / lowPerf / Harmony-like OEM.
+ * Expo Go quarantine check — lightweight path only when ownership is Expo Go.
+ * Production / standalone / dev-client (`appOwnership` null | "guest") → false.
+ */
+export function isExpoGoRevealRuntime(override?: boolean): boolean {
+  if (override != null) return override;
+  return Constants.appOwnership === "expo";
+}
+
+/**
+ * Single reveal-driver gate.
+ * - Expo Go → quarantined classic path (`usePrizeRevealExpoGo`)
+ * - Production / dev-client → Reanimated (lazy), unless lowPerf / Harmony / static tier
  */
 export function resolvePreferClassicRevealDriver(
   options: Pick<PrizeRevealOptions, "lowPerfMode"> & { expoGo?: boolean },
 ): boolean {
-  const expoGo = options.expoGo ?? isRunningInExpoGo();
-  if (expoGo) return true;
+  // Quarantined Expo Go path — sole ownership-based branch.
+  if (isExpoGoRevealRuntime(options.expoGo)) return true;
+  // Device fallbacks still use RN Animated (not Expo Go–specific quarantine).
   if (options.lowPerfMode) return true;
   if (isHarmonyLikeDevice()) return true;
   if (getRevealDriverTier() === "static") return true;
@@ -98,7 +109,7 @@ function useReanimatedRevealDriver(options: PrizeRevealOptions): PrizeRevealApi 
   return mod.useReanimatedRevealDriverApi(options) as PrizeRevealApi;
 }
 
-/** Classic-only path component — mounts Expo Go / RN Animated hook exclusively. */
+/** Classic-only path component — mounts quarantined Expo Go / RN Animated hook exclusively. */
 export function ClassicRevealDriver({
   options,
   children,
@@ -141,7 +152,8 @@ export function PrizeRevealDriver({
 /**
  * Hook entry: freezes driver on first render so only one underlying hook path runs.
  * Remount the host (or use {@link PrizeRevealDriver}) to switch drivers.
- * Expo Go / lowPerf / Harmony → classic; otherwise Reanimated (incl. production Android).
+ * Expo Go → quarantined classic; otherwise Reanimated (production / dev-client),
+ * with lowPerf / Harmony / static still able to prefer classic.
  *
  * When Reanimated is selected, this hook suspends via `use()` until the async chunk
  * loads — wrap the host in `<Suspense>` (OrderDetailsView / OrderResultModal do).

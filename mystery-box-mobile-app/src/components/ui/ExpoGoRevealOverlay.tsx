@@ -400,6 +400,7 @@ export function ExpoGoRevealOverlay({
       rayLoop.stop();
       haloLoop.stop();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [
     visible,
     playToken,

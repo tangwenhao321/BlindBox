@@ -31,7 +31,8 @@
       "env": {
         "EXPO_PUBLIC_PAYMENT_MODE": "wechat",
         "EXPO_PUBLIC_MOCK_PAYMENT": "false",
-        "EXPO_PUBLIC_APP_VARIANT": "production"
+        "EXPO_PUBLIC_APP_VARIANT": "production",
+        "EXPO_PUBLIC_APP_CHANNEL": "appstore"
       },
       "channel": "production"
     },
@@ -51,6 +52,7 @@
         "EXPO_PUBLIC_PAYMENT_MODE": "vnpay",
         "EXPO_PUBLIC_MOCK_PAYMENT": "false",
         "EXPO_PUBLIC_APP_VARIANT": "production-vn",
+        "EXPO_PUBLIC_APP_CHANNEL": "appstore",
         "EXPO_PUBLIC_PRIVACY_URL": "",
         "EXPO_PUBLIC_TERMS_URL": "",
         "EXPO_PUBLIC_MINOR_DECLARATION_URL": "",

@@ -54,8 +54,14 @@ public class MysteryBoxWinRuleForAdminController {
     }
 
     @GetMapping("op-log")
-    public List<MysteryBoxWinRuleOpLog> queryOpLog(@RequestParam(required = false, defaultValue = "50") int limit) {
-        return mysteryBoxWinRuleService.queryLatestOpLogs(limit);
+    public List<MysteryBoxWinRuleOpLog> queryOpLog(@RequestParam(required = false, defaultValue = "50") int limit,
+                                                   @RequestParam(required = false) String ruleId,
+                                                   @RequestParam(required = false) String action,
+                                                   @RequestParam(required = false) String operatorId,
+                                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTimeStart,
+                                                   @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime createdTimeEnd) {
+        return mysteryBoxWinRuleService.queryLatestOpLogs(
+                limit, ruleId, action, operatorId, createdTimeStart, createdTimeEnd);
     }
 
     /** UTF-8 CSV of recent op-log + hit-log for compliance disclosure / audit. */

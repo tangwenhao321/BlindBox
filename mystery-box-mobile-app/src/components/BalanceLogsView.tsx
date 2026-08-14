@@ -9,7 +9,6 @@ import * as Sharing from "expo-sharing";
 import { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { PageHeader } from "./PageHeader";
-import { useScreenStyles } from "../styles/screenStyles";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { formatCurrency, formatMoney } from "../utils/formatCurrency";
 import { layout, spacing, typography } from "../styles/tokens";
@@ -38,7 +37,6 @@ export function BalanceLogsView(props: Props) {
   const { logs, loading, loadError = null, onRetryLoad, onBack, onRefresh } = props;
   const { t } = useTranslation();
   const styles = useThemedStyles(buildBalanceLogsStyles);
-  const screenStyles = useScreenStyles();
   const [orderKeyword, setOrderKeyword] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");

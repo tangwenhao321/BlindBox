@@ -10,6 +10,7 @@ import i18n from "../i18n";
 import { toast } from "../utils/toast";
 
 const DISMISS_KEY = "app_update_dismissed_code";
+const MIN_AUTO_CHECK_MS = 15 * 60 * 1000;
 
 type Phase = "idle" | "checking" | "ready" | "downloading" | "installing";
 
@@ -48,7 +49,6 @@ export function useAppUpdateController(): AppUpdateController {
   const checkingRef = useRef(false);
   const lastCheckAtRef = useRef(0);
   const lastSuccessAtRef = useRef(0);
-  const MIN_AUTO_CHECK_MS = 15 * 60 * 1000;
 
   const checkForUpdate = useCallback(
     async (opts?: { manual?: boolean; silent?: boolean }) => {

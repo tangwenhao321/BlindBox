@@ -1,7 +1,7 @@
 name: maestro-nightly
 
-# Full Maestro suite stub — wire to a device farm or self-hosted emulator before enabling.
-# Documented in mystery-box-mobile-app/.maestro/README.md
+# Inventory always; full device run only when MAESTRO_RUN_DEVICE=1 (device farm / emulator).
+# See mystery-box-mobile-app/.maestro/README.md and scripts/maestro-ci-smoke.sh
 
 on:
   schedule:
@@ -11,24 +11,23 @@ on:
 jobs:
   maestro-e2e:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: mystery-box-mobile-app
     steps:
       - uses: actions/checkout@v4
 
-      - name: Maestro nightly (full suite when device farm configured)
+      - name: Validate Maestro flow inventory (always)
+        run: bash scripts/maestro-ci-smoke.sh
+
+      - name: Maestro device suite (optional)
+        working-directory: mystery-box-mobile-app
         env:
           MAESTRO_RUN_DEVICE: ${{ vars.MAESTRO_RUN_DEVICE || '0' }}
           MAESTRO_TEST_PHONE: ${{ vars.MAESTRO_TEST_PHONE || '13800138000' }}
-          MAESTRO_TEST_PASSWORD: ${{ vars.MAESTRO_TEST_PASSWORD || 'Admin@123456' }}
+          MAESTRO_TEST_PASSWORD: ${{ secrets.MAESTRO_TEST_PASSWORD || vars.MAESTRO_TEST_PASSWORD || 'Admin@123456' }}
         run: |
-          if [ "$MAESTRO_RUN_DEVICE" = "1" ]; then
-            curl -Ls "https://get.maestro.mobile.dev" | bash
-            export PATH="$HOME/.maestro/bin:$PATH"
-            cd mystery-box-mobile-app
-            maestro test --config .maestro/config.yaml
-          else
-            bash ../scripts/maestro-ci-smoke.sh
-            echo "Set repo variable MAESTRO_RUN_DEVICE=1 when emulator/farm is wired for full nightly runs."
+          if [ "$MAESTRO_RUN_DEVICE" != "1" ]; then
+            echo "Skip device suite. Set repo variable MAESTRO_RUN_DEVICE=1 when emulator/farm is wired."
+            exit 0
           fi
+          curl -Ls "https://get.maestro.mobile.dev" | bash
+          export PATH="$HOME/.maestro/bin:$PATH"
+          maestro test --config .maestro/config.yaml

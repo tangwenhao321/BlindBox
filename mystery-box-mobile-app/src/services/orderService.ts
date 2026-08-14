@@ -1,5 +1,5 @@
 import { api, buildAuthHeaders } from "../api";
-import { DEFAULT_QUERY_PAGE_NUM, DEFAULT_QUERY_PAGE_SIZE, ORDER_LIST_PAGE_SIZE } from "../config/constants";
+import { DEFAULT_QUERY_PAGE_NUM, ORDER_LIST_PAGE_SIZE } from "../config/constants";
 import i18n from "../i18n";
 import { getOrCreateDeviceId } from "../utils/deviceId";
 import { createIdempotencyKey, IDEMPOTENCY_HEADER, type IdempotencyScope } from "../utils/idempotencyKey";

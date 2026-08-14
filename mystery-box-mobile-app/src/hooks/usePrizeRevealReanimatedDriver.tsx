@@ -22,8 +22,9 @@ function useDriverTierState(): RevealDriverTier {
 }
 
 /**
- * Reanimated ceremony driver — kept in its own module so Metro can async-split
- * it away from the classic / Expo Go path.
+ * Production / dev-client Reanimated ceremony driver.
+ * Lazy-loaded from `usePrizeReveal` so Expo Go never pulls this chunk at startup.
+ * Pair with the quarantined classic path in `usePrizeRevealExpoGo`.
  */
 export function ReanimatedRevealDriver({
   options,

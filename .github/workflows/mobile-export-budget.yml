@@ -1,14 +1,14 @@
 name: mobile-export-budget
 
-# Optional / manual gate for full `expo export` size.
-# Does NOT run on default PR push paths — keeps PR CI fast.
+# Full `expo export` size gate (slow — not on default PR push paths).
+# Nightly + manual: always runs check:bundle-export-budget:strict after export.
 # See mystery-box-mobile-app/scripts/check-bundle-export-budget.mjs
 
 on:
   workflow_dispatch:
-  # Uncomment to enable nightly export budget (slow; needs Node + deps only):
-  # schedule:
-  #   - cron: "0 3 * * *"
+  schedule:
+    # Nightly 16:00 UTC (~00:00 CST next day)
+    - cron: "0 16 * * *"
 
 jobs:
   export-budget:
@@ -33,10 +33,12 @@ jobs:
       - name: Expo export (android)
         run: npx expo export --output-dir dist-export --platform android
 
-      - name: Check export size budget (strict)
+      - name: Check export size budget (strict — default for this workflow)
         env:
           # Override with repo variable if needed, e.g. 52428800 (50 MiB)
           EXPO_EXPORT_BUDGET_BYTES: ${{ vars.EXPO_EXPORT_BUDGET_BYTES || '41943040' }}
+          # Strict is the job default (also via npm script --strict). Soft mode is local-only.
+          EXPO_EXPORT_BUDGET_STRICT: "1"
         run: npm run check:bundle-export-budget:strict
         # To skip without removing the workflow: set SKIP_EXPO_EXPORT_BUDGET=1
         # env:

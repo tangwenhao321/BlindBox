@@ -25,7 +25,7 @@ export type WalletControllerResult = {
 
 export function useWalletController({ token, loading, orders, ordersReady, navigate }: WalletControllerInput): WalletControllerResult {
   const account = useAppAccountOrchestration({ token, loading, orders, ordersReady, navigate });
-  const { wallet, newcomer, publicConfig, openFeaturePage, unreadMessageCount, refreshServerNotifications, setReadNotificationIds } =
+  const { wallet, newcomer: _newcomer, publicConfig, openFeaturePage, unreadMessageCount, refreshServerNotifications, setReadNotificationIds } =
     account;
 
   const walletSlice = useMemo<MainTabsWalletSlice>(

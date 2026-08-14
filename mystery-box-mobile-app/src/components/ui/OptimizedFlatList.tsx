@@ -34,7 +34,7 @@ export type OptimizedFlatListProps<T> = FlatListProps<T> & {
 };
 
 /** Minimal imperative API shared by FlatList and FlashList. */
-export type OptimizedListRef<T = unknown> = {
+export type OptimizedListRef<_T = unknown> = {
   scrollToOffset: (params: { offset: number; animated?: boolean | null }) => void;
   scrollToIndex: (params: {
     index: number;

@@ -7,6 +7,13 @@
  *   NOT run this script; use `check:bundle-budget` (dependency count) on PRs
  *   and this script on nightly / workflow_dispatch / local release checks.
  *
+ * CI (strict by default):
+ *   .github/workflows/mobile-export-budget.yml
+ *     - schedule: cron "0 16 * * *" (nightly 16:00 UTC)
+ *     - workflow_dispatch (manual)
+ *     - After `expo export`, runs `npm run check:bundle-export-budget:strict`
+ *       (EXPO_EXPORT_BUDGET_STRICT=1 + --strict). Soft mode is for local use only.
+ *
  * Env:
  *   SKIP_EXPO_EXPORT_BUDGET=1
  *     Exit 0 immediately (documented skip for CI matrices that lack an export).
@@ -17,6 +24,7 @@
  *   EXPO_EXPORT_BUDGET_STRICT=1
  *     When set, missing export output (no dist / dist-export) fails instead of
  *     exiting 0 with instructions. Pair with a prior `expo export` step.
+ *     Nightly / workflow_dispatch job sets this by default.
  *   CLI: --strict
  *     Same as EXPO_EXPORT_BUDGET_STRICT=1 (used by check:bundle-export-budget:strict).
  *

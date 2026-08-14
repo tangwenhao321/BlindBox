@@ -88,6 +88,7 @@ export function useBoxDrawModeEffects(params: Params) {
     if (queueStatus.canDraw || queueStatus.position <= 0) {
       void clearActiveQueueSession();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [drawMode, queueStatus?.canDraw, queueStatus?.position]);
 
   useEffect(() => {

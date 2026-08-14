@@ -27,7 +27,6 @@ import {
   tryAcquireManualReplay,
   pushRevealStackTier,
   popRevealStackTier,
-  isRevealStackBlocked,
   validateRevealPrizes,
   getRevealQueueLength,
   maybePrefetchNextInQueue,
@@ -410,6 +409,7 @@ export function useOrderResultReveal({
 
     setRevealCycleKey((k) => k + 1);
     setRevealIndex(nextIndex);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [
     currentRevealProduct,
     revealIndex,
@@ -530,6 +530,7 @@ export function useOrderResultReveal({
       ceremony: ceremonyTier,
       trigger: () => triggerRevealRef.current(undefined, true),
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [
     visible,
     pendingPayment,
@@ -561,6 +562,7 @@ export function useOrderResultReveal({
       .slice(revealIndex + 1, revealIndex + 3)
       .map((p) => resolveProductImageUrl(p.id, p.name, p.cover));
     if (nextUris.length > 0) void prefetchRevealImages(nextUris);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
   }, [visible, pendingPayment, orderId, revealIndex, revealProducts.length]);
 
   useEffect(() => {

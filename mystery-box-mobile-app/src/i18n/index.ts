@@ -19,6 +19,8 @@ function resolveInitialLocale(): "zh-CN" | "en-US" | "vi-VN" {
 
 const initialLng = resolveInitialLocale();
 
+// i18next default export `.use()` — not the named React `use` export.
+// eslint-disable-next-line import/no-named-as-default-member -- i18n plugin chain
 void i18n.use(initReactI18next).init({
   resources: {
     "zh-CN": { translation: zhCN },
