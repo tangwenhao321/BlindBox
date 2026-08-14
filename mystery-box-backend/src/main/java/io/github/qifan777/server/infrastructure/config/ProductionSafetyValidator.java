@@ -124,6 +124,12 @@ public class ProductionSafetyValidator {
     @Value("${security.ios.app-attest.require-header:false}")
     private boolean iosAppAttestRequireHeader;
 
+    @Value("${apple.iap.enabled:false}")
+    private boolean appleIapEnabled;
+
+    @Value("${apple.iap.partner-wired:false}")
+    private boolean appleIapPartnerWired;
+
     private final Environment environment;
 
     public ProductionSafetyValidator(Environment environment) {
@@ -221,16 +227,30 @@ public class ProductionSafetyValidator {
         warnLocalIdentityOnProdVn();
         refuseUnreadyEkycVendor();
         warnAppAttestScaffold();
+        refuseAppleIapUntilWired();
         warnVnEsmsUnwired();
         log.info("Production safety checks passed (payment.mock-enabled=false, OTP configured, CORS restricted)");
     }
 
+    private void refuseAppleIapUntilWired() {
+        if (appleIapEnabled || appleIapPartnerWired) {
+            throw new IllegalStateException(
+                    "Refusing to start: apple.iap.enabled / partner-wired must stay false until "
+                            + "App Store Server API verify is implemented (Guideline 3.1.1 scaffold only)");
+        }
+    }
+
     private void warnAppAttestScaffold() {
         if (iosAppAttestEnabled && iosAppAttestRequireHeader) {
-            log.error(
-                    "security.ios.app-attest.enabled=true and require-header=true, but Apple DeviceCheck / "
-                            + "App Attest server verify is NOT implemented — header presence only (scaffold). "
-                            + "Do not treat this as cryptographic attestation until verify is wired.");
+            boolean verifyImplemented = Boolean.parseBoolean(
+                    environment.getProperty("security.ios.app-attest.verify-implemented", "false"));
+            if (!verifyImplemented) {
+                throw new IllegalStateException(
+                        "Refusing to start: security.ios.app-attest.enabled=true and require-header=true, "
+                                + "but Apple DeviceCheck / App Attest server verify is NOT implemented. "
+                                + "Keep require-header=false until verify is wired, or set "
+                                + "security.ios.app-attest.verify-implemented=true only after real verify ships.");
+            }
         }
     }
 

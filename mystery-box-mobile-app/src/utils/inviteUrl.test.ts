@@ -11,8 +11,20 @@ describe("buildInviteUrl", () => {
     expect(buildInviteUrl("ABC12")).toBe("https://h5.example.com/invite/ABC12");
   });
 
+  it("normalizes base that already ends with /invite", () => {
+    vi.stubEnv("EXPO_PUBLIC_INVITE_BASE_URL", "https://h5.example.com/invite");
+    expect(buildInviteUrl("ABC12")).toBe("https://h5.example.com/invite/ABC12");
+  });
+
+  it("falls back to APP_LINK_DOMAIN when invite base empty", () => {
+    vi.stubEnv("EXPO_PUBLIC_INVITE_BASE_URL", "");
+    vi.stubEnv("EXPO_PUBLIC_APP_LINK_DOMAIN", "h5.example.com");
+    expect(buildInviteUrl("XYZ")).toBe("https://h5.example.com/invite/XYZ");
+  });
+
   it("falls back to custom scheme", () => {
     vi.stubEnv("EXPO_PUBLIC_INVITE_BASE_URL", "");
+    vi.stubEnv("EXPO_PUBLIC_APP_LINK_DOMAIN", "");
     expect(buildInviteUrl("XYZ")).toBe("mysterybox://invite?invite=XYZ");
   });
 

@@ -24,15 +24,36 @@ export function resolveAppChannel(): string {
   return Platform.OS === "ios" ? "ios" : "android";
 }
 
+function isReleaseIosVariant(): boolean {
+  const variant = (process.env.EXPO_PUBLIC_APP_VARIANT || "").trim();
+  return variant === "production" || variant === "production-vn";
+}
+
+/**
+ * Optional native App Attest assertion. Scaffold returns null until DCAppAttestService is wired.
+ */
+export function getAppAttestAssertion(): string | null {
+  return null;
+}
+
 export function clientPlatformHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "X-Client-Platform": Platform.OS,
     "X-App-Channel": resolveAppChannel(),
   };
-  // Interim App Attest token until native DeviceCheck/App Attest is wired.
-  // Production: leave unset unless backend security.ios.app-attest is enabled.
+  if (Platform.OS !== "ios") {
+    return headers;
+  }
+  // Never send forgeable static tokens on App Store release builds.
+  if (isReleaseIosVariant()) {
+    const native = getAppAttestAssertion();
+    if (native) {
+      headers["X-Apple-App-Attest"] = native;
+    }
+    return headers;
+  }
   const appAttest = (process.env.EXPO_PUBLIC_APPLE_APP_ATTEST || "").trim();
-  if (appAttest && Platform.OS === "ios") {
+  if (appAttest) {
     headers["X-Apple-App-Attest"] = appAttest;
   }
   return headers;

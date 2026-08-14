@@ -27,6 +27,8 @@ import { parseError } from "../api";
 import { toast } from "../utils/toast";
 import { resolvePaymentMode } from "../config/payment";
 import { invokeWechatPay } from "../utils/wechatPay";
+import { useAppPublicConfig } from "../hooks/useAppPublicConfig";
+import { isIapClientEnabled, purchaseVipPackage, verifyVipIapWithBackend } from "../services/iapService";
 
 type Props = {
   onBack: () => void;
@@ -40,6 +42,7 @@ export function VipBenefitsView({ onBack, onRequireLogin }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const styles = useThemedStyles(buildVipStyles);
+  const { momoEnabled: momoServerEnabled } = useAppPublicConfig();
   const [endTime, setEndTime] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [luckyCoins, setLuckyCoins] = useState(0);
@@ -50,7 +53,8 @@ export function VipBenefitsView({ onBack, onRequireLogin }: Props) {
   const [checkingPay, setCheckingPay] = useState(false);
   const { loadError, loading, runLoad } = useListLoad();
   const levelProgress = computeMemberLevelProgress(luckyCoins);
-  const momoAvailable = MOMO_ENV_ENABLED && resolvePaymentMode() === "vnpay";
+  const momoAvailable =
+    Platform.OS !== "ios" && MOMO_ENV_ENABLED && momoServerEnabled === true && resolvePaymentMode() === "vnpay";
   const stopPollRef = useRef(false);
   const checkingRef = useRef(false);
 
@@ -134,9 +138,25 @@ export function VipBenefitsView({ onBack, onRequireLogin }: Props) {
 
   const buyPackage = async (pkg: VipPackage, wallet: "market" | "momo" = "market") => {
     if (!token || !pkg.id || buyingId) return;
-    // Guideline 3.1.1: digital VIP must use IAP on iOS — block external wallet checkout.
+    // Guideline 3.1.1: digital VIP must use IAP on iOS — external wallets blocked.
     if (Platform.OS === "ios") {
-      toast.info(t("vip.iosUnavailableDesc"));
+      if (!isIapClientEnabled()) {
+        toast.info(t("vip.iosUnavailableDesc"));
+        return;
+      }
+      setBuyingId(pkg.id);
+      try {
+        // StoreKit + Server API not wired yet — fail closed without creating a wallet order.
+        const purchase = await purchaseVipPackage(pkg.id);
+        const orderId = await createVipOrder(token, pkg.id);
+        await verifyVipIapWithBackend(token, orderId, purchase.transactionId, purchase.signedPayload);
+        toast.success(t("vip.paySuccess"));
+        await reload();
+      } catch (error) {
+        toast.error(parseError(error));
+      } finally {
+        setBuyingId(null);
+      }
       return;
     }
     setBuyingId(pkg.id);

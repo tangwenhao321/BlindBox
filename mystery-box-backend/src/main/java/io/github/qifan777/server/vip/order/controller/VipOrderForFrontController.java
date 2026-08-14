@@ -13,6 +13,7 @@ import io.github.qifan777.server.vip.order.entity.dto.VipOrderInput;
 import io.github.qifan777.server.vip.order.entity.dto.VipOrderSpec;
 import io.github.qifan777.server.vip.order.repository.VipOrderRepository;
 import io.github.qifan777.server.vip.order.service.VipOrderService;
+import io.github.qifan777.server.vip.iap.AppleIapVerifyService;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,7 @@ public class VipOrderForFrontController {
     private final ClientIpResolver clientIpResolver;
     private final IosDigitalGoodsGuard iosDigitalGoodsGuard;
     private final UserComplianceService userComplianceService;
+    private final AppleIapVerifyService appleIapVerifyService;
 
     @Value("${payment.mock-enabled:false}")
     private boolean mockPaymentEnabled;
@@ -102,6 +104,27 @@ public class VipOrderForFrontController {
             throw new BusinessException("模拟支付未开启");
         }
         return vipOrderService.mockPay(id);
+    }
+
+    /**
+     * App Store IAP verify scaffold (Guideline 3.1.1). Fail-closed until Apple Server API is wired.
+     * iOS clients may call this; it must never grant VIP while unwired.
+     */
+    @PostMapping("{id}/iap/verify")
+    public Map<String, Object> verifyAppleIap(
+            @PathVariable String id,
+            @RequestBody Map<String, String> body
+    ) {
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
+        VipOrder vipOrder = vipOrderRepository.findById(id, VipOrderRepository.COMPLEX_FETCHER_FOR_FRONT)
+                .orElseThrow(() -> new BusinessException("数据不存在"));
+        FrontOwnership.assertSelf(vipOrder.creator().id());
+        appleIapVerifyService.verifyAndGrantVip(
+                id,
+                body == null ? null : body.get("transactionId"),
+                body == null ? null : body.get("signedPayload")
+        );
+        return Map.of("ok", true);
     }
 
     @DeleteMapping

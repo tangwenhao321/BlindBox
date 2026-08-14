@@ -111,6 +111,14 @@ Use **development client** for reveal QA (`docs/NATIVE_BUILD.md`); Expo Go is in
 7. Import `infra/prometheus/alerts.yml` and Grafana dashboard; confirm metrics scrape from staging actuator.
 8. Promote to production: rotate secrets, update IPN to production URL, disable sandbox flag.
 
+## App Store (iOS VN) notes
+
+- Digital VIP uses **Apple IAP only** (Guideline 3.1.1). External VIP wallets are blocked on iOS; IAP scaffold is fail-closed until StoreKit + Server API are live (`docs/VN_APP_STORE_OPTIMIZATION.md`).
+- MoMo: keep `EXPO_PUBLIC_MOMO_ENABLED=false` and backend `momo.enabled=false` for Review unless Partner checkout is live for **physical** goods.
+- App Attest: do **not** set `require-header=true` until DeviceCheck verify ships (boot refuse).
+- Auth without eSMS: enable Zalo OA (`app.auth.zalo-enabled=true`) or defer phone OTP.
+- EAS secrets: `EXPO_PUBLIC_EAS_PROJECT_ID`, legal URLs, `EXPO_PUBLIC_IOS_APP_STORE_URL`, `EXPO_PUBLIC_INVITE_BASE_URL` (host only, no `/invite` suffix).
+
 ## Monitoring (VN-specific)
 
 - Alert `MysteryBoxPaymentNotifyRejected` — often wrong `hash-secret` or IPN URL mismatch.

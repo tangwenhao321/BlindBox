@@ -51,4 +51,11 @@ describe("clientAttestation", () => {
     delete process.env.EXPO_PUBLIC_APPLE_APP_ATTEST;
     expect(clientPlatformHeaders()["X-Apple-App-Attest"]).toBeUndefined();
   });
+
+  it("omits static App Attest on production-vn even if env set", () => {
+    (Platform as { OS: string }).OS = "ios";
+    process.env.EXPO_PUBLIC_APP_VARIANT = "production-vn";
+    process.env.EXPO_PUBLIC_APPLE_APP_ATTEST = "forgeable-token";
+    expect(clientPlatformHeaders()["X-Apple-App-Attest"]).toBeUndefined();
+  });
 });

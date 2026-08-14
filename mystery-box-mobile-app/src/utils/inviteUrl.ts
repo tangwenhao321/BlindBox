@@ -5,11 +5,19 @@ export function buildInviteSchemeUrl(inviteCode: string): string {
   return `mysterybox://invite?invite=${encodeURIComponent(code)}`;
 }
 
+function normalizeInviteBase(raw: string): string {
+  return raw.trim().replace(/\/$/, "").replace(/\/invite$/i, "");
+}
+
 export function buildInviteUrl(inviteCode: string): string {
   const code = inviteCode.trim();
-  const base = process.env.EXPO_PUBLIC_INVITE_BASE_URL?.trim().replace(/\/$/, "");
-  if (base) {
-    return `${base}/invite/${encodeURIComponent(code)}`;
+  const inviteBase = process.env.EXPO_PUBLIC_INVITE_BASE_URL?.trim();
+  if (inviteBase) {
+    return `${normalizeInviteBase(inviteBase)}/invite/${encodeURIComponent(code)}`;
+  }
+  const linkDomain = (process.env.EXPO_PUBLIC_APP_LINK_DOMAIN || "").trim().replace(/^https?:\/\//i, "").replace(/\/$/, "");
+  if (linkDomain) {
+    return `https://${linkDomain}/invite/${encodeURIComponent(code)}`;
   }
   return buildInviteSchemeUrl(code);
 }

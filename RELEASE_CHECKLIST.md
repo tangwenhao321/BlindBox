@@ -16,7 +16,8 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [x] Admin cookie auth: `.env.production` sets `VITE_ADMIN_COOKIE_AUTH=true` + `VITE_API_PREFIX=/api`; confirm same-origin nginx + CSP at deploy.
 - [x] Prod YAML: `security.idempotency.required=true`, `security.sse.require-auth=true`, `security.rate-limit.distributed=true` (enforced by `ProductionSafetyValidator`).
 - [x] Prod Sa-Token idle timeout: `active-timeout=604800` (7d) on `prod` / `prod-vn` (override via `SA_TOKEN_ACTIVE_TIMEOUT`).
-- [x] App Attest footgun: `require-header=true` **refuses boot** until Apple server verify exists; `enabled=true` alone logs ERROR (scaffold).
+- [x] App Attest footgun: `require-header=true` **refuses boot** until `security.ios.app-attest.verify-implemented=true` (real DeviceCheck verify).
+- [x] Apple IAP scaffold: `POST /front/vip-order/{id}/iap/verify` fail-closed; prod refuses `apple.iap.enabled` until Server API wired (`docs/VN_APP_STORE_OPTIMIZATION.md`).
 - [x] VN eSMS footgun: `sms.provider=vn_esms` without `app.auth.zalo-enabled=true` **refuses boot** (provider never sends).
 - [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE); iOS production resolves `appstore` via variant (Android never reports `appstore`).
 - [x] Fairness daily beacon **client+API** wired: `GET /front/fairness/daily-beacon` + `FairnessTrustRow` at checkout.

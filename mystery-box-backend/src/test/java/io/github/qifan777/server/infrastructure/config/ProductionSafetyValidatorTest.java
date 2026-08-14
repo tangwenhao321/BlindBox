@@ -83,13 +83,35 @@ class ProductionSafetyValidatorTest {
     }
 
     @Test
-    void warnAppAttestScaffoldInvokesWhenEnabledAndRequireHeader() throws Exception {
-        ProductionSafetyValidator validator = new ProductionSafetyValidator(new MockEnvironment());
+    void warnAppAttestScaffoldRefusesBootUntilVerifyImplemented() throws Exception {
+        MockEnvironment env = new MockEnvironment();
+        ProductionSafetyValidator validator = new ProductionSafetyValidator(env);
         ReflectionTestUtils.setField(validator, "iosAppAttestEnabled", true);
         ReflectionTestUtils.setField(validator, "iosAppAttestRequireHeader", true);
         Method method = ProductionSafetyValidator.class.getDeclaredMethod("warnAppAttestScaffold");
         method.setAccessible(true);
-        method.invoke(validator);
+        try {
+            method.invoke(validator);
+            org.junit.jupiter.api.Assertions.fail("expected IllegalStateException");
+        } catch (java.lang.reflect.InvocationTargetException ex) {
+            assertTrue(ex.getCause() instanceof IllegalStateException);
+            assertTrue(ex.getCause().getMessage().contains("App Attest"));
+        }
+    }
+
+    @Test
+    void refuseAppleIapUntilWired() throws Exception {
+        ProductionSafetyValidator validator = new ProductionSafetyValidator(new MockEnvironment());
+        ReflectionTestUtils.setField(validator, "appleIapEnabled", true);
+        Method method = ProductionSafetyValidator.class.getDeclaredMethod("refuseAppleIapUntilWired");
+        method.setAccessible(true);
+        try {
+            method.invoke(validator);
+            org.junit.jupiter.api.Assertions.fail("expected IllegalStateException");
+        } catch (java.lang.reflect.InvocationTargetException ex) {
+            assertTrue(ex.getCause() instanceof IllegalStateException);
+            assertTrue(ex.getCause().getMessage().contains("apple.iap"));
+        }
     }
 
     @Test

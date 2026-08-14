@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
   interpolate,
@@ -194,7 +194,8 @@ export function ConfirmOrderModal({
   const reduceMotion = useReduceMotion();
   const { momoEnabled: momoServerEnabled } = useAppPublicConfig();
   // Only offer MoMo when both env and server advertise live checkout (stub never advertises)
-  const momoEnabled = MOMO_ENV_ENABLED && momoServerEnabled === true;
+  const momoEnabled =
+    Platform.OS !== "ios" && MOMO_ENV_ENABLED && momoServerEnabled === true;
   const [termsExpanded, setTermsExpanded] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"default" | "momo">("default");
   const payAreaRef = useRef<View>(null);
