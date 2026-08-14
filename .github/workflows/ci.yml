@@ -212,6 +212,11 @@ jobs:
         run: |
           npm ci
           npm test -- --run src/test/fullCatalogAutomation.test.ts src/effects/revealSkipPolicy.automation.test.ts src/effects/revealEffectProxy.automation.test.ts src/utils/marketplaceProceeds.automation.test.ts src/utils/journeyScenarioAutomation.test.ts src/utils/perfBudgetProxy.automation.test.ts
+          bash ../scripts/perf-lab-gate.sh
+      - name: Backend money-path parameterized suite
+        working-directory: mystery-box-backend
+        run: |
+          mvn -q "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest,MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest" test
       - name: Admin unit tests
         working-directory: mystery-box-admin
         run: |

@@ -23,6 +23,11 @@ PR_SMOKE=(
   orders-smoke.yaml
   order-result-smoke.yaml
   reveal-share-spectator.yaml
+  mock-pay-smoke.yaml
+  marketplace-smoke.yaml
+  checkout-smoke.yaml
+  fairness-verify-smoke.yaml
+  settings-reveal-smoke.yaml
 )
 
 for flow in "${PR_SMOKE[@]}"; do

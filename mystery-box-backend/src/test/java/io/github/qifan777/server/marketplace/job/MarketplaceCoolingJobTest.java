@@ -36,9 +36,12 @@ class MarketplaceCoolingJobTest {
     }
 
     @Test
-    void listsExpiredCoolingTrades() {
-        when(marketplaceService.listExpiredCoolingTradeIds(50)).thenReturn(List.of());
+    void settlesEachExpiredTradeId() {
+        when(marketplaceService.listExpiredCoolingTradeIds(50)).thenReturn(List.of("t1", "t2", "t3"));
         job.settleCoolingTrades();
         verify(marketplaceService).listExpiredCoolingTradeIds(50);
+        verify(marketplaceService).settleTrade("t1");
+        verify(marketplaceService).settleTrade("t2");
+        verify(marketplaceService).settleTrade("t3");
     }
 }
