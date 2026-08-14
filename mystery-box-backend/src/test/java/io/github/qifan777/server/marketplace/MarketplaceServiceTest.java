@@ -96,6 +96,33 @@ class MarketplaceServiceTest {
     }
 
     @Test
+    void computeFee_invalidRateFallsBackToFivePercent() {
+        ReflectionTestUtils.setField(marketplaceService, "marketplaceFeeRate", new BigDecimal("-0.1"));
+        Object fee = ReflectionTestUtils.invokeMethod(marketplaceService, "computeFee", new BigDecimal("200.00"));
+        assertThat(ReflectionTestUtils.getField(fee, "fee")).isEqualTo(new BigDecimal("10.00"));
+        assertThat(ReflectionTestUtils.getField(fee, "sellerProceeds")).isEqualTo(new BigDecimal("190.00"));
+    }
+
+    @Test
+    void computeFee_rateOneOrAboveFallsBack() {
+        ReflectionTestUtils.setField(marketplaceService, "marketplaceFeeRate", new BigDecimal("1.0"));
+        Object fee = ReflectionTestUtils.invokeMethod(marketplaceService, "computeFee", new BigDecimal("80.00"));
+        assertThat(ReflectionTestUtils.getField(fee, "fee")).isEqualTo(new BigDecimal("4.00"));
+        assertThat(ReflectionTestUtils.getField(fee, "sellerProceeds")).isEqualTo(new BigDecimal("76.00"));
+    }
+
+    @Test
+    void computeFee_boundaryPrices() {
+        Object fee1 = ReflectionTestUtils.invokeMethod(marketplaceService, "computeFee", new BigDecimal("1.00"));
+        assertThat(ReflectionTestUtils.getField(fee1, "fee")).isEqualTo(new BigDecimal("0.05"));
+        assertThat(ReflectionTestUtils.getField(fee1, "sellerProceeds")).isEqualTo(new BigDecimal("0.95"));
+
+        Object fee999 = ReflectionTestUtils.invokeMethod(marketplaceService, "computeFee", new BigDecimal("999.00"));
+        assertThat(ReflectionTestUtils.getField(fee999, "fee")).isEqualTo(new BigDecimal("49.95"));
+        assertThat(ReflectionTestUtils.getField(fee999, "sellerProceeds")).isEqualTo(new BigDecimal("949.05"));
+    }
+
+    @Test
     void buyListing_createsPendingCoolingTrade() {
         stubCreditScore("buyer-1", "5.00");
         stubCreditScore("seller-1", "5.00");
@@ -183,7 +210,7 @@ class MarketplaceServiceTest {
         when(product.getId()).thenReturn("prod-1");
         MysteryBoxOrderItem item = mock(MysteryBoxOrderItem.class);
         when(item.products()).thenReturn(new ArrayList<>(List.of(product)));
-        when(mysteryBoxOrderItemRepository.findById("item-1")).thenReturn(Optional.of(item));
+        when(mysteryBoxOrderItemRepository.findByIdWithProductsForUpdate("item-1")).thenReturn(Optional.of(item));
 
         when(jdbcTemplate.update(contains("UPDATE marketplace_trade"), any(), eq("trade-1"))).thenReturn(1);
         when(jdbcTemplate.update(contains("UPDATE marketplace_trade"), eq("COMPLETED"), any(), eq("trade-1"))).thenReturn(1);

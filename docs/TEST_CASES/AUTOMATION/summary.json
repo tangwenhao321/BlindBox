@@ -1,0 +1,11 @@
+{
+  "total": 6913,
+  "counts": {
+    "AUTO_UNIT": 4995,
+    "AUTO_IT": 1343,
+    "AUTO_E2E": 540,
+    "MANUAL": 35
+  },
+  "manual": 35,
+  "generatedAt": "2026-08-14T15:46:31.406Z"
+}
