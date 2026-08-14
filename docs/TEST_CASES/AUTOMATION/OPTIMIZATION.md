@@ -1,49 +1,31 @@
 # 全量优化说明（测试与质量基建）
 
-> 2026-08-15（含 Round 2）
+> 2026-08-15（含 Round 3）
 
 ## 已落地
 
-1. **资金/状态机参数化**
-   - `OrderStatusActionMatrixTest`
-   - `PaymentNotifyDecisionMatrixTest`
-   - `PaymentMockProductionGuardTest`
-   - `PaymentNotifyRealServiceParameterizedTest`（VNPay 幂等 / 微信金额 / MoMo 签名）
-   - `MarketplaceBuyGateParameterizedTest`（非 ON_SALE / 信用 / 自购）
-   - `RefundPaidAfterCancelGateParameterizedTest`（取消后到账状态门）
-   - `MarketplaceCoolingJobTest` + 手续费边界（`MarketplaceServiceTest`）
+### Round 1–2
+资金状态机/真实 Service 参数化、Testcontainers 基类、JaCoCo、CI catalog、MANUAL→代理、工程卫生。
 
-2. **Testcontainers**
-   - `AbstractMysqlRedisSpringBootIT` + `PrizeStockServiceSpringIntegrationTest`
-   - `MarketplaceCoolingQueryJdbcIT`（冷却查询 SQL，纯 JDBC）
-
-3. **JaCoCo**
-   - prepare-agent + report；`verify` soft floor（BUNDLE 行覆盖 ≥5%）
-   - CI 上传 `backend-jacoco` artifact
-
-4. **CI / Maestro / 性能**
-   - `catalog-automation`：全量用例 + Vitest 代理 + 资金参数化 Maven + `perf-lab-gate.sh`
-   - Maestro PR smoke 扩列：mock-pay / marketplace / checkout / fairness / settings-reveal
-   - `collect-reveal-fps.mjs` stub（`PERF_LAB_DEVICE=1`）
-
-5. **MANUAL 降级**
-   - 相位加速 / 设置正交 / 全特效 / 性能预算 / mockPay 生产守卫 → `AUTO_UNIT` 代理
-   - 目录 MANUAL 残差：**0**
-
-6. **工程卫生**
-   - `.gitignore`：`*.tsbuildinfo`、`compile.out`、`dc-raw.java`
+### Round 3（本轮）
+1. **资金 JDBC 真链路**
+   - `PaymentNotifyLogJdbcIT`（notify tryBegin 幂等 / FAILED 回收）
+   - `RefundStuckQueryJdbcIT`（stuck REFUNDING 选择）
+   - `MarketplaceCoolingQueryJdbcIT`（既有）
+2. **退款对账参数化** — `RefundReconciliationJobParameterizedTest`
+3. **库存耗尽 IT** — `PrizeStockServiceSpringIntegrationTest#drawExhaustsStock_thenRejectsFurtherDraw`
+4. **JaCoCo 资金包门禁** — includes 限 marketplace/payment/refund/order/stock，soft floor **8%**（CI `continue-on-error` 观测）
+5. **目录分层报告** — `LAYERED_COVERAGE_REPORT.md` + FULL 报告 byDepth（防 100% 误解）
+6. **性能采样门** — `collect-reveal-fps.mjs` 支持 `PERF_FPS_SAMPLE_FILE` / `PERF_REQUIRE_REAL`
+7. **Admin 手续费矩阵** — `format-money.test.ts` fee matrix
 
 ## 诚实边界
 
-全量 6913 黑盒目录执行 ≠ 真机/真网关 E2E；资金路径以 Mockito 真实 Service + SQL IT 加深，设备 FPS/微信仍为代理或可选 lab。
+目录 PASS ≠ 真机/真网关 E2E。分层见 `LAYERED_COVERAGE_REPORT.md`。
 
-## 再生 / 回归
+## 回归
 
 ```bash
-node docs/TEST_CASES/AUTOMATION/classify-cases.js
 node docs/TEST_CASES/AUTOMATION/execute-all-cases.js
-cd mystery-box-mobile-app && npm test -- --run src/effects/revealEffectProxy.automation.test.ts src/utils/perfBudgetProxy.automation.test.ts src/test/fullCatalogAutomation.test.ts
-cd mystery-box-backend && mvn "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest" test
+cd mystery-box-backend && mvn "-Dtest=PaymentNotifyRealServiceParameterizedTest,RefundReconciliationJobParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,MarketplaceBuyGateParameterizedTest" test
 ```
-
-详见 `OPTIMIZATION_R2.md`。

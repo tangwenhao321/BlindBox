@@ -238,6 +238,14 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <!-- Only money-adjacent packages; raise floor as suites deepen -->
+                            <includes>
+                                <include>io/github/qifan777/server/marketplace/**</include>
+                                <include>io/github/qifan777/server/payment/**</include>
+                                <include>io/github/qifan777/server/refund/**</include>
+                                <include>io/github/qifan777/server/box/order/service/**</include>
+                                <include>io/github/qifan777/server/box/product/service/PrizeStockService*</include>
+                            </includes>
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
@@ -245,8 +253,7 @@
                                         <limit>
                                             <counter>LINE</counter>
                                             <value>COVEREDRATIO</value>
-                                            <!-- Soft floor: raise as money-path tests grow -->
-                                            <minimum>0.05</minimum>
+                                            <minimum>0.08</minimum>
                                         </limit>
                                     </limits>
                                 </rule>

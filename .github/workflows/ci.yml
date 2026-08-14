@@ -39,6 +39,9 @@ jobs:
           java-version: '17'
       - name: Build and test backend
         run: mvn test
+      - name: JaCoCo money-package soft gate
+        run: mvn -q jacoco:check
+        continue-on-error: true
       - name: Upload JaCoCo report
         if: always()
         uses: actions/upload-artifact@v4
@@ -216,7 +219,7 @@ jobs:
       - name: Backend money-path parameterized suite
         working-directory: mystery-box-backend
         run: |
-          mvn -q "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest,MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest" test
+          mvn -q "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,RefundReconciliationJobParameterizedTest,RefundReconciliationJobTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest,MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest" test
       - name: Admin unit tests
         working-directory: mystery-box-admin
         run: |

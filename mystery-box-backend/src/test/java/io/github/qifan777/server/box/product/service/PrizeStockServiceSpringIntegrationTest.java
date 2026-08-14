@@ -102,4 +102,17 @@ class PrizeStockServiceSpringIntegrationTest extends AbstractMysqlRedisSpringBoo
     void assertStockAvailableRejectsOverDraw() {
         assertThrows(BusinessException.class, () -> prizeStockService.assertStockAvailable(BOX_ID, 99));
     }
+
+    @Test
+    void drawExhaustsStock_thenRejectsFurtherDraw() {
+        var first = prizeStockService.drawAndConsume(USER_ID, BOX_ID, "order-it-ex-1", 5, false);
+        assertEquals(5, first.size());
+        Integer remaining = jdbcTemplate.queryForObject(
+                "SELECT stock_remaining FROM mystery_box_product_rel WHERE id = 'rel-it-1'",
+                Integer.class
+        );
+        assertEquals(0, remaining);
+        assertThrows(BusinessException.class,
+                () -> prizeStockService.drawAndConsume(USER_ID, BOX_ID, "order-it-ex-2", 1, false));
+    }
 }

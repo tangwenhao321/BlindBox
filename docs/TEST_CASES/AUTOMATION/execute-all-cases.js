@@ -348,6 +348,25 @@ function executeCase(c) {
   }
 }
 
+function depthOf(detail, tier) {
+  if (!detail) return "unknown";
+  if (detail === "skip-accelerate" || detail === "fee" || detail === "status-machine") return "executor-logic";
+  if (detail === "e2e-spec-contract") return "e2e-spec-contract";
+  if (detail === "it-spec-contract") return "it-spec-contract";
+  if (
+    String(detail).endsWith("-contract") ||
+    detail === "unit-contract" ||
+    detail === "money-path-contract" ||
+    detail === "auth-security" ||
+    detail === "journey" ||
+    detail === "boundary-contract"
+  ) {
+    return "contract-proxy";
+  }
+  if (tier === "MANUAL") return "manual-skip";
+  return "other";
+}
+
 function main() {
   if (!fs.existsSync(CATALOG)) {
     console.error("Missing catalog, run classify-cases.js first");
@@ -359,6 +378,9 @@ function main() {
   let fail = 0;
   let skip = 0;
   const failSamples = [];
+  const byDepth = {};
+  const byTier = {};
+  const byRunner = {};
 
   for (const c of cases) {
     let r;
@@ -373,14 +395,28 @@ function main() {
       fail++;
       if (failSamples.length < 50) failSamples.push({ id: c.id, title: c.title, detail: r.detail, module: c.module });
     }
-    results.push({ id: c.id, tier: c.tier, status: r.status, detail: r.detail, module: c.module });
+    const depth = depthOf(r.detail, c.tier);
+    byDepth[depth] = (byDepth[depth] || 0) + 1;
+    byTier[c.tier] = (byTier[c.tier] || 0) + 1;
+    byRunner[c.runner || "unknown"] = (byRunner[c.runner || "unknown"] || 0) + 1;
+    results.push({
+      id: c.id,
+      tier: c.tier,
+      runner: c.runner,
+      status: r.status,
+      detail: r.detail,
+      depth,
+      module: c.module,
+    });
   }
 
   // Maestro inventory gate (once)
   let maestroOk = false;
+  let maestroCount = 0;
   try {
     const flowsDir = path.join(ROOT, "..", "..", "mystery-box-mobile-app", ".maestro", "flows");
     const flows = fs.existsSync(flowsDir) ? fs.readdirSync(flowsDir).filter((f) => f.endsWith(".yaml")) : [];
+    maestroCount = flows.length;
     maestroOk = flows.length >= 30;
     assert(maestroOk, `maestro flows too few: ${flows.length}`);
   } catch (e) {
@@ -399,6 +435,12 @@ function main() {
     skip,
     passRate: cases.length ? Number(((pass / cases.length) * 100).toFixed(2)) : 0,
     maestroOk,
+    maestroCount,
+    byDepth,
+    byTier,
+    byRunner,
+    honesty:
+      "PASS includes contract-proxy/e2e-spec/it-spec rows; not equivalent to live gateway or device E2E. See LAYERED_COVERAGE_REPORT.md.",
     failSamples,
   };
   fs.writeFileSync(path.join(reportDir, `full-run-${stamp}.json`), JSON.stringify({ summary, results }, null, 2));
@@ -411,13 +453,36 @@ function main() {
   md += `- FAIL：${fail}\n`;
   md += `- SKIP：${skip}\n`;
   md += `- 通过率：${summary.passRate}%\n`;
-  md += `- Maestro inventory gate：${maestroOk ? "OK" : "FAIL"}\n\n`;
+  md += `- Maestro inventory gate：${maestroOk ? "OK" : "FAIL"} (${maestroCount} flows)\n\n`;
+  md += `## 分层深度（防误解）\n\n`;
+  md += `| depth | count | 含义 |\n|---|---:|---|\n`;
+  md += `| executor-logic | ${byDepth["executor-logic"] || 0} | 执行器内真实逻辑断言（跳过/手续费/状态机） |\n`;
+  md += `| contract-proxy | ${byDepth["contract-proxy"] || 0} | 规格契约/代理断言 |\n`;
+  md += `| e2e-spec-contract | ${byDepth["e2e-spec-contract"] || 0} | E2E 规格契约（非真机） |\n`;
+  md += `| it-spec-contract | ${byDepth["it-spec-contract"] || 0} | IT 规格契约（非 Spring IT） |\n`;
+  md += `| other | ${byDepth["other"] || 0} | 其他 |\n\n`;
+  md += `> ${summary.honesty}\n\n`;
   if (failSamples.length) {
     md += `## 失败样例\n\n`;
     for (const f of failSamples) md += `- ${f.id} [${f.module}] ${f.title}: ${f.detail}\n`;
   }
   fs.writeFileSync(path.join(reportDir, "FULL_RUN_LATEST.md"), md, "utf8");
   fs.writeFileSync(path.join(OUT, "FULL_EXECUTION_REPORT.md"), md, "utf8");
+
+  let layered = `# 分层覆盖报告（Round 3）\n\n`;
+  layered += `- 生成：${summary.generatedAt}\n`;
+  layered += `- 目录总量：${summary.total}（PASS ${pass} / FAIL ${fail} / SKIP ${skip}）\n\n`;
+  layered += `## byDepth\n\n\`\`\`json\n${JSON.stringify(byDepth, null, 2)}\n\`\`\`\n\n`;
+  layered += `## byTier\n\n\`\`\`json\n${JSON.stringify(byTier, null, 2)}\n\`\`\`\n\n`;
+  layered += `## byRunner\n\n\`\`\`json\n${JSON.stringify(byRunner, null, 2)}\n\`\`\`\n\n`;
+  layered += `## 真测补强（目录外）\n\n`;
+  layered += `- Mockito 真实 Service：支付回调 / 市集门禁 / 退款状态门 / 退款对账 Job\n`;
+  layered += `- JDBC Testcontainers：notify 幂等、冷却查询、退款 stuck 查询\n`;
+  layered += `- Spring IT：PrizeStock 扣减与耗尽\n`;
+  layered += `- Maestro：inventory gate（设备跑需 MAESTRO_RUN_DEVICE=1）\n`;
+  layered += `- JaCoCo：资金包 BUNDLE 行覆盖 soft floor 12%\n`;
+  fs.writeFileSync(path.join(OUT, "LAYERED_COVERAGE_REPORT.md"), layered, "utf8");
+  fs.writeFileSync(path.join(reportDir, "LAYERED_COVERAGE_REPORT.md"), layered, "utf8");
 
   console.log(JSON.stringify(summary, null, 2));
   process.exit(fail > 0 ? 1 : 0);

@@ -1,12 +1,36 @@
 {
   "summary": {
-    "generatedAt": "2026-08-14T16:17:45.228Z",
+    "generatedAt": "2026-08-14T16:23:54.061Z",
     "total": 6913,
     "pass": 6913,
     "fail": 0,
     "skip": 0,
     "passRate": 100,
     "maestroOk": true,
+    "maestroCount": 39,
+    "byDepth": {
+      "contract-proxy": 3955,
+      "it-spec-contract": 1341,
+      "e2e-spec-contract": 539,
+      "executor-logic": 1078
+    },
+    "byTier": {
+      "AUTO_UNIT": 5033,
+      "AUTO_IT": 1341,
+      "AUTO_E2E": 539
+    },
+    "byRunner": {
+      "junit-api": 2580,
+      "unit-security": 1148,
+      "unit": 337,
+      "junit-it": 1341,
+      "junit-money": 729,
+      "maestro-or-job-it": 450,
+      "vitest-proxy": 39,
+      "vitest-effects": 200,
+      "maestro-or-playwright": 89
+    },
+    "honesty": "PASS includes contract-proxy/e2e-spec/it-spec rows; not equivalent to live gateway or device E2E. See LAYERED_COVERAGE_REPORT.md.",
     "failSamples": []
   }
 }

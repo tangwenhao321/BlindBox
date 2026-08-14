@@ -43,4 +43,14 @@ describe('format-money', () => {
     vi.stubEnv('VITE_CURRENCY', 'VND')
     expect(estimateMarketplaceNetProceeds(10001)).toBe(9501)
   })
+
+  it.each([
+    [0.01, 0.05, 0.01],
+    [1, 0.05, 0.95],
+    [99.99, 0.05, 94.99],
+    [1000, 0, 1000],
+    [1000, 0.05, 950],
+  ])('admin fee matrix price=%s rate=%s -> %s', (price, rate, expected) => {
+    expect(estimateMarketplaceNetProceeds(price, rate)).toBe(expected)
+  })
 })
