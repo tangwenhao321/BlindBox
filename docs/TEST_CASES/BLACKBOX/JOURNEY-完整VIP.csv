@@ -1,0 +1,4 @@
+﻿"用例ID","模块","功能点","用例标题","用例类型","优先级","前置条件","入口/接口","步骤摘要","预期结果","测试技术","等价类/边界","关联白盒"
+"JN-BB-00183","JOURNEY-完整VIP","WECHAT-开通权益","full-vip-WECHAT","E2E","P0","账号/箱/库存/支付通道就绪","vip/WECHAT","选套餐→create vip-order→prepay/WECHAT→回调→权益生效","到期时间正确；可续期叠加","场景法","链路-场景",""
+"JN-BB-00184","JOURNEY-完整VIP","VNPAY-开通权益","full-vip-VNPAY","E2E","P0","账号/箱/库存/支付通道就绪","vip/VNPAY","选套餐→create vip-order→prepay/VNPAY→回调→权益生效","到期时间正确；可续期叠加","场景法","链路-场景",""
+"JN-BB-00185","JOURNEY-完整VIP","MOMO-开通权益","full-vip-MOMO","E2E","P0","账号/箱/库存/支付通道就绪","vip/MOMO","选套餐→create vip-order→prepay/MOMO→回调→权益生效","到期时间正确；可续期叠加","场景法","链路-场景",""

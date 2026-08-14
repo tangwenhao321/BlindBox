@@ -1,0 +1,6 @@
+﻿"用例ID","模块","功能点","用例标题","用例类型","优先级","前置条件","入口/接口","步骤摘要","预期结果","测试技术","等价类/边界","关联白盒"
+"JN-BB-00129","JOURNEY-分片-概率保底","概率页再返回下单","slice-odds-概率页再返回下单","SCENE","P0","账号/箱/库存/支付通道就绪","JOURNEY","probability→返回→下单","上下文保持","场景法","链路-场景",""
+"JN-BB-00130","JOURNEY-分片-概率保底","pity将满提示","slice-odds-pity将满提示","SCENE","P0","账号/箱/库存/支付通道就绪","JOURNEY","差1次阈值","文案提示","场景法","链路-场景",""
+"JN-BB-00131","JOURNEY-分片-概率保底","pity触发高稀有","slice-odds-pity触发高稀有","SCENE","P0","账号/箱/库存/支付通道就绪","JOURNEY","达阈开盒","forceHigh或补偿","场景法","链路-场景",""
+"JN-BB-00132","JOURNEY-分片-概率保底","pity无高库存补偿","slice-odds-pity无高库存补偿","SCENE","P0","账号/箱/库存/支付通道就绪","JOURNEY","forceHigh空库存","退款/POINTS/WAIT不失款","场景法","链路-场景",""
+"JN-BB-00133","JOURNEY-分片-概率保底","日beacon后验证订单","slice-odds-日beacon后验证订单","SCENE","P0","账号/箱/库存/支付通道就绪","JOURNEY","beacon→verify order","匹配","场景法","链路-场景",""

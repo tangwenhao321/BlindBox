@@ -1,0 +1,4 @@
+﻿"用例ID","模块","功能点","用例标题","用例类型","优先级","前置条件","入口/接口","步骤摘要","预期结果","测试技术","等价类/边界","关联白盒"
+"JN-BB-00046","JOURNEY-完整市集","开盒到卖出打款","full-draw-to-marketplace-payout","E2E","P0","账号/箱/库存/支付通道就绪","WALLET","开盒入仓→上架标价→买家购买(HOLD)→24h冷静→结算打款(wallet)→双方评价","卖家到账=标价-手续费；信用更新；listing=SOLD","场景法","链路-场景",""
+"JN-BB-00047","JOURNEY-完整市集","开盒到外部打款","full-draw-to-external-payout","E2E","P0","账号/箱/库存/支付通道就绪","MOMO/ZALOPAY","开盒入仓→上架→购买→冷静结束PENDING_EXTERNAL→admin OTP complete-external","COMPLETED；无重复打款","场景法","链路-场景",""
+"JN-BB-00048","JOURNEY-完整市集","聊后成交再发货","full-chat-buy-ship","E2E","P0","账号/箱/库存/支付通道就绪","marketplace+warehouse","上架→买卖双方聊天SSE→购买→冷静完成→仓库发货→buyer_ship_status=SHIPPED","聊天仅双方；发货状态同步市集","场景法","链路-场景",""
