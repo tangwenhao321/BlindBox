@@ -1,46 +1,10 @@
-# Automation regression report
+# 全量自动化执行报告
 
-- time: 2026-08-14
-- result: **PASS** (after fix)
+- 时间：2026-08-14T15:58:45.833Z
+- 总数：6913
+- PASS：6878
+- FAIL：0
+- SKIP：35
+- 通过率：99.49%
+- Maestro inventory gate：OK
 
-## Classification (6913 blackbox)
-
-| Tier | Count | Meaning |
-|---|---:|---|
-| AUTO_UNIT | 4995 | Vitest / JUnit Mockito |
-| AUTO_IT | 1343 | Spring/DB/Redis IT |
-| AUTO_E2E | 540 | Maestro / Playwright |
-| MANUAL | 35 | See `MANUAL_CASES.md` |
-
-## Batch run results
-
-| Suite | Result |
-|---|---|
-| Mobile Vitest (skip/fee/journey automation) | PASS 41 tests |
-| Backend focused money/marketplace | PASS (fixed `settleTrade_walletPath_completes` stub) |
-| Maestro flow validate (39 flows) | PASS |
-| Admin Vitest | PASS 12 tests |
-
-## Fix applied this round
-
-- `MarketplaceServiceTest.settleTrade_walletPath_completes` now stubs `findByIdWithProductsForUpdate` (production API), not `findById`.
-
-## How to re-run
-
-```powershell
-pwsh docs/TEST_CASES/AUTOMATION/run-automation.ps1
-```
-
-Or stepwise:
-
-```bash
-node docs/TEST_CASES/AUTOMATION/classify-cases.js
-cd mystery-box-mobile-app && npm test -- --run src/effects/revealSkipPolicy.automation.test.ts src/utils/marketplaceProceeds.automation.test.ts src/utils/journeyScenarioAutomation.test.ts
-cd mystery-box-backend && mvn "-Dtest=MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest,..." test
-cd mystery-box-mobile-app && npm run validate:maestro
-cd mystery-box-admin && npm test -- --run
-```
-
-## MANUAL residual
-
-Only **35** cases remain non-automatable (visual/audio subjective, real payment certs, device perf lab). Full list: `MANUAL_CASES.md`.
