@@ -39,9 +39,8 @@ jobs:
           java-version: '17'
       - name: Build and test backend
         run: mvn test
-      - name: JaCoCo money-package soft gate
+      - name: JaCoCo money-package hard gate
         run: mvn -q jacoco:check
-        continue-on-error: true
       - name: Upload JaCoCo report
         if: always()
         uses: actions/upload-artifact@v4
@@ -205,10 +204,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Classify and execute all blackbox cases
+      - name: Classify, map, execute all blackbox cases
         working-directory: docs/TEST_CASES/AUTOMATION
         run: |
           node classify-cases.js
+          node map-runner-to-real-tests.js
           node execute-all-cases.js
       - name: Mobile policy + proxy + catalog gate
         working-directory: mystery-box-mobile-app
@@ -220,6 +220,8 @@ jobs:
         working-directory: mystery-box-backend
         run: |
           mvn -q "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,RefundReconciliationJobParameterizedTest,RefundReconciliationJobTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest,MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest" test
+      - name: Maestro PR smoke inventory (device optional)
+        run: bash scripts/maestro-ci-smoke.sh
       - name: Admin unit tests
         working-directory: mystery-box-admin
         run: |

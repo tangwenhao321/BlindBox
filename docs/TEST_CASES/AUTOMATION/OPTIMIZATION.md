@@ -1,31 +1,25 @@
 # 全量优化说明（测试与质量基建）
 
-> 2026-08-15（含 Round 3）
+> 2026-08-15（含 Round 4）
 
-## 已落地
+## Round 4 要点
 
-### Round 1–2
-资金状态机/真实 Service 参数化、Testcontainers 基类、JaCoCo、CI catalog、MANUAL→代理、工程卫生。
+- settle CAS + 库存并发不超卖
+- JaCoCo 资金包 **10% 硬门禁**
+- `REAL_TEST_MAPPING.md`：runner → 真实 suites
+- Maestro inventory 进 catalog job；真机见 `MAESTRO_DEVICE.md`
 
-### Round 3（本轮）
-1. **资金 JDBC 真链路**
-   - `PaymentNotifyLogJdbcIT`（notify tryBegin 幂等 / FAILED 回收）
-   - `RefundStuckQueryJdbcIT`（stuck REFUNDING 选择）
-   - `MarketplaceCoolingQueryJdbcIT`（既有）
-2. **退款对账参数化** — `RefundReconciliationJobParameterizedTest`
-3. **库存耗尽 IT** — `PrizeStockServiceSpringIntegrationTest#drawExhaustsStock_thenRejectsFurtherDraw`
-4. **JaCoCo 资金包门禁** — includes 限 marketplace/payment/refund/order/stock，soft floor **8%**（CI `continue-on-error` 观测）
-5. **目录分层报告** — `LAYERED_COVERAGE_REPORT.md` + FULL 报告 byDepth（防 100% 误解）
-6. **性能采样门** — `collect-reveal-fps.mjs` 支持 `PERF_FPS_SAMPLE_FILE` / `PERF_REQUIRE_REAL`
-7. **Admin 手续费矩阵** — `format-money.test.ts` fee matrix
+历史 R1–R3 见 `OPTIMIZATION_R2.md` / `OPTIMIZATION_R3.md`。
 
 ## 诚实边界
 
-目录 PASS ≠ 真机/真网关 E2E。分层见 `LAYERED_COVERAGE_REPORT.md`。
+目录 6913 PASS 含大量 contract-proxy；真测以 `REAL_TEST_MAPPING.md` + Mockito/JDBC/Spring IT 为准。
 
 ## 回归
 
 ```bash
+node docs/TEST_CASES/AUTOMATION/classify-cases.js
+node docs/TEST_CASES/AUTOMATION/map-runner-to-real-tests.js
 node docs/TEST_CASES/AUTOMATION/execute-all-cases.js
-cd mystery-box-backend && mvn "-Dtest=PaymentNotifyRealServiceParameterizedTest,RefundReconciliationJobParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,MarketplaceBuyGateParameterizedTest" test
+cd mystery-box-backend && mvn "-Dtest=MarketplaceSettleClaimJdbcIT,RefundReconciliationJobParameterizedTest,PaymentNotifyRealServiceParameterizedTest" test
 ```

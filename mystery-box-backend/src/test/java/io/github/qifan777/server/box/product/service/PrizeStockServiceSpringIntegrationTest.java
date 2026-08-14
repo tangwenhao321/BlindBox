@@ -115,4 +115,44 @@ class PrizeStockServiceSpringIntegrationTest extends AbstractMysqlRedisSpringBoo
         assertThrows(BusinessException.class,
                 () -> prizeStockService.drawAndConsume(USER_ID, BOX_ID, "order-it-ex-2", 1, false));
     }
+
+    @Test
+    void concurrentDrawDoesNotOversell() throws Exception {
+        int threads = 8;
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        var success = new java.util.concurrent.atomic.AtomicInteger();
+        var fail = new java.util.concurrent.atomic.AtomicInteger();
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var done = new java.util.concurrent.CountDownLatch(threads);
+        for (int i = 0; i < threads; i++) {
+            final int idx = i;
+            pool.submit(() -> {
+                try {
+                    start.await();
+                    prizeStockService.drawAndConsume(USER_ID, BOX_ID, "order-c-" + idx, 1, false);
+                    success.incrementAndGet();
+                } catch (Exception e) {
+                    fail.incrementAndGet();
+                } finally {
+                    done.countDown();
+                }
+            });
+        }
+        start.countDown();
+        assertEquals(true, done.await(60, java.util.concurrent.TimeUnit.SECONDS));
+        pool.shutdown();
+        assertEquals(5, success.get());
+        assertEquals(3, fail.get());
+        Integer remaining = jdbcTemplate.queryForObject(
+                "SELECT stock_remaining FROM mystery_box_product_rel WHERE id = 'rel-it-1'",
+                Integer.class
+        );
+        assertEquals(0, remaining);
+        Integer logs = jdbcTemplate.queryForObject(
+                "SELECT COUNT(1) FROM mystery_box_draw_log WHERE mystery_box_id = ?",
+                Integer.class,
+                BOX_ID
+        );
+        assertEquals(5, logs);
+    }
 }

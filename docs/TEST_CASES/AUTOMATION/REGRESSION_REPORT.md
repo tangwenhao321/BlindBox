@@ -2,5 +2,5 @@
 
 - result: **PASS 100%** (6913/6913)
 - MANUAL residual: **0** (proxied)
-- Round 3: notify/refund JDBC IT + reconcile job matrix + stock exhaust + layered report + JaCoCo money includes
-- see: `FULL_EXECUTION_REPORT.md`, `LAYERED_COVERAGE_REPORT.md`, `OPTIMIZATION.md`, `OPTIMIZATION_R3.md`
+- Round 4: settle CAS IT + stock concurrency + JaCoCo 10% hard gate + REAL_TEST_MAPPING
+- see: `LAYERED_COVERAGE_REPORT.md`, `REAL_TEST_MAPPING.md`, `OPTIMIZATION_R4.md`
