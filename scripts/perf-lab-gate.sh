@@ -7,6 +7,9 @@ cd "$ROOT/mystery-box-mobile-app"
 echo "== Perf budget proxy (Vitest) =="
 npm test -- --run src/utils/perfBudgetProxy.automation.test.ts
 
+echo "== FPS sample fixture gate =="
+PERF_FPS_SAMPLE_FILE=scripts/fps-sample.fixture.json node scripts/collect-reveal-fps.mjs
+
 if [ "${PERF_LAB_DEVICE:-0}" = "1" ]; then
   echo "== Device FPS lab hook (requires local collector) =="
   if [ -f scripts/collect-reveal-fps.mjs ]; then

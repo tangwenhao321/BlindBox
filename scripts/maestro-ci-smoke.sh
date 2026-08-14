@@ -23,6 +23,7 @@ PR_SMOKE=(
   orders-smoke.yaml
   order-result-smoke.yaml
   reveal-share-spectator.yaml
+  refunds-smoke.yaml
   mock-pay-smoke.yaml
   marketplace-smoke.yaml
   checkout-smoke.yaml

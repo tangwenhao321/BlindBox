@@ -21,7 +21,12 @@ const RUNNER_MAP = {
       "MarketplaceServiceTest",
       "OrderStatusActionMatrixTest",
       "PaymentNotifyDecisionMatrixTest",
-      "PaymentMockProductionGuardTest",
+      "VNPayPaymentGatewayParseTest",
+      "VNPaySignatureUtilTest",
+      "MoMoPaymentGatewayTest",
+      "MysteryBoxOrderNotifyControllerTest",
+      "MarketplaceForFrontControllerBuyTest",
+      "MysteryBoxUserPityServiceTest",
     ],
   },
   "junit-it": {

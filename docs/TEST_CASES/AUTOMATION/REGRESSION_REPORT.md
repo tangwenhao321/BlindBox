@@ -1,6 +1,5 @@
 # Automation regression report
 
-- result: **PASS 100%** (6913/6913)
-- MANUAL residual: **0** (proxied)
-- Round 4: settle CAS IT + stock concurrency + JaCoCo 10% hard gate + REAL_TEST_MAPPING
-- see: `LAYERED_COVERAGE_REPORT.md`, `REAL_TEST_MAPPING.md`, `OPTIMIZATION_R4.md`
+- catalog: **PASS 100%** (6913/6913)
+- Round 5: VNPay/MoMo gateway matrices, pity force-high, controller buy/notify, JaCoCo 12%, FPS fixture
+- see: `OPTIMIZATION_R5.md`, `REAL_TEST_MAPPING.md`, `LAYERED_COVERAGE_REPORT.md`

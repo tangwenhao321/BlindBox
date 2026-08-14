@@ -9,9 +9,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,5 +48,25 @@ class MysteryBoxOrderNotifyControllerTest {
         assertThat(header.getNonce()).isEqualTo("nonce-1");
         assertThat(header.getSignature()).isEqualTo("sig-1");
         assertThat(header.getSerial()).isEqualTo("serial-1");
+    }
+
+    @Test
+    void paymentNotifyVNPay_getAndPost_delegate() {
+        Map<String, String> params = Map.of("vnp_TxnRef", "o1");
+        when(mysteryBoxOrderService.paymentNotifyVNPay(any())).thenReturn("{\"RspCode\":\"00\"}");
+
+        assertThat(controller.paymentNotifyVNPayGet(params)).contains("00");
+        assertThat(controller.paymentNotifyVNPayPost(params)).contains("00");
+        verify(mysteryBoxOrderService, times(2)).paymentNotifyVNPay(any());
+    }
+
+    @Test
+    void paymentNotifyMoMo_getAndPost_delegate() {
+        Map<String, String> params = Map.of("orderId", "o1");
+        when(mysteryBoxOrderService.paymentNotifyMoMo(any())).thenReturn("{\"resultCode\":0}");
+
+        assertThat(controller.paymentNotifyMoMoGet(params)).contains("0");
+        assertThat(controller.paymentNotifyMoMoPost(params)).contains("0");
+        verify(mysteryBoxOrderService, times(2)).paymentNotifyMoMo(any());
     }
 }

@@ -30,4 +30,31 @@ class VNPaySignatureUtilTest {
         params.put("vnp_SecureHash", hash);
         assertThat(VNPaySignatureUtil.verify(params, secret)).isTrue();
     }
+
+    @Test
+    void verifyRejectsTamperedAmount() {
+        String secret = "TESTSECRETKEY123456789012345678901234567890";
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("vnp_Amount", "1000000");
+        params.put("vnp_TxnRef", "order-1");
+        String query = VNPaySignatureUtil.buildSignedQuery(params, secret);
+        String hash = query.substring(query.lastIndexOf('=') + 1);
+        params.put("vnp_SecureHash", hash);
+        params.put("vnp_Amount", "2000000");
+        assertThat(VNPaySignatureUtil.verify(params, secret)).isFalse();
+    }
+
+    @Test
+    void verifyRejectsWrongSecretAndBlankHash() {
+        String secret = "TESTSECRETKEY123456789012345678901234567890";
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("vnp_Amount", "1000000");
+        params.put("vnp_TxnRef", "order-1");
+        String query = VNPaySignatureUtil.buildSignedQuery(params, secret);
+        String hash = query.substring(query.lastIndexOf('=') + 1);
+        params.put("vnp_SecureHash", hash);
+        assertThat(VNPaySignatureUtil.verify(params, "WRONGSECRET")).isFalse();
+        params.put("vnp_SecureHash", "");
+        assertThat(VNPaySignatureUtil.verify(params, secret)).isFalse();
+    }
 }
