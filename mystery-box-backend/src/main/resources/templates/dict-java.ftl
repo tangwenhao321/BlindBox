@@ -1,27 +1,12 @@
 <#-- @ftlvariable name="" type="io.github.qifan777.server.dict.model.DictGenContext" -->
 package io.github.qifan777.server.dict.model;
-import lombok.Getter;
-import lombok.AllArgsConstructor;
 
+/**
+ * Dictionary constant names only. Enum types are top-level files in this package
+ * (Jimmer JSpecify cannot annotate nested types — do not nest enums here).
+ */
 public class DictConstants {
 <#list getDictTypes() as type>
   public static final String ${getDictMap()[type][0].dictEnName()} = "${getDictMap()[type][0].dictEnName()}";
-</#list>
-<#list getDictTypes() as type>
-  @Getter
-  @AllArgsConstructor
-  public enum ${type}{
-    <#list getDictMap()[type] as dict>
-        ${dict.keyEnName()}(${dict.keyId()?c}, "${dict.keyName()}", "${dict.keyEnName()}", ${dict.dictId()?c}, "${dict.dictName()}", "${dict.dictEnName()}", ${dict.orderNum()?c}),
-    </#list>
-  ;
-  final int keyId;
-  final String keyName;
-  final String keyEnName;
-  final int dictId;
-  final String dictName;
-  final String dictEnName;
-  final int orderNum;
-  }
 </#list>
 }

@@ -36,11 +36,12 @@ sms:
   provider: ali_yun
 
 # Each login gets its own token (override application.yml is-share: true).
-# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.37 SaCookieConfig (sa-token.cookie.*).
+# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.45 SaCookieConfig (sa-token.cookie.*).
 sa-token:
   is-share: false
   is-read-header: true
   is-read-cookie: true
+  active-timeout: ${SA_TOKEN_ACTIVE_TIMEOUT:604800}
   cookie:
     httpOnly: true
     secure: true
@@ -57,7 +58,7 @@ security:
       hash-secret: ${IDENTITY_HASH_SECRET:CHANGE_ME_IDENTITY_HASH_SECRET}
   rate-limit:
     distributed: true
-    trusted-proxy: true
+    trusted-proxy: false
 
 app:
   auth:
@@ -67,7 +68,8 @@ app:
   identity:
     provider: ${APP_IDENTITY_PROVIDER:local}
   cors:
-    allowed-origin-patterns: https://admin.example.com,https://h5.example.com
+    # Set real origins; example.com / empty refuse boot under prod.
+    allowed-origin-patterns: ${APP_CORS_ORIGINS:}
   queue:
     head-timeout-sec: 120
     ttl-hours: 2

@@ -46,11 +46,12 @@ app:
     # Optional: APP_RETENTION_DISCOUNT_PERCENT + APP_RETENTION_MAX_DISCOUNT_AMOUNT
 
 # Each login gets its own token in VN production.
-# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.37 SaCookieConfig (sa-token.cookie.*).
+# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.45 SaCookieConfig (sa-token.cookie.*).
 sa-token:
   is-share: false
   is-read-header: true
   is-read-cookie: true
+  active-timeout: ${SA_TOKEN_ACTIVE_TIMEOUT:604800}
   cookie:
     httpOnly: true
     secure: true
@@ -72,7 +73,8 @@ security:
   rate-limit:
     # Hard-required for multi-instance prod-vn (ProductionSafetyValidator refuses boot if false)
     distributed: true
-    trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
+    # Default false unless behind a trusted reverse proxy (set RATE_LIMIT_TRUSTED_PROXY=true).
+    trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:false}
   idempotency:
     # Require x-idempotency-key on mutating front/admin writes (create order / prepay / marketplace buy, etc.)
     required: true

@@ -228,7 +228,7 @@ public class ProductionSafetyValidator {
         refuseUnreadyEkycVendor();
         warnAppAttestScaffold();
         refuseAppleIapUntilWired();
-        warnVnEsmsUnwired();
+        refuseVnEsmsWithoutAuthFallback();
         log.info("Production safety checks passed (payment.mock-enabled=false, OTP configured, CORS restricted)");
     }
 
@@ -254,14 +254,15 @@ public class ProductionSafetyValidator {
         }
     }
 
-    private void warnVnEsmsUnwired() {
+    private void refuseVnEsmsWithoutAuthFallback() {
         if (!isVnEsmsProvider()) {
             return;
         }
         if (!zaloEnabled) {
-            log.error(
-                    "sms.provider=vn_esms but app.auth.zalo-enabled=false: VnSmsProvider never sends until "
-                            + "partner HTTP exists — OTP will fail. Wire eSMS partner client or enable Zalo auth.");
+            throw new IllegalStateException(
+                    "Refusing to start: sms.provider=vn_esms but app.auth.zalo-enabled=false — "
+                            + "VnSmsProvider never sends until Partner HTTP exists. "
+                            + "Enable Zalo auth or switch SMS provider until eSMS is wired.");
         }
     }
 
@@ -381,7 +382,14 @@ public class ProductionSafetyValidator {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .toList();
-        return patterns.isEmpty() || (patterns.size() == 1 && "*".equals(patterns.get(0)));
+        if (patterns.isEmpty() || (patterns.size() == 1 && "*".equals(patterns.get(0)))) {
+            return true;
+        }
+        // Placeholder origins left from templates must not ship to prod.
+        return patterns.stream().anyMatch(p -> {
+            String n = p.toLowerCase(Locale.ROOT);
+            return n.contains("example.com") || n.contains("localhost");
+        });
     }
 
     private boolean isUnsafeSmsProvider() {

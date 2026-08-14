@@ -18,7 +18,8 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [x] Prod Sa-Token idle timeout: `active-timeout=604800` (7d) on `prod` / `prod-vn` (override via `SA_TOKEN_ACTIVE_TIMEOUT`).
 - [x] App Attest footgun: `require-header=true` **refuses boot** until `security.ios.app-attest.verify-implemented=true` (real DeviceCheck verify).
 - [x] Apple IAP scaffold: `POST /front/vip-order/{id}/iap/verify` fail-closed; prod refuses `apple.iap.enabled` until Server API wired (`docs/VN_APP_STORE_OPTIMIZATION.md`).
-- [x] VN eSMS footgun: `sms.provider=vn_esms` without `app.auth.zalo-enabled=true` **refuses boot** (provider never sends).
+- [x] Wipe residual hardening: Freemarker top-level dict enums, User `password(false)`, prod CORS/proxy defaults, VN eSMS refuse (`docs/WIPE_RESIDUAL_HARDENING.md`).
+- [x] Prod CORS rejects empty/`*`/`example.com`; set `APP_CORS_ORIGINS` to real admin/H5 origins.
 - [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE); iOS production resolves `appstore` via variant (Android never reports `appstore`).
 - [x] Fairness daily beacon **client+API** wired: `GET /front/fairness/daily-beacon` + `FairnessTrustRow` at checkout.
 

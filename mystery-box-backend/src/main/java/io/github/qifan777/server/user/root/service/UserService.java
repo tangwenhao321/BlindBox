@@ -167,7 +167,7 @@ public class UserService {
         UserTable userTable = UserTable.$;
         User databaseUser = userRepository.sql().createQuery(userTable)
                 .where(userTable.phone().eq(phone))
-                .select(userTable.fetch(UserRepository.USER_ROLE_FETCHER))
+                .select(userTable.fetch(UserRepository.LOGIN_FETCHER))
                 .fetchOptional()
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_LOGIN_NOT_EXIST));
         if (userPrivacyService.isDeleted(databaseUser.id())

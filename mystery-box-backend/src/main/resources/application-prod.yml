@@ -24,11 +24,14 @@ management:
       show-details: when_authorized
 
 # Each login gets its own token (harder to hijack shared session across devices/instances).
-# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.37 SaCookieConfig (sa-token.cookie.*).
+# Cookie HttpOnly/Secure/SameSite: Sa-Token 1.45 SaCookieConfig (sa-token.cookie.*).
 sa-token:
   is-share: false
   is-read-header: true
   is-read-cookie: true
+  # Absolute session TTL still driven by timeout (30d default in application.yml).
+  # Idle expiry: 7 days (was -1 forever in base yml).
+  active-timeout: ${SA_TOKEN_ACTIVE_TIMEOUT:604800}
   cookie:
     httpOnly: true
     secure: true
@@ -39,7 +42,8 @@ app:
     allow-mock-otp: false
     zalo-enabled: ${APP_AUTH_ZALO_ENABLED:false}
   cors:
-    allowed-origin-patterns: ${APP_CORS_ORIGINS:https://admin.example.com,https://h5.example.com}
+    # Require real origins via APP_CORS_ORIGINS — empty/example defaults refuse boot.
+    allowed-origin-patterns: ${APP_CORS_ORIGINS:}
   queue:
     head-timeout-sec: ${QUEUE_HEAD_TIMEOUT_SEC:120}
     ttl-hours: ${QUEUE_TTL_HOURS:2}
@@ -109,7 +113,8 @@ security:
   rate-limit:
     # Hard-required for multi-instance prod (ProductionSafetyValidator refuses boot if false)
     distributed: true
-    trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:true}
+    # Default false: do not trust X-Forwarded-For unless behind a configured reverse proxy.
+    trusted-proxy: ${RATE_LIMIT_TRUSTED_PROXY:false}
     sse-stream-per-minute: ${RATE_LIMIT_SSE_STREAM_PER_MINUTE:30}
   analytics:
     enabled: ${ANALYTICS_ENABLED:true}

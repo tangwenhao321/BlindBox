@@ -18,9 +18,13 @@ import java.math.BigDecimal;
 public interface UserRepository extends JRepository<User, String> {
 
     UserTable userTable = UserTable.$;
-    UserFetcher COMPLEX_FETCHER_FOR_ADMIN = UserFetcher.$.allScalarFields();
-    UserFetcher COMPLEX_FETCHER_FOR_FRONT= UserFetcher.$.allScalarFields();
-    UserFetcher USER_ROLE_FETCHER = UserFetcher.$.allScalarFields().rolesView(RoleFetcher.$.name());
+    /** Admin list/detail — never expose password hash. */
+    UserFetcher COMPLEX_FETCHER_FOR_ADMIN = UserFetcher.$.allScalarFields().password(false);
+    UserFetcher COMPLEX_FETCHER_FOR_FRONT = UserFetcher.$.allScalarFields().password(false);
+    /** API profile responses — roles without password. */
+    UserFetcher USER_ROLE_FETCHER = UserFetcher.$.allScalarFields().password(false).rolesView(RoleFetcher.$.name());
+    /** Internal login only — includes password for BCrypt check. */
+    UserFetcher LOGIN_FETCHER = UserFetcher.$.allScalarFields().rolesView(RoleFetcher.$.name());
 
     default Page<User> findPage(QueryRequest<UserSpec> queryRequest, Fetcher<User> fetcher) {
         UserSpec query = queryRequest.getQuery();

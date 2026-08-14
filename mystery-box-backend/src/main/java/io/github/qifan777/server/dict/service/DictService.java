@@ -76,18 +76,27 @@ public class DictService {
   @SneakyThrows
   public void generateJava() {
     DictGenContext dictGenContext = getDictGenContext();
-    // 获取模板
-    Template template = configuration.getTemplate("dict-java.ftl");
-    // 创建输出文件
-    File outputFile = new File(
+    Template constantsTemplate = configuration.getTemplate("dict-java.ftl");
+    File constantsFile = new File(
         "mystery-box-backend/src/main/java/io/github/qifan777/server/dict/model/DictConstants.java");
-    outputFile.createNewFile();
-    // 创建Writer对象
-    Writer writer = new FileWriter(outputFile, false);
-    // 渲染模板
-    template.process(dictGenContext, writer);
-    writer.flush();
-    writer.close();
+    constantsFile.getParentFile().mkdirs();
+    try (Writer writer = new FileWriter(constantsFile, false)) {
+      constantsTemplate.process(dictGenContext, writer);
+      writer.flush();
+    }
+
+    Template enumTemplate = configuration.getTemplate("dict-enum.ftl");
+    for (String type : dictGenContext.getDictTypes()) {
+      Map<String, Object> model = new HashMap<>();
+      model.put("type", type);
+      model.put("dicts", dictGenContext.getDictMap().get(type));
+      File enumFile = new File(
+          "mystery-box-backend/src/main/java/io/github/qifan777/server/dict/model/" + type + ".java");
+      try (Writer writer = new FileWriter(enumFile, false)) {
+        enumTemplate.process(model, writer);
+        writer.flush();
+      }
+    }
   }
 
   @SneakyThrows

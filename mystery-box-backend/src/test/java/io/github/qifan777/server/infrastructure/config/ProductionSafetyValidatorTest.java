@@ -45,6 +45,8 @@ class ProductionSafetyValidatorTest {
         ReflectionTestUtils.setField(validator, "corsAllowedOriginPatterns", "*");
         assertTrue((Boolean) ReflectionTestUtils.invokeMethod(validator, "isUnsafeCors"));
         ReflectionTestUtils.setField(validator, "corsAllowedOriginPatterns", "https://admin.example.com");
+        assertTrue((Boolean) ReflectionTestUtils.invokeMethod(validator, "isUnsafeCors"));
+        ReflectionTestUtils.setField(validator, "corsAllowedOriginPatterns", "https://admin.real-domain.com");
         assertFalse((Boolean) ReflectionTestUtils.invokeMethod(validator, "isUnsafeCors"));
     }
 
@@ -119,8 +121,14 @@ class ProductionSafetyValidatorTest {
         ProductionSafetyValidator validator = new ProductionSafetyValidator(new MockEnvironment());
         ReflectionTestUtils.setField(validator, "smsProvider", "vn_esms");
         ReflectionTestUtils.setField(validator, "zaloEnabled", false);
-        Method method = ProductionSafetyValidator.class.getDeclaredMethod("warnVnEsmsUnwired");
+        Method method = ProductionSafetyValidator.class.getDeclaredMethod("refuseVnEsmsWithoutAuthFallback");
         method.setAccessible(true);
-        method.invoke(validator);
+        try {
+            method.invoke(validator);
+            org.junit.jupiter.api.Assertions.fail("expected IllegalStateException");
+        } catch (java.lang.reflect.InvocationTargetException ex) {
+            assertTrue(ex.getCause() instanceof IllegalStateException);
+            assertTrue(ex.getCause().getMessage().contains("vn_esms"));
+        }
     }
 }

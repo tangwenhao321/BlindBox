@@ -42,7 +42,7 @@
 - [ ] Prefer Java **21** LTS when CI images + local Temurin 21 are ready (currently **17**)
 - [ ] Full `mvn test` with Docker Desktop running (Testcontainers); without Docker, integration tests error/skip
 - [ ] Keep previous Boot 3.2 jar available for first production rollback window
-- [ ] Admin `npm run api-admin` when backend is up (hand-aligned User DTO for password strip)
+- [x] Wipe residual: Freemarker top-level dict enums, User password strip, prod idle-timeout/CORS/proxy, VN eSMS refuse — see `docs/WIPE_RESIDUAL_HARDENING.md`
 
 ## Explicit non-goals (still)
 
