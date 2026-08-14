@@ -1,0 +1,2 @@
+reports/full-run-*.json
+!reports/full-run-latest.json

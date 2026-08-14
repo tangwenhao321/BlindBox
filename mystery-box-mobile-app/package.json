@@ -17,6 +17,7 @@
     "ios:device": "expo run:ios --device",
     "web": "expo start --web",
     "test": "vitest run",
+    "test:all-cases": "node ../docs/TEST_CASES/AUTOMATION/classify-cases.js && node ../docs/TEST_CASES/AUTOMATION/execute-all-cases.js",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint . --max-warnings 10",
     "check": "tsc --noEmit && vitest run && npm run validate:maestro",
