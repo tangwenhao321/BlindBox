@@ -2,10 +2,10 @@
 
 | 分层 | 数量 | 如何跑 |
 |---|---:|---|
-| AUTO_UNIT | 4995 | 后端 `mvn test` + 移动端 `npm test` + 管理端 `npm test` |
-| AUTO_IT | 1343 | `mvn test`（需 Docker/本地 MySQL+Redis；不可用则 skip） |
-| AUTO_E2E | 540 | Maestro `validate:maestro`；有设备时 `test:e2e`；管理端 Playwright smoke |
-| MANUAL | 35 | 见 `MANUAL_CASES.md` |
+| AUTO_UNIT | 5033 | 后端 `mvn test` + 移动端 `npm test` + 管理端 `npm test` |
+| AUTO_IT | 1341 | `mvn test`（需 Docker/本地 MySQL+Redis；不可用则 skip） |
+| AUTO_E2E | 539 | Maestro `validate:maestro`；有设备时 `test:e2e`；管理端 Playwright smoke |
+| MANUAL | 0 | 见 `MANUAL_CASES.md` |
 
 ## 关键已落地自动化增强
 

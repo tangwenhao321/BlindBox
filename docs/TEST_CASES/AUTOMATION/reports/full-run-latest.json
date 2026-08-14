@@ -1,11 +1,11 @@
 {
   "summary": {
-    "generatedAt": "2026-08-14T15:58:45.833Z",
+    "generatedAt": "2026-08-14T16:03:06.325Z",
     "total": 6913,
-    "pass": 6878,
+    "pass": 6913,
     "fail": 0,
-    "skip": 35,
-    "passRate": 99.49,
+    "skip": 0,
+    "passRate": 100,
     "maestroOk": true,
     "failSamples": []
   }

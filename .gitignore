@@ -71,3 +71,9 @@ mystery-box-mobile-app/src/assets/sounds/*.ogg
 /template/
 bundle*.txt
 *.rar
+
+# ---- Build noise / local scratch ----
+*.tsbuildinfo
+mystery-box-backend/scripts/compile.out
+mystery-box-backend/scripts/dc-raw.java
+mystery-box-backend/scripts/*.class

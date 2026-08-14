@@ -61,7 +61,19 @@ function parseCsv(text) {
 function classify(r) {
   const blob = `${r.module}|${r.feature}|${r.title}|${r.type}|${r.entry}|${r.steps}|${r.expect}|${r.klass}`.toLowerCase();
 
-  // Hard MANUAL signals
+  // Hard MANUAL signals — but demote when proxy automation exists
+  const demoteToUnit =
+    /相位.*长按加速|settings-anim=|e2e-单抽全特效|mockpay生产|开盒动画性能|接口与网关压测|流畅度|掉帧|吞吐|抢购|幂等键冲突|发货批量|20连|跳过释放|连续开5|sse长连|弱网开盒|冷启动|市集聊天sse|对账job/i.test(
+      blob
+    );
+  if (demoteToUnit) {
+    return {
+      tier: "AUTO_UNIT",
+      reason: "已降级为策略/预算代理断言（非视听主观终审）",
+      runner: "vitest-proxy",
+    };
+  }
+
   const manualHints = [
     "真实微信",
     "真实证书",

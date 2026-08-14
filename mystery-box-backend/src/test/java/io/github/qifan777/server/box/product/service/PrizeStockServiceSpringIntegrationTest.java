@@ -2,21 +2,15 @@ package io.github.qifan777.server.box.product.service;
 
 import io.github.qifan777.server.ServerApplication;
 import io.github.qifan777.server.box.draw.cache.DrawPublicCacheInvalidator;
+import io.github.qifan777.server.support.AbstractMysqlRedisSpringBootIT;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.mysql.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,32 +19,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 
-@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(
         classes = ServerApplication.class,
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
         properties = "spring.profiles.active=test"
 )
-class PrizeStockServiceSpringIntegrationTest {
-
-    @Container
-    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0")
-            .withDatabaseName("mystery_box_it")
-            .withUsername("test")
-            .withPassword("test");
-
-    @Container
-    static final GenericContainer<?> REDIS = new GenericContainer<>(DockerImageName.parse("redis:7"))
-            .withExposedPorts(6379);
-
-    @DynamicPropertySource
-    static void registerProps(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", MYSQL::getJdbcUrl);
-        registry.add("spring.datasource.username", MYSQL::getUsername);
-        registry.add("spring.datasource.password", MYSQL::getPassword);
-        registry.add("spring.data.redis.url", () -> "redis://127.0.0.1:" + REDIS.getMappedPort(6379) + "/0");
-        registry.add("DEV_DB_PASSWORD", MYSQL::getPassword);
-    }
+class PrizeStockServiceSpringIntegrationTest extends AbstractMysqlRedisSpringBootIT {
 
     @Autowired
     private PrizeStockService prizeStockService;

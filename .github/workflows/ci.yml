@@ -39,6 +39,13 @@ jobs:
           java-version: '17'
       - name: Build and test backend
         run: mvn test
+      - name: Upload JaCoCo report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jacoco
+          path: mystery-box-backend/target/site/jacoco/
+          if-no-files-found: ignore
 
   admin:
     runs-on: ubuntu-latest
@@ -187,3 +194,26 @@ jobs:
       - run: npm run check
       - name: Validate Maestro PR smoke flows
         run: bash ../scripts/maestro-ci-smoke.sh
+
+  catalog-automation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Classify and execute all blackbox cases
+        working-directory: docs/TEST_CASES/AUTOMATION
+        run: |
+          node classify-cases.js
+          node execute-all-cases.js
+      - name: Mobile policy + proxy + catalog gate
+        working-directory: mystery-box-mobile-app
+        run: |
+          npm ci
+          npm test -- --run src/test/fullCatalogAutomation.test.ts src/effects/revealSkipPolicy.automation.test.ts src/effects/revealEffectProxy.automation.test.ts src/utils/marketplaceProceeds.automation.test.ts src/utils/journeyScenarioAutomation.test.ts src/utils/perfBudgetProxy.automation.test.ts
+      - name: Admin unit tests
+        working-directory: mystery-box-admin
+        run: |
+          npm ci
+          npm test -- --run
