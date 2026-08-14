@@ -78,7 +78,7 @@ class MysteryBoxOrderServicePaymentNotifyTest {
         when(baseOrder.payment()).thenReturn(payment);
         when(payment.payAmount()).thenReturn(new java.math.BigDecimal("1000"));
         when(mysteryBoxOrderRepository.findByIdForFront("order-paid-1")).thenReturn(paidOrder);
-        when(paidOrder.status()).thenReturn(io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus.FINISHED);
+        when(paidOrder.status()).thenReturn(io.github.qifan777.server.dict.model.ProductOrderStatus.FINISHED);
         when(paymentRetentionService.matchesPayAmountAllowingStalePrepay(eq("order-paid-1"), eq(100000L), any()))
                 .thenReturn(true);
 
@@ -106,7 +106,7 @@ class MysteryBoxOrderServicePaymentNotifyTest {
         when(baseOrder.payment()).thenReturn(payment);
         when(payment.payAmount()).thenReturn(new java.math.BigDecimal("1000"));
         when(mysteryBoxOrderRepository.findByIdForFront("order-vnpay-1")).thenReturn(paidOrder);
-        when(paidOrder.status()).thenReturn(io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus.FINISHED);
+        when(paidOrder.status()).thenReturn(io.github.qifan777.server.dict.model.ProductOrderStatus.FINISHED);
         when(paymentRetentionService.matchesPayAmountAllowingStalePrepay(eq("order-vnpay-1"), eq(100000L), any()))
                 .thenReturn(true);
 
@@ -147,7 +147,7 @@ class MysteryBoxOrderServicePaymentNotifyTest {
         when(baseOrder.payment()).thenReturn(payment);
         when(payment.payAmount()).thenReturn(new java.math.BigDecimal("1000"));
         when(mysteryBoxOrderRepository.findByIdForFront("order-cas-1")).thenReturn(unpaid);
-        when(unpaid.status()).thenReturn(io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus.TO_BE_PAID);
+        when(unpaid.status()).thenReturn(io.github.qifan777.server.dict.model.ProductOrderStatus.TO_BE_PAID);
         when(unpaid.id()).thenReturn("order-cas-1");
         when(paymentRetentionService.matchesPayAmountAllowingStalePrepay(eq("order-cas-1"), eq(100000L), any()))
                 .thenReturn(true);

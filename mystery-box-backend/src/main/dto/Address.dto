@@ -12,5 +12,5 @@ input AddressInput {
 //}
 specification AddressSpec {
     #allScalars
-    id(creator)
+    associatedIdEq(creator)
 }

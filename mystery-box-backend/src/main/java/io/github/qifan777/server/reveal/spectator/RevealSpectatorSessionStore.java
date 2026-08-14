@@ -1,7 +1,7 @@
 package io.github.qifan777.server.reveal.spectator;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class RevealSpectatorSessionStore {
     private static final String KEY_PREFIX = "reveal:spectator:";
     private static final String ORDER_INDEX_PREFIX = "reveal:spectator:order:";
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ConcurrentHashMap<String, StoredSession> memorySessions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> memoryOrderIndex = new ConcurrentHashMap<>();
 

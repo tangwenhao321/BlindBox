@@ -1,7 +1,7 @@
 package io.github.qifan777.server.vip.root.controller;
 
 import cn.dev33.satoken.stp.StpUtil;
-import io.github.qifan777.server.Objects;
+import io.github.qifan777.server.Immutables;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.vip.root.entity.Vip;
 import io.github.qifan777.server.vip.root.entity.dto.VipSpec;
@@ -24,7 +24,7 @@ public class VipForFrontController {
 
     @GetMapping
     public @FetchBy(value = "COMPLEX_FETCHER_FOR_FRONT") Vip find() {
-        return vipRepository.findCurrentUserVip().orElse(Objects.createVip(draft -> {
+        return vipRepository.findCurrentUserVip().orElse(Immutables.createVip(draft -> {
         }));
     }
 

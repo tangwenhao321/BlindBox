@@ -1,6 +1,8 @@
 package io.github.qifan777.server.reveal.spectator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,7 +32,7 @@ class RevealSpectatorSessionStoreRedisTest {
     private ValueOperations<String, String> valueOperations;
 
     private RevealSpectatorSessionStore store;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper objectMapper = JsonMapper.shared();
 
     @BeforeEach
     void setUp() {
@@ -52,14 +54,14 @@ class RevealSpectatorSessionStoreRedisTest {
 
         store.save("tok-redis", session);
 
-        verify(valueOperations).set(eq("reveal:spectator:tok-redis"), anyString(), any());
-        verify(valueOperations).set(eq("reveal:spectator:order:host-a:order-redis"), eq("tok-redis"), any());
+        verify(valueOperations).set(eq("reveal:spectator:tok-redis"), anyString(), any(Duration.class));
+        verify(valueOperations).set(eq("reveal:spectator:order:host-a:order-redis"), eq("tok-redis"), any(Duration.class));
     }
 
     @Test
     void find_fallsBackToMemoryWhenRedisReadFails() {
         doThrow(new RuntimeException("redis write failed"))
-                .when(valueOperations).set(anyString(), anyString(), any());
+                .when(valueOperations).set(anyString(), anyString(), any(Duration.class));
         store.save("tok-mem", new RevealSpectatorSessionStore.RevealSpectatorSession(
                 "host-a",
                 "order-mem",

@@ -1,42 +1,40 @@
 package io.github.qifan777.server.infrastructure.config;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import io.qifan.infrastructure.common.model.PageResult;
-import org.springframework.boot.jackson.JsonComponent;
+import org.springframework.boot.jackson.JacksonComponent;
 import org.springframework.data.domain.Page;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
 
-import java.io.IOException;
 import java.util.List;
 
-@JsonComponent
+@JacksonComponent
 public class PageableConvert {
 
-    public static class Serializer extends JsonSerializer<Page<?>> {
+    public static class Serializer extends ValueSerializer<Page<?>> {
 
         @Override
         public void serialize(Page<?> page, JsonGenerator jsonGenerator,
-                              SerializerProvider serializerProvider) throws IOException {
+                              SerializationContext serializers) {
             PageResult<?> pageResult = new PageResult<>()
                     .setNumber(page.getNumber())
                     .setSize(page.getSize())
                     .setTotalElements(page.getTotalElements())
                     .setTotalPages(page.getTotalPages())
                     .setContent((List<Object>) page.getContent());
-            jsonGenerator.writeObject(pageResult);
+            jsonGenerator.writePOJO(pageResult);
         }
     }
 
-    public static class Deserializer extends JsonDeserializer<Page<?>> {
-
+    public static class Deserializer extends ValueDeserializer<Page<?>> {
 
         @Override
         public Page<?> deserialize(JsonParser jsonParser,
-                                   DeserializationContext deserializationContext) throws IOException {
+                                   DeserializationContext deserializationContext) {
             return jsonParser.readValueAs(Page.class);
         }
     }

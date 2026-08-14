@@ -33,7 +33,6 @@ export const useTagStore = defineStore('tags', () => {
     const route = typeof path == 'string' ? { path } : path
     // 根据path在用户的菜单列表中查找菜单
     const menu = menuList.value.find((value) => value.path === route.path)
-    console.log(menu)
     // 如果菜单类型不是PAGE则返回
     if (!menu || menu.menuType != 'PAGE') return
     const currentIndex = tags.value.findIndex((item) => {

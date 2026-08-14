@@ -7,5 +7,5 @@ input RefundRecordInput {
 
 specification RefundRecordSpec {
     #allScalars
-    id(creator)
+    associatedIdEq(creator)
 }

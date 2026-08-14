@@ -1,7 +1,7 @@
 package io.github.qifan777.server.marketplace;
 
 import cn.dev33.satoken.stp.StpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +33,7 @@ public class MarketplaceForFrontController {
     private final MarketplaceService marketplaceService;
     private final MarketplaceChatService marketplaceChatService;
     private final MarketplaceChatSseHub marketplaceChatSseHub;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final io.github.qifan777.server.infrastructure.compliance.IosDigitalGoodsGuard iosDigitalGoodsGuard;
     private final UserComplianceService userComplianceService;
 

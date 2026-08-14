@@ -1,5 +1,7 @@
 package io.github.qifan777.server.warehouse;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrderTable;
 import io.github.qifan777.server.box.order.repository.MysteryBoxOrderRepository;
@@ -39,16 +41,16 @@ public class WarehouseService {
     private static final int MAX_COLLECT = MAX_ORDER_SCAN + MAX_MARKETPLACE_SCAN;
     private static final DateTimeFormatter ISO = DateTimeFormatter.ISO_INSTANT;
 
-    private static final Set<DictConstants.ProductOrderStatus> PENDING = Set.of(
-            DictConstants.ProductOrderStatus.TO_BE_DELIVERED,
-            DictConstants.ProductOrderStatus.TO_BE_RECEIVED
+    private static final Set<ProductOrderStatus> PENDING = Set.of(
+            ProductOrderStatus.TO_BE_DELIVERED,
+            ProductOrderStatus.TO_BE_RECEIVED
     );
 
-    private static final Set<DictConstants.ProductOrderStatus> ALL_WAREHOUSE = Set.of(
-            DictConstants.ProductOrderStatus.TO_BE_DELIVERED,
-            DictConstants.ProductOrderStatus.TO_BE_RECEIVED,
-            DictConstants.ProductOrderStatus.TO_BE_EVALUATED,
-            DictConstants.ProductOrderStatus.FINISHED
+    private static final Set<ProductOrderStatus> ALL_WAREHOUSE = Set.of(
+            ProductOrderStatus.TO_BE_DELIVERED,
+            ProductOrderStatus.TO_BE_RECEIVED,
+            ProductOrderStatus.TO_BE_EVALUATED,
+            ProductOrderStatus.FINISHED
     );
 
     private final MysteryBoxOrderRepository mysteryBoxOrderRepository;
@@ -150,7 +152,7 @@ public class WarehouseService {
     }
 
     private int countOrderWarehouseItems(String userId, boolean pendingOnly) {
-        Set<DictConstants.ProductOrderStatus> statuses = pendingOnly ? PENDING : ALL_WAREHOUSE;
+        Set<ProductOrderStatus> statuses = pendingOnly ? PENDING : ALL_WAREHOUSE;
         String inClause = statuses.stream()
                 .map(s -> "'" + s.getKeyEnName() + "'")
                 .collect(Collectors.joining(","));
@@ -203,7 +205,7 @@ public class WarehouseService {
             int offset
     ) {
         Set<String> pendingKeys = pendingShipLineKeys(userId);
-        Set<DictConstants.ProductOrderStatus> statuses = pendingOnly ? PENDING : ALL_WAREHOUSE;
+        Set<ProductOrderStatus> statuses = pendingOnly ? PENDING : ALL_WAREHOUSE;
         String statusIn = statuses.stream()
                 .map(s -> "'" + s.getKeyEnName() + "'")
                 .collect(Collectors.joining(","));
@@ -311,7 +313,7 @@ public class WarehouseService {
     }
 
     private List<ScoredItem> listFromOrders(String userId, boolean pendingOnly, Set<String> pendingKeys) {
-        Set<DictConstants.ProductOrderStatus> statuses = pendingOnly ? PENDING : ALL_WAREHOUSE;
+        Set<ProductOrderStatus> statuses = pendingOnly ? PENDING : ALL_WAREHOUSE;
         List<MysteryBoxOrder> orders = mysteryBoxOrderRepository.sql().createQuery(MysteryBoxOrderTable.$)
                 .where(MysteryBoxOrderTable.$.baseOrder().creatorId().eq(userId))
                 .where(MysteryBoxOrderTable.$.status().in(statuses))

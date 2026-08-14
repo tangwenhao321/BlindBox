@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.root.entity.dto;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.entity.MysteryBoxDraft;
 import io.github.qifan777.server.box.root.entity.MysteryBoxFetcher;
@@ -336,7 +338,7 @@ public class MystryBoxView implements View<MysteryBox> {
 
         private List<KeyValue> specifications;
 
-        private DictConstants.QualityType qualityType;
+        private QualityType qualityType;
 
         private List<KeyValue> attributes;
 
@@ -511,14 +513,14 @@ public class MystryBoxView implements View<MysteryBox> {
                 label = "品质",
                 order = 8
         )
-        public DictConstants.QualityType getQualityType() {
+        public QualityType getQualityType() {
             if (qualityType == null) {
                 throw new IllegalStateException("The property \"qualityType\" is not specified");
             }
             return qualityType;
         }
 
-        public void setQualityType(@NotNull DictConstants.QualityType qualityType) {
+        public void setQualityType(@NotNull QualityType qualityType) {
             this.qualityType = qualityType;
         }
 

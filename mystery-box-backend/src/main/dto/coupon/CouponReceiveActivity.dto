@@ -8,10 +8,10 @@ input CouponReceiveActivityInput {
 
 specification CouponReceiveActivitySpec {
     #allScalars
-    id(coupon)
+    associatedIdEq(coupon)
     ge(effectiveDate)
     le(effectiveDate)
     ge(expirationDate)
     le(expirationDate)
-    id(creator)
+    associatedIdEq(creator)
 }

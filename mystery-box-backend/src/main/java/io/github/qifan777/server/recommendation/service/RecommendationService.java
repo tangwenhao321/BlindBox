@@ -1,7 +1,7 @@
 package io.github.qifan777.server.recommendation.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,13 +31,13 @@ public class RecommendationService {
     private static final String CACHE_KEY_PREFIX = "cache:recommend:";
 
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ConcurrentHashMap<String, CachedRecommendation> memoryCache = new ConcurrentHashMap<>();
 
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;
 
-    public RecommendationService(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
+    public RecommendationService(JdbcTemplate jdbcTemplate, JsonMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
         this.objectMapper = objectMapper;
     }
@@ -105,7 +105,7 @@ public class RecommendationService {
         try {
             String json = objectMapper.writeValueAsString(result);
             redisTemplate.opsForValue().set(CACHE_KEY_PREFIX + cacheKey, json, CACHE_TTL);
-        } catch (JsonProcessingException | RuntimeException ex) {
+        } catch (Exception ex) {
             log.debug("recommendation redis cache write failed: {}", ex.getMessage());
         }
     }

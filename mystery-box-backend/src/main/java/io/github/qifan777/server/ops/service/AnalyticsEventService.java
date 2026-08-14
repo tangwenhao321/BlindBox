@@ -16,7 +16,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.jdbc.core.JdbcTemplate;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.qifan.infrastructure.common.exception.BusinessException;
 
 @Service
@@ -38,7 +38,7 @@ public class AnalyticsEventService {
     );
 
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ConcurrentHashMap<String, GuestWindow> guestWindows = new ConcurrentHashMap<>();
 
     private static final class GuestWindow {

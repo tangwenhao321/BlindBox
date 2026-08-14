@@ -1,7 +1,7 @@
 package io.github.qifan777.server.search.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,7 +20,7 @@ public class SearchHotKeywordService {
 
     private final JdbcTemplate jdbcTemplate;
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public List<String> hotKeywords(int limit) {
         int size = Math.min(Math.max(limit, 1), 20);

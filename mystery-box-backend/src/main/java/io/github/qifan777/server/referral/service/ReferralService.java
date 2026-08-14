@@ -2,7 +2,7 @@ package io.github.qifan777.server.referral.service;
 
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrderTable;
-import io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.payment.config.MarketProperties;

@@ -1,6 +1,6 @@
 package io.github.qifan777.server.ops.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.infrastructure.audit.AuditTrailService;
 import io.github.qifan777.server.notification.service.UserNotificationService;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class OpsPlatformServiceMessageTaskTest {
                 auditTrailService,
                 jdbcTemplate,
                 userNotificationService,
-                new ObjectMapper()
+                JsonMapper.shared()
         );
     }
 

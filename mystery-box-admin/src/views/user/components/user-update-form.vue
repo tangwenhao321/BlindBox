@@ -16,14 +16,25 @@ const userStore = useUserStore()
 const { closeDialog, reloadTableData } = userStore
 const { updateForm, dialogData } = storeToRefs(userStore)
 const updateFormRef = ref<FormInstance>()
+const passwordPolicy = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
+  if (!value) {
+    callback()
+    return
+  }
+  if (value.length < 8 || !/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+    callback(new Error('密码至少 8 位且需包含字母和数字'))
+    return
+  }
+  callback()
+}
 const rules = reactive<FormRules<typeof updateForm>>({
   phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  password: [{ validator: passwordPolicy, trigger: 'blur' }]
 })
 const init = async () => {
   dialogData.value.title = '编辑'
   const res = await api.userForAdminController.findById({ id: updateForm.value.id || '' })
-  updateForm.value = { ...res, roleIds: res.rolesView.map((role) => role.id) }
+  updateForm.value = { ...res, roleIds: res.rolesView.map((role) => role.id), password: '' }
 }
 watch(
   () => dialogData.value.visible,
@@ -59,7 +70,7 @@ const roleQueryOptions = async (keyword: string, roleIds: string[]) => {
         <el-input v-model="updateForm.phone"></el-input>
       </el-form-item>
       <el-form-item label="密码" prop="password">
-        <el-input v-model="updateForm.password"></el-input>
+        <el-input v-model="updateForm.password" type="password" show-password placeholder="留空则不修改"></el-input>
       </el-form-item>
       <el-form-item label="昵称" prop="nickname">
         <el-input v-model="updateForm.nickname"></el-input>

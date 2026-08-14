@@ -1,7 +1,7 @@
 package io.github.qifan777.server.ops.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.infrastructure.audit.AuditTrailService;
 import io.github.qifan777.server.notification.service.UserNotificationService;
 import io.qifan.infrastructure.common.constants.ResultCode;
@@ -23,7 +23,7 @@ public class OpsPlatformService {
     private final AuditTrailService auditTrailService;
     private final JdbcTemplate jdbcTemplate;
     private final UserNotificationService userNotificationService;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public Campaign createCampaign(String actorId, String name, String traceId) {
         String id = id();

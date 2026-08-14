@@ -9,5 +9,5 @@ specification MysteryBoxCategorySpec {
     #allScalars
     like/i(name)
     like/i(description)
-    id(creator)
+    associatedIdEq(creator)
 }

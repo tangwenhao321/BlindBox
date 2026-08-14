@@ -8,7 +8,7 @@ input VipOrderInput {
 
 specification VipOrderSpec {
     #allScalars
-    id(user)
-    id(vipPackage)
-    id(creator)
+    associatedIdEq(user)
+    associatedIdEq(vipPackage)
+    associatedIdEq(creator)
 }

@@ -1,7 +1,7 @@
 package io.github.qifan777.server.box.slot.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
 import io.github.qifan777.server.user.hint.UserHintCardService;
 import io.qifan.infrastructure.common.exception.BusinessException;
@@ -33,7 +33,7 @@ public class MysteryBoxHintService {
     };
 
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final MysteryBoxRepository mysteryBoxRepository;
     private final UserHintCardService userHintCardService;
     private final JdbcTemplate jdbcTemplate;

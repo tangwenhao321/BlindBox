@@ -1,7 +1,7 @@
 package io.github.qifan777.server.leaderboard.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.leaderboard.model.LeaderboardMeView;
 import io.github.qifan777.server.user.privacy.NicknameMaskService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ public class DrawLeaderboardService {
     private final JdbcTemplate jdbcTemplate;
     private final NicknameMaskService nicknameMaskService;
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ConcurrentHashMap<String, CachedLeaderboard> localCache = new ConcurrentHashMap<>();
 
     public void invalidateCaches() {
@@ -95,7 +95,7 @@ public class DrawLeaderboardService {
         try {
             String json = objectMapper.writeValueAsString(result);
             redisTemplate.opsForValue().set(REDIS_KEY_PREFIX + cacheKey, json, Duration.ofSeconds(60));
-        } catch (JsonProcessingException ignored) {
+        } catch (JacksonException ignored) {
             // skip redis write
         }
     }

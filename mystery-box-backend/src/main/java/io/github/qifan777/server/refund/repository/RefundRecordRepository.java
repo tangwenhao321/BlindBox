@@ -1,5 +1,7 @@
 package io.github.qifan777.server.refund.repository;
 
+import io.github.qifan777.server.dict.model.RefundStatus;
+
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.model.QueryRequest;
 import io.github.qifan777.server.refund.entity.RefundRecord;
@@ -41,7 +43,7 @@ public interface RefundRecordRepository extends JRepository<RefundRecord, String
     default List<RefundRecord> findStuckRefunding(LocalDateTime olderThan, int limit) {
         int size = Math.min(Math.max(limit, 1), 200);
         return sql().createQuery(t)
-                .where(t.status().eq(DictConstants.RefundStatus.REFUNDING))
+                .where(t.status().eq(RefundStatus.REFUNDING))
                 .where(t.createdTime().le(olderThan))
                 .orderBy(t.createdTime().asc())
                 .select(t.fetch(COMPLEX_FETCHER_FOR_ADMIN))
@@ -53,8 +55,8 @@ public interface RefundRecordRepository extends JRepository<RefundRecord, String
         return sql().createQuery(t)
                 .where(t.orderId().eq(orderId))
                 .where(t.status().in(List.of(
-                        DictConstants.RefundStatus.REFUNDING,
-                        DictConstants.RefundStatus.SUCCESS)))
+                        RefundStatus.REFUNDING,
+                        RefundStatus.SUCCESS)))
                 .select(t.id())
                 .limit(1)
                 .fetchOptional()
@@ -68,16 +70,16 @@ public interface RefundRecordRepository extends JRepository<RefundRecord, String
         }
         if (gatewayRefundId != null && !gatewayRefundId.isBlank()) {
             return sql().createUpdate(t)
-                    .set(t.status(), DictConstants.RefundStatus.SUCCESS)
+                    .set(t.status(), RefundStatus.SUCCESS)
                     .set(t.refundId(), gatewayRefundId)
                     .where(t.id().eq(refundId))
-                    .where(t.status().eq(DictConstants.RefundStatus.REFUNDING))
+                    .where(t.status().eq(RefundStatus.REFUNDING))
                     .execute() > 0;
         }
         return sql().createUpdate(t)
-                .set(t.status(), DictConstants.RefundStatus.SUCCESS)
+                .set(t.status(), RefundStatus.SUCCESS)
                 .where(t.id().eq(refundId))
-                .where(t.status().eq(DictConstants.RefundStatus.REFUNDING))
+                .where(t.status().eq(RefundStatus.REFUNDING))
                 .execute() > 0;
     }
 
@@ -93,7 +95,7 @@ public interface RefundRecordRepository extends JRepository<RefundRecord, String
         return sql().createUpdate(t)
                 .set(t.refundId(), marker)
                 .where(t.id().eq(refundId))
-                .where(t.status().eq(DictConstants.RefundStatus.REFUNDING))
+                .where(t.status().eq(RefundStatus.REFUNDING))
                 .where(t.refundId().isNull())
                 .execute() > 0;
     }

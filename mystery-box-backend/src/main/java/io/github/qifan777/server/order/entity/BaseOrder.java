@@ -1,5 +1,7 @@
 package io.github.qifan777.server.order.entity;
 
+import io.github.qifan777.server.dict.model.OrderType;
+
 import io.github.qifan777.server.address.entity.dto.AddressView;
 import io.github.qifan777.server.coupon.user.entity.CouponUserRel;
 import io.github.qifan777.server.dict.model.DictConstants;
@@ -46,7 +48,7 @@ public interface BaseOrder extends BaseEntity {
     /**
      * 订单类型
      */
-    DictConstants.OrderType type();
+    OrderType type();
 
     /**
      * 支付订单

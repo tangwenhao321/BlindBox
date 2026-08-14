@@ -32,7 +32,7 @@ input UserResetPasswordInput {
 specification UserSpec {
     #allScalars
     eq(inviteCode)
-    id(inviter)
+    associatedIdEq(inviter)
     like/i(id)
     like/i(phone)
     like/i(nickname)

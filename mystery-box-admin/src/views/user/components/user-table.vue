@@ -87,11 +87,6 @@ const handleDelete = (ids: string[]) => {
           {{ row.phone }}
         </template>
       </el-table-column>
-      <el-table-column label="密码" prop="password" sortable="custom">
-        <template v-slot:default="{ row }: UserScope">
-          {{ row.password }}
-        </template>
-      </el-table-column>
       <el-table-column label="昵称" prop="nickname" sortable="custom">
         <template v-slot:default="{ row }: UserScope">
           {{ row.nickname }}

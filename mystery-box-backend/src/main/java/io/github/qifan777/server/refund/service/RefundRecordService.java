@@ -1,5 +1,9 @@
 package io.github.qifan777.server.refund.service;
 
+import io.github.qifan777.server.dict.model.PayType;
+import io.github.qifan777.server.dict.model.RefundStatus;
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import cn.hutool.core.util.IdUtil;
 import com.github.binarywang.wxpay.bean.request.WxPayRefundV3Request;
 import com.github.binarywang.wxpay.bean.result.WxPayRefundQueryV3Result;
@@ -11,7 +15,7 @@ import io.github.qifan777.server.box.pity.service.MysteryBoxUserPityService;
 import io.github.qifan777.server.box.product.service.PrizeStockService;
 import io.github.qifan777.server.coupon.root.service.CouponService;
 import io.github.qifan777.server.dict.model.DictConstants;
-import io.github.qifan777.server.dict.model.DictConstants.CouponUseStatus;
+import io.github.qifan777.server.dict.model.CouponUseStatus;
 import io.github.qifan777.server.payment.config.MarketProperties;
 import io.github.qifan777.server.payment.gateway.PaymentRefundResult;
 import io.github.qifan777.server.payment.gateway.VNPayPaymentGateway;
@@ -81,8 +85,8 @@ public class RefundRecordService {
                     MoneyPathErrorCode.ORDER_OWNERSHIP_DENIED,
                     MoneyPathErrorCode.ORDER_OWNERSHIP_DENIED.tokenMessage("只能对自己的订单申请退款"));
         }
-        if (!order.status().equals(DictConstants.ProductOrderStatus.TO_BE_DELIVERED)
-                && !order.status().equals(DictConstants.ProductOrderStatus.TO_BE_RECEIVED)) {
+        if (!order.status().equals(ProductOrderStatus.TO_BE_DELIVERED)
+                && !order.status().equals(ProductOrderStatus.TO_BE_RECEIVED)) {
             throw new BusinessException(
                     MoneyPathErrorCode.REFUND_DENIED,
                     MoneyPathErrorCode.REFUND_DENIED.tokenMessage());
@@ -110,7 +114,7 @@ public class RefundRecordService {
                 .setOrderId(orderId)
                 .setReason(reason == null ? "用户申请退款" : reason)
                 .setAmount(refundAmount)
-                .setStatus(DictConstants.RefundStatus.REFUNDING));
+                .setStatus(RefundStatus.REFUNDING));
         try {
             refundRecordRepository.save(record);
         } catch (DuplicateKeyException dup) {
@@ -127,12 +131,12 @@ public class RefundRecordService {
     public void approve(String refundId) {
         RefundRecord record = refundRecordRepository.findById(refundId, RefundRecordRepository.COMPLEX_FETCHER_FOR_ADMIN)
                 .orElseThrow(() -> new BusinessException("退款记录不存在"));
-        if (record.status().equals(DictConstants.RefundStatus.SUCCESS)) {
+        if (record.status().equals(RefundStatus.SUCCESS)) {
             return;
         }
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(record.orderId());
         String userId = order.creator().id();
-        DictConstants.PayType payType = order.baseOrder().payment().payType();
+        PayType payType = order.baseOrder().payment().payType();
         // Check MoMo before CAS claim so unsupported tickets stay claimable for manual ops.
         if (isMoMoRefundUnsupported(payType)) {
             userNotificationService.push(userId, "REFUND", "退款处理中",
@@ -144,7 +148,7 @@ public class RefundRecordService {
         }
         boolean vnPayChannel = isVnPayChannel(payType);
 
-        // Wallet credit only when mock pay is on. DictConstants.PayType has no BALANCE/WALLET;
+        // Wallet credit only when mock pay is on. PayType has no BALANCE/WALLET;
         // never treat isWxUnset as wallet for WeChat/gateway captures.
         if (paymentMockEnabled) {
             userWalletService.credit(userId, record.amount(), "REFUND", "订单退款入账（模拟/余额通道）", record.orderId());
@@ -176,7 +180,7 @@ public class RefundRecordService {
 
         if (isWxUnset()) {
             refundRecordRepository.save(RefundRecordDraft.$.produce(record, draft -> draft
-                    .setStatus(DictConstants.RefundStatus.REFUNDING)));
+                    .setStatus(RefundStatus.REFUNDING)));
             throw new BusinessException("微信退款通道未配置，已保留退款工单请人工处理");
         }
 
@@ -194,7 +198,7 @@ public class RefundRecordService {
         refundRecordRepository.save(RefundRecordDraft.$.produce(record, draft -> draft
                 .setRefundId(wxResult.getRefundId())
                 .setRefundApplicationDetails(wxResult)
-                .setStatus(DictConstants.RefundStatus.REFUNDING)));
+                .setStatus(RefundStatus.REFUNDING)));
         userNotificationService.push(userId, "REFUND", "退款处理中", "渠道退款已发起，请留意到账", record.orderId());
     }
 
@@ -231,7 +235,7 @@ public class RefundRecordService {
         if (rollbackStock) {
             prizeStockService.rollbackByOrderId(record.orderId());
         }
-        mysteryBoxOrderRepository.changeStatus(record.orderId(), DictConstants.ProductOrderStatus.REFUNDED);
+        mysteryBoxOrderRepository.changeStatus(record.orderId(), ProductOrderStatus.REFUNDED);
         clearPityForOrder(record, order);
         if (record.reason() != null
                 && record.reason().contains(MysteryBoxUserPityService.COMPENSATE_CODE)
@@ -259,13 +263,13 @@ public class RefundRecordService {
         if (record == null) {
             return false;
         }
-        if (record.status().equals(DictConstants.RefundStatus.SUCCESS)
-                || record.status().equals(DictConstants.RefundStatus.FAILED)) {
+        if (record.status().equals(RefundStatus.SUCCESS)
+                || record.status().equals(RefundStatus.FAILED)) {
             return false;
         }
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(record.orderId());
         String userId = order.creator().id();
-        DictConstants.PayType payType = order.baseOrder().payment().payType();
+        PayType payType = order.baseOrder().payment().payType();
         if (isMoMoRefundUnsupported(payType)) {
             log.warn("refund reconcile MoMo unsupported — keep REFUNDING refundId={} orderId={}",
                     refundId, record.orderId());
@@ -274,9 +278,9 @@ public class RefundRecordService {
         boolean vnPayChannel = isVnPayChannel(payType);
         boolean pityStuck = record.reason() != null
                 && record.reason().contains(MysteryBoxUserPityService.COMPENSATE_CODE)
-                && (order.status().equals(DictConstants.ProductOrderStatus.CLOSED)
-                || order.status().equals(DictConstants.ProductOrderStatus.TO_BE_DELIVERED)
-                || order.status().equals(DictConstants.ProductOrderStatus.REFUNDED));
+                && (order.status().equals(ProductOrderStatus.CLOSED)
+                || order.status().equals(ProductOrderStatus.TO_BE_DELIVERED)
+                || order.status().equals(ProductOrderStatus.REFUNDED));
 
         // DRAW_INTEGRITY_EMPTY waits for admin approve — do not auto wallet-credit.
         if (record.reason() != null && record.reason().contains(DRAW_INTEGRITY_EMPTY_REASON)) {
@@ -341,7 +345,7 @@ public class RefundRecordService {
             }
             if ("CLOSED".equalsIgnoreCase(status) || "ABNORMAL".equalsIgnoreCase(status)) {
                 refundRecordRepository.save(RefundRecordDraft.$.produce(record, draft ->
-                        draft.setStatus(DictConstants.RefundStatus.FAILED)));
+                        draft.setStatus(RefundStatus.FAILED)));
                 log.warn("refund reconcile WeChat terminal failure refundId={} orderId={} status={}",
                         refundId, record.orderId(), status);
                 return false;
@@ -380,7 +384,7 @@ public class RefundRecordService {
                 .setOrderId(order.id())
                 .setReason(DRAW_INTEGRITY_EMPTY_REASON)
                 .setAmount(refundAmount)
-                .setStatus(DictConstants.RefundStatus.REFUNDING));
+                .setStatus(RefundStatus.REFUNDING));
         refundRecordRepository.save(record);
         userNotificationService.push(
                 order.creator().id(),
@@ -392,19 +396,19 @@ public class RefundRecordService {
         return Optional.of(id);
     }
 
-    public boolean isVnPayChannel(DictConstants.PayType payType) {
-        return payType == DictConstants.PayType.VN_PAY;
+    public boolean isVnPayChannel(PayType payType) {
+        return payType == PayType.VN_PAY;
     }
 
-    public boolean isMoMoChannel(DictConstants.PayType payType) {
-        return payType == DictConstants.PayType.MO_MO;
+    public boolean isMoMoChannel(PayType payType) {
+        return payType == PayType.MO_MO;
     }
 
     /**
      * Live MoMo captures must not wallet-credit or go through VNPay/WeChat refund APIs.
      * Keep REFUNDING for admin until MoMo Partner refund is wired.
      */
-    public boolean isMoMoRefundUnsupported(DictConstants.PayType payType) {
+    public boolean isMoMoRefundUnsupported(PayType payType) {
         return isMoMoChannel(payType) && !paymentMockEnabled;
     }
 
@@ -412,13 +416,13 @@ public class RefundRecordService {
     public void reject(String refundId, String rejectReason) {
         RefundRecord record = refundRecordRepository.findById(refundId, RefundRecordRepository.COMPLEX_FETCHER_FOR_ADMIN)
                 .orElseThrow(() -> new BusinessException("退款记录不存在"));
-        if (record.status().equals(DictConstants.RefundStatus.SUCCESS)
-                || record.status().equals(DictConstants.RefundStatus.FAILED)) {
+        if (record.status().equals(RefundStatus.SUCCESS)
+                || record.status().equals(RefundStatus.FAILED)) {
             return;
         }
         String reason = (rejectReason == null || rejectReason.isBlank()) ? "审核未通过" : rejectReason;
         refundRecordRepository.save(RefundRecordDraft.$.produce(record, draft -> draft
-                .setStatus(DictConstants.RefundStatus.FAILED)
+                .setStatus(RefundStatus.FAILED)
                 .setReason(record.reason() + "｜驳回：" + reason)));
         MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(record.orderId());
         userNotificationService.push(
@@ -441,10 +445,10 @@ public class RefundRecordService {
     private String gatewayRefundingLabel(RefundRecord record) {
         try {
             MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(record.orderId());
-            DictConstants.PayType payType = order.baseOrder() != null && order.baseOrder().payment() != null
+            PayType payType = order.baseOrder() != null && order.baseOrder().payment() != null
                     ? order.baseOrder().payment().payType()
                     : null;
-            if (payType == DictConstants.PayType.MO_MO) {
+            if (payType == PayType.MO_MO) {
                 return "MoMo 退款处理中";
             }
             if (isVnPayChannel(payType)) {
@@ -470,7 +474,7 @@ public class RefundRecordService {
                 record.reason()
         ));
         String status = record.status().getKeyEnName();
-        if (DictConstants.RefundStatus.REFUNDING.getKeyEnName().equals(status)) {
+        if (RefundStatus.REFUNDING.getKeyEnName().equals(status)) {
             events.add(new RefundTimelineEvent(
                     "REVIEWING",
                     "客服审核中",
@@ -486,7 +490,7 @@ public class RefundRecordService {
                 ));
             }
         }
-        if (DictConstants.RefundStatus.SUCCESS.getKeyEnName().equals(status)) {
+        if (RefundStatus.SUCCESS.getKeyEnName().equals(status)) {
             events.add(new RefundTimelineEvent(
                     "SUCCESS",
                     "退款成功，" + formatRefundAmount(record.amount()) + " 已退回",
@@ -494,7 +498,7 @@ public class RefundRecordService {
                     record.refundId()
             ));
         }
-        if (DictConstants.RefundStatus.FAILED.getKeyEnName().equals(status)) {
+        if (RefundStatus.FAILED.getKeyEnName().equals(status)) {
             events.add(new RefundTimelineEvent(
                     "FAILED",
                     "退款未通过",
@@ -513,7 +517,7 @@ public class RefundRecordService {
             String payTypeName = "未知";
             try {
                 MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(record.orderId());
-                DictConstants.PayType payType = order.baseOrder().payment().payType();
+                PayType payType = order.baseOrder().payment().payType();
                 payTypeKey = payType.getKeyEnName();
                 payTypeName = payType.getKeyName();
             } catch (Exception ignored) {

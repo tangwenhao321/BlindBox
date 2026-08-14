@@ -14,5 +14,5 @@ input PaymentInput {
 
 specification PaymentSpec {
     #allScalars
-    id(creator)
+    associatedIdEq(creator)
 }

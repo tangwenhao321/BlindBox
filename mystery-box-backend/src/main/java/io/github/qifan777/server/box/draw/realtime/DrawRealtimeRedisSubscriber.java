@@ -1,6 +1,6 @@
 package io.github.qifan777.server.box.draw.realtime;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.box.draw.model.DrawFeedPageView;
 import io.github.qifan777.server.box.draw.service.MysteryBoxDrawFeedService;
 import io.github.qifan777.server.box.root.model.PoolDashboardView;
@@ -18,7 +18,7 @@ public class DrawRealtimeRedisSubscriber implements MessageListener {
     private final DrawRealtimeSseHub sseHub;
     private final PoolDashboardService poolDashboardService;
     private final MysteryBoxDrawFeedService drawFeedService;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {

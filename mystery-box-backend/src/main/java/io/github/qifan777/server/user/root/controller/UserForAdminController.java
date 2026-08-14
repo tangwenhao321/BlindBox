@@ -1,5 +1,7 @@
 package io.github.qifan777.server.user.root.controller;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import cn.dev33.satoken.annotation.SaCheckPermission;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.StpUtil;
@@ -65,10 +67,10 @@ public class UserForAdminController {
                          @RequestHeader(value = "x-admin-action-otp", required = false) String otp) {
         adminActionOtpVerifier.assertValid(otp);
         User user = userInput.toEntity();
-        if (user.status().equals(DictConstants.UserStatus.BANNED)) {
+        if (user.status().equals(UserStatus.BANNED)) {
             StpUtil.kickout(user.id());
             StpUtil.disable(user.id(), 60 * 60 * 24 * 30 * 12 * 10);
-        } else if (user.status().equals(DictConstants.UserStatus.NORMAL)) {
+        } else if (user.status().equals(UserStatus.NORMAL)) {
             StpUtil.untieDisable(user.id());
         }
         return userRepository.update(beforeSave(user, userInput.getRoleIds())).id();

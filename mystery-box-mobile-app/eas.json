@@ -21,8 +21,8 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_PAYMENT_MODE": "mock",
-        "EXPO_PUBLIC_MOCK_PAYMENT": "true",
+        "EXPO_PUBLIC_PAYMENT_MODE": "wechat",
+        "EXPO_PUBLIC_MOCK_PAYMENT": "false",
         "EXPO_PUBLIC_APP_VARIANT": "preview"
       }
     },

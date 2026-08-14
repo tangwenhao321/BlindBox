@@ -1,5 +1,8 @@
 package io.github.qifan777.server.user.root.entity;
 
+import io.github.qifan777.server.dict.model.Gender;
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import io.qifan.infrastructure.generator.core.GenEntity;
 import io.qifan.infrastructure.generator.core.GenField;
 import io.qifan.infrastructure.generator.core.GenNumberField;
@@ -44,7 +47,7 @@ public interface User extends BaseDateTime {
 
     @GenField(value = "性别", order = 4, type = ItemType.SELECTABLE, dictEnName = DictConstants.GENDER)
     @Null
-    DictConstants.Gender gender();
+    Gender gender();
 
     @Null
     @OneToOne(mappedBy = "user")
@@ -60,7 +63,7 @@ public interface User extends BaseDateTime {
     )
     List<Role> rolesView();
 
-    DictConstants.UserStatus status();
+    UserStatus status();
 
     /**
      * 可用余额

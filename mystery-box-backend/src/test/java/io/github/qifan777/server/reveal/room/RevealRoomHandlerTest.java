@@ -1,6 +1,6 @@
 package io.github.qifan777.server.reveal.room;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,13 +31,13 @@ class RevealRoomHandlerTest {
     @Mock
     private RevealRoomStore roomStore;
 
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
     private RevealRoomRedisFanout redisFanout;
     private RevealRoomHandler handler;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
+        objectMapper = JsonMapper.shared();
         redisFanout = new RevealRoomRedisFanout();
         handler = new RevealRoomHandler(roomStore, objectMapper, redisFanout);
     }

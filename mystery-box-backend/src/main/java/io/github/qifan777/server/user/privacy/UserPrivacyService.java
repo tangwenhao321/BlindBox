@@ -1,5 +1,7 @@
 package io.github.qifan777.server.user.privacy;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.IdUtil;
@@ -122,7 +124,7 @@ public class UserPrivacyService {
                 .setPassword(randomPassword)
                 .setNickname("deleted_user")
                 .setAvatar(null)
-                .setStatus(DictConstants.UserStatus.BANNED)
+                .setStatus(UserStatus.BANNED)
                 .setInviteCode(null)
         ));
 

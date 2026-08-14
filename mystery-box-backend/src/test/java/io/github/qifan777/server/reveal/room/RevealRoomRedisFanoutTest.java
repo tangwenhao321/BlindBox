@@ -1,6 +1,6 @@
 package io.github.qifan777.server.reveal.room;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,14 +33,14 @@ class RevealRoomRedisFanoutTest {
     @Mock
     private StringRedisTemplate redisTemplate;
 
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
     private RevealRoomRedisFanout fanout;
     private RevealRoomHandler handler;
     private RevealRoomRedisSubscriber subscriber;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
+        objectMapper = JsonMapper.shared();
         fanout = new RevealRoomRedisFanout();
         ReflectionTestUtils.setField(fanout, "redisTemplate", redisTemplate);
         handler = new RevealRoomHandler(roomStore, objectMapper, fanout);

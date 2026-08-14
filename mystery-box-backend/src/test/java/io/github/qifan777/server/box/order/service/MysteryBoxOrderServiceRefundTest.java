@@ -1,5 +1,8 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.PayType;
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import com.github.binarywang.wxpay.service.WxPayService;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
@@ -84,12 +87,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-pity-vn",
                 "user-1",
-                DictConstants.ProductOrderStatus.TO_BE_DELIVERED,
-                DictConstants.PayType.VN_PAY,
+                ProductOrderStatus.TO_BE_DELIVERED,
+                PayType.VN_PAY,
                 "vnp-tx-1",
                 true);
         when(mysteryBoxOrderRepository.findByIdForFront("order-pity-vn")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.VN_PAY)).thenReturn(true);
+        when(refundRecordService.isVnPayChannel(PayType.VN_PAY)).thenReturn(true);
         when(vnpayPaymentGateway.refund(
                 eq("order-pity-vn"), eq("vnp-tx-1"), anyString(), any(BigDecimal.class), anyString(), any()))
                 .thenReturn(Optional.of(new PaymentRefundResult("refund-1", "gw-ref-1", true, "ok")));
@@ -106,7 +109,7 @@ class MysteryBoxOrderServiceRefundTest {
         verify(refundRecordService).finalizeLocalRefundSuccess(
                 recordCaptor.capture(), eq(order), eq("gw-ref-1"), eq(false));
         assertThat(recordCaptor.getValue().reason()).isEqualTo(MysteryBoxUserPityService.COMPENSATE_CODE);
-        verify(mysteryBoxOrderRepository, never()).changeStatus(eq("order-pity-vn"), eq(DictConstants.ProductOrderStatus.CLOSED));
+        verify(mysteryBoxOrderRepository, never()).changeStatus(eq("order-pity-vn"), eq(ProductOrderStatus.CLOSED));
         verify(paymentReliabilityService).recordPaymentEvent(
                 eq("user-1"), eq("order-pity-vn"), eq("vnpay"), eq("pity_stock_refund"), eq(""), eq(0));
     }
@@ -116,12 +119,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-pity-vn2",
                 "user-2",
-                DictConstants.ProductOrderStatus.TO_BE_PAID,
-                DictConstants.PayType.VN_PAY,
+                ProductOrderStatus.TO_BE_PAID,
+                PayType.VN_PAY,
                 "vnp-tx-2",
                 true);
         when(mysteryBoxOrderRepository.findByIdForFront("order-pity-vn2")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.VN_PAY)).thenReturn(true);
+        when(refundRecordService.isVnPayChannel(PayType.VN_PAY)).thenReturn(true);
         when(vnpayPaymentGateway.refund(anyString(), anyString(), anyString(), any(), anyString(), any()))
                 .thenReturn(Optional.of(new PaymentRefundResult("r", "g", true, "ok")));
 
@@ -141,12 +144,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-pity-wx",
                 "user-wx",
-                DictConstants.ProductOrderStatus.TO_BE_PAID,
-                DictConstants.PayType.WE_CHAT_PAY,
+                ProductOrderStatus.TO_BE_PAID,
+                PayType.WE_CHAT_PAY,
                 null,
                 true);
         when(mysteryBoxOrderRepository.findByIdForFront("order-pity-wx")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.WE_CHAT_PAY)).thenReturn(false);
+        when(refundRecordService.isVnPayChannel(PayType.WE_CHAT_PAY)).thenReturn(false);
 
         ReflectionTestUtils.invokeMethod(
                 refundService,
@@ -166,12 +169,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-pity-mock",
                 "user-3",
-                DictConstants.ProductOrderStatus.TO_BE_DELIVERED,
-                DictConstants.PayType.WE_CHAT_PAY,
+                ProductOrderStatus.TO_BE_DELIVERED,
+                PayType.WE_CHAT_PAY,
                 null,
                 true);
         when(mysteryBoxOrderRepository.findByIdForFront("order-pity-mock")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.WE_CHAT_PAY)).thenReturn(false);
+        when(refundRecordService.isVnPayChannel(PayType.WE_CHAT_PAY)).thenReturn(false);
 
         ReflectionTestUtils.invokeMethod(
                 refundService,
@@ -191,12 +194,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-pity-fail",
                 "user-4",
-                DictConstants.ProductOrderStatus.TO_BE_PAID,
-                DictConstants.PayType.VN_PAY,
+                ProductOrderStatus.TO_BE_PAID,
+                PayType.VN_PAY,
                 "vnp-fail",
                 true);
         when(mysteryBoxOrderRepository.findByIdForFront("order-pity-fail")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.VN_PAY)).thenReturn(true);
+        when(refundRecordService.isVnPayChannel(PayType.VN_PAY)).thenReturn(true);
         when(vnpayPaymentGateway.refund(anyString(), anyString(), anyString(), any(), anyString(), any()))
                 .thenReturn(Optional.empty());
 
@@ -208,7 +211,7 @@ class MysteryBoxOrderServiceRefundTest {
                 "vnpay");
 
         verify(refundRecordRepository).save(any(RefundRecord.class));
-        verify(mysteryBoxOrderRepository).changeStatus("order-pity-fail", DictConstants.ProductOrderStatus.CLOSED);
+        verify(mysteryBoxOrderRepository).changeStatus("order-pity-fail", ProductOrderStatus.CLOSED);
         verify(paymentReliabilityService).recordPaymentEvent(
                 eq("user-4"), eq("order-pity-fail"), eq("vnpay"), eq("pity_stock_refund_fail"), anyString(), eq(0));
         verify(refundRecordService, never()).finalizeLocalRefundSuccess(any(), any(), any(), anyBoolean());
@@ -219,12 +222,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-cancel-vn",
                 "user-5",
-                DictConstants.ProductOrderStatus.TO_BE_DELIVERED,
-                DictConstants.PayType.VN_PAY,
+                ProductOrderStatus.TO_BE_DELIVERED,
+                PayType.VN_PAY,
                 "vnp-cancel",
                 false);
         when(mysteryBoxOrderRepository.findByIdForFront("order-cancel-vn")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.VN_PAY)).thenReturn(true);
+        when(refundRecordService.isVnPayChannel(PayType.VN_PAY)).thenReturn(true);
         when(vnpayPaymentGateway.refund(
                 eq("order-cancel-vn"), eq("vnp-cancel"), anyString(), any(BigDecimal.class), anyString(), any()))
                 .thenReturn(Optional.of(new PaymentRefundResult("r", "gw-c", true, "ok")));
@@ -244,12 +247,12 @@ class MysteryBoxOrderServiceRefundTest {
         MysteryBoxOrder order = order(
                 "order-cancel-mock",
                 "user-6",
-                DictConstants.ProductOrderStatus.TO_BE_RECEIVED,
-                DictConstants.PayType.WE_CHAT_PAY,
+                ProductOrderStatus.TO_BE_RECEIVED,
+                PayType.WE_CHAT_PAY,
                 null,
                 false);
         when(mysteryBoxOrderRepository.findByIdForFront("order-cancel-mock")).thenReturn(order);
-        when(refundRecordService.isVnPayChannel(DictConstants.PayType.WE_CHAT_PAY)).thenReturn(false);
+        when(refundRecordService.isVnPayChannel(PayType.WE_CHAT_PAY)).thenReturn(false);
 
         refundService.paidCancelForAdmin("order-cancel-mock");
 
@@ -263,8 +266,8 @@ class MysteryBoxOrderServiceRefundTest {
     private static MysteryBoxOrder order(
             String orderId,
             String userId,
-            DictConstants.ProductOrderStatus status,
-            DictConstants.PayType payType,
+            ProductOrderStatus status,
+            PayType payType,
             String tradeNo,
             boolean withItems
     ) {

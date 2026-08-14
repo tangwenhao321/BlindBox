@@ -1,6 +1,6 @@
 package io.github.qifan777.server.reveal.spectator;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +19,7 @@ class RevealSpectatorSessionStoreTest {
 
     @BeforeEach
     void setUp() {
-        store = new RevealSpectatorSessionStore(new ObjectMapper());
+        store = new RevealSpectatorSessionStore(JsonMapper.shared());
     }
 
     @Test

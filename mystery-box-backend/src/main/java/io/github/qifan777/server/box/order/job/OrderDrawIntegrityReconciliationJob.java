@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.job;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
 import io.github.qifan777.server.box.order.metrics.DrawIntegrityMetrics;
 import io.github.qifan777.server.box.order.repository.MysteryBoxOrderRepository;
@@ -124,7 +126,7 @@ public class OrderDrawIntegrityReconciliationJob {
             OrderDrawIntegrityService.OrderDrawIntegrityView view,
             LocalDateTime emptyAgeThreshold
     ) {
-        if (order.status() != DictConstants.ProductOrderStatus.TO_BE_DELIVERED) {
+        if (order.status() != ProductOrderStatus.TO_BE_DELIVERED) {
             return 0;
         }
         if (view.expectedDrawCount() <= 0 || view.actualPrizeCount() != 0) {

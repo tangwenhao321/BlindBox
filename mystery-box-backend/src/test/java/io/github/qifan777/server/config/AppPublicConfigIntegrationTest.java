@@ -1,6 +1,6 @@
 package io.github.qifan777.server.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.ops.service.AppRevealConfigService;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ class AppPublicConfigIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired(required = false)
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
 
     @Test
     void publicConfigEndpointReturnsValues() {

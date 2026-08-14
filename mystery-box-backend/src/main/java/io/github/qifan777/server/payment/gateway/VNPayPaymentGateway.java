@@ -1,7 +1,7 @@
 package io.github.qifan777.server.payment.gateway;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.github.qifan777.server.dict.model.DictConstants.PayType;
+import tools.jackson.databind.json.JsonMapper;
+import io.github.qifan777.server.dict.model.PayType;
 import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.order.entity.BaseOrder;
 import io.github.qifan777.server.payment.config.VNPayProperties;
@@ -37,7 +37,7 @@ public class VNPayPaymentGateway implements PaymentGateway {
 
     private final VNPayProperties vnpayProperties;
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     @Value("${payment.mock-enabled:false}")
     private boolean mockPaymentEnabled;

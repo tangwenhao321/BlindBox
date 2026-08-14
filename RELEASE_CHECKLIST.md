@@ -15,15 +15,19 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [x] Win-rule op/hit logs queryable in admin: `GET .../op-log` (ruleId/action/operatorId/time) + `GET .../hit-log` (userId/orderId/time) tables in `win-rule-panel.vue`.
 - [x] Admin cookie auth: `.env.production` sets `VITE_ADMIN_COOKIE_AUTH=true` + `VITE_API_PREFIX=/api`; confirm same-origin nginx + CSP at deploy.
 - [x] Prod YAML: `security.idempotency.required=true`, `security.sse.require-auth=true`, `security.rate-limit.distributed=true` (enforced by `ProductionSafetyValidator`).
+- [x] Prod Sa-Token idle timeout: `active-timeout=604800` (7d) on `prod` / `prod-vn` (override via `SA_TOKEN_ACTIVE_TIMEOUT`).
+- [x] App Attest footgun: `require-header=true` **refuses boot** until Apple server verify exists; `enabled=true` alone logs ERROR (scaffold).
+- [x] VN eSMS footgun: `sms.provider=vn_esms` without `app.auth.zalo-enabled=true` **refuses boot** (provider never sends).
+- [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE); iOS production resolves `appstore` via variant (Android never reports `appstore`).
+- [x] Fairness daily beacon **client+API** wired: `GET /front/fairness/daily-beacon` + `FairnessTrustRow` at checkout.
 
 ### Ops / external (not code)
 - [ ] `security.admin-action-otp` is set in production private config (not default value).
 - [ ] Optional `ADMIN_ACTION_TOTP_SECRET` (Base32) for rotating TOTP alongside static OTP.
 - [ ] Admin high-risk unlock: `POST /admin/auth/action-grant` → subsequent calls may send `x-admin-action-otp: GRANT` (~5m Redis TTL).
 - [ ] Admin operation OTP/TOTP is distributed via secure channel and rotated regularly.
-- [ ] iOS App Attest **server require**: set `IOS_APP_ATTEST_ENABLED` / `IOS_APP_ATTEST_REQUIRE_HEADER` only after native DeviceCheck is wired (client already can send `X-Apple-App-Attest` via `EXPO_PUBLIC_APPLE_APP_ATTEST`).
-- [x] Mobile sends `X-App-Channel` (`clientAttestation.ts` + axios/SSE headers); iOS production / production-vn resolve to `appstore` via `EXPO_PUBLIC_APP_VARIANT` (Android never reports `appstore`).
-- [x] Fairness daily beacon **client+API** wired: `GET /front/fairness/daily-beacon` + `FairnessTrustRow` at checkout — still verify publish/mix in staging (ops).
+- [ ] iOS App Attest **real verify**: implement Apple DeviceCheck server-side, then allow `require-header=true`.
+- [ ] Fairness daily beacon mix verified in staging (API already wired).
 
 ## 2) Payment & Order Reliability
 
@@ -60,7 +64,7 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [x] EAS profiles: `eas.json` (development / preview / production / production-sentry)
 - [x] Order ID migration tooling: Admin preflight API, audit log, `scripts/staging-order-id-migration.ps1`
 - [x] Admin cookie auth: `.env.production` sets `VITE_ADMIN_COOKIE_AUTH=true` + `VITE_API_PREFIX=/api` (confirm same-origin nginx at deploy; see `docs/ADMIN_SECURITY.md`)
-- [x] Spring Boot parent on latest OSS **3.2.x** patch (`3.2.12`) — final OSS patch for 3.2 (EOL). **Deferred:** jump to supported 4.x is a separate migration wave (Jimmer/Sa-Token/wx-java compatibility), not inlined here.
+- [x] Spring Boot parent on supported OSS **4.1.x** (`4.1.0`). See `docs/SPRING_BOOT_4_MIGRATION.md` (compile + money-path tests green; Jackson 3 migration / staging soak still open).
 
 ### Ops / gate on each release
 - [ ] Backend compile passes: `mvn -DskipTests compile`

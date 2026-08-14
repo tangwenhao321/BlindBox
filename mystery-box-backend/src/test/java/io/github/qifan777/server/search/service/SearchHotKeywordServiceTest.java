@@ -1,6 +1,8 @@
 package io.github.qifan777.server.search.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,7 +37,7 @@ class SearchHotKeywordServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new SearchHotKeywordService(jdbcTemplate, redisTemplate, new ObjectMapper());
+        service = new SearchHotKeywordService(jdbcTemplate, redisTemplate, JsonMapper.shared());
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 
@@ -48,7 +50,7 @@ class SearchHotKeywordServiceTest {
         List<String> keywords = service.hotKeywords(5);
 
         assertEquals(List.of("运营词", "限定"), keywords);
-        verify(valueOperations).set(eq("search:hot-keywords:5"), any(String.class), any());
+        verify(valueOperations).set(eq("search:hot-keywords:5"), any(String.class), any(Duration.class));
     }
 
     @Test

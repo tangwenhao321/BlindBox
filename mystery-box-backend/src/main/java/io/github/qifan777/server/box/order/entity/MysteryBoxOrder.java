@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.entity;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
@@ -22,7 +24,7 @@ public interface MysteryBoxOrder extends BaseEntity {
      * 订单状态
      */
     @GenDictField(label = "订单状态", dictEnName = DictConstants.PRODUCT_ORDER_STATUS)
-    DictConstants.ProductOrderStatus status();
+    ProductOrderStatus status();
 
     @OneToMany(mappedBy = "mysteryBoxOrder")
     List<MysteryBoxOrderItem> items();

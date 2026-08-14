@@ -1,7 +1,7 @@
 package io.github.qifan777.server.ops.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 import io.qifan.infrastructure.common.constants.ResultCode;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class AppRevealConfigService {
     private static final Map<String, Map<String, Object>> TEMPLATE_PRESETS = buildTemplatePresets();
 
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final PlatformTransactionManager transactionManager;
 
     private TransactionTemplate requiresNewTransaction;

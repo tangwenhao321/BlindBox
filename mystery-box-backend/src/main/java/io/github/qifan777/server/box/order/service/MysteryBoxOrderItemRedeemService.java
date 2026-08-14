@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.box.order.config.RedeemProperties;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.box.item.repository.MysteryBoxOrderItemRepository;
@@ -19,8 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 @Service
 @RequiredArgsConstructor

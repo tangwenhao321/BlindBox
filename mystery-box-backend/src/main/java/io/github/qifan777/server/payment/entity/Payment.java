@@ -1,5 +1,7 @@
 package io.github.qifan777.server.payment.entity;
 
+import io.github.qifan777.server.dict.model.PayType;
+
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
 import io.github.qifan777.server.order.entity.BaseOrder;
@@ -21,7 +23,7 @@ public interface Payment extends BaseEntity {
     /**
      * 支付类型
      */
-    DictConstants.PayType payType();
+    PayType payType();
 
     /**
      * 基础订单

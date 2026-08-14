@@ -1,6 +1,6 @@
 package io.github.qifan777.server.vip.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 public class VipConfigRepository {
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     public static final String KEY = "vip-config";
 
     @SneakyThrows

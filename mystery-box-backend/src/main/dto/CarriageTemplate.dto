@@ -8,5 +8,5 @@ input CarriageTemplateInput {
 specification CarriageTemplateSpec {
     #allScalars
     like/i(name)
-    id(creator)
+    associatedIdEq(creator)
 }

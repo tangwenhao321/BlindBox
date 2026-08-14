@@ -3,7 +3,7 @@ package io.github.qifan777.server.box.draw.controller;
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.exception.NotLoginException;
 import cn.dev33.satoken.stp.StpUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.box.draw.model.DrawFeedPageView;
 import io.github.qifan777.server.box.draw.realtime.DrawRealtimeSseHub;
 import io.github.qifan777.server.box.draw.service.MysteryBoxDrawFeedService;
@@ -36,7 +36,7 @@ public class DrawRealtimeSseController {
     private final MysteryBoxDrawFeedService drawFeedService;
     private final PoolDashboardService poolDashboardService;
     private final DrawRealtimeSseHub sseHub;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     @Qualifier("sseScheduledExecutor")
     private final ScheduledExecutorService sseScheduledExecutor;

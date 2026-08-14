@@ -1,5 +1,7 @@
 package io.github.qifan777.server.infrastructure.config;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import cn.dev33.satoken.secure.BCrypt;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.role.entity.Role;
@@ -61,7 +63,7 @@ public class DevFrontTestUserInitializer implements ApplicationRunner {
                             .setPhone(normalizedPhone)
                             .setPassword(BCrypt.hashpw(normalizedPassword))
                             .setNickname("Expo测试用户")
-                            .setStatus(DictConstants.UserStatus.NORMAL)
+                            .setStatus(UserStatus.NORMAL)
                             .setBalance(BigDecimal.ZERO)));
                     log.info("dev mobile test user created: phone={}", normalizedPhone);
                     return created;

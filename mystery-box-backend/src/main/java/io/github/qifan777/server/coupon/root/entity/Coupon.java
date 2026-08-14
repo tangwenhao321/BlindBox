@@ -1,5 +1,8 @@
 package io.github.qifan777.server.coupon.root.entity;
 
+import io.github.qifan777.server.dict.model.CouponType;
+import io.github.qifan777.server.dict.model.CouponScopeType;
+
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
 import io.qifan.infrastructure.generator.core.*;
@@ -50,13 +53,13 @@ public interface Coupon extends BaseEntity {
      * 优惠类型
      */
     @GenDictField(label = "优惠类型", dictEnName = DictConstants.COUPON_TYPE, order = 5)
-    DictConstants.CouponType couponType();
+    CouponType couponType();
 
     /**
      * 使用范围类型
      */
     @GenDictField(label = "使用范围类型", dictEnName = DictConstants.COUPON_SCOPE_TYPE, order = 6)
-    DictConstants.CouponScopeType scopeType();
+    CouponScopeType scopeType();
 
     /**
      * 优惠金额

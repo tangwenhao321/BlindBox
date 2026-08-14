@@ -9,7 +9,7 @@ input ProductCategoryInput {
 specification ProductCategorySpec {
     #allScalars
     like/i(name)
-    id(parent)
+    associatedIdEq(parent)
     like/i(description)
-    id(creator)
+    associatedIdEq(creator)
 }

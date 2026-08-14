@@ -9,7 +9,7 @@ input CouponBoxRelInput {
 
 specification CouponBoxRelSpec {
     #allScalars
-    id(coupon)
-    id(box)
-    id(creator)
+    associatedIdEq(coupon)
+    associatedIdEq(box)
+    associatedIdEq(creator)
 }

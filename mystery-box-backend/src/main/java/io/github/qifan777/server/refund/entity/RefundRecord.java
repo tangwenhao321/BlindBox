@@ -1,6 +1,8 @@
 package io.github.qifan777.server.refund.entity;
 
-import com.github.binarywang.wxpay.bean.notify.WxPayRefundNotifyV3Result;
+import io.github.qifan777.server.dict.model.RefundStatus;
+
+import io.github.qifan777.server.refund.wx.WeChatRefundNotifyDetails;
 import com.github.binarywang.wxpay.bean.result.WxPayRefundV3Result;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
@@ -35,7 +37,7 @@ public interface RefundRecord extends BaseEntity {
     /**
      * 状态
      */
-    DictConstants.RefundStatus status();
+    RefundStatus status();
 
     /**
      * 退款申请详情
@@ -45,7 +47,7 @@ public interface RefundRecord extends BaseEntity {
 
     @Serialized
     @Null
-    WxPayRefundNotifyV3Result.DecryptNotifyResult refundNotifyDetails();
+    WeChatRefundNotifyDetails refundNotifyDetails();
 
     /**
      * 微信退款订单id

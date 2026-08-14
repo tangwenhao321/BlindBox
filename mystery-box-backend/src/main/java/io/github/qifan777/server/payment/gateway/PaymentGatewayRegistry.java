@@ -1,6 +1,6 @@
 package io.github.qifan777.server.payment.gateway;
 
-import io.github.qifan777.server.dict.model.DictConstants.PayType;
+import io.github.qifan777.server.dict.model.PayType;
 import io.github.qifan777.server.payment.config.MarketProperties;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;

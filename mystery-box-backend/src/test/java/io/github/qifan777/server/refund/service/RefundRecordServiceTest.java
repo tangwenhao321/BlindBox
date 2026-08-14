@@ -1,5 +1,9 @@
 package io.github.qifan777.server.refund.service;
 
+import io.github.qifan777.server.dict.model.PayType;
+import io.github.qifan777.server.dict.model.RefundStatus;
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import com.github.binarywang.wxpay.bean.result.WxPayRefundQueryV3Result;
 import com.github.binarywang.wxpay.service.WxPayService;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
@@ -84,7 +88,7 @@ class RefundRecordServiceTest {
     void approve_vnPay_withWxUnset_doesNotWalletCredit_andRollsBackStock() {
         RefundRecord record = refundRecord("refund-vn-1", "order-vn-1", "用户申请退款");
         when(refundRecordRepository.findById(eq("refund-vn-1"), any())).thenReturn(Optional.of(record));
-        MysteryBoxOrder order = orderWithPayType("order-vn-1", "user-1", DictConstants.PayType.VN_PAY, "vnp-tx-1");
+        MysteryBoxOrder order = orderWithPayType("order-vn-1", "user-1", PayType.VN_PAY, "vnp-tx-1");
         when(mysteryBoxOrderRepository.findByIdForFront("order-vn-1")).thenReturn(order);
         when(marketProperties.getCurrency()).thenReturn("VND");
         when(vnpayPaymentGateway.refund(
@@ -98,7 +102,7 @@ class RefundRecordServiceTest {
                 eq("order-vn-1"), eq("vnp-tx-1"), eq("refund-vn-1"), any(BigDecimal.class), eq("10.0.0.1"), any());
         verify(prizeStockService).rollbackByOrderId("order-vn-1");
         verify(warehouseShip).cancelPendingForOrder("order-vn-1");
-        verify(mysteryBoxOrderRepository).changeStatus("order-vn-1", DictConstants.ProductOrderStatus.REFUNDED);
+        verify(mysteryBoxOrderRepository).changeStatus("order-vn-1", ProductOrderStatus.REFUNDED);
         verify(refundRecordRepository).claimSuccess("refund-vn-1", "gw-ref-1");
         verify(mysteryBoxUserPityService).clearOnRefund("user-1", "box-1");
     }
@@ -108,7 +112,7 @@ class RefundRecordServiceTest {
         RefundRecord record = refundRecord("refund-wx-unset", "order-wx-unset", "用户申请退款");
         when(refundRecordRepository.findById(eq("refund-wx-unset"), any())).thenReturn(Optional.of(record));
         MysteryBoxOrder order = orderWithPayType(
-                "order-wx-unset", "user-wxu", DictConstants.PayType.WE_CHAT_PAY, null);
+                "order-wx-unset", "user-wxu", PayType.WE_CHAT_PAY, null);
         when(mysteryBoxOrderRepository.findByIdForFront("order-wx-unset")).thenReturn(order);
 
         org.junit.jupiter.api.Assertions.assertThrows(
@@ -127,7 +131,7 @@ class RefundRecordServiceTest {
 
         RefundRecord record = refundRecord("refund-mock-1", "order-mock-1", "用户申请退款");
         when(refundRecordRepository.findById(eq("refund-mock-1"), any())).thenReturn(Optional.of(record));
-        MysteryBoxOrder order = orderWithPayType("order-mock-1", "user-2", DictConstants.PayType.WE_CHAT_PAY, null);
+        MysteryBoxOrder order = orderWithPayType("order-mock-1", "user-2", PayType.WE_CHAT_PAY, null);
         when(mysteryBoxOrderRepository.findByIdForFront("order-mock-1")).thenReturn(order);
         when(marketProperties.getCurrency()).thenReturn("CNY");
 
@@ -137,7 +141,7 @@ class RefundRecordServiceTest {
                 eq("user-2"), eq(BigDecimal.TEN), eq("REFUND"), anyString(), eq("order-mock-1"));
         verify(vnpayPaymentGateway, never()).refund(anyString(), any(), anyString(), any(), anyString(), any());
         verify(prizeStockService).rollbackByOrderId("order-mock-1");
-        verify(mysteryBoxOrderRepository).changeStatus("order-mock-1", DictConstants.ProductOrderStatus.REFUNDED);
+        verify(mysteryBoxOrderRepository).changeStatus("order-mock-1", ProductOrderStatus.REFUNDED);
         verify(refundRecordRepository).claimSuccess("refund-mock-1", null);
     }
 
@@ -149,7 +153,7 @@ class RefundRecordServiceTest {
                 "refund-pity-1", "order-pity-1", MysteryBoxUserPityService.COMPENSATE_CODE);
         when(refundRecordRepository.findById(eq("refund-pity-1"), any())).thenReturn(Optional.of(record));
         MysteryBoxOrder order = orderWithPayType(
-                "order-pity-1", "user-3", DictConstants.PayType.WE_CHAT_PAY, null, false);
+                "order-pity-1", "user-3", PayType.WE_CHAT_PAY, null, false);
         when(mysteryBoxOrderRepository.findByIdForFront("order-pity-1")).thenReturn(order);
         when(marketProperties.getCurrency()).thenReturn("CNY");
 
@@ -163,12 +167,12 @@ class RefundRecordServiceTest {
     void finalizeLocalRefundSuccess_skipStockRollback_onlyUpdatesStatuses() {
         RefundRecord record = refundRecord("refund-skip-1", "order-skip-1", "退款");
         MysteryBoxOrder order = orderWithPayType(
-                "order-skip-1", "user-4", DictConstants.PayType.VN_PAY, "tx", true);
+                "order-skip-1", "user-4", PayType.VN_PAY, "tx", true);
 
         refundRecordService.finalizeLocalRefundSuccess(record, order, "gw-skip", false);
 
         verify(prizeStockService, never()).rollbackByOrderId(anyString());
-        verify(mysteryBoxOrderRepository).changeStatus("order-skip-1", DictConstants.ProductOrderStatus.REFUNDED);
+        verify(mysteryBoxOrderRepository).changeStatus("order-skip-1", ProductOrderStatus.REFUNDED);
         verify(refundRecordRepository).claimSuccess("refund-skip-1", "gw-skip");
         verify(mysteryBoxUserPityService).clearOnRefund("user-4", "box-1");
     }
@@ -180,7 +184,7 @@ class RefundRecordServiceTest {
                 .setOrderId("order-done")
                 .setReason("x")
                 .setAmount(BigDecimal.TEN)
-                .setStatus(DictConstants.RefundStatus.SUCCESS));
+                .setStatus(RefundStatus.SUCCESS));
         when(refundRecordRepository.findById(eq("refund-done"), any())).thenReturn(Optional.of(record));
 
         assertThat(refundRecordService.retryStuckRefunding("refund-done")).isFalse();
@@ -192,14 +196,14 @@ class RefundRecordServiceTest {
         ReflectionTestUtils.setField(refundRecordService, "paymentMockEnabled", true);
         RefundRecord record = refundRecord("refund-stuck-1", "order-stuck-1", "用户申请退款");
         when(refundRecordRepository.findById(eq("refund-stuck-1"), any())).thenReturn(Optional.of(record));
-        MysteryBoxOrder order = orderWithPayType("order-stuck-1", "user-9", DictConstants.PayType.WE_CHAT_PAY, null);
+        MysteryBoxOrder order = orderWithPayType("order-stuck-1", "user-9", PayType.WE_CHAT_PAY, null);
         when(mysteryBoxOrderRepository.findByIdForFront("order-stuck-1")).thenReturn(order);
 
         assertThat(refundRecordService.retryStuckRefunding("refund-stuck-1")).isTrue();
         verify(userWalletService).credit(
                 eq("user-9"), eq(BigDecimal.TEN), eq("REFUND"), anyString(), eq("order-stuck-1"));
         verify(warehouseShip).cancelPendingForOrder("order-stuck-1");
-        verify(mysteryBoxOrderRepository).changeStatus("order-stuck-1", DictConstants.ProductOrderStatus.REFUNDED);
+        verify(mysteryBoxOrderRepository).changeStatus("order-stuck-1", ProductOrderStatus.REFUNDED);
     }
 
     @Test
@@ -209,7 +213,7 @@ class RefundRecordServiceTest {
                 "refund-die-1", "order-die-1", RefundRecordService.DRAW_INTEGRITY_EMPTY_REASON);
         when(refundRecordRepository.findById(eq("refund-die-1"), any())).thenReturn(Optional.of(record));
         MysteryBoxOrder order = orderWithPayType(
-                "order-die-1", "user-die", DictConstants.PayType.WE_CHAT_PAY, null, false);
+                "order-die-1", "user-die", PayType.WE_CHAT_PAY, null, false);
         when(mysteryBoxOrderRepository.findByIdForFront("order-die-1")).thenReturn(order);
 
         assertThat(refundRecordService.retryStuckRefunding("refund-die-1")).isFalse();
@@ -227,9 +231,9 @@ class RefundRecordServiceTest {
                 .setReason("用户申请退款")
                 .setAmount(BigDecimal.TEN)
                 .setRefundId("wx-refund-existing")
-                .setStatus(DictConstants.RefundStatus.REFUNDING));
+                .setStatus(RefundStatus.REFUNDING));
         when(refundRecordRepository.findById(eq("refund-wx-1"), any())).thenReturn(Optional.of(record));
-        MysteryBoxOrder order = orderWithPayType("order-wx-1", "user-wx", DictConstants.PayType.WE_CHAT_PAY, "tx-wx");
+        MysteryBoxOrder order = orderWithPayType("order-wx-1", "user-wx", PayType.WE_CHAT_PAY, "tx-wx");
         when(mysteryBoxOrderRepository.findByIdForFront("order-wx-1")).thenReturn(order);
 
         WxPayRefundQueryV3Result queryResult = new WxPayRefundQueryV3Result();
@@ -242,14 +246,14 @@ class RefundRecordServiceTest {
         verify(wxPayService).refundQueryV3("refund-wx-1");
         verify(prizeStockService).rollbackByOrderId("order-wx-1");
         verify(warehouseShip).cancelPendingForOrder("order-wx-1");
-        verify(mysteryBoxOrderRepository).changeStatus("order-wx-1", DictConstants.ProductOrderStatus.REFUNDED);
+        verify(mysteryBoxOrderRepository).changeStatus("order-wx-1", ProductOrderStatus.REFUNDED);
         verify(refundRecordRepository).claimSuccess("refund-wx-1", "wx-refund-from-query");
         verify(userWalletService, never()).credit(anyString(), any(), anyString(), anyString(), anyString());
     }
 
     @Test
     void createDrawIntegrityEmptyRefundIfAbsent_createsWhenNoneExists() {
-        MysteryBoxOrder order = orderWithPayType("order-empty-1", "user-e", DictConstants.PayType.VN_PAY, "tx");
+        MysteryBoxOrder order = orderWithPayType("order-empty-1", "user-e", PayType.VN_PAY, "tx");
         Payment payment = order.baseOrder().payment();
         when(payment.payAmount()).thenReturn(BigDecimal.valueOf(100));
         when(order.id()).thenReturn("order-empty-1");
@@ -269,18 +273,18 @@ class RefundRecordServiceTest {
                 .setOrderId(orderId)
                 .setReason(reason)
                 .setAmount(BigDecimal.TEN)
-                .setStatus(DictConstants.RefundStatus.REFUNDING));
+                .setStatus(RefundStatus.REFUNDING));
     }
 
     private static MysteryBoxOrder orderWithPayType(
-            String orderId, String userId, DictConstants.PayType payType, String tradeNo) {
+            String orderId, String userId, PayType payType, String tradeNo) {
         return orderWithPayType(orderId, userId, payType, tradeNo, true);
     }
 
     private static MysteryBoxOrder orderWithPayType(
             String orderId,
             String userId,
-            DictConstants.PayType payType,
+            PayType payType,
             String tradeNo,
             boolean withItems) {
         User user = org.mockito.Mockito.mock(User.class);

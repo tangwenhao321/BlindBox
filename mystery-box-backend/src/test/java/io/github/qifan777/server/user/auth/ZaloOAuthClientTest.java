@@ -1,6 +1,6 @@
 package io.github.qifan777.server.user.auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +35,7 @@ class ZaloOAuthClientTest {
         properties = new ZaloProperties();
         properties.setClientId("app-123");
         properties.setClientSecret("secret-xyz");
-        client = new ZaloOAuthClient(restTemplate, new ObjectMapper(), properties);
+        client = new ZaloOAuthClient(restTemplate, JsonMapper.shared(), properties);
     }
 
     @Test

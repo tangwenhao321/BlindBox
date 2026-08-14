@@ -1,5 +1,7 @@
 package io.github.qifan777.server.product.root.entity;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
 import io.github.qifan777.server.product.category.entity.ProductCategory;
@@ -86,7 +88,7 @@ public interface Product extends BaseEntity {
      * 品质
      */
     @GenDictField(label = "品质", order = 8)
-    DictConstants.QualityType qualityType();
+    QualityType qualityType();
 
     /**
      * 属性

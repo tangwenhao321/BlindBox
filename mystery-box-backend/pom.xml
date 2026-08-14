@@ -11,33 +11,40 @@
         <artifactId>spring-boot-starter-parent</artifactId>
         <groupId>org.springframework.boot</groupId>
         <relativePath/>
-        <version>3.2.12</version>
+        <version>4.1.0</version>
     </parent>
 
     <properties>
+        <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <uni-ai.version>0.1.10</uni-ai.version>
-        <jimmer.version>0.8.147</jimmer.version>
-        <hutool.version>5.8.25</hutool.version>
-        <sa-token.version>1.37.0</sa-token.version>
-        <wechat.version>4.6.0</wechat.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <uni-ai.version>0.1.10</uni-ai.version>
+        <!-- Boot 4 / Jackson 3 support from 0.10.6+ -->
+        <jimmer.version>0.11.2</jimmer.version>
+        <hutool.version>5.8.35</hutool.version>
+        <sa-token.version>1.45.0</sa-token.version>
+        <wechat.version>4.7.0</wechat.version>
+        <shedlock.version>7.7.0</shedlock.version>
     </properties>
     <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
+            <artifactId>spring-boot-starter-aspectj</artifactId>
         </dependency>
+        <!-- Boot 4: Freemarker Configuration bean lives in modular starter -->
         <dependency>
-            <groupId>org.freemarker</groupId>
-            <artifactId>freemarker</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
         </dependency>
         <dependency>
             <artifactId>wx-java-miniapp-spring-boot-starter</artifactId>
@@ -73,6 +80,17 @@
         <dependency>
             <groupId>io.github.qifan777</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+            <!-- Boot 4 uses sa-token 1.45 + jackson3; exclude Boot3 1.37 pull-ins -->
+            <exclusions>
+                <exclusion>
+                    <groupId>cn.dev33</groupId>
+                    <artifactId>sa-token-spring-boot3-starter</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>cn.dev33</groupId>
+                    <artifactId>sa-token-redis-jackson</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <artifactId>jimmer-spring-boot-starter</artifactId>
@@ -89,8 +107,8 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
@@ -102,13 +120,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>mysql</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-mysql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -124,14 +147,15 @@
             <groupId>cn.hutool</groupId>
             <version>${hutool.version}</version>
         </dependency>
+        <!-- Redis session store; JSON via sa-token-jackson3 from boot4 starter -->
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-redis-jackson</artifactId>
+            <artifactId>sa-token-redis-template</artifactId>
             <version>${sa-token.version}</version>
         </dependency>
         <dependency>
             <groupId>cn.dev33</groupId>
-            <artifactId>sa-token-spring-boot3-starter</artifactId>
+            <artifactId>sa-token-spring-boot4-starter</artifactId>
             <version>${sa-token.version}</version>
         </dependency>
         <dependency>
@@ -145,12 +169,12 @@
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-spring</artifactId>
-            <version>5.10.2</version>
+            <version>${shedlock.version}</version>
         </dependency>
         <dependency>
             <groupId>net.javacrumbs.shedlock</groupId>
             <artifactId>shedlock-provider-redis-spring</artifactId>
-            <version>5.10.2</version>
+            <version>${shedlock.version}</version>
         </dependency>
     </dependencies>
 

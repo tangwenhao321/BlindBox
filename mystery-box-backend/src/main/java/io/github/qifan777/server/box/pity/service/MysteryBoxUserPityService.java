@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.pity.service;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
@@ -112,8 +114,8 @@ public class MysteryBoxUserPityService {
             return;
         }
         for (ProductView product : products) {
-            DictConstants.QualityType q = product.getQualityType();
-            if (q == DictConstants.QualityType.LEGENDARY || q == DictConstants.QualityType.HIDDEN) {
+            QualityType q = product.getQualityType();
+            if (q == QualityType.LEGENDARY || q == QualityType.HIDDEN) {
                 reset(userId, mysteryBoxId);
                 return;
             }

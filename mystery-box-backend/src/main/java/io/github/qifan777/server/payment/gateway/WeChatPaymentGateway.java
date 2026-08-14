@@ -1,8 +1,8 @@
 package io.github.qifan777.server.payment.gateway;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;
-import io.github.qifan777.server.dict.model.DictConstants.PayType;
+import io.github.qifan777.server.dict.model.PayType;
 import io.github.qifan777.server.order.entity.BaseOrder;
 import io.github.qifan777.server.payment.model.WeChatPayModel;
 import io.github.qifan777.server.payment.service.WeChatPayService;

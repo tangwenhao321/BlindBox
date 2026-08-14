@@ -1,7 +1,7 @@
 package io.github.qifan777.server.home.cache;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.home.model.HomeSummaryView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,7 @@ import java.util.Optional;
 public class HomeSummaryCache {
     public static final String CACHE_KEY = "cache:home:summary";
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final StringRedisTemplate redisTemplate;
 
     @Value("${app.cache.home-summary-ttl-seconds:60}")
@@ -41,7 +41,7 @@ public class HomeSummaryCache {
         try {
             String json = objectMapper.writeValueAsString(view);
             redisTemplate.opsForValue().set(CACHE_KEY, json, Duration.ofSeconds(Math.max(5, ttlSeconds)));
-        } catch (JsonProcessingException ex) {
+        } catch (JacksonException ex) {
             log.warn("home summary cache write failed: {}", ex.getMessage());
         }
     }

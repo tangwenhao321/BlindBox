@@ -1,5 +1,7 @@
 package io.github.qifan777.server.product.root.entity.dto;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.product.root.entity.Product;
 import io.github.qifan777.server.product.root.entity.ProductDraft;
@@ -70,7 +72,7 @@ public class ProductView implements View<Product> {
 
     private List<KeyValue> specifications;
 
-    private DictConstants.QualityType qualityType;
+    private QualityType qualityType;
 
     private List<KeyValue> attributes;
 
@@ -269,14 +271,14 @@ public class ProductView implements View<Product> {
             label = "品质",
             order = 8
     )
-    public DictConstants.QualityType getQualityType() {
+    public QualityType getQualityType() {
         if (qualityType == null) {
             throw new IllegalStateException("The property \"qualityType\" is not specified");
         }
         return qualityType;
     }
 
-    public void setQualityType(@NotNull DictConstants.QualityType qualityType) {
+    public void setQualityType(@NotNull QualityType qualityType) {
         this.qualityType = qualityType;
     }
 

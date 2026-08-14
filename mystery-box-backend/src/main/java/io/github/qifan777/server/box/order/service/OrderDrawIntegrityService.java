@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
@@ -39,7 +41,7 @@ public class OrderDrawIntegrityService {
             List<ProductView> products = item.products() == null ? List.of() : item.products();
             actualPrizes += products.size();
 
-            if (order.status() != DictConstants.ProductOrderStatus.TO_BE_PAID && count > 0) {
+            if (order.status() != ProductOrderStatus.TO_BE_PAID && count > 0) {
                 if (products.isEmpty()) {
                     issues.add("订单行 " + item.id() + " 已支付但无开奖奖品");
                 } else if (products.size() < count) {

@@ -1,5 +1,9 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.PayType;
+import io.github.qifan777.server.dict.model.RefundStatus;
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import cn.dev33.satoken.stp.StpUtil;
 import cn.hutool.core.util.IdUtil;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
@@ -25,6 +29,7 @@ import io.github.qifan777.server.refund.entity.RefundRecord;
 import io.github.qifan777.server.refund.entity.RefundRecordDraft;
 import io.github.qifan777.server.refund.repository.RefundRecordRepository;
 import io.github.qifan777.server.refund.service.RefundRecordService;
+import io.github.qifan777.server.refund.wx.WeChatRefundNotifyDetails;
 import io.github.qifan777.server.user.root.service.UserWalletService;
 import io.qifan.infrastructure.common.constants.ResultCode;
 import io.qifan.infrastructure.common.exception.BusinessException;
@@ -44,8 +49,6 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 @Service
 @Slf4j
@@ -98,14 +101,14 @@ public class MysteryBoxOrderRefundService {
         checkStatus(mysteryBoxOrder, ProductOrderStatus.TO_BE_RECEIVED, ProductOrderStatus.TO_BE_DELIVERED);
         String refundOrderId = IdUtil.fastSimpleUUID();
         BigDecimal payAmount = mysteryBoxOrder.baseOrder().payment().payAmount();
-        DictConstants.PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
+        PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
         boolean vnPayChannel = refundRecordService.isVnPayChannel(payType);
         RefundRecord refundRecord = RefundRecordDraft.$.produce(draft -> {
             draft.setId(refundOrderId);
             draft.setOrderId(id);
             draft.setAmount(payAmount);
             draft.setReason("退款");
-            draft.setStatus(DictConstants.RefundStatus.REFUNDING);
+            draft.setStatus(RefundStatus.REFUNDING);
         });
         if (refundRecordService.isMoMoRefundUnsupported(payType)) {
             refundRecordRepository.save(refundRecord);
@@ -162,7 +165,7 @@ public class MysteryBoxOrderRefundService {
         refundRecord = RefundRecordDraft.$.produce(refundRecord, draft -> draft
                 .setRefundId(wxPayRefundV3Result.getRefundId())
                 .setRefundApplicationDetails(wxPayRefundV3Result)
-                .setStatus(DictConstants.RefundStatus.REFUNDING));
+                .setStatus(RefundStatus.REFUNDING));
         return refundRecordRepository.save(refundRecord).id();
     }
 
@@ -180,21 +183,22 @@ public class MysteryBoxOrderRefundService {
         log.info("退款回调：{}", result);
         RefundRecord refundRecord = refundRecordRepository.findById(result.getOutRefundNo(), RefundRecordRepository.COMPLEX_FETCHER_FOR_FRONT)
                 .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "退款订单不存在"));
-        if (refundRecord.status().equals(DictConstants.RefundStatus.SUCCESS) || refundRecord.status().equals(DictConstants.RefundStatus.FAILED)) {
+        if (refundRecord.status().equals(RefundStatus.SUCCESS) || refundRecord.status().equals(RefundStatus.FAILED)) {
             log.info("重复退款回调，忽略后续处理，refundId={}, status={}", refundRecord.id(), refundRecord.status());
             return WECHAT_NOTIFY_SUCCESS;
         }
         MysteryBoxOrder mysteryBoxOrder = mysteryBoxOrderRepository.findByIdForFront(refundRecord.orderId());
         StpUtil.switchTo(mysteryBoxOrder.creator().id());
+        WeChatRefundNotifyDetails notifyDetails = copyRefundNotify(result);
         if (result.getRefundStatus().equals("SUCCESS")) {
             // Align with approve/reconcile: CAS claimSuccess + clawback + coupon restore.
             refundRecordRepository.save(RefundRecordDraft.$.produce(refundRecord, draft -> draft
-                    .setRefundNotifyDetails(result)));
+                    .setRefundNotifyDetails(notifyDetails)));
             refundRecordService.finalizeLocalRefundSuccess(refundRecord, mysteryBoxOrder, result.getRefundId());
         } else {
             RefundRecord produce = RefundRecordDraft.$.produce(refundRecord, draft -> draft
-                    .setRefundNotifyDetails(result)
-                    .setStatus(DictConstants.RefundStatus.FAILED));
+                    .setRefundNotifyDetails(notifyDetails)
+                    .setStatus(RefundStatus.FAILED));
             refundRecordRepository.save(produce);
         }
         return WECHAT_NOTIFY_SUCCESS;
@@ -235,9 +239,9 @@ public class MysteryBoxOrderRefundService {
             draft.setOrderId(orderId);
             draft.setAmount(payAmount == null ? BigDecimal.ZERO : payAmount);
             draft.setReason("PAID_AFTER_CANCEL");
-            draft.setStatus(DictConstants.RefundStatus.REFUNDING);
+            draft.setStatus(RefundStatus.REFUNDING);
         });
-        DictConstants.PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
+        PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
         boolean vnPayChannel = refundRecordService.isVnPayChannel(payType);
         boolean refundSettled = false;
         try {
@@ -284,7 +288,7 @@ public class MysteryBoxOrderRefundService {
                 refundRecord = RefundRecordDraft.$.produce(refundRecord, draft -> draft
                         .setRefundId(wxPayRefundV3Result.getRefundId())
                         .setRefundApplicationDetails(wxPayRefundV3Result)
-                        .setStatus(DictConstants.RefundStatus.REFUNDING));
+                        .setStatus(RefundStatus.REFUNDING));
                 refundRecordRepository.save(refundRecord);
                 log.warn("Paid-after-cancel WeChat refund submitted orderId={} refundId={}",
                         orderId, wxPayRefundV3Result.getRefundId());
@@ -344,7 +348,7 @@ public class MysteryBoxOrderRefundService {
                 draft.setOrderId(orderId);
                 draft.setAmount(payAmount == null ? BigDecimal.ZERO : payAmount);
                 draft.setReason(MysteryBoxUserPityService.COMPENSATE_CODE);
-                draft.setStatus(DictConstants.RefundStatus.REFUNDING);
+                draft.setStatus(RefundStatus.REFUNDING);
             });
             refundRecordRepository.save(ticket);
             if (!ProductOrderStatus.CLOSED.equals(order.status())
@@ -393,9 +397,9 @@ public class MysteryBoxOrderRefundService {
             draft.setOrderId(orderId);
             draft.setAmount(payAmount);
             draft.setReason(MysteryBoxUserPityService.COMPENSATE_CODE);
-            draft.setStatus(DictConstants.RefundStatus.REFUNDING);
+            draft.setStatus(RefundStatus.REFUNDING);
         });
-        DictConstants.PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
+        PayType payType = mysteryBoxOrder.baseOrder().payment().payType();
         boolean vnPayChannel = refundRecordService.isVnPayChannel(payType);
         boolean refundSettled = false;
         try {
@@ -444,7 +448,7 @@ public class MysteryBoxOrderRefundService {
                 refundRecord = RefundRecordDraft.$.produce(refundRecord, draft -> draft
                         .setRefundId(wxPayRefundV3Result.getRefundId())
                         .setRefundApplicationDetails(wxPayRefundV3Result)
-                        .setStatus(DictConstants.RefundStatus.REFUNDING));
+                        .setStatus(RefundStatus.REFUNDING));
                 refundRecordRepository.save(refundRecord);
                 mysteryBoxOrderRepository.changeStatus(orderId, ProductOrderStatus.CLOSED);
             }
@@ -531,5 +535,12 @@ public class MysteryBoxOrderRefundService {
             }
         }
         throw new BusinessException(ResultCode.ParamSetIllegal, "订单状态不正确");
+    }
+
+    private static WeChatRefundNotifyDetails copyRefundNotify(
+            WxPayRefundNotifyV3Result.DecryptNotifyResult result) {
+        WeChatRefundNotifyDetails details = new WeChatRefundNotifyDetails();
+        org.springframework.beans.BeanUtils.copyProperties(result, details);
+        return details;
     }
 }

@@ -10,6 +10,6 @@ specification VipSpec {
     #allScalars
     ge(endTime)
     le(endTime)
-    id(user)
-    id(creator)
+    associatedIdEq(user)
+    associatedIdEq(creator)
 }

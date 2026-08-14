@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.draw;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import io.github.qifan777.server.box.pack.model.DrawPackConfigView;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.money.MoneyRounding;
@@ -82,13 +84,13 @@ public class BoxExpectedValueGuard {
         if (products == null || products.isEmpty()) {
             throw new BusinessException("盲盒至少需要一件奖品");
         }
-        if (legendaryRate > 0 && avgTierCost(products, DictConstants.QualityType.LEGENDARY) == null) {
+        if (legendaryRate > 0 && avgTierCost(products, QualityType.LEGENDARY) == null) {
             throw new BusinessException("传奇概率 > 0 但未配置传奇品质奖品");
         }
-        if (hiddenRate > 0 && avgTierCost(products, DictConstants.QualityType.HIDDEN) == null) {
+        if (hiddenRate > 0 && avgTierCost(products, QualityType.HIDDEN) == null) {
             throw new BusinessException("隐藏概率 > 0 但未配置隐藏品质奖品");
         }
-        if (generalRate > 0 && avgTierCost(products, DictConstants.QualityType.GENERAL) == null) {
+        if (generalRate > 0 && avgTierCost(products, QualityType.GENERAL) == null) {
             throw new BusinessException("普通概率 > 0 但未配置普通品质奖品");
         }
 
@@ -205,8 +207,8 @@ public class BoxExpectedValueGuard {
     }
 
     private BigDecimal weightedHighCost(List<Product> products, DynamicProbabilityAdjuster.AdjustedRates rates) {
-        BigDecimal l = avgTierCost(products, DictConstants.QualityType.LEGENDARY);
-        BigDecimal h = avgTierCost(products, DictConstants.QualityType.HIDDEN);
+        BigDecimal l = avgTierCost(products, QualityType.LEGENDARY);
+        BigDecimal h = avgTierCost(products, QualityType.HIDDEN);
         int lw = Math.max(0, rates.legendaryRate());
         int hw = Math.max(0, rates.hiddenRate());
         int sum = lw + hw;
@@ -241,13 +243,13 @@ public class BoxExpectedValueGuard {
             List<Product> products
     ) {
         BigDecimal ev = BigDecimal.ZERO;
-        ev = ev.add(tierContribution(legendaryRate, products, DictConstants.QualityType.LEGENDARY));
-        ev = ev.add(tierContribution(hiddenRate, products, DictConstants.QualityType.HIDDEN));
-        ev = ev.add(tierContribution(generalRate, products, DictConstants.QualityType.GENERAL));
+        ev = ev.add(tierContribution(legendaryRate, products, QualityType.LEGENDARY));
+        ev = ev.add(tierContribution(hiddenRate, products, QualityType.HIDDEN));
+        ev = ev.add(tierContribution(generalRate, products, QualityType.GENERAL));
         return ev;
     }
 
-    private BigDecimal tierContribution(int rate, List<Product> products, DictConstants.QualityType tier) {
+    private BigDecimal tierContribution(int rate, List<Product> products, QualityType tier) {
         if (rate <= 0) {
             return BigDecimal.ZERO;
         }
@@ -260,7 +262,7 @@ public class BoxExpectedValueGuard {
     }
 
     /** Prefer costPrice; fall back to retail price. */
-    private BigDecimal avgTierCost(List<Product> products, DictConstants.QualityType tier) {
+    private BigDecimal avgTierCost(List<Product> products, QualityType tier) {
         BigDecimal sum = BigDecimal.ZERO;
         int n = 0;
         for (Product p : products) {

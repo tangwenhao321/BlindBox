@@ -1,5 +1,7 @@
 package io.github.qifan777.server.warehouse;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.address.entity.Address;
 import io.github.qifan777.server.address.entity.dto.AddressView;
@@ -55,7 +57,7 @@ public class WarehouseShipService {
             if ("MARKETPLACE".equals(line.source())) {
                 marketValue = marketValue.add(line.productPrice());
                 marketCount++;
-            } else if (DictConstants.ProductOrderStatus.TO_BE_DELIVERED.getKeyEnName().equals(line.orderStatus())) {
+            } else if (ProductOrderStatus.TO_BE_DELIVERED.getKeyEnName().equals(line.orderStatus())) {
                 remindCount++;
             }
         }
@@ -587,7 +589,7 @@ public class WarehouseShipService {
         if ("MARKETPLACE".equals(item.source())) {
             return "MARKETPLACE".equals(item.orderStatus());
         }
-        return DictConstants.ProductOrderStatus.TO_BE_DELIVERED.getKeyEnName().equals(item.orderStatus());
+        return ProductOrderStatus.TO_BE_DELIVERED.getKeyEnName().equals(item.orderStatus());
     }
 
     private static String lineKey(String orderId, String orderItemId, String productId) {

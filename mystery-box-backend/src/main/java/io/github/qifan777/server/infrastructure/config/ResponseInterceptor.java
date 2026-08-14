@@ -1,6 +1,6 @@
 package io.github.qifan777.server.infrastructure.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.qifan.infrastructure.common.model.R;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 @AllArgsConstructor
 public class ResponseInterceptor implements ResponseBodyAdvice<Object> {
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     @Override
     public boolean supports(MethodParameter returnType, Class converterType) {

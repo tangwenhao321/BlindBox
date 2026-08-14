@@ -1,7 +1,7 @@
 package io.github.qifan777.server.reveal.room;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +28,7 @@ public class RevealRoomHandler extends TextWebSocketHandler {
     public static final String TYPE_REACTION = "reaction";
 
     private final RevealRoomStore roomStore;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final RevealRoomRedisFanout redisFanout;
     private final ConcurrentHashMap<String, Set<WebSocketSession>> roomSessions = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, String> sessionMembers = new ConcurrentHashMap<>();
@@ -218,7 +218,7 @@ public class RevealRoomHandler extends TextWebSocketHandler {
         String json;
         try {
             json = objectMapper.writeValueAsString(payload);
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             log.warn("reveal room broadcast serialize failed roomId={}: {}", roomId, ex.getMessage());
             return;
         }

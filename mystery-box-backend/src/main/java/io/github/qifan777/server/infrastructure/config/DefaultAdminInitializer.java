@@ -1,5 +1,7 @@
 package io.github.qifan777.server.infrastructure.config;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import cn.dev33.satoken.secure.BCrypt;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.role.entity.Role;
@@ -57,7 +59,7 @@ public class DefaultAdminInitializer implements ApplicationRunner {
                             .setPhone(normalizedAccount)
                             .setPassword(BCrypt.hashpw(normalizedPassword))
                             .setNickname("默认管理员")
-                            .setStatus(DictConstants.UserStatus.NORMAL)
+                            .setStatus(UserStatus.NORMAL)
                             .setBalance(BigDecimal.ZERO)));
                     log.info("default admin user created: account={}", normalizedAccount);
                     return created;

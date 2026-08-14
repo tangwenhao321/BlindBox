@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.repository;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.Fetchers;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItemFetcher;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
@@ -73,7 +75,7 @@ public interface MysteryBoxOrderRepository extends JRepository<MysteryBoxOrder, 
     default List<MysteryBoxOrder> findUnpaidOrdersBatch(int limit) {
         int size = Math.min(Math.max(limit, 1), 500);
         return sql().createQuery(t)
-                .where(t.status().eq(DictConstants.ProductOrderStatus.TO_BE_PAID))
+                .where(t.status().eq(ProductOrderStatus.TO_BE_PAID))
                 .where(t.createdTime().le(LocalDateTime.now().minusMinutes(5)))
                 .orderBy(t.createdTime().asc())
                 .select(t.fetch(Fetchers.MYSTERY_BOX_ORDER_FETCHER.allScalarFields().creator(true)))
@@ -84,8 +86,8 @@ public interface MysteryBoxOrderRepository extends JRepository<MysteryBoxOrder, 
     /** 近期已支付/履约中订单 ID，供开奖一致性对账任务使用 */
     default List<String> findRecentlyPaidOrderIds(LocalDateTime editedSince, int limit) {
         return sql().createQuery(t)
-                .where(t.status().ne(DictConstants.ProductOrderStatus.TO_BE_PAID))
-                .where(t.status().ne(DictConstants.ProductOrderStatus.CLOSED))
+                .where(t.status().ne(ProductOrderStatus.TO_BE_PAID))
+                .where(t.status().ne(ProductOrderStatus.CLOSED))
                 .where(t.editedTime().ge(editedSince))
                 .orderBy(t.editedTime().desc())
                 .select(t.id())
@@ -93,7 +95,7 @@ public interface MysteryBoxOrderRepository extends JRepository<MysteryBoxOrder, 
                 .execute();
     }
 
-    default void changeStatus(String id, DictConstants.ProductOrderStatus status) {
+    default void changeStatus(String id, ProductOrderStatus status) {
         sql().createUpdate(t)
                 .where(t.id().eq(id))
                 .set(t.status(), status)
@@ -105,8 +107,8 @@ public interface MysteryBoxOrderRepository extends JRepository<MysteryBoxOrder, 
      */
     default boolean changeStatusIf(
             String id,
-            DictConstants.ProductOrderStatus from,
-            DictConstants.ProductOrderStatus to
+            ProductOrderStatus from,
+            ProductOrderStatus to
     ) {
         int updated = sql().createUpdate(t)
                 .where(t.id().eq(id))
@@ -118,13 +120,13 @@ public interface MysteryBoxOrderRepository extends JRepository<MysteryBoxOrder, 
 
     /**
      * Claim an unpaid order for payment completion (before draw/pool mutation).
-     * CAS {@link DictConstants.ProductOrderStatus#TO_BE_PAID} → {@link DictConstants.ProductOrderStatus#TO_BE_DELIVERED}.
+     * CAS {@link ProductOrderStatus#TO_BE_PAID} → {@link ProductOrderStatus#TO_BE_DELIVERED}.
      */
     default boolean claimPaid(String orderId) {
         return changeStatusIf(
                 orderId,
-                DictConstants.ProductOrderStatus.TO_BE_PAID,
-                DictConstants.ProductOrderStatus.TO_BE_DELIVERED
+                ProductOrderStatus.TO_BE_PAID,
+                ProductOrderStatus.TO_BE_DELIVERED
         );
     }
 

@@ -17,6 +17,8 @@ export function getProductionEnvWarnings(): string[] {
   const warnings: string[] = [];
   if (!process.env.EXPO_PUBLIC_API_BASE_URL?.trim()) {
     warnings.push(i18n.t("productionEnv.apiMissing"));
+  } else if (/localhost|127\.0\.0\.1|example\.com|your-domain/i.test(process.env.EXPO_PUBLIC_API_BASE_URL)) {
+    warnings.push(i18n.t("productionEnv.apiMissing"));
   }
   if (resolvePaymentMode() === "mock") {
     warnings.push(i18n.t("productionEnv.mockPaymentMode"));

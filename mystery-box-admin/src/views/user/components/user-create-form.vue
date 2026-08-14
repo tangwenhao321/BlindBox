@@ -16,9 +16,19 @@ const userStore = useUserStore()
 const { closeDialog, reloadTableData } = userStore
 const { createForm, dialogData } = storeToRefs(userStore)
 const createFormRef = ref<FormInstance>()
+const passwordPolicy = (_rule: unknown, value: string, callback: (error?: Error) => void) => {
+  if (!value || value.length < 8 || !/[A-Za-z]/.test(value) || !/\d/.test(value)) {
+    callback(new Error('密码至少 8 位且需包含字母和数字'))
+    return
+  }
+  callback()
+}
 const rules = reactive<FormRules<typeof createForm>>({
   phone: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { validator: passwordPolicy, trigger: 'blur' }
+  ]
 })
 const init = async () => {
   dialogData.value.title = '创建'
@@ -58,7 +68,7 @@ const roleQueryOptions = async (keyword: string, roleIds: string[]) => {
         <el-input v-model="createForm.phone"></el-input>
       </el-form-item>
       <el-form-item label="密码" prop="password">
-        <el-input v-model="createForm.password"></el-input>
+        <el-input v-model="createForm.password" type="password" show-password autocomplete="new-password"></el-input>
       </el-form-item>
       <el-form-item label="昵称" prop="nickname">
         <el-input v-model="createForm.nickname"></el-input>

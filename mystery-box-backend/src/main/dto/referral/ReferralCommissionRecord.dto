@@ -2,7 +2,7 @@ export io.github.qifan777.server.referral.entity.ReferralCommissionRecord
 
 specification ReferralCommissionRecordSpec {
     #allScalars
-    id(user)
+    associatedIdEq(user)
     ge(createdTime)
     le(createdTime)
 }

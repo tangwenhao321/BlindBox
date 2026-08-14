@@ -1,7 +1,9 @@
 package io.github.qifan777.server.box.root.controller;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import cn.dev33.satoken.annotation.SaCheckPermission;
-import io.github.qifan777.server.Objects;
+import io.github.qifan777.server.Immutables;
 import io.github.qifan777.server.box.draw.BoxProfitabilityService;
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.entity.MysteryBoxTable;
@@ -62,7 +64,7 @@ public class MysteryBoxForAdminController {
         if (products.size() != productIds.size()) {
             throw new BusinessException("存在无效奖品 ID");
         }
-        MysteryBox mysteryBox = Objects.createMysteryBox(entity, draft -> {
+        MysteryBox mysteryBox = Immutables.createMysteryBox(entity, draft -> {
             draft.setBoxRelList(new ArrayList<>());
             for (Product product : products) {
                 int stock = defaultStockForTier(product.qualityType());
@@ -86,11 +88,11 @@ public class MysteryBoxForAdminController {
         return savedId;
     }
 
-    private static int defaultStockForTier(DictConstants.QualityType tier) {
-        if (tier == DictConstants.QualityType.LEGENDARY) {
+    private static int defaultStockForTier(QualityType tier) {
+        if (tier == QualityType.LEGENDARY) {
             return 5;
         }
-        if (tier == DictConstants.QualityType.HIDDEN) {
+        if (tier == QualityType.HIDDEN) {
             return 20;
         }
         return 100;

@@ -13,8 +13,8 @@ specification ProductSpec {
     #allScalars
     like/i(name)
     like/i(brand)
-    id(category)
+    associatedIdEq(category)
     like/i(description)
-    id(creator)
+    associatedIdEq(creator)
     boxId: String?
 }

@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.box.item.repository.MysteryBoxOrderItemRepository;
@@ -20,8 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 /**
  * Order-level redeem-to-balance (all prizes on an order).

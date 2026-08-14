@@ -1,5 +1,7 @@
 package io.github.qifan777.server.user.auth;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import cn.dev33.satoken.stp.SaLoginModel;
 import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
@@ -56,7 +58,7 @@ public class ZaloAuthService {
                 : null;
         User user = findOrCreate(profile, inviteCode);
         if (userPrivacyService.isDeleted(user.id())
-                || DictConstants.UserStatus.BANNED.equals(user.status())) {
+                || UserStatus.BANNED.equals(user.status())) {
             throw new BusinessException(ResultCode.StatusHasInvalid, "账号已禁用或已注销");
         }
         StpUtil.login(user.id(), new SaLoginModel()
@@ -114,7 +116,7 @@ public class ZaloAuthService {
                     .setPassword(BCrypt.hashpw(IdUtil.fastSimpleUUID()))
                     .setNickname(nickname)
                     .setAvatar(trimTo(profile.pictureUrl(), 512))
-                    .setStatus(DictConstants.UserStatus.NORMAL)
+                    .setStatus(UserStatus.NORMAL)
                     .setBalance(BigDecimal.ZERO);
         }));
         Role role = roleRepository.findRoleByName("普通用户")

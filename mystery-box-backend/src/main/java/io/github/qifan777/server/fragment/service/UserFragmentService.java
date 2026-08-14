@@ -1,5 +1,8 @@
 package io.github.qifan777.server.fragment.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+import io.github.qifan777.server.dict.model.OrderType;
+
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItemDraft;
 import io.github.qifan777.server.box.order.OrderIds;
@@ -34,8 +37,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 @Service
 @RequiredArgsConstructor
@@ -269,7 +270,7 @@ public class UserFragmentService {
                             .setProducts(List.of(product)))));
             draft.baseOrder()
                     .setId(orderId)
-                    .setType(DictConstants.OrderType.PRODUCT_ORDER)
+                    .setType(OrderType.PRODUCT_ORDER)
                     .setPayment(payment)
                     .setRemark("FRAGMENT_EXCHANGE:" + skuId + ";userId:" + userId);
         });

@@ -1,5 +1,9 @@
 package io.github.qifan777.server.coupon.root.service;
 
+import io.github.qifan777.server.dict.model.CouponType;
+import io.github.qifan777.server.dict.model.CouponUseStatus;
+import io.github.qifan777.server.dict.model.CouponReceiveType;
+
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.coupon.root.entity.Coupon;
 import io.github.qifan777.server.coupon.root.entity.dto.CouponGiftInput;
@@ -65,8 +69,8 @@ public class CouponService {
                 .map(userId -> CouponUserRelDraft.$.produce(draft -> {
                     draft.setCouponId(giftInput.getId())
                             .setUserId(userId)
-                            .setReceiveType(DictConstants.CouponReceiveType.GIFT)
-                            .setStatus(DictConstants.CouponUseStatus.UNUSED);
+                            .setReceiveType(CouponReceiveType.GIFT)
+                            .setStatus(CouponUseStatus.UNUSED);
                 })).collect(Collectors.toList());
         couponUserRelRepository.saveEntities(couponUsers);
     }
@@ -80,11 +84,11 @@ public class CouponService {
         assertMeetsThreshold(coupon, amount);
         BigDecimal safeAmount = amount == null ? BigDecimal.ZERO : amount.max(BigDecimal.ZERO);
         String currency = marketProperties.getCurrency();
-        if (coupon.couponType().equals(DictConstants.CouponType.DISCOUNT)) {
+        if (coupon.couponType().equals(CouponType.DISCOUNT)) {
             BigDecimal discount = BigDecimal.TEN.subtract(coupon.discount()).divide(BigDecimal.TEN, RoundingMode.DOWN)
                     .multiply(safeAmount);
             return MoneyRounding.round(discount.max(BigDecimal.ZERO).min(safeAmount), currency);
-        } else if (coupon.couponType().equals(DictConstants.CouponType.REDUCE)) {
+        } else if (coupon.couponType().equals(CouponType.REDUCE)) {
             BigDecimal face = coupon.amount() == null ? BigDecimal.ZERO : coupon.amount();
             return MoneyRounding.round(face.max(BigDecimal.ZERO).min(safeAmount), currency);
         }
@@ -92,7 +96,7 @@ public class CouponService {
     }
 
     public void checkCouponUser(CouponUserRel couponUserRel) {
-        if (!couponUserRel.status().equals(DictConstants.CouponUseStatus.UNUSED)) {
+        if (!couponUserRel.status().equals(CouponUseStatus.UNUSED)) {
             throw new BusinessException(ResultCode.ParamSetIllegal, "优惠券已使用");
         }
         if (!couponUserRel.user().id().equals(StpUtil.getLoginIdAsString())) {
@@ -120,11 +124,11 @@ public class CouponService {
         }
     }
 
-    public void changeStatus(String id, DictConstants.CouponUseStatus status) {
+    public void changeStatus(String id, CouponUseStatus status) {
         if (!StringUtils.hasText(id) || status == null) {
             return;
         }
-        if (status == DictConstants.CouponUseStatus.USED) {
+        if (status == CouponUseStatus.USED) {
             if (!couponUserRelRepository.tryMarkUsed(id)) {
                 throw new BusinessException(ResultCode.ParamSetIllegal, "优惠券已使用或不可用");
             }
@@ -141,7 +145,7 @@ public class CouponService {
         LocalDateTime now = LocalDateTime.now();
         List<CouponUserRel> usable = couponUserRelRepository.sql().createQuery(t)
                 .where(t.userId().eq(userId))
-                .where(t.status().eq(DictConstants.CouponUseStatus.UNUSED))
+                .where(t.status().eq(CouponUseStatus.UNUSED))
                 .select(t.fetch(CouponUserRelRepository.COMPLEX_FETCHER_FOR_FRONT))
                 .execute();
         String bestId = null;

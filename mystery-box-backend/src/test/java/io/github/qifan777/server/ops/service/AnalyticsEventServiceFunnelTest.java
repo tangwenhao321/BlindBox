@@ -1,6 +1,6 @@
 package io.github.qifan777.server.ops.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +22,7 @@ class AnalyticsEventServiceFunnelTest {
 
     @BeforeEach
     void setUp() {
-        service = new AnalyticsEventService(jdbcTemplate, new ObjectMapper());
+        service = new AnalyticsEventService(jdbcTemplate, JsonMapper.shared());
     }
 
     @Test

@@ -1,5 +1,7 @@
 package io.github.qifan777.server.vip.order.service;
 
+import io.github.qifan777.server.dict.model.OrderType;
+
 import cn.dev33.satoken.stp.StpUtil;
 import com.github.binarywang.wxpay.bean.notify.SignatureHeader;
 import com.github.binarywang.wxpay.bean.notify.WxPayNotifyV3Result;
@@ -92,7 +94,7 @@ public class VipOrderService {
                 baseOrderDraft.setId(orderId)
                         .setPayment(initPayment(vipPackage.price(), orderId))
                         .setRemark("userId:" + StpUtil.getLoginIdAsString() + ";vipPackageId:" + vipPackage.id())
-                        .setType(DictConstants.OrderType.VIP_ORDER);
+                        .setType(OrderType.VIP_ORDER);
             });
         });
         return vipOrderRepository.save(produce);

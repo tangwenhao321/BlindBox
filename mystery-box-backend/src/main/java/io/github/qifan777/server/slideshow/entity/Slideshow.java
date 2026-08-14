@@ -1,5 +1,7 @@
 package io.github.qifan777.server.slideshow.entity;
 
+import io.github.qifan777.server.dict.model.NavigatorType;
+
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
 import io.qifan.infrastructure.generator.core.*;
@@ -38,7 +40,7 @@ public interface Slideshow extends BaseEntity {
      */
     @GenDictField(label = "跳转类型", order = 3, dictEnName = DictConstants.NAVIGATOR_TYPE)
     @Null
-    DictConstants.NavigatorType navigatorType();
+    NavigatorType navigatorType();
 
     /**
      * 排序号

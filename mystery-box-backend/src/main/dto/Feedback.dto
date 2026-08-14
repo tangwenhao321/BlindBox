@@ -8,5 +8,5 @@ input FeedbackInput {
 specification FeedbackSpec {
     #allScalars
     like/i(content)
-    id(creator)
+    associatedIdEq(creator)
 }

@@ -1,5 +1,8 @@
 package io.github.qifan777.server.coupon.user.entity;
 
+import io.github.qifan777.server.dict.model.CouponUseStatus;
+import io.github.qifan777.server.dict.model.CouponReceiveType;
+
 import io.github.qifan777.server.coupon.root.entity.Coupon;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
@@ -20,7 +23,7 @@ public interface CouponUserRel extends BaseEntity {
      * 获取途径类型
      */
     @GenDictField(label = "获取途径类型", dictEnName = DictConstants.COUPON_RECEIVE_TYPE, order = 1)
-    DictConstants.CouponReceiveType receiveType();
+    CouponReceiveType receiveType();
 
     /**
      * 优惠券
@@ -33,7 +36,7 @@ public interface CouponUserRel extends BaseEntity {
      * 优惠券状态
      */
     @GenDictField(label = "优惠券状态", dictEnName = DictConstants.COUPON_USE_STATUS, order = 3)
-    DictConstants.CouponUseStatus status();
+    CouponUseStatus status();
 
     /**
      * 用户信息

@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.product.service;
 
+import io.github.qifan777.server.dict.model.QualityType;
+
 import cn.hutool.core.util.IdUtil;
 import io.github.qifan777.server.box.draw.DrawRandom;
 import io.github.qifan777.server.box.draw.DynamicProbabilityAdjuster;
@@ -97,7 +99,7 @@ public class PrizeStockService {
         Map<String, Product> productMap = productRepository.findByIds(
                 rels.stream().map(MysteryBoxProductRel::productId).distinct().toList()
         ).stream().collect(Collectors.toMap(Product::id, p -> p));
-        boolean hasGeneral = hasTierStock(rels, productMap, DictConstants.QualityType.GENERAL);
+        boolean hasGeneral = hasTierStock(rels, productMap, QualityType.GENERAL);
         if (hasGeneral) {
             return;
         }
@@ -114,8 +116,8 @@ public class PrizeStockService {
         Map<String, Product> productMap = productRepository.findByIds(
                 rels.stream().map(MysteryBoxProductRel::productId).distinct().toList()
         ).stream().collect(Collectors.toMap(Product::id, p -> p));
-        return hasTierStock(rels, productMap, DictConstants.QualityType.LEGENDARY)
-                || hasTierStock(rels, productMap, DictConstants.QualityType.HIDDEN);
+        return hasTierStock(rels, productMap, QualityType.LEGENDARY)
+                || hasTierStock(rels, productMap, QualityType.HIDDEN);
     }
 
     /**
@@ -129,8 +131,8 @@ public class PrizeStockService {
         if (product == null) {
             return;
         }
-        DictConstants.QualityType q = product.qualityType();
-        if (q != DictConstants.QualityType.LEGENDARY && q != DictConstants.QualityType.HIDDEN) {
+        QualityType q = product.qualityType();
+        if (q != QualityType.LEGENDARY && q != QualityType.HIDDEN) {
             return;
         }
         if (hasHighTierStock(mysteryBoxId)) {
@@ -200,8 +202,8 @@ public class PrizeStockService {
         String adjustedRatesJson = ratesJson(legendaryRate, hiddenRate, adjusted.generalRate());
 
         if (forceHighTier) {
-            boolean hasHigh = hasTierStock(rels, productMap, DictConstants.QualityType.LEGENDARY)
-                    || hasTierStock(rels, productMap, DictConstants.QualityType.HIDDEN);
+            boolean hasHigh = hasTierStock(rels, productMap, QualityType.LEGENDARY)
+                    || hasTierStock(rels, productMap, QualityType.HIDDEN);
             if (!hasHigh) {
                 // REQUIRES_NEW so PENDING survives the rollback of this draw transaction.
                 mysteryBoxUserPityService.markCompensatePending(userId, mysteryBoxId);
@@ -213,7 +215,7 @@ public class PrizeStockService {
         }
 
         List<Product> drawn = new ArrayList<>();
-        List<DictConstants.QualityType> drawnTiers = new ArrayList<>();
+        List<QualityType> drawnTiers = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             Product picked;
             if (forceHighTier && i == count - 1) {
@@ -226,7 +228,7 @@ public class PrizeStockService {
                     );
                 }
             } else {
-                DictConstants.QualityType tier = rollTierAbsoluteWithStock(
+                QualityType tier = rollTierAbsoluteWithStock(
                         rels, productMap, legendaryRate, hiddenRate);
                 picked = pickProduct(rels, productMap, tier);
                 if (picked == null) {
@@ -365,7 +367,7 @@ public class PrizeStockService {
     private boolean hasTierStock(
             List<MysteryBoxProductRel> rels,
             Map<String, Product> productMap,
-            DictConstants.QualityType tier
+            QualityType tier
     ) {
         return rels.stream().anyMatch(rel -> {
             if (rel.stockRemaining() <= 0) {
@@ -380,40 +382,40 @@ public class PrizeStockService {
      * Absolute-weight roll against PROBABILITY_BASE; re-roll when the hit tier is sold out.
      * Avoids renormalizing sold-out GENERAL mass onto high tiers (late-pool jackpot hunt).
      */
-    private DictConstants.QualityType rollTierAbsoluteWithStock(
+    private QualityType rollTierAbsoluteWithStock(
             List<MysteryBoxProductRel> rels,
             Map<String, Product> productMap,
             int legendaryRate,
             int hiddenRate
     ) {
         for (int attempt = 0; attempt < 48; attempt++) {
-            DictConstants.QualityType tier = rollTier(legendaryRate, hiddenRate);
+            QualityType tier = rollTier(legendaryRate, hiddenRate);
             if (hasTierStock(rels, productMap, tier)) {
                 return tier;
             }
         }
         // Exhausted retries: prefer any remaining tier without rewriting published odds mass.
-        if (hasTierStock(rels, productMap, DictConstants.QualityType.GENERAL)) {
-            return DictConstants.QualityType.GENERAL;
+        if (hasTierStock(rels, productMap, QualityType.GENERAL)) {
+            return QualityType.GENERAL;
         }
-        if (hasTierStock(rels, productMap, DictConstants.QualityType.HIDDEN)) {
-            return DictConstants.QualityType.HIDDEN;
+        if (hasTierStock(rels, productMap, QualityType.HIDDEN)) {
+            return QualityType.HIDDEN;
         }
-        if (hasTierStock(rels, productMap, DictConstants.QualityType.LEGENDARY)) {
-            return DictConstants.QualityType.LEGENDARY;
+        if (hasTierStock(rels, productMap, QualityType.LEGENDARY)) {
+            return QualityType.LEGENDARY;
         }
-        return DictConstants.QualityType.GENERAL;
+        return QualityType.GENERAL;
     }
 
-    private DictConstants.QualityType rollTier(int legendaryRate, int hiddenRate) {
+    private QualityType rollTier(int legendaryRate, int hiddenRate) {
         int randomInt = DrawRandom.nextInt(PROBABILITY_BASE);
         if (randomInt < legendaryRate) {
-            return DictConstants.QualityType.LEGENDARY;
+            return QualityType.LEGENDARY;
         }
         if (randomInt < legendaryRate + hiddenRate) {
-            return DictConstants.QualityType.HIDDEN;
+            return QualityType.HIDDEN;
         }
-        return DictConstants.QualityType.GENERAL;
+        return QualityType.GENERAL;
     }
 
     /** Pity forceHigh: roll only among in-stock high tiers; never GENERAL while high stock exists. */
@@ -423,30 +425,30 @@ public class PrizeStockService {
             int legendaryRate,
             int hiddenRate
     ) {
-        boolean hasL = hasTierStock(rels, productMap, DictConstants.QualityType.LEGENDARY);
-        boolean hasH = hasTierStock(rels, productMap, DictConstants.QualityType.HIDDEN);
+        boolean hasL = hasTierStock(rels, productMap, QualityType.LEGENDARY);
+        boolean hasH = hasTierStock(rels, productMap, QualityType.HIDDEN);
         if (!hasL && !hasH) {
             return null;
         }
         int effL = hasL ? Math.max(legendaryRate, 1) : 0;
         int effH = hasH ? Math.max(hiddenRate, 1) : 0;
         int pool = effL + effH;
-        DictConstants.QualityType tier;
+        QualityType tier;
         if (pool <= 0) {
-            tier = hasL ? DictConstants.QualityType.LEGENDARY : DictConstants.QualityType.HIDDEN;
+            tier = hasL ? QualityType.LEGENDARY : QualityType.HIDDEN;
         } else {
             int r = DrawRandom.nextInt(pool);
-            tier = r < effL ? DictConstants.QualityType.LEGENDARY : DictConstants.QualityType.HIDDEN;
+            tier = r < effL ? QualityType.LEGENDARY : QualityType.HIDDEN;
         }
         Product picked = pickProduct(rels, productMap, tier);
         if (picked != null) {
             return picked;
         }
         // Cross-fallback within high tiers only.
-        if (tier == DictConstants.QualityType.LEGENDARY) {
-            return pickProduct(rels, productMap, DictConstants.QualityType.HIDDEN);
+        if (tier == QualityType.LEGENDARY) {
+            return pickProduct(rels, productMap, QualityType.HIDDEN);
         }
-        return pickProduct(rels, productMap, DictConstants.QualityType.LEGENDARY);
+        return pickProduct(rels, productMap, QualityType.LEGENDARY);
     }
 
     private Product pickAnyRemaining(List<MysteryBoxProductRel> rels, Map<String, Product> productMap) {
@@ -460,36 +462,36 @@ public class PrizeStockService {
     private Product pickProductWithTierFallback(
             List<MysteryBoxProductRel> rels,
             Map<String, Product> productMap,
-            DictConstants.QualityType tier
+            QualityType tier
     ) {
-        if (tier == DictConstants.QualityType.LEGENDARY) {
-            Product legendary = pickProduct(rels, productMap, DictConstants.QualityType.LEGENDARY);
+        if (tier == QualityType.LEGENDARY) {
+            Product legendary = pickProduct(rels, productMap, QualityType.LEGENDARY);
             if (legendary != null) {
                 return legendary;
             }
-            Product hidden = pickProduct(rels, productMap, DictConstants.QualityType.HIDDEN);
+            Product hidden = pickProduct(rels, productMap, QualityType.HIDDEN);
             if (hidden != null) {
                 return hidden;
             }
-        } else if (tier == DictConstants.QualityType.HIDDEN) {
-            Product hidden = pickProduct(rels, productMap, DictConstants.QualityType.HIDDEN);
+        } else if (tier == QualityType.HIDDEN) {
+            Product hidden = pickProduct(rels, productMap, QualityType.HIDDEN);
             if (hidden != null) {
                 return hidden;
             }
             // Symmetric high-tier fallback (was missing — caused pity forceHigh → GENERAL).
-            Product legendary = pickProduct(rels, productMap, DictConstants.QualityType.LEGENDARY);
+            Product legendary = pickProduct(rels, productMap, QualityType.LEGENDARY);
             if (legendary != null) {
                 return legendary;
             }
         }
-        Product general = pickProduct(rels, productMap, DictConstants.QualityType.GENERAL);
+        Product general = pickProduct(rels, productMap, QualityType.GENERAL);
         if (general != null) {
             return general;
         }
         return pickAnyRemaining(rels, productMap);
     }
 
-    private Product pickProduct(List<MysteryBoxProductRel> rels, Map<String, Product> productMap, DictConstants.QualityType tier) {
+    private Product pickProduct(List<MysteryBoxProductRel> rels, Map<String, Product> productMap, QualityType tier) {
         List<MysteryBoxProductRel> candidates = rels.stream()
                 .filter(rel -> rel.stockRemaining() > 0)
                 .filter(rel -> {

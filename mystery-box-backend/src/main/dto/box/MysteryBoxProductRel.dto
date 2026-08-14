@@ -7,7 +7,7 @@ input MysteryBoxProductRelInput {
 
 specification MysteryBoxProductRelSpec {
     #allScalars
-    id(creator)
-    id(product)
-    id(mysteryBox)
+    associatedIdEq(creator)
+    associatedIdEq(product)
+    associatedIdEq(mysteryBox)
 }

@@ -1,5 +1,7 @@
 package io.github.qifan777.server.user.root.service;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import cn.dev33.satoken.annotation.SaIgnore;
 import cn.dev33.satoken.secure.BCrypt;
 import cn.dev33.satoken.stp.SaLoginModel;
@@ -75,7 +77,7 @@ public class UserService {
         User user = userRepository.save(UserDraft.$.produce(registerInput.toEntity(), draft -> {
             draft.setNickname("默认用户")
                     .setPassword(BCrypt.hashpw(draft.password()))
-                    .setStatus(DictConstants.UserStatus.NORMAL)
+                    .setStatus(UserStatus.NORMAL)
                     .setBalance(BigDecimal.ZERO);
         }));
         StpUtil.login(user.id(), new SaLoginModel()
@@ -169,7 +171,7 @@ public class UserService {
                 .fetchOptional()
                 .orElseThrow(() -> new BusinessException(AuthErrorCode.USER_LOGIN_NOT_EXIST));
         if (userPrivacyService.isDeleted(databaseUser.id())
-                || DictConstants.UserStatus.BANNED.equals(databaseUser.status())) {
+                || UserStatus.BANNED.equals(databaseUser.status())) {
             throw new BusinessException(ResultCode.StatusHasInvalid, "账号已禁用或已注销");
         }
         if (requireAdminRole) {

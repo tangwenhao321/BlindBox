@@ -1,6 +1,6 @@
 package io.github.qifan777.server.box.slot.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
 import io.github.qifan777.server.user.hint.UserHintCardService;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ class MysteryBoxHintServiceTest {
     void setUp() {
         service = new MysteryBoxHintService(
                 redisTemplate,
-                new ObjectMapper(),
+                JsonMapper.shared(),
                 mysteryBoxRepository,
                 userHintCardService,
                 jdbcTemplate

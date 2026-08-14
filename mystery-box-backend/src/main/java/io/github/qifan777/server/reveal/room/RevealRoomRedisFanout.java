@@ -1,7 +1,7 @@
 package io.github.qifan777.server.reveal.room;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -20,7 +20,7 @@ public class RevealRoomRedisFanout {
     public static final String CHANNEL_PREFIX = "reveal:room:";
 
     private final String nodeId = UUID.randomUUID().toString();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper objectMapper = JsonMapper.shared();
 
     @Autowired(required = false)
     private StringRedisTemplate redisTemplate;

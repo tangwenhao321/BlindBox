@@ -2,7 +2,7 @@ package io.github.qifan777.server.payment.service;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.binarywang.spring.starter.wxjava.pay.properties.WxPayProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderV3Request;
 import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;
 import com.github.binarywang.wxpay.bean.result.enums.TradeTypeEnum;
@@ -36,7 +36,7 @@ public class WeChatPayService {
     private final WxPayPropertiesExtension wxPayPropertiesExtension;
     private final WxPayProperties wxPayProperties;
     private final StringRedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final WxPayService wxPayService;
     private final static DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
 

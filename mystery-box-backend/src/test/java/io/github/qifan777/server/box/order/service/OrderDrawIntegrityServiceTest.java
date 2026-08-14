@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.box.item.entity.MysteryBoxOrderItem;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
 import io.github.qifan777.server.box.root.entity.dto.MystryBoxView;
@@ -29,7 +31,7 @@ class OrderDrawIntegrityServiceTest {
         ProductView product = mock(ProductView.class);
         MystryBoxView box = mock(MystryBoxView.class);
 
-        when(order.status()).thenReturn(DictConstants.ProductOrderStatus.TO_BE_DELIVERED);
+        when(order.status()).thenReturn(ProductOrderStatus.TO_BE_DELIVERED);
         when(order.items()).thenReturn(List.of(item));
         when(item.mysteryBoxCount()).thenReturn(2);
         when(item.products()).thenReturn(List.of(product, product));
@@ -49,7 +51,7 @@ class OrderDrawIntegrityServiceTest {
         MysteryBoxOrderItem item = mock(MysteryBoxOrderItem.class);
         MystryBoxView box = mock(MystryBoxView.class);
 
-        when(order.status()).thenReturn(DictConstants.ProductOrderStatus.FINISHED);
+        when(order.status()).thenReturn(ProductOrderStatus.FINISHED);
         when(order.items()).thenReturn(List.of(item));
         when(item.mysteryBoxCount()).thenReturn(5);
         when(item.id()).thenReturn("line-2");

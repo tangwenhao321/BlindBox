@@ -14,5 +14,5 @@ specification MenuSpec {
     le(createdTime)
     ge(editedTime)
     le(editedTime)
-    id(parent)
+    associatedIdEq(parent)
 }

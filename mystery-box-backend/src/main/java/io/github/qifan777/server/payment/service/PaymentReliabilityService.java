@@ -1,6 +1,6 @@
 package io.github.qifan777.server.payment.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,7 +15,7 @@ import java.util.Map;
 @Slf4j
 public class PaymentReliabilityService {
     private final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public void recordPaymentEvent(String actorId, String orderId, String phase, String status, String reason, int retryCount) {
         try {

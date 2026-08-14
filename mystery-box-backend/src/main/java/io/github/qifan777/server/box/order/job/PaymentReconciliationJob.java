@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.job;
 
+import io.github.qifan777.server.dict.model.PayType;
+
 import com.github.binarywang.wxpay.bean.result.WxPayOrderQueryV3Result;
 import com.github.binarywang.wxpay.service.WxPayService;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
@@ -24,8 +26,6 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-
-import static io.github.qifan777.server.dict.model.DictConstants.PayType;
 
 @Component
 @RequiredArgsConstructor

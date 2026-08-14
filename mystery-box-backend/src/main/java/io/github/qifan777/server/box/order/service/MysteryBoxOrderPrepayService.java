@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import cn.dev33.satoken.stp.StpUtil;
 import com.github.binarywang.wxpay.bean.result.WxPayUnifiedOrderV3Result;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
@@ -27,8 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.function.Function;
-
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 @Service
 @Slf4j

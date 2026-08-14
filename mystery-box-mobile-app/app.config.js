@@ -104,6 +104,29 @@ function isMissingLegalUrl(raw) {
   return !v || /example\.com|your-domain|localhost/i.test(v);
 }
 
+function isUnsafeApiBaseUrl(raw) {
+  const v = (raw || "").trim();
+  if (!v) return true;
+  return /example\.com|your-domain|localhost|127\.0\.0\.1/i.test(v);
+}
+
+const productionLikeVariants = new Set(["production", "production-vn"]);
+if (
+  process.env.EAS_BUILD === "true" &&
+  productionLikeVariants.has(process.env.EXPO_PUBLIC_APP_VARIANT?.trim() || "")
+) {
+  if (isUnsafeApiBaseUrl(process.env.EXPO_PUBLIC_API_BASE_URL)) {
+    throw new Error(
+      "EAS production builds require EXPO_PUBLIC_API_BASE_URL set to a real HTTPS API host (not empty, localhost, or example.com). Configure via EAS secrets/env.",
+    );
+  }
+  if (process.env.EXPO_PUBLIC_MOCK_PAYMENT === "true") {
+    throw new Error(
+      "EAS production builds must not enable EXPO_PUBLIC_MOCK_PAYMENT=true",
+    );
+  }
+}
+
 if (process.env.EAS_BUILD === "true" && isVnVariant) {
   const missing = [];
   if (isMissingLegalUrl(process.env.EXPO_PUBLIC_PRIVACY_URL)) missing.push("EXPO_PUBLIC_PRIVACY_URL");

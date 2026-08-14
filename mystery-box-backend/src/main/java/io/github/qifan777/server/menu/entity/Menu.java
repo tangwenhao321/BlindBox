@@ -1,7 +1,7 @@
 package io.github.qifan777.server.menu.entity;
 
 import io.github.qifan777.server.dict.model.DictConstants;
-import io.github.qifan777.server.dict.model.DictConstants.MenuType;
+import io.github.qifan777.server.dict.model.MenuType;
 import io.github.qifan777.server.infrastructure.jimmer.BaseEntity;
 import io.github.qifan777.server.role.entity.RoleMenuRel;
 import io.qifan.infrastructure.generator.core.GenEntity;

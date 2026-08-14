@@ -1,5 +1,7 @@
 package io.github.qifan777.server.coupon.user.controller;
 
+import io.github.qifan777.server.dict.model.CouponUseStatus;
+
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.coupon.root.service.CouponService;
 import io.github.qifan777.server.coupon.user.entity.CouponUserRel;
@@ -41,7 +43,7 @@ public class CouponUserRelForFrontController {
         query.setUserId(StpUtil.getLoginIdAsString());
         query.setMinExpirationDate(LocalDateTime.now());
         query.setMaxEffectiveDate(LocalDateTime.now());
-        query.setStatus(DictConstants.CouponUseStatus.UNUSED);
+        query.setStatus(CouponUseStatus.UNUSED);
         query.setCouponStatus(true);
         return couponUserRelRepository.findPage(queryRequest, CouponUserRelRepository.COMPLEX_FETCHER_FOR_FRONT);
     }

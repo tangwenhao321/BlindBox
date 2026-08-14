@@ -6,14 +6,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.doNothing;
 class PrizeStockServiceSpringIntegrationTest {
 
     @Container
-    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.0")
+    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.0")
             .withDatabaseName("mystery_box_it")
             .withUsername("test")
             .withPassword("test");
@@ -58,7 +58,7 @@ class PrizeStockServiceSpringIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @MockBean
+    @MockitoBean
     private DrawPublicCacheInvalidator drawPublicCacheInvalidator;
 
     private static final String BOX_ID = "box-it-1";

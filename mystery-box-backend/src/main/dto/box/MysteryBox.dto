@@ -18,6 +18,6 @@ specification MysteryBoxSpec {
     like/i(name)
     like/i(details)
     like/i(tips)
-    id(creator)
-    id(category)
+    associatedIdEq(creator)
+    associatedIdEq(category)
 }

@@ -1,7 +1,7 @@
 package io.github.qifan777.server.user.auth;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +37,7 @@ import java.util.HexFormat;
 @Slf4j
 public class ZaloOAuthClient {
     private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final ZaloProperties properties;
 
     public String exchangeCodeForAccessToken(String code, String codeVerifier) {

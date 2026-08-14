@@ -1,5 +1,7 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
 import io.github.qifan777.server.box.order.repository.MysteryBoxOrderRepository;
 import io.github.qifan777.server.logistics.service.OrderLogisticsService;
@@ -14,8 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 @Service
 @Slf4j

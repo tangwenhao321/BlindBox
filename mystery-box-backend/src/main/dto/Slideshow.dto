@@ -9,5 +9,5 @@ specification SlideshowSpec {
     #allScalars
     like/i(content)
     like/i(navigatorId)
-    id(creator)
+    associatedIdEq(creator)
 }

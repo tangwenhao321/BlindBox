@@ -1,5 +1,7 @@
 package io.github.qifan777.server.coupon.user.repository;
 
+import io.github.qifan777.server.dict.model.CouponUseStatus;
+
 import io.github.qifan777.server.Fetchers;
 import io.github.qifan777.server.coupon.user.entity.CouponUserRel;
 import io.github.qifan777.server.coupon.user.entity.CouponUserRelFetcher;
@@ -40,7 +42,7 @@ public interface CouponUserRelRepository extends JRepository<CouponUserRel, Stri
                         SpringPageFactory.getInstance());
     }
 
-    default void changeStatus(String id, DictConstants.CouponUseStatus couponUseStatus) {
+    default void changeStatus(String id, CouponUseStatus couponUseStatus) {
         if (!StringUtils.hasText(id)) {
             return;
         }
@@ -56,9 +58,9 @@ public interface CouponUserRelRepository extends JRepository<CouponUserRel, Stri
             return false;
         }
         int updated = sql().createUpdate(t)
-                .set(t.status(), DictConstants.CouponUseStatus.USED)
+                .set(t.status(), CouponUseStatus.USED)
                 .where(t.id().eq(id))
-                .where(t.status().eq(DictConstants.CouponUseStatus.UNUSED))
+                .where(t.status().eq(CouponUseStatus.UNUSED))
                 .execute();
         return updated > 0;
     }

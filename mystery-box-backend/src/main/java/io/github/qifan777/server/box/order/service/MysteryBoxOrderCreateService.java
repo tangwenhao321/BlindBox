@@ -1,7 +1,11 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+import io.github.qifan777.server.dict.model.CouponUseStatus;
+import io.github.qifan777.server.dict.model.OrderType;
+
 import cn.dev33.satoken.stp.StpUtil;
-import io.github.qifan777.server.Objects;
+import io.github.qifan777.server.Immutables;
 import io.github.qifan777.server.address.entity.Address;
 import io.github.qifan777.server.address.entity.dto.AddressView;
 import io.github.qifan777.server.address.repository.AddressRepository;
@@ -174,14 +178,14 @@ public class MysteryBoxOrderCreateService {
                 .findByIds(snapshotBoxIds, MysteryBoxRepository.COMPLEX_FETCHER_FOR_FRONT)
                 .stream()
                 .collect(Collectors.toMap(MysteryBox::id, Function.identity(), (a, b) -> a));
-        MysteryBoxOrder entity = Objects.createMysteryBoxOrder(mysteryBoxOrderInput
+        MysteryBoxOrder entity = Immutables.createMysteryBoxOrder(mysteryBoxOrderInput
                         .toEntity(),
                 draft -> {
                     // 设置订单项关联的订单id，并且设置盲盒快照
                     draft.setItems(draft
                             .items()
                             .stream()
-                            .map(item -> Objects.createMysteryBoxOrderItem(item, mysteryBoxOrderItemDraft -> {
+                            .map(item -> Immutables.createMysteryBoxOrderItem(item, mysteryBoxOrderItemDraft -> {
                                 MysteryBox box = Optional.ofNullable(snapshotBoxMap.get(item.mysteryBoxId()))
                                         .orElseThrow(() -> new BusinessException(ResultCode.NotFindError, "盲盒不存在"));
                                 mysteryBoxOrderItemDraft.setMysteryBoxOrderId(orderId)

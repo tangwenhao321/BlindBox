@@ -1,5 +1,7 @@
 package io.github.qifan777.server.user.privacy;
 
+import io.github.qifan777.server.dict.model.UserStatus;
+
 import io.github.qifan777.server.address.entity.Address;
 import io.github.qifan777.server.address.repository.AddressRepository;
 import io.github.qifan777.server.dict.model.DictConstants;
@@ -119,7 +121,7 @@ class UserPrivacyServiceTest {
         assertThat(updated.phone()).startsWith("d");
         assertThat(updated.phone()).doesNotContain("13800138000");
         assertThat(updated.nickname()).isEqualTo("deleted_user");
-        assertThat(updated.status()).isEqualTo(DictConstants.UserStatus.BANNED);
+        assertThat(updated.status()).isEqualTo(UserStatus.BANNED);
 
         verify(jdbcTemplate).update(eq("UPDATE `user` SET deleted_at = ? WHERE id = ?"), any(LocalDateTime.class), eq("u-del"));
         verify(jdbcTemplate).update(
@@ -174,7 +176,7 @@ class UserPrivacyServiceTest {
                     .setNickname("Alice")
                     .setAvatar("https://cdn.example/a.png")
                     .setGender(null)
-                    .setStatus(DictConstants.UserStatus.NORMAL)
+                    .setStatus(UserStatus.NORMAL)
                     .setBalance(new BigDecimal("10.00"))
                     .setLuckyCoins(0)
                     .setStarStones(0)

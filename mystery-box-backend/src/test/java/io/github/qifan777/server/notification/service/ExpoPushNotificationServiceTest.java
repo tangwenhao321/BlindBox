@@ -2,7 +2,7 @@ package io.github.qifan777.server.notification.service;
 
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import io.github.qifan777.server.notification.metrics.PushNotificationMetrics;
 
@@ -73,7 +73,7 @@ class ExpoPushNotificationServiceTest {
 
 
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper objectMapper = JsonMapper.shared();
 
 
 

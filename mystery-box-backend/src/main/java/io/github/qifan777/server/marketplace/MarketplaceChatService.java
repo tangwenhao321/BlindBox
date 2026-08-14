@@ -1,7 +1,7 @@
 package io.github.qifan777.server.marketplace;
 
 import cn.hutool.core.util.IdUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class MarketplaceChatService {
     private final JdbcTemplate jdbcTemplate;
     private final MarketplaceChatSseHub chatSseHub;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
 
     public record ChatMessage(
             String id,

@@ -1,5 +1,8 @@
 package io.github.qifan777.server.box.order.service;
 
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
+import io.github.qifan777.server.dict.model.CouponUseStatus;
+
 import cn.dev33.satoken.stp.StpUtil;
 import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
 import io.github.qifan777.server.box.order.repository.MysteryBoxOrderRepository;
@@ -13,9 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static io.github.qifan777.server.dict.model.DictConstants.CouponUseStatus;
-import static io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
 
 /**
  * Unpaid cancel / pool-slot release flows extracted from {@link MysteryBoxOrderService}.

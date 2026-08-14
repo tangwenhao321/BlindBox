@@ -5,7 +5,7 @@ import io.github.qifan777.server.box.order.entity.MysteryBoxOrder;
 import io.github.qifan777.server.box.order.model.OrderPaymentMetaView;
 import io.github.qifan777.server.box.order.repository.MysteryBoxOrderRepository;
 import io.github.qifan777.server.box.queue.service.MysteryBoxDrawQueueService;
-import io.github.qifan777.server.dict.model.DictConstants.ProductOrderStatus;
+import io.github.qifan777.server.dict.model.ProductOrderStatus;
 import io.qifan.infrastructure.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
