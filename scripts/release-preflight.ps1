@@ -98,6 +98,27 @@ Write-Check "Ops runbook" $hasOpsRunbook "docs/OPS_RUNBOOK.md"
 $hasVnLaunchRunbook = Test-Path (Join-Path $root "docs/VN_LAUNCH_RUNBOOK.md")
 Write-Check "VN launch runbook" $hasVnLaunchRunbook "docs/VN_LAUNCH_RUNBOOK.md"
 
+$hasStagingSoakDoc = Test-Path (Join-Path $root "docs/STAGING_SOAK.md")
+Write-Check "Staging soak doc" $hasStagingSoakDoc "docs/STAGING_SOAK.md"
+
+$hasStagingSoakScript = (Test-Path (Join-Path $root "scripts/staging-soak.ps1")) -and (Test-Path (Join-Path $root "scripts/staging-soak.sh"))
+Write-Check "Staging soak scripts" $hasStagingSoakScript "scripts/staging-soak.ps1 + .sh"
+
+$hasWipeHardeningDoc = Test-Path (Join-Path $root "docs/WIPE_RESIDUAL_HARDENING.md")
+Write-Check "Wipe residual hardening doc" $hasWipeHardeningDoc "docs/WIPE_RESIDUAL_HARDENING.md"
+
+$dictJavaTopLevel = Select-String -Path (Join-Path $backend "src/main/resources/templates/dict-java.ftl") -Pattern "public enum" -SimpleMatch -ErrorAction SilentlyContinue
+Write-Check "Dict Freemarker no nested enums" ($null -eq $dictJavaTopLevel) "dict-java.ftl constants-only"
+
+$hasDictEnumFtl = Test-Path (Join-Path $backend "src/main/resources/templates/dict-enum.ftl")
+Write-Check "Dict enum Freemarker" $hasDictEnumFtl "dict-enum.ftl"
+
+$userPasswordStrip = Select-String -Path (Join-Path $backend "src/main/java/io/github/qifan777/server/user/root/repository/UserRepository.java") -Pattern "password\(false\)" -ErrorAction SilentlyContinue
+Write-Check "User fetcher strips password" ($null -ne $userPasswordStrip) "COMPLEX_FETCHER password(false)"
+
+$prodActiveTimeout = Select-String -Path (Join-Path $backend "src/main/resources/application-prod.yml") -Pattern "active-timeout" -SimpleMatch -ErrorAction SilentlyContinue
+Write-Check "Prod Sa-Token active-timeout" ($null -ne $prodActiveTimeout) "application-prod.yml"
+
 $hasVnPrivateExample = Test-Path (Join-Path $backend "src/main/resources/application-private.vn.example.yml")
 Write-Check "VN private config example" $hasVnPrivateExample "application-private.vn.example.yml"
 

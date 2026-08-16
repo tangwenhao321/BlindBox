@@ -38,11 +38,12 @@
 
 ## Remaining / follow-ups
 
-- [ ] Staging soak: WeChat / VNPay IPN, draw-queue SSE, marketplace chat SSE, admin cookie auth
+- [ ] Staging soak: WeChat / VNPay IPN, draw-queue SSE, marketplace chat SSE, admin cookie auth — run `docs/STAGING_SOAK.md` / `scripts/staging-soak.*`
 - [ ] Prefer Java **21** LTS when CI images + local Temurin 21 are ready (currently **17**)
 - [ ] Full `mvn test` with Docker Desktop running (Testcontainers); without Docker, integration tests error/skip
 - [ ] Keep previous Boot 3.2 jar available for first production rollback window
 - [x] Wipe residual: Freemarker top-level dict enums, User password strip, prod idle-timeout/CORS/proxy, VN eSMS refuse — see `docs/WIPE_RESIDUAL_HARDENING.md`
+- [x] Staging soak probe scripts + checklist (`docs/STAGING_SOAK.md`)
 
 ## Explicit non-goals (still)
 

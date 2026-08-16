@@ -214,12 +214,14 @@ jobs:
         working-directory: mystery-box-mobile-app
         run: |
           npm ci
-          npm test -- --run src/test/fullCatalogAutomation.test.ts src/effects/revealSkipPolicy.automation.test.ts src/effects/revealEffectProxy.automation.test.ts src/utils/marketplaceProceeds.automation.test.ts src/utils/journeyScenarioAutomation.test.ts src/utils/perfBudgetProxy.automation.test.ts
+          npm test -- --run src/test/fullCatalogAutomation.test.ts src/effects/revealSkipPolicy.automation.test.ts src/effects/revealEffectProxy.automation.test.ts src/utils/marketplaceProceeds.automation.test.ts src/utils/journeyScenarioAutomation.test.ts src/utils/perfBudgetProxy.automation.test.ts src/utils/inviteUrl.test.ts src/utils/clientAttestation.test.ts
           bash ../scripts/perf-lab-gate.sh
       - name: Backend money-path parameterized suite
         working-directory: mystery-box-backend
         run: |
-          mvn -q "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,RefundReconciliationJobParameterizedTest,RefundReconciliationJobTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest,MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest,VNPayPaymentGatewayParseTest,VNPaySignatureUtilTest,MoMoPaymentGatewayTest,MysteryBoxOrderNotifyControllerTest,MarketplaceForFrontControllerBuyTest,MysteryBoxUserPityServiceTest" test
+          mvn -q "-Dtest=PaymentNotifyRealServiceParameterizedTest,MarketplaceBuyGateParameterizedTest,RefundPaidAfterCancelGateParameterizedTest,RefundReconciliationJobParameterizedTest,RefundReconciliationJobTest,MarketplaceCoolingJobTest,OrderStatusActionMatrixTest,PaymentNotifyDecisionMatrixTest,PaymentMockProductionGuardTest,MarketplaceServiceTest,MysteryBoxOrderServicePaymentNotifyTest,MysteryBoxOrderServiceRefundTest,VNPayPaymentGatewayParseTest,VNPaySignatureUtilTest,MoMoPaymentGatewayTest,MysteryBoxOrderNotifyControllerTest,MarketplaceForFrontControllerBuyTest,MysteryBoxUserPityServiceTest,ProductionSafetyValidatorTest,AppleIapVerifyServiceTest" test
+      - name: Staging soak script (doc mode without STAGING_BASE_URL)
+        run: bash scripts/staging-soak.sh
       - name: Maestro PR smoke inventory (device optional)
         run: bash scripts/maestro-ci-smoke.sh
       - name: Admin unit tests

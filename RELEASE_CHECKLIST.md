@@ -29,7 +29,7 @@ Items marked **[x]** are **code-done** in this repo. Unchecked items are **ops-o
 - [ ] Admin high-risk unlock: `POST /admin/auth/action-grant` → subsequent calls may send `x-admin-action-otp: GRANT` (~5m Redis TTL).
 - [ ] Admin operation OTP/TOTP is distributed via secure channel and rotated regularly.
 - [ ] iOS App Attest **real verify**: implement Apple DeviceCheck server-side, then allow `require-header=true`.
-- [ ] Fairness daily beacon mix verified in staging (API already wired).
+- [ ] Staging soak executed: `docs/STAGING_SOAK.md` probe green + one real IPN + SSE ping + admin cookie (`scripts/staging-soak.*`).
 
 ## 2) Payment & Order Reliability
 

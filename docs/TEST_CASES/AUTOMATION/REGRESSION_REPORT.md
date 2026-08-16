@@ -1,5 +1,6 @@
 # Automation regression report
 
-- catalog: **PASS 100%** (6913/6913)
-- Round 5: VNPay/MoMo gateway matrices, pity force-high, controller buy/notify, JaCoCo 12%, FPS fixture
-- see: `OPTIMIZATION_R5.md`, `REAL_TEST_MAPPING.md`, `LAYERED_COVERAGE_REPORT.md`
+- catalog: **PASS 100%** (6913/6913) — contract layers; see `LAYERED_COVERAGE_REPORT.md`
+- wipe residual + VN App Store scaffolds landed
+- staging: use `docs/STAGING_SOAK.md` / `scripts/staging-soak.*` (not covered by catalog PASS)
+- see: `OPTIMIZATION_STAGING.md`, `WIPE_RESIDUAL_HARDENING.md`, `VN_APP_STORE_OPTIMIZATION.md`
