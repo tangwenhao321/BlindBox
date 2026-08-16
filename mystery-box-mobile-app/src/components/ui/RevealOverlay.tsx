@@ -40,6 +40,7 @@ type BaseProps = {
   a11yFlashScale?: number;
   a11yLustreScale?: number;
   atmosphereParticleScale?: number;
+  pityBanner?: string;
 };
 
 type ReanimatedProps = BaseProps & {

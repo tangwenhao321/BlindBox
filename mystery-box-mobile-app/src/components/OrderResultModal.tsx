@@ -366,6 +366,7 @@ function OrderResultModalInner(props: Props) {
         staticFallback={staticFallback}
         a11yFlashScale={a11yFlashScale}
         a11yLustreScale={a11yLustreScale}
+        pityProgress={pityProgress}
       />
       <RevealBatchBeat
         visible={showBatchBeat}

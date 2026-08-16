@@ -40,7 +40,7 @@ const BASE: Record<CeremonyTier, EffectProfile> = {
     rayCount: 4,
     flashPeak: 0.55,
     revealDelayMs: 1400,
-    chargeMs: 0,
+    chargeMs: 720,
   },
   HIDDEN: {
     tier: "HIDDEN",

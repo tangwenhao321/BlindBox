@@ -55,6 +55,7 @@ type Props = {
   reduceMotion?: boolean;
   onPressSkip?: () => void;
   onLongPressAccelerate?: () => void;
+  pityBanner?: string;
 };
 
 function tierAccent(tier: CeremonyTier, brand: string, warning: string) {
@@ -94,6 +95,7 @@ export function ExpoGoRevealOverlay({
   reduceMotion = false,
   onPressSkip,
   onLongPressAccelerate,
+  pityBanner,
 }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -685,6 +687,7 @@ export function ExpoGoRevealOverlay({
         <Animated.Text style={[styles.title, { transform: [{ scale: titleScale }] }]}>
           {displaySubtitle}
         </Animated.Text>
+        {pityBanner ? <Text style={styles.pityBanner}>{pityBanner}</Text> : null}
         <Text style={styles.hint}>{t("revealOverlay.tapSkip")}</Text>
       </Animated.View>
     </Pressable>
@@ -903,6 +906,13 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
     bottom: 48,
     fontSize: 12,
     color: "rgba(255,255,255,0.8)",
+    textAlign: "center",
+  },
+  pityBanner: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#FFE082",
     textAlign: "center",
   },
   });

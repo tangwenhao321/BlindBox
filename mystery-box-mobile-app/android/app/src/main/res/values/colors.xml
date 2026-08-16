@@ -1,6 +1,7 @@
 <resources>
-  <color name="splashscreen_background">#FFFFFF</color>
-  <color name="iconBackground">#6B4EFF</color>
-  <color name="colorPrimary">#023c69</color>
-  <color name="notification_icon_color">#ffffff</color>
+  <!-- Night Cabinet ink + brass -->
+  <color name="splashscreen_background">#14110F</color>
+  <color name="iconBackground">#14110F</color>
+  <color name="colorPrimary">#C4A574</color>
+  <color name="notification_icon_color">#C4A574</color>
 </resources>

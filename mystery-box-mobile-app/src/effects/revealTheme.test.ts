@@ -29,6 +29,11 @@ describe("revealTheme", () => {
     expect(canonicalizeRevealThemeId("adventure")).toBe("default");
   });
 
+  it("attaches adventure storyboard when forced", () => {
+    expect(resolveRevealTheme({ remoteThemeId: "adventure" }).storyboard).toBe("adventure");
+    expect(resolveRevealTheme({ categoryName: "treasure adventure" }).storyboard).toBe("adventure");
+  });
+
   it("prefers remote theme override", () => {
     expect(resolveRevealTheme({ boxName: "数码盒", remoteThemeId: "cute" }).id).toBe("cute");
     expect(resolveRevealTheme({ remoteThemeId: "cyberpunk" }).id).toBe("neon");

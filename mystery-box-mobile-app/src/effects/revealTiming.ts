@@ -87,7 +87,7 @@ export function resolveHoldDuration(
 ): number {
   const timingOpts = opts;
   const chargeMs = scaleRevealDuration(profile.chargeMs, pacing, timingOpts);
-  const burstStart = chargeMs > 0 && (pacing === "ceremony" || pacing === "finale") ? chargeMs : 0;
+  const burstStart = chargeMs > 0 && !opts.reduceMotion ? chargeMs : 0;
   const popDelay = scaleRevealDuration(140, pacing, timingOpts);
   const flipDelay = scaleRevealDuration(80, pacing, timingOpts);
   const flipSpringMs = resolveFlipSpringMs(pacing, false, pacing === "ceremony" || pacing === "finale");

@@ -7,6 +7,11 @@ import { resolveTimeOfDayBucket, resolveTimeOfDayLustreSaturation } from "./reve
 import { resolveMonthlyEffectPoolId, resolveMonthlyParticleVariant } from "./revealMonthlyEffectPool";
 import { applyWeeklyParticleBias } from "./revealWeeklyContentPool";
 import { resolveSolarTermId } from "./revealSolarTermPool";
+import {
+  canonicalizeStoryboardId,
+  inferStoryboardFromText,
+  type RevealStoryboardId,
+} from "./revealStoryboard";
 
 export type RevealThemeId = "default" | "neon" | "cute" | "luxury";
 
@@ -24,6 +29,8 @@ export function canonicalizeRevealThemeId(raw?: string | null): RevealThemeId {
 
 export type RevealTheme = {
   id: RevealThemeId;
+  /** Doc2 cinematic pack. Independent of `id` so adventure ≠ classic. */
+  storyboard?: RevealStoryboardId;
   accent: string;
   sparkle: string;
   rim: string;
@@ -34,6 +41,7 @@ export type RevealTheme = {
 const THEMES: Record<RevealThemeId, RevealTheme> = {
   default: {
     id: "default",
+    storyboard: "classic",
     accent: "#4091FF",
     sparkle: "rgba(180, 220, 255, 1)",
     rim: "rgba(120, 180, 255, 0.45)",
@@ -42,6 +50,7 @@ const THEMES: Record<RevealThemeId, RevealTheme> = {
   },
   neon: {
     id: "neon",
+    storyboard: "cyberpunk",
     accent: "#00E5FF",
     sparkle: "rgba(120, 255, 240, 1)",
     rim: "rgba(0, 229, 255, 0.55)",
@@ -50,6 +59,7 @@ const THEMES: Record<RevealThemeId, RevealTheme> = {
   },
   cute: {
     id: "cute",
+    storyboard: "asmr",
     accent: "#FF80AB",
     sparkle: "rgba(255, 200, 230, 1)",
     rim: "rgba(255, 128, 171, 0.5)",
@@ -58,6 +68,7 @@ const THEMES: Record<RevealThemeId, RevealTheme> = {
   },
   luxury: {
     id: "luxury",
+    storyboard: "party",
     accent: "#FFD54F",
     sparkle: "rgba(255, 245, 200, 1)",
     rim: "rgba(255, 215, 120, 0.55)",
@@ -83,26 +94,47 @@ function inferThemeId(text: string): RevealThemeId | null {
   return null;
 }
 
+function withStoryboard(theme: RevealTheme, storyboard: RevealStoryboardId): RevealTheme {
+  return { ...theme, storyboard };
+}
+
 export function resolveRevealTheme(opts?: {
   categoryName?: string;
   boxName?: string;
   remoteThemeId?: string;
+  storyboardId?: RevealStoryboardId;
 }): RevealTheme {
   const cfg = getRevealRemoteConfig();
+  const forcedStoryboard = opts?.storyboardId;
   if ((cfg.limitedThemePriority ?? 0) > 0 && cfg.limitedThemeId) {
-    return THEMES[canonicalizeRevealThemeId(cfg.limitedThemeId)];
+    return withStoryboard(
+      THEMES[canonicalizeRevealThemeId(cfg.limitedThemeId)],
+      forcedStoryboard ?? canonicalizeStoryboardId(cfg.limitedThemeId),
+    );
   }
   if (opts?.remoteThemeId) {
-    return THEMES[canonicalizeRevealThemeId(opts.remoteThemeId)];
+    return withStoryboard(
+      THEMES[canonicalizeRevealThemeId(opts.remoteThemeId)],
+      forcedStoryboard ?? canonicalizeStoryboardId(opts.remoteThemeId),
+    );
   }
   if (cfg.currentTheme) {
-    return THEMES[canonicalizeRevealThemeId(cfg.currentTheme)];
+    return withStoryboard(
+      THEMES[canonicalizeRevealThemeId(cfg.currentTheme)],
+      forcedStoryboard ?? canonicalizeStoryboardId(cfg.currentTheme),
+    );
   }
   const fromCategory = opts?.categoryName ? inferThemeId(opts.categoryName) : null;
-  if (fromCategory) return THEMES[fromCategory];
+  if (fromCategory) {
+    const inferred = inferStoryboardFromText(opts?.categoryName ?? "") ?? (THEMES[fromCategory].storyboard ?? "classic");
+    return withStoryboard(THEMES[fromCategory], forcedStoryboard ?? inferred);
+  }
   const fromBox = opts?.boxName ? inferThemeId(opts.boxName) : null;
-  if (fromBox) return THEMES[fromBox];
-  return applyWeeklySolarTheme(THEMES.default);
+  if (fromBox) {
+    const inferred = inferStoryboardFromText(opts?.boxName ?? "") ?? (THEMES[fromBox].storyboard ?? "classic");
+    return withStoryboard(THEMES[fromBox], forcedStoryboard ?? inferred);
+  }
+  return withStoryboard(applyWeeklySolarTheme(THEMES.default), forcedStoryboard ?? "classic");
 }
 
 function applyWeeklySolarTheme(theme: RevealTheme): RevealTheme {

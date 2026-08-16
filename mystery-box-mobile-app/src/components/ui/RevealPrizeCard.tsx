@@ -14,6 +14,7 @@ import { resolveAmbientLightCoeffs } from "../../effects/revealAmbientLight";
 import { useAppTheme } from "../../context/ThemeContext";
 import { normalizeQualityTier } from "../../utils/quality";
 import type { PrizeTier } from "../../effects/config";
+import type { RevealStoryboardId } from "../../effects/revealStoryboard";
 
 type Props = {
   imageUri?: string;
@@ -28,6 +29,8 @@ type Props = {
   reduceMotion?: boolean;
   breathPeriodMs?: number;
   revealIndex?: number;
+  storyboard?: RevealStoryboardId;
+  festivalWash?: string;
 };
 
 const CARD = 148;
@@ -46,6 +49,8 @@ export function RevealPrizeCard({
   reduceMotion = false,
   breathPeriodMs = 900,
   revealIndex = 0,
+  storyboard = "classic",
+  festivalWash,
 }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -116,9 +121,34 @@ export function RevealPrizeCard({
     opacity: interpolate(cardFlip.value, [0, 0.35, 0.65, 1], [0, 0.28, 0.12, 0]),
   }));
 
+  const storyboardWashStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(cardFlip.value, [0.5, 0.85, 1], [0, 0.55, 0.28]),
+  }));
+
   if (!imageUri && !prizeName) return null;
 
   const rimColors = lustreRim && lustreRim.length > 0 ? lustreRim : [accentColor, "#ffffff", accentColor];
+  const storyboardBorder =
+    storyboard === "adventure"
+      ? "rgba(232,195,106,0.85)"
+      : storyboard === "cyberpunk"
+        ? "rgba(0,229,255,0.75)"
+        : storyboard === "asmr"
+          ? "rgba(255,186,186,0.7)"
+          : storyboard === "party"
+            ? "rgba(255,213,79,0.85)"
+            : "rgba(255,255,255,0.35)";
+  const storyboardWash =
+    festivalWash ??
+    (storyboard === "adventure"
+      ? "rgba(232,195,106,0.22)"
+      : storyboard === "cyberpunk"
+        ? "rgba(0,229,255,0.2)"
+        : storyboard === "asmr"
+          ? "rgba(255,186,186,0.22)"
+          : storyboard === "party"
+            ? "rgba(255,80,180,0.2)"
+            : null);
 
   return (
     <Animated.View
@@ -172,7 +202,7 @@ export function RevealPrizeCard({
               </LinearGradient>
             </LustreCardEdgeShimmer>
           ) : (
-            <LinearGradient colors={["#2a2540", "#14141c"]} style={styles.frame}>
+            <LinearGradient colors={["#2a2540", "#14141c"]} style={[styles.frame, { borderColor: storyboardBorder }]}>
               <Text style={styles.mysteryIcon}>?</Text>
               <Text style={styles.mysteryHint}>{t("revealOverlay.revealing")}</Text>
             </LinearGradient>
@@ -204,7 +234,7 @@ export function RevealPrizeCard({
               </LinearGradient>
             </LustreCardEdgeShimmer>
           ) : (
-            <LinearGradient colors={[`${accentColor}55`, "#1a1a24", "#0d0d12"]} style={styles.frame}>
+            <LinearGradient colors={[`${accentColor}55`, "#1a1a24", "#0d0d12"]} style={[styles.frame, { borderColor: storyboardBorder }]}>
               {imageUri ? (
                 <RemoteImage uri={imageUri} style={styles.image} contentFit="cover" />
               ) : (
@@ -219,6 +249,12 @@ export function RevealPrizeCard({
           )}
         </Animated.View>
       </Animated.View>
+      {storyboardWash ? (
+        <Animated.View
+          style={[styles.storyboardWash, { backgroundColor: storyboardWash }, storyboardWashStyle]}
+          pointerEvents="none"
+        />
+      ) : null}
       {prizeName ? (
         <Animated.Text style={[styles.name, nameStyle]} numberOfLines={2}>
           {prizeName}
@@ -323,5 +359,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 6,
     paddingHorizontal: 8,
+  },
+  storyboardWash: {
+    position: "absolute",
+    width: CARD,
+    height: CARD,
+    borderRadius: 20,
+    top: 0,
   },
 });
