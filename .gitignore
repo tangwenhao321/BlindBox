@@ -58,6 +58,9 @@ mystery-box-mobile-app/android/local.properties
 mystery-box-mobile-app/ios/build/
 mystery-box-mobile-app/ios/Pods/
 
+# Local scratch for royalty-free import (Kenney zips, ffmpeg-static).
+mystery-box-mobile-app/_tmp_assets/
+
 # Reveal SFX: theme packs under sounds/<pack>/ are generated + committed for App Store builds.
 # Root-level stubs only (optional); regenerate anytime with `npm run generate:sounds`.
 mystery-box-mobile-app/src/assets/sounds/*.wav

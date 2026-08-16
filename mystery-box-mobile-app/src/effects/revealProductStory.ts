@@ -1,4 +1,4 @@
-import { getRevealRemoteConfig } from "./revealRemote";
+import i18n from "../i18n";
 
 export type ProductStory = {
   productId: string;
@@ -7,23 +7,13 @@ export type ProductStory = {
   tagline?: string;
 };
 
-const STUB_STORIES: Record<string, Omit<ProductStory, "productId">> = {
-  default: {
-    title: "A collector's find",
-    body: "Every draw adds a chapter to your collection.",
-    tagline: "Keep collecting",
-  },
-};
-
+/** Locale-aware IP caption for adventure reveal + long-press story sheet. */
 export function resolveProductStory(productId: string, productName?: string): ProductStory {
-  const remote = getRevealRemoteConfig();
-  const stubKey = remote.festivalTemplateId ?? "default";
-  const stub = STUB_STORIES[stubKey] ?? STUB_STORIES.default;
   const name = productName?.trim() || productId;
   return {
     productId,
-    title: stub.title.replace("{name}", name),
-    body: stub.body.replace("{name}", name),
-    tagline: stub.tagline,
+    title: i18n.t("revealOverlay.productStoryTitleNamed", { name }),
+    body: i18n.t("revealOverlay.productStoryBody", { name }),
+    tagline: i18n.t("revealOverlay.productStoryTagline", { name }),
   };
 }

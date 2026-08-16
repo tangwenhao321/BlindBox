@@ -36,8 +36,8 @@ const plugins = [
   [
     "expo-notifications",
     {
-      icon: "./assets/icon.png",
-      color: "#ffffff",
+      icon: "./assets/notification-icon.png",
+      color: "#C4A574",
     },
   ],
   [
@@ -151,10 +151,12 @@ if (process.env.EAS_BUILD === "true" && isVnVariant) {
 }
 
 const displayName = isTestVariant
-  ? "Night Cabinet Test"
+  ? isVnVariant
+    ? "Mystery Box Test"
+    : "神秘盲盒测"
   : isVnVariant
-    ? "Night Cabinet"
-    : "Night Cabinet";
+    ? "Mystery Box"
+    : "神秘盲盒";
 
 const iosConfig = {
   supportsTablet: false,
@@ -201,7 +203,7 @@ module.exports = {
   expo: {
     name: displayName,
     slug: isTestVariant ? "mystery-box-mobile-test" : "mystery-box-mobile",
-    version: "1.0.5",
+    version: "1.1.9",
     icon: "./assets/icon.png",
     orientation: "portrait",
     // Splash / native chrome defaults to night cabinet (#14110F).
@@ -220,7 +222,7 @@ module.exports = {
     ios: iosConfig,
     android: {
       package: isTestVariant ? "com.mysterybox.mobile.test" : "com.mysterybox.mobile",
-      versionCode: 6,
+      versionCode: 20,
       backgroundColor: "#14110F",
       statusBar: {
         backgroundColor: "#14110F",

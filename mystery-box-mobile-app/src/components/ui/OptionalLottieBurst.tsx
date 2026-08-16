@@ -13,15 +13,15 @@ type Props = {
 };
 
 /**
- * Lottie honesty: GENERAL+HIDDEN share box-open.json; legend tiers share
- * legendary-burst.json until distinct assets ship. See src/assets/effects/README.md.
+ * Per-tier Lottie: ribbon burst / success check / confetti cannons / dense confetti.
+ * See src/assets/effects/README.md and src/assets/ATTRIBUTION.md.
  */
 const SOURCES = {
   GENERAL: require("../../assets/effects/box-open.json"),
-  HIDDEN: require("../../assets/effects/box-open.json"),
+  HIDDEN: require("../../assets/effects/hidden-burst.json"),
   TREASURE_LEGEND: require("../../assets/effects/legendary-burst.json"),
-  PEERLESS: require("../../assets/effects/legendary-burst.json"),
-  TREASURE_PEERLESS: require("../../assets/effects/legendary-burst.json"),
+  PEERLESS: require("../../assets/effects/peerless-burst.json"),
+  TREASURE_PEERLESS: require("../../assets/effects/peerless-burst.json"),
   LEGENDARY: require("../../assets/effects/legendary-burst.json"),
 } as const satisfies Record<PrizeTier, object>;
 

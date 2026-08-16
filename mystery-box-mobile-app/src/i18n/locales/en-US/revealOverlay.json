@@ -71,6 +71,14 @@
     "recordingLongHint": "Long screen recording may affect smooth playback.",
     "productStoryTitle": "Style story",
     "guestReplayLimited": "Sign in to unlock full reveal replay",
-    "guestSnapshotLimited": "Sign in to save reveal snapshots"
+    "guestSnapshotLimited": "Sign in to save reveal snapshots",
+    "storyboardAdventureCaption": "Treasure revealed · {{name}}",
+    "storyboardCyberCaption": "SIGNAL LOCKED",
+    "storyboardAsmrCaption": "Softly revealed",
+    "storyboardPartyMarquee": "YOU GOT {{name}}",
+    "productStoryTitleNamed": "The tale of {{name}}",
+    "productStoryBody": "From the old map's mist, {{name}} steps onto the treasure mark — a new Vietnamese chapter in your collection.",
+    "productStoryTagline": "Kho báu lộ diện · {{name}}",
+    "surpriseBonus": "Surprise theme bonus: +{{count}} fragment"
   }
 }

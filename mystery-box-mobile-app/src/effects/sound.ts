@@ -21,6 +21,7 @@ import { trackEffectEvent } from "./telemetry";
 import type { RevealThemeId } from "./revealTheme";
 import { canonicalizeRevealThemeId } from "./revealTheme";
 import { resolveTierVoiceLineUri } from "./revealVoiceLines";
+import type { RevealStoryboardId } from "./revealStoryboard";
 
 export { setMinorAudioScale, resolveTierVoiceLineUri };
 
@@ -160,7 +161,7 @@ export type SoundLayer = "ambient" | "charge" | "reveal" | "finale";
 let ambientLoopActive = false;
 let ambientPlayer: AudioPlayer | null = null;
 let ambientFadeToken = 0;
-const AMBIENT_BED_VOLUME = 0.15;
+const AMBIENT_BED_VOLUME = 0.1;
 const AMBIENT_DUCK_VOLUME = 0.05;
 const MIN_TIER_SOUND_PLAY_MS = 160;
 /** Keep reveals audible even when minor/emotion scales stack low (unless explicitly muted). */
@@ -350,7 +351,7 @@ function applyPlayerGain(player: AudioPlayer, rate: number, pan = 0) {
   return { playbackRate, targetVolume };
 }
 
-function schedulePlayerCleanup(player: AudioPlayer, ms = 2800) {
+function schedulePlayerCleanup(player: AudioPlayer, ms = 5200) {
   const timer = setTimeout(() => {
     soundTimers.delete(timer);
     activePlayers.delete(player);
@@ -462,6 +463,46 @@ export function playTierSoundSynced(
     void playTierSound(tier, enabled);
   }, delay);
   soundTimers.add(timer);
+}
+
+export type StoryboardStingPhase = "suspense" | "open";
+
+const STING_LOADERS: Record<string, () => number> = {
+  adventure_suspense: () => require("../assets/sounds/stings/adventure_suspense.wav"),
+  adventure_open: () => require("../assets/sounds/stings/adventure_open.wav"),
+  cyberpunk_suspense: () => require("../assets/sounds/stings/cyberpunk_suspense.wav"),
+  cyberpunk_open: () => require("../assets/sounds/stings/cyberpunk_open.wav"),
+  asmr_suspense: () => require("../assets/sounds/stings/asmr_suspense.wav"),
+  asmr_open: () => require("../assets/sounds/stings/asmr_open.wav"),
+  party_suspense: () => require("../assets/sounds/stings/party_suspense.wav"),
+  party_open: () => require("../assets/sounds/stings/party_open.wav"),
+  festival_suspense: () => require("../assets/sounds/stings/festival_suspense.wav"),
+  festival_open: () => require("../assets/sounds/stings/festival_open.wav"),
+};
+
+/** Beat-synced one-shots for Doc2 storyboards (compass / glitch / tear / cannon). */
+export function playStoryboardSting(storyboard: RevealStoryboardId | string, phase: StoryboardStingPhase) {
+  if (storyboard === "classic") return;
+  if (getRuntimeRevealSoundLayers().reveal === false) return;
+  const loader = STING_LOADERS[`${storyboard}_${phase}`];
+  if (!loader) return;
+  void (async () => {
+    const ok = await ensureAudio();
+    if (!ok) return;
+    if (resolvePlayVolume() <= 0) return;
+    try {
+      const player = await createOneShotPlayerFromSource(loader());
+      if (!player) return;
+      applyPlayerGain(player, 1, 0);
+      setPlayerVolume(player, Math.min(1, resolvePlayVolume() * 0.88));
+      player.play();
+      playerStartedAt.set(player, Date.now());
+      activePlayers.add(player);
+      schedulePlayerCleanup(player, 1800);
+    } catch {
+      /* ignore missing sting */
+    }
+  })();
 }
 
 export function playChargeSoundSynced(
@@ -746,14 +787,20 @@ async function playTierVoiceLine(tier: PrizeTier, themeId?: string) {
   }
 }
 
-export function cancelScheduledRevealSounds(opts?: { fadeMs?: number; stopActive?: boolean }) {
+export function cancelScheduledRevealSounds(opts?: {
+  fadeMs?: number;
+  stopActive?: boolean;
+  keepAmbient?: boolean;
+}) {
   for (const timer of soundTimers) clearTimeout(timer);
   soundTimers.clear();
   const fadeMs = opts?.fadeMs ?? 0;
-  if (fadeMs > 0 && ambientPlayer) {
-    void fadeOutAndStopAmbient(fadeMs);
-  } else {
-    stopAmbientPlayer(true);
+  if (!opts?.keepAmbient) {
+    if (fadeMs > 0 && ambientPlayer) {
+      void fadeOutAndStopAmbient(fadeMs);
+    } else {
+      stopAmbientPlayer(true);
+    }
   }
   // Hard cancel / explicit stopActive clears one-shots so accelerate & multi-draw never stack.
   if (fadeMs === 0 || opts?.stopActive) {

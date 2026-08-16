@@ -2,16 +2,30 @@
 
 当前开箱动画主路径使用 **React Native Animated / Reanimated**（Expo Go 可直接运行）。Lottie 为可选增强，由 `OptionalLottieBurst` 按档位挂载。
 
-## Lottie 档位诚实说明（现状）
+## Lottie 档位
 
-在独立资产到位之前，**多档位共用同一 JSON**：
-
-| Ceremony / prize tier | Asset file | Notes |
+| Ceremony / prize tier | Asset file | Motion |
 | --- | --- | --- |
-| `GENERAL` + `HIDDEN` | `box-open.json` | Same clip; HIDDEN uses slightly larger scale / slower speed |
-| Legend tiers (`LEGENDARY`, `TREASURE_LEGEND`, `PEERLESS`, `TREASURE_PEERLESS`, …) | `legendary-burst.json` | Same burst; scale/speed differ per tier |
+| `GENERAL` | `box-open.json` | Ribbon / shape burst |
+| `HIDDEN` | `hidden-burst.json` | Success check + rings |
+| `LEGENDARY`, `TREASURE_LEGEND` | `legendary-burst.json` | Confetti cannons |
+| `PEERLESS`, `TREASURE_PEERLESS` | `peerless-burst.json` | Dense confetti |
 
-See `src/components/ui/OptionalLottieBurst.tsx` (`SOURCES` map). When distinct per-tier Lotties ship, update that map and this table — do not assume filenames imply unique motion.
+See `src/components/ui/OptionalLottieBurst.tsx` (`SOURCES` map) and `src/assets/ATTRIBUTION.md`.
+
+## Doc2 分镜（Reanimated）
+
+`RevealStoryboardLayer` 按 `storyboard` 播放四套程序分镜（非 Lottie 电影）：
+
+| storyboard | 悬念 | 开启 | 揭晓 |
+| --- | --- | --- | --- |
+| adventure | 羊皮卷 + 烛光 + 罗盘 | 金光缝 | 迷雾 + 宝藏标记 + 越文字幕 |
+| cyberpunk | 全息罩 + 数据流 | RGB 色散 / 扫描线 | 霓虹圈（稀有度层数）+ 像素淡出 |
+| asmr | 云朵呼吸 + 丁达尔光 | 花瓣绽放 | 泡泡 / 暖色 |
+| party | 迪斯科球 + 频闪灯 | 礼花爆闪 | 舞台剪影 + 跑马灯 |
+| classic | 沿用原蓄力环流水线 | — | — |
+
+弱网 / 减少动效 / 掉帧档 ≥2 时回退 classic。
 
 ## 接入说明
 
@@ -19,4 +33,4 @@ See `src/components/ui/OptionalLottieBurst.tsx` (`SOURCES` map). When distinct p
 2. 将 JSON 放入本目录
 3. 在 `OpenBoxRevealOverlay` / `OptionalLottieBurst` 中按 `reduceMotion` / `lowPerf` 条件挂载 `LottieView`
 
-音效 MP3 可放在 `src/assets/sounds/`（`general.mp3`、`hidden.mp3`、`legendary.mp3`），由 `effects/sound.ts` 加载；未放置时使用远程 CDN 并配合触觉反馈。
+音效 WAV 放在 `src/assets/sounds/<theme>/`，由 `effects/sound.ts` 加载。

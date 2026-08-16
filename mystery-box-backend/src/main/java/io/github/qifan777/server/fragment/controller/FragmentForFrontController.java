@@ -45,6 +45,16 @@ public class FragmentForFrontController {
         userFragmentService.exchangeSku(StpUtil.getLoginIdAsString(), skuId, idempotencyKey);
     }
 
+    @PostMapping("surprise-bonus")
+    public Map<String, Object> surpriseBonus(@RequestBody Map<String, String> body) {
+        iosDigitalGoodsGuard.rejectIfIosAppStoreClient();
+        userComplianceService.assertAgeConfirmed(StpUtil.getLoginIdAsString());
+        return userFragmentService.grantSurpriseEffectBonus(
+                StpUtil.getLoginIdAsString(),
+                body == null ? null : body.get("orderId")
+        );
+    }
+
     @PostMapping("decompose")
     public void decompose(@RequestBody Map<String, String> body) {
         iosDigitalGoodsGuard.rejectIfIosAppStoreClient();

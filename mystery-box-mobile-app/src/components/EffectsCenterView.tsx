@@ -17,6 +17,7 @@ import {
   type UnlockableThemeKey,
 } from "../effects/revealThemeRotation";
 import { toast } from "../utils/toast";
+import { StoryboardPreviewHost } from "./ui/StoryboardPreviewHost";
 
 type Props = {
   onBack: () => void;
@@ -46,6 +47,15 @@ export function EffectsCenterView({ onBack }: Props) {
       <SubPageHeader title={t("effectsCenter.title")} onBack={onBack} />
       <ScreenScaffold>
         <Text style={styles.hint}>{t("effectsCenter.hint")}</Text>
+        {unlocks ? (
+          <Text style={styles.progress}>
+            {t("effectsCenter.progressOpens", { count: unlocks.openCount })}
+            {"\n"}
+            {unlocks.hasHidden ? t("effectsCenter.unlocked") : t("effectsCenter.progressHidden")}
+            {" · "}
+            {unlocks.seriesComplete ? t("effectsCenter.unlocked") : t("effectsCenter.progressSeries")}
+          </Text>
+        ) : null}
         {unlocks === null ? (
           <ListSkeleton variant="row" rows={4} />
         ) : UNLOCKABLE_THEME_CATALOG.length === 0 ? (
@@ -108,11 +118,7 @@ export function EffectsCenterView({ onBack }: Props) {
             );
           })
         )}
-        {previewKey ? (
-          <Text style={styles.preview}>
-            {t("effectsCenter.previewLabel", { name: t(`effectsCenter.theme_${previewKey}`) })}
-          </Text>
-        ) : null}
+        {previewKey ? <StoryboardPreviewHost themeKey={previewKey} onClose={() => setPreviewKey(null)} /> : null}
       </ScreenScaffold>
     </View>
   );
@@ -124,6 +130,12 @@ function buildStyles(colors: ThemeColors) {
     hint: {
       color: colors.textMuted,
       fontSize: typography.caption,
+      marginBottom: spacing.sm,
+    },
+    progress: {
+      color: colors.textSecondary,
+      fontSize: typography.caption,
+      lineHeight: 20,
       marginBottom: spacing.md,
     },
     row: {
@@ -149,11 +161,5 @@ function buildStyles(colors: ThemeColors) {
     chipText: { color: colors.textPrimary, fontSize: typography.caption, fontWeight: "700" },
     chipPrimaryText: { color: "#fff" },
     pressed: { opacity: 0.85 },
-    preview: {
-      marginTop: spacing.md,
-      color: colors.textSecondary,
-      fontSize: typography.body,
-      fontWeight: "700",
-    },
   });
 }

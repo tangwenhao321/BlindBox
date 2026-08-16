@@ -96,6 +96,32 @@ public class UserFragmentService {
         return new FragmentProgressView(bal, skus.size(), affordable, items);
     }
 
+    /**
+     * Doc2 surprise-theme bonus: 1 fragment per paid order, idempotent on order id.
+     */
+    @Transactional
+    public Map<String, Object> grantSurpriseEffectBonus(String userId, String orderId) {
+        if (!StringUtils.hasText(orderId)) {
+            throw new BusinessException(ResultCode.ValidateError, "订单不存在");
+        }
+        MysteryBoxOrder order = mysteryBoxOrderRepository.findByIdForFront(orderId.trim());
+        if (order.creator() == null || !userId.equals(order.creator().id())) {
+            throw new BusinessException("无权操作该订单");
+        }
+        ProductOrderStatus status = order.status();
+        if (status == ProductOrderStatus.TO_BE_PAID
+                || status == ProductOrderStatus.CLOSED
+                || status == ProductOrderStatus.REFUNDED) {
+            throw new BusinessException("订单状态不可领取");
+        }
+        String idemKey = "SURPRISE_FX:" + userId + ":" + orderId.trim();
+        if (!tryInsertIdempotentLog(userId, 1, "特效盲盒奖励", null, idemKey)) {
+            return Map.of("fragments", 1, "alreadyGranted", true);
+        }
+        applyBalanceCredit(userId, 1, idemKey);
+        return Map.of("fragments", 1, "alreadyGranted", false);
+    }
+
     @Transactional
     public void decomposeOrderItem(String userId, String orderItemId, String productId) {
         MysteryBoxOrderItem item = mysteryBoxOrderItemRepository.findByIdWithProducts(orderItemId)

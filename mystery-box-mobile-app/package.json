@@ -33,6 +33,7 @@
     "i18n:index": "node scripts/generate-locale-index.mjs",
     "i18n:neutralize": "node scripts/neutralize-i18n-currency.mjs",
     "generate:sounds": "node scripts/generateRevealSounds.mjs",
+    "import:sounds": "node scripts/importRoyaltyFreeSounds.mjs",
     "ensure:icon": "node scripts/ensureAppIcon.mjs",
     "postinstall": "node scripts/ensureAppIcon.mjs && node scripts/generateRevealSounds.mjs",
     "eas-build-post-install": "node scripts/generateRevealSounds.mjs",

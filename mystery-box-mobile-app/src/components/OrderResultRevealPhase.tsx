@@ -26,6 +26,9 @@ import type { ThemeColors } from "../styles/themes";
 import { revealLayerZIndex } from "../effects/revealLayerZIndex";
 import { resolveRecordingSafeRevealFlags } from "../effects/revealRecordingMode";
 import { isRevealMinorModeActive } from "../effects/revealMinorMode";
+import type { PityProgress } from "../services/pityService";
+import { pityCopyI18nKey, resolvePityCopyKey } from "../utils/pityCopy";
+import { resolveProductStory } from "../effects/revealProductStory";
 
 type ReanimatedRevealValues = {
   revealOpacity: SharedValue<number>;
@@ -105,6 +108,7 @@ type Props = {
   staticFallback?: boolean;
   a11yFlashScale?: number;
   a11yLustreScale?: number;
+  pityProgress?: PityProgress | null;
 };
 
 export function OrderResultRevealPhase({
@@ -159,6 +163,7 @@ export function OrderResultRevealPhase({
   staticFallback = false,
   a11yFlashScale = 1,
   a11yLustreScale = 1,
+  pityProgress = null,
 }: Props) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildRevealPhaseStyles);
@@ -168,8 +173,13 @@ export function OrderResultRevealPhase({
     setTimeout(() => onTryAgain(), 300);
   }, [dismissSummary, onTryAgain]);
 
+  const story = currentRevealProduct
+    ? resolveProductStory(currentRevealProduct.id, currentRevealProduct.name)
+    : null;
   const subtitle =
-    revealProducts.length > 1
+    revealTheme?.storyboard === "adventure" && story?.tagline
+      ? story.tagline
+      : revealProducts.length > 1
       ? revealIndex === revealProducts.length - 1
         ? t("orderResult.revealProgressFinale", {
             current: revealIndex + 1,
@@ -180,6 +190,15 @@ export function OrderResultRevealPhase({
             total: revealProducts.length,
           })
       : t("orderResult.revealSuccessSubtitle");
+
+  const pityBanner =
+    pityProgress && resolvePityCopyKey(pityProgress) !== "pityHint"
+      ? t(pityCopyI18nKey(pityProgress, true), {
+          current: pityProgress.current,
+          threshold: pityProgress.threshold,
+          remaining: pityProgress.remaining,
+        })
+      : undefined;
 
   const overlayA11y = {
     reduceMotionLevel,
@@ -247,6 +266,7 @@ export function OrderResultRevealPhase({
           a11yFlashScale={a11yFlashScale}
           a11yLustreScale={a11yLustreScale}
           subtitle={subtitle}
+          pityBanner={pityBanner}
         />
       ) : revealMotionDriver === "reanimated" && reanimatedReveal ? (
         <RevealOverlay
@@ -284,6 +304,7 @@ export function OrderResultRevealPhase({
           a11yFlashScale={a11yFlashScale}
           a11yLustreScale={a11yLustreScale}
           subtitle={subtitle}
+          pityBanner={pityBanner}
         />
       ) : null}
       <RevealSequenceChrome

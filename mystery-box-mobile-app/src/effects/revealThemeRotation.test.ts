@@ -2,8 +2,10 @@ import { describe, expect, it, beforeEach } from "vitest";
 import {
   applyUnlockProgress,
   defaultUnlockState,
+  notePaidBoxOpened,
   resolveActiveRevealThemeId,
   resetThemeRotationCacheForTests,
+  rollSurpriseDocTheme,
   rollSurpriseThemeId,
   weeklyDocTheme,
 } from "./revealThemeRotation";
@@ -74,5 +76,26 @@ describe("revealThemeRotation", () => {
     expect(["default", "neon", "cute", "luxury"]).toContain(id);
     setRevealRemoteConfig({ randomTriggerRate: 0 });
     expect(rollSurpriseThemeId(() => 0.99)).toBeNull();
+  });
+
+  it("prefers unowned packs for surprise rolls", () => {
+    setRevealRemoteConfig({ randomTriggerRate: 1 });
+    const pick = rollSurpriseDocTheme(() => 0, 1, ["classic", "asmr"]);
+    expect(pick).toBe("cyberpunk");
+  });
+
+  it("counts paid opens once per order and unlocks cyberpunk at 50", async () => {
+    let last = await notePaidBoxOpened({ orderId: "o-1" });
+    expect(last.isNewOpen).toBe(true);
+    expect(last.state.openCount).toBe(1);
+    last = await notePaidBoxOpened({ orderId: "o-1" });
+    expect(last.isNewOpen).toBe(false);
+    expect(last.state.openCount).toBe(1);
+    for (let i = 2; i <= 50; i++) {
+      last = await notePaidBoxOpened({ orderId: `o-${i}` });
+    }
+    expect(last.state.openCount).toBe(50);
+    expect(last.state.unlocked).toContain("cyberpunk");
+    expect(last.newlyUnlocked).toContain("cyberpunk");
   });
 });

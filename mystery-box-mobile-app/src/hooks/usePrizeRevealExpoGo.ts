@@ -13,8 +13,10 @@ import { getEffectProfile } from "../effects/config";
 import { resolveCeremonyTier, ceremonyTierToDisplayQuality } from "../effects/ceremonyTier";
 import { getEffectProfileWithBoost } from "../effects/intensity";
 import { applyRemoteRevealProfile, getRevealRemoteConfig, type ReduceMotionLevel } from "../effects/revealRemote";
-import { applyRevealTheme, resolveRevealTheme } from "../effects/revealTheme";
-import { resolveActiveRevealThemeId, rollSurpriseThemeId } from "../effects/revealThemeRotation";
+import { applyRevealTheme, canonicalizeRevealThemeId, resolveRevealTheme } from "../effects/revealTheme";
+import { resolveActiveRevealThemeId, resolveActiveStoryboardId, rollSurpriseDocThemeForOrder } from "../effects/revealThemeRotation";
+import { shouldReplaceFestivalBgm } from "../effects/revealFestivalBundle";
+import { resolveStoryboardDensity, storyboardChargeMs } from "../effects/revealStoryboard";
 import type { RevealPacing } from "../effects/revealSequence";
 import {
   cancelScheduledRevealSoundTimers,
@@ -99,24 +101,27 @@ export function usePrizeRevealExpoGo({
     if (!product) return resolveCeremonyTier({ id: "", name: "", price: 0 } as Product, drawProducts);
     return resolveCeremonyTier(product, drawProducts ?? products);
   }, [products, drawProducts]);
-  const surpriseThemeId = useMemo(() => {
-    void orderId;
-    return rollSurpriseThemeId();
-  }, [orderId]);
-  const revealTheme = useMemo(
-    () =>
-      resolveRevealTheme({
-        boxName,
-        categoryName: boxCategoryName,
-        remoteThemeId: resolveActiveRevealThemeId({
-          surpriseThemeId,
-        }),
+  const surpriseDocTheme = useMemo(() => rollSurpriseDocThemeForOrder(orderId), [orderId]);
+  const revealTheme = useMemo(() => {
+    const surpriseThemeId = surpriseDocTheme ? canonicalizeRevealThemeId(surpriseDocTheme) : null;
+    const storyboardId = resolveActiveStoryboardId({
+      surpriseDocTheme,
+      boxName,
+      categoryName: boxCategoryName,
+    });
+    return resolveRevealTheme({
+      boxName,
+      categoryName: boxCategoryName,
+      remoteThemeId: resolveActiveRevealThemeId({
+        surpriseThemeId,
       }),
-    [boxName, boxCategoryName, surpriseThemeId],
-  );
+      storyboardId,
+    });
+  }, [boxName, boxCategoryName, surpriseDocTheme]);
   useEffect(() => {
-    setRuntimeThemeSoundBankFromTheme(revealTheme.id);
-  }, [revealTheme.id]);
+    const bank = shouldReplaceFestivalBgm() ? "party" : (revealTheme.storyboard ?? revealTheme.id);
+    setRuntimeThemeSoundBankFromTheme(bank);
+  }, [revealTheme.storyboard, revealTheme.id]);
   const profile = useMemo(() => {
     const opts = { reduceMotion: false, lowPerf: false };
     const base =
@@ -124,15 +129,25 @@ export function usePrizeRevealExpoGo({
         ? getEffectProfileWithBoost(tier, revealIndex, totalReveals, opts)
         : getEffectProfile(tier, opts);
     const scaled = applyRevealTheme(applyRemoteRevealProfile(base), revealTheme);
+    const density = resolveStoryboardDensity(revealIndex, totalReveals, revealTheme.storyboard ?? "classic");
+    const chargeMs = storyboardChargeMs(scaled.chargeMs, density);
+    const withCharge = density === "lite"
+      ? {
+          ...scaled,
+          chargeMs,
+          particleCount: Math.max(8, Math.round(scaled.particleCount * 0.45)),
+          confettiCount: Math.max(4, Math.round(scaled.confettiCount * 0.5)),
+        }
+      : { ...scaled, chargeMs };
     if (reduceMotion) {
       return {
-        ...scaled,
-        particleCount: Math.min(12, scaled.particleCount),
-        confettiCount: Math.min(8, scaled.confettiCount),
-        rayCount: Math.min(6, scaled.rayCount),
+        ...withCharge,
+        particleCount: Math.min(12, withCharge.particleCount),
+        confettiCount: Math.min(8, withCharge.confettiCount),
+        rayCount: Math.min(6, withCharge.rayCount),
       };
     }
-    return scaled;
+    return withCharge;
   }, [tier, reduceMotion, revealIndex, totalReveals, revealTheme]);
 
   useEffect(() => {
@@ -152,6 +167,7 @@ export function usePrizeRevealExpoGo({
       : i18n.t("revealA11y.gotPrizeNoName", { tier: label });
     queueRevealA11yAnnounce(msg);
     onRevealComplete?.();
+    cancelScheduledRevealSounds({ fadeMs: 520, stopActive: false });
   }, [onRevealComplete, prizeName, products, tier]);
 
   const stopAll = useCallback((hard = false) => {
@@ -421,5 +437,6 @@ export function usePrizeRevealExpoGo({
     handleAcceleratePressOut,
     skipReveal,
     handleSkipPress,
+    surpriseDocTheme,
   };
 }

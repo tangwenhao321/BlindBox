@@ -71,6 +71,14 @@
     "recordingLongHint": "长时间录屏可能影响流畅播放",
     "productStoryTitle": "款式故事",
     "guestReplayLimited": "登录后可解锁完整揭晓回放",
-    "guestSnapshotLimited": "登录后可保存揭晓截图"
+    "guestSnapshotLimited": "登录后可保存揭晓截图",
+    "storyboardAdventureCaption": "宝藏现世 · {{name}}",
+    "storyboardCyberCaption": "SIGNAL LOCKED",
+    "storyboardAsmrCaption": "轻轻揭晓",
+    "storyboardPartyMarquee": "恭喜获得 {{name}}",
+    "productStoryTitleNamed": "{{name}} 的寻宝篇章",
+    "productStoryBody": "迷雾散去，{{name}} 自宝藏标记中现身。这是收藏里新的一页越南故事，罗盘指向下一次相遇。",
+    "productStoryTagline": "Kho báu lộ diện · {{name}}",
+    "surpriseBonus": "特效盲盒奖励：+{{count}} 碎片"
   }
 }

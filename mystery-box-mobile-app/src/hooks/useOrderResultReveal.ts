@@ -48,6 +48,8 @@ import { recordRevealCompletion } from "../effects/revealTelemetryWaterline";
 import { scheduleRevealDrawRelease } from "../effects/revealAssetManager";
 import { warmupTierSounds , setRuntimeRevealSoundPack } from "../effects/sound";
 import { unlockStoryFragment } from "../effects/revealStoryFragments";
+import { grantSurpriseThemeBonus } from "../effects/revealSurpriseBonus";
+import { notePaidBoxOpened } from "../effects/revealThemeRotation";
 import { useRevealCollectionEasterEgg } from "./useRevealCollectionEasterEgg";
 import { resetRevealDriverTierForPaidReveal } from "../effects/revealDriverTier";
 import { REVEAL_BOOT_DELAY_MS } from "../effects/revealSessionController";
@@ -444,6 +446,34 @@ export function useOrderResultReveal({
   });
 
   triggerRevealRef.current = reveal.triggerReveal;
+
+  useEffect(() => {
+    if (!visible || pendingPayment || !orderId) return;
+    const hasHidden = prizes.some((item) => normalizeQualityTier(item.qualityType) === "HIDDEN");
+    void notePaidBoxOpened({
+      orderId,
+      hasHidden,
+      seriesComplete: !!collectionEasterEgg.seriesComplete,
+    }).then((result) => {
+      if (result.newlyUnlocked.length === 0) return;
+      const name = result.newlyUnlocked
+        .map((key) => i18n.t(`effectsCenter.theme_${key}`))
+        .join(" · ");
+      toast.success(i18n.t("effectsCenter.unlockedToast", { name }));
+    });
+  }, [visible, pendingPayment, orderId, prizes, collectionEasterEgg.seriesComplete]);
+
+  useEffect(() => {
+    if (!visible || pendingPayment || !orderId || !reveal.surpriseDocTheme) return;
+    void grantSurpriseThemeBonus({
+      token: authToken,
+      orderId,
+      surprise: true,
+    }).then((result) => {
+      if (!result || result.alreadyGranted || result.skipped) return;
+      toast.success(i18n.t("revealOverlay.surpriseBonus", { count: result.fragments }));
+    });
+  }, [visible, pendingPayment, orderId, authToken, reveal.surpriseDocTheme]);
 
   useEffect(() => {
     if (!visible || pendingPayment || prizes.length === 0 || revealPlaybackKey <= 0) return;

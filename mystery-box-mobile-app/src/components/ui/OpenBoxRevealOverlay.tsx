@@ -28,6 +28,8 @@ import { pickLustreColor, lustreGradientStops, tintLustrePalette } from "../../e
 import { getAtmosphereOverrides } from "../../effects/revealAtmosphereRuntime";
 import { revealLayerZIndex } from "../../effects/revealLayerZIndex";
 import { resolveThemedLustre, themeConfettiColors, type RevealTheme } from "../../effects/revealTheme";
+import { storyboardBackdrop, resolveStoryboardDensity } from "../../effects/revealStoryboard";
+import { resolveFestivalTint, shouldShowFestivalOverlay } from "../../effects/revealFestivalBundle";
 import { resolveLustreIntensity, shouldReduceLustreMotion, getRevealRemoteConfig } from "../../effects/revealRemote";
 import { useRevealLayout } from "../../hooks/useRevealLayout";
 import { shouldSkipParticles, shouldSkipTeaser } from "../../effects/revealA11yTheme";
@@ -38,6 +40,8 @@ import { useAppTheme } from "../../context/ThemeContext";
 import { effectProfileTierLabel, effectProfileTitle } from "../../utils/effectProfileI18n";
 import { BoxRevealTeaser } from "./BoxRevealTeaser";
 import { RevealCinematicIntro } from "./RevealCinematicIntro";
+import { RevealStoryboardLayer } from "./RevealStoryboardLayer";
+import { FestivalRevealLayer } from "./FestivalRevealLayer";
 import { LustreGradientRing, RevealLustreLayers } from "./RevealLustreLayers";
 
 import { RevealPrizeCard } from "./RevealPrizeCard";
@@ -120,6 +124,7 @@ type Props = {
   a11yFlashScale?: number;
   a11yLustreScale?: number;
   atmosphereParticleScale?: number;
+  pityBanner?: string;
 };
 
 function tierAccent(tier: CeremonyTier, brand: string, warning: string) {
@@ -175,6 +180,7 @@ export function OpenBoxRevealOverlay({
   a11yFlashScale = 1,
   a11yLustreScale = 1,
   atmosphereParticleScale = 1,
+  pityBanner,
 }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
@@ -341,9 +347,9 @@ export function OpenBoxRevealOverlay({
       -1,
       false,
     );
-    if (profile.chargeMs > 0 && (isCeremony || effectTier === "HIDDEN") && !reduceMotion) {
+    if (profile.chargeMs > 0 && !reduceMotion) {
       chargeRing.value = 0;
-      const chargeMs = scaleBreathDurationMs(520, accelTier);
+      const chargeMs = scaleBreathDurationMs(Math.max(280, profile.chargeMs), accelTier);
       const segments = buildChargeTensionDurations(chargeMs, pacing);
       if (segments.loop) {
         chargeRing.value = withRepeat(
@@ -426,6 +432,19 @@ export function OpenBoxRevealOverlay({
 
   const accent = tierAccent(effectTier, colors.brand, colors.warning);
   const fontScale = layout.splitScale * (layout.carMode ? 0.92 : 1);
+  const storyboardId = revealTheme?.storyboard ?? "classic";
+  const storyboardDensity = resolveStoryboardDensity(revealIndex, totalReveals, storyboardId);
+  const festivalTint = resolveFestivalTint();
+  const showFestivalOverlay = shouldShowFestivalOverlay();
+  const backdropColors = storyboardBackdrop(storyboardId);
+  const storyboardRings =
+    effectTier === "TREASURE_PEERLESS" || effectTier === "PEERLESS"
+      ? 4
+      : effectTier === "TREASURE_LEGEND"
+        ? 3
+        : effectTier === "HIDDEN"
+          ? 2
+          : 1;
   const confettiPalette = useMemo(() => {
     const themed = revealTheme ? themeConfettiColors(revealTheme, accent) : [];
     return [...lustre.sparkles, ...themed];
@@ -441,10 +460,16 @@ export function OpenBoxRevealOverlay({
   const inner = (
     <Animated.View style={[styles.shakeWrap, shakeStyle]}>
       <LinearGradient
-        colors={["#07060ef2", "#12101cf0", "#07060ef2"]}
+        colors={backdropColors}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
       />
+      {festivalTint ? (
+        <View
+          style={[StyleSheet.absoluteFill, { backgroundColor: festivalTint.wash, opacity: 0.35 }]}
+          pointerEvents="none"
+        />
+      ) : null}
       <Animated.View
         style={[StyleSheet.absoluteFill, styles.backdropDim, backdropDimStyle]}
         pointerEvents="none"
@@ -480,6 +505,24 @@ export function OpenBoxRevealOverlay({
         </View>
       ) : null}
       <RevealRareWatermark visible={shouldShowRareWatermark(effectTier)} />
+      <RevealStoryboardLayer
+        visible={visible}
+        storyboard={storyboardId}
+        cardFlip={cardFlip}
+        flashOpacity={flashOpacity}
+        prizeName={prizeName}
+        rarityRings={storyboardRings}
+        reduceMotion={reduceMotion}
+        degradeLevel={degradeLevel}
+        density={storyboardDensity}
+      />
+      {showFestivalOverlay ? (
+        <FestivalRevealLayer
+          visible={visible}
+          flashOpacity={flashOpacity}
+          reduceMotion={reduceMotion}
+        />
+      ) : null}
       <RevealLustreLayers
         visible={visible}
         tier={tier}
@@ -548,7 +591,7 @@ export function OpenBoxRevealOverlay({
         <View style={[styles.haloCore, { borderColor: pickLustreColor(lustre, "rim", 0) }]} />
       </Animated.View>
 
-      {(isCeremony || effectTier === "HIDDEN") && profile.chargeMs > 0 && !reduceMotion ? (
+      {(profile.chargeMs > 0 && !reduceMotion) ? (
         <Animated.View style={[styles.chargeRingHost, chargeStyle]}>
           <LustreGradientRing size={SCREEN_W * 0.68} colors={lustre.rim} borderWidth={3} innerOpacity={0.78} />
         </Animated.View>
@@ -582,10 +625,12 @@ export function OpenBoxRevealOverlay({
           cardFlip={cardFlip}
           accentColor={accent}
           tier={displayTier}
-          lustreRim={lustre.rim}
+          lustreRim={festivalTint?.rim ?? lustre.rim}
           reduceMotion={lustreMotion}
           breathPeriodMs={cardBreathMs}
           revealIndex={revealIndex}
+          storyboard={storyboardId}
+          festivalWash={festivalTint?.wash}
         />
       ) : null}
 
@@ -626,6 +671,7 @@ export function OpenBoxRevealOverlay({
             {t("revealOverlay.suspenseCharging")}
           </Animated.Text>
         ) : null}
+        {pityBanner ? <Text style={styles.pityBanner}>{pityBanner}</Text> : null}
         <Animated.Text
           style={[
             styles.subtitle,
@@ -903,6 +949,14 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.55)",
     fontSize: 12,
     fontWeight: "600",
+  },
+  pityBanner: {
+    marginTop: 8,
+    color: "#FFE082",
+    fontSize: 12,
+    fontWeight: "800",
+    textAlign: "center",
+    letterSpacing: 0.3,
   },
   easterEggHint: {
     marginTop: 6,

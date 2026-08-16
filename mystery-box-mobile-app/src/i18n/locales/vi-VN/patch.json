@@ -690,14 +690,14 @@
   },
   "effectsCenter": {
     "title": "Trung tâm hiệu ứng",
-    "hint": "Trang bị hiệu ứng mở hộp đã mở khóa. Xem trước chỉ hiện tên chủ đề.",
+    "hint": "Trang bị hiệu ứng mở hộp đã mở khóa. Xem trước chạy vòng lặp 2–3 giây.",
     "unlocked": "Đã mở khóa",
     "locked": "Chưa mở khóa",
     "equip": "Trang bị",
     "equipped": "Đang dùng",
     "equipDone": "Đã trang bị \"{{name}}\"",
     "preview": "Xem trước",
-    "previewLabel": "Xem trước: {{name}} (áp dụng khi mở hộp)",
+    "previewLabel": "Xem trước: {{name}}",
     "emptyTitle": "Chưa có hiệu ứng",
     "emptyDesc": "Không tải được chủ đề. Thử lại để làm mới trạng thái mở khóa.",
     "weeklyBanner": "Hiệu ứng mở hộp tuần này đã đổi thành [{{name}}], thử ngay!",
@@ -705,7 +705,12 @@
     "theme_adventure": "Phiêu lưu tự sự",
     "theme_cyberpunk": "Cyberpunk Glitch",
     "theme_asmr": "ASMR chữa lành",
-    "theme_party": "Tiệc carnival"
+    "theme_party": "Tiệc carnival",
+    "progressOpens": "Đã mở {{count}} / 50 hộp (mở khóa Cyberpunk)",
+    "progressHidden": "Rút Hidden để mở khóa Tiệc carnival",
+    "progressSeries": "Hoàn thành một series để mở khóa Phiêu lưu tự sự",
+    "unlockedToast": "Đã mở khóa hiệu ứng: {{name}}",
+    "theme_festival": "Tết (xem trước)"
   },
   "actions": {
     "iosRedeemBlocked": "Không thể đổi thưởng thành số dư ví trên iOS. Vui lòng yêu cầu giao hàng vật lý.",

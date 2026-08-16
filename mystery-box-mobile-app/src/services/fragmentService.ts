@@ -87,3 +87,21 @@ export async function decomposeOrderItem(
     { headers: buildAuthHeaders(token) },
   );
 }
+
+export async function claimSurpriseEffectBonus(
+  token: string,
+  orderId: string,
+): Promise<{ fragments: number; alreadyGranted: boolean }> {
+  const headers = {
+    ...buildAuthHeaders(token),
+    [IDEMPOTENCY_HEADER]: createIdempotencyKey("surprise-fx", orderId),
+  };
+  const response = await api.post<
+    ApiResult<{ fragments: number; alreadyGranted: boolean }> | { fragments: number; alreadyGranted: boolean }
+  >("/front/fragment/surprise-bonus", { orderId }, { headers });
+  const payload = unwrapResult(response.data);
+  return {
+    fragments: Number(payload.fragments ?? 1) || 1,
+    alreadyGranted: !!payload.alreadyGranted,
+  };
+}

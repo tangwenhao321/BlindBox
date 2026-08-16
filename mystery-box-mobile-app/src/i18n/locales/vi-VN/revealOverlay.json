@@ -79,6 +79,14 @@
     "recordingLongHint": "Quay màn hình lâu có thể ảnh hưởng phát mượt",
     "productStoryTitle": "Câu chuyện kiểu dáng",
     "guestReplayLimited": "Đăng nhập để mở toàn bộ phát lại",
-    "guestSnapshotLimited": "Đăng nhập để lưu ảnh mở hộp"
+    "guestSnapshotLimited": "Đăng nhập để lưu ảnh mở hộp",
+    "storyboardAdventureCaption": "Kho báu lộ diện · {{name}}",
+    "storyboardCyberCaption": "SIGNAL LOCKED",
+    "storyboardAsmrCaption": "Mở nhẹ nhàng",
+    "storyboardPartyMarquee": "Chúc mừng nhận được {{name}}",
+    "productStoryTitleNamed": "Chương truyện của {{name}}",
+    "productStoryBody": "Sương mù trên bản đồ cổ tan dần, {{name}} bước ra từ dấu kho báu — một chương tiếng Việt mới trong bộ sưu tập của bạn.",
+    "productStoryTagline": "Kho báu lộ diện · {{name}}",
+    "surpriseBonus": "Thưởng hiệu ứng bí ẩn: +{{count}} mảnh"
   }
 }

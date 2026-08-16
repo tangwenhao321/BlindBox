@@ -3,6 +3,11 @@ import type { RevealThemeId } from "./revealTheme";
 import { canonicalizeRevealThemeId } from "./revealTheme";
 import { getRevealRemoteConfig } from "./revealRemote";
 import { shouldForceClassicRevealNetwork } from "./revealNetworkTier";
+import {
+  canonicalizeStoryboardId,
+  inferStoryboardFromText,
+  type RevealStoryboardId,
+} from "./revealStoryboard";
 
 export type DocThemeAlias = "adventure" | "cyberpunk" | "asmr" | "party";
 
@@ -35,7 +40,10 @@ export type ThemeUnlockState = {
   seriesComplete: boolean;
 };
 
-const STARTER_UNLOCKED: UnlockableThemeKey[] = ["classic", "asmr"];
+const STARTER_UNLOCKED: UnlockableThemeKey[] =
+  process.env.EXPO_PUBLIC_APP_VARIANT === "test"
+    ? ["classic", "asmr", "cyberpunk", "party", "adventure"]
+    : ["classic", "asmr"];
 
 let cachedUnlocks: ThemeUnlockState | null = null;
 let cachedEquipped: string | null | undefined = undefined;
@@ -60,6 +68,11 @@ export function applyUnlockProgress(
   };
   if (!next.unlocked.includes("classic")) next.unlocked.push("classic");
   if (!next.unlocked.includes("asmr")) next.unlocked.push("asmr");
+  if (process.env.EXPO_PUBLIC_APP_VARIANT === "test") {
+    for (const key of ["cyberpunk", "party", "adventure"] as UnlockableThemeKey[]) {
+      if (!next.unlocked.includes(key)) next.unlocked.push(key);
+    }
+  }
   if (next.openCount >= 50 && !next.unlocked.includes("cyberpunk")) {
     next.unlocked.push("cyberpunk");
   }
@@ -94,15 +107,40 @@ export function weeklyDocTheme(nowMs = Date.now(), cycleDays = 7): DocThemeAlias
   return DOC_THEME_ROTATION[idx]!;
 }
 
+export function rollSurpriseDocTheme(
+  random: () => number = Math.random,
+  rate?: number,
+  unlockedKeys?: UnlockableThemeKey[],
+): DocThemeAlias | null {
+  const cfg = getRevealRemoteConfig();
+  const trigger = rate ?? cfg.randomTriggerRate ?? 0.05;
+  if (random() >= trigger) return null;
+  const owned = new Set(unlockedKeys ?? getCachedUnlockState().unlocked);
+  const unowned = DOC_THEME_ROTATION.filter((key) => !owned.has(key));
+  const pool = unowned.length > 0 ? unowned : DOC_THEME_ROTATION;
+  return pool[Math.floor(random() * pool.length)]!;
+}
+
+const surpriseByOrder = new Map<string, DocThemeAlias | null>();
+
+export function rollSurpriseDocThemeForOrder(
+  orderId?: string | null,
+  random: () => number = Math.random,
+): DocThemeAlias | null {
+  const key = orderId?.trim();
+  if (!key) return rollSurpriseDocTheme(random);
+  if (surpriseByOrder.has(key)) return surpriseByOrder.get(key) ?? null;
+  const rolled = rollSurpriseDocTheme(random);
+  surpriseByOrder.set(key, rolled);
+  return rolled;
+}
+
 export function rollSurpriseThemeId(
   random: () => number = Math.random,
   rate?: number,
 ): RevealThemeId | null {
-  const cfg = getRevealRemoteConfig();
-  const trigger = rate ?? cfg.randomTriggerRate ?? 0.05;
-  if (random() >= trigger) return null;
-  const pick = DOC_THEME_ROTATION[Math.floor(random() * DOC_THEME_ROTATION.length)]!;
-  return canonicalizeRevealThemeId(pick);
+  const pick = rollSurpriseDocTheme(random, rate);
+  return pick ? canonicalizeRevealThemeId(pick) : null;
 }
 
 /**
@@ -147,6 +185,38 @@ export function resolveActiveRevealThemeId(opts?: {
 
   const weekly = weeklyDocTheme(opts?.nowMs, cfg.rotationCycle ?? 7);
   return canonicalizeRevealThemeId(weekly);
+}
+
+/** Same priority as theme rotation, but keeps adventure vs classic distinct. */
+export function resolveActiveStoryboardId(opts?: {
+  equippedThemeId?: string | null;
+  surpriseDocTheme?: DocThemeAlias | null;
+  nowMs?: number;
+  forceClassic?: boolean;
+  categoryName?: string;
+  boxName?: string;
+}): RevealStoryboardId {
+  const cfg = getRevealRemoteConfig();
+  if ((cfg.limitedThemePriority ?? 0) > 0 && cfg.limitedThemeId) {
+    return canonicalizeStoryboardId(cfg.limitedThemeId);
+  }
+  const weakNet = opts?.forceClassic === true || shouldForceClassicRevealNetwork();
+  if (weakNet) return "classic";
+  if (opts?.surpriseDocTheme) {
+    return canonicalizeStoryboardId(opts.surpriseDocTheme);
+  }
+  const equippedRaw = opts?.equippedThemeId ?? getCachedEquippedThemeId();
+  if (equippedRaw) {
+    return canonicalizeStoryboardId(equippedRaw);
+  }
+  if (cfg.currentTheme) {
+    return canonicalizeStoryboardId(cfg.currentTheme);
+  }
+  const inferred =
+    (opts?.categoryName ? inferStoryboardFromText(opts.categoryName) : null) ??
+    (opts?.boxName ? inferStoryboardFromText(opts.boxName) : null);
+  if (inferred) return inferred;
+  return weeklyDocTheme(opts?.nowMs, cfg.rotationCycle ?? 7);
 }
 
 export function getCachedUnlockState(): ThemeUnlockState {
@@ -198,6 +268,63 @@ export async function recordThemeUnlockProgress(
   return saveThemeUnlockState(applyUnlockProgress(current, patch));
 }
 
+const OPENED_ORDERS_KEY = "reveal_theme_unlock_orders_v1";
+let cachedOpenedOrders: string[] | null = null;
+
+async function loadOpenedOrderIds(): Promise<string[]> {
+  if (cachedOpenedOrders) return cachedOpenedOrders;
+  try {
+    const raw = await AsyncStorage.getItem(OPENED_ORDERS_KEY);
+    if (!raw) {
+      cachedOpenedOrders = [];
+      return cachedOpenedOrders;
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    cachedOpenedOrders = Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === "string")
+      : [];
+    return cachedOpenedOrders;
+  } catch {
+    cachedOpenedOrders = [];
+    return cachedOpenedOrders;
+  }
+}
+
+export type BoxOpenedUnlockResult = {
+  state: ThemeUnlockState;
+  newlyUnlocked: UnlockableThemeKey[];
+  isNewOpen: boolean;
+};
+
+/** Count a paid unbox once per order; unlock cyberpunk / party / adventure from real progress. */
+export async function notePaidBoxOpened(opts: {
+  orderId: string;
+  hasHidden?: boolean;
+  seriesComplete?: boolean;
+}): Promise<BoxOpenedUnlockResult> {
+  const orderId = opts.orderId.trim();
+  const current = await loadThemeUnlockState();
+  const seen = await loadOpenedOrderIds();
+  const isNewOpen = !!orderId && !seen.includes(orderId);
+  const prevUnlocked = new Set(current.unlocked);
+  const next = await saveThemeUnlockState(
+    applyUnlockProgress(current, {
+      openCount: isNewOpen ? current.openCount + 1 : current.openCount,
+      hasHidden: current.hasHidden || !!opts.hasHidden,
+      seriesComplete: current.seriesComplete || !!opts.seriesComplete,
+    }),
+  );
+  if (isNewOpen) {
+    cachedOpenedOrders = [...seen, orderId].slice(-240);
+    await AsyncStorage.setItem(OPENED_ORDERS_KEY, JSON.stringify(cachedOpenedOrders));
+  }
+  return {
+    state: next,
+    newlyUnlocked: next.unlocked.filter((key) => !prevUnlocked.has(key)),
+    isNewOpen,
+  };
+}
+
 export async function loadEquippedThemeId(): Promise<string | null> {
   try {
     const raw = await AsyncStorage.getItem(EQUIPPED_STORAGE_KEY);
@@ -221,6 +348,8 @@ export async function setEquippedThemeId(id: string | null): Promise<void> {
 export function resetThemeRotationCacheForTests(): void {
   cachedUnlocks = null;
   cachedEquipped = undefined;
+  surpriseByOrder.clear();
+  cachedOpenedOrders = null;
 }
 
 export const themeStorageKeys = {
