@@ -27,6 +27,10 @@ See `src/components/ui/OptionalLottieBurst.tsx` (`SOURCES` map) and `src/assets/
 
 弱网 / 减少动效 / 掉帧档 ≥2 时回退 classic。
 
+## 电影级叠层
+
+`CinematicRevealLayer` 使用 Kenney Particle Pack（CC0）的光斑 / 体积光 / 星芒精灵，按主题着色，并加上宽银幕遮幅与缓慢推镜。素材在 `src/assets/effects/particles/`。
+
 ## 接入说明
 
 1. 安装 `lottie-react-native`（通常需 dev build，Expo Go 可能不支持自定义 native 模块）

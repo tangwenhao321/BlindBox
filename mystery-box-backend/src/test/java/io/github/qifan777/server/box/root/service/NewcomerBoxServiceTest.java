@@ -1,6 +1,7 @@
 package io.github.qifan777.server.box.root.service;
 
 import io.github.qifan777.server.box.draw.BoxExpectedValueGuard;
+import io.github.qifan777.server.box.draw.PrizeExitValuationService;
 import io.github.qifan777.server.box.product.service.PrizeStockService;
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.repository.MysteryBoxRepository;
@@ -39,6 +40,8 @@ class NewcomerBoxServiceTest {
     private PrizeStockService prizeStockService;
     @Mock
     private BoxExpectedValueGuard boxExpectedValueGuard;
+    @Mock
+    private PrizeExitValuationService prizeExitValuationService;
     @Mock
     private RiskControlService riskControlService;
     @Mock

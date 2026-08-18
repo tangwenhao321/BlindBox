@@ -1,6 +1,7 @@
 package io.github.qifan777.server.box.root.service;
 
 import io.github.qifan777.server.box.draw.BoxExpectedValueGuard;
+import io.github.qifan777.server.box.draw.PrizeExitValuationService;
 import io.github.qifan777.server.box.product.service.PrizeStockService;
 import io.github.qifan777.server.box.root.entity.MysteryBox;
 import io.github.qifan777.server.box.root.entity.MysteryBoxTable;
@@ -36,6 +37,7 @@ public class NewcomerBoxService {
     private final ReferralService referralService;
     private final PrizeStockService prizeStockService;
     private final BoxExpectedValueGuard boxExpectedValueGuard;
+    private final PrizeExitValuationService prizeExitValuationService;
     private final RiskControlService riskControlService;
     private final MarketProperties marketProperties;
 
@@ -134,6 +136,7 @@ public class NewcomerBoxService {
             if (products.isEmpty()) {
                 return false;
             }
+            prizeExitValuationService.applyToGuard();
             BigDecimal ev = boxExpectedValueGuard.expectedPrizeValue(
                     loaded.legendaryRate(), loaded.hiddenRate(), loaded.generalRate(), products);
             if (ev.compareTo(maxEvCost) > 0) {

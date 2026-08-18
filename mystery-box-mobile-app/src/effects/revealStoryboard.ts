@@ -43,10 +43,11 @@ export function shouldPlayStoryboard(opts: {
   reduceMotion?: boolean;
   degradeLevel?: number;
   density?: "full" | "lite";
+  /** Kept for callers; equipped packs must still play on perf degrade. */
+  equipped?: boolean;
 }): boolean {
   if (opts.storyboard === "classic") return false;
   if (opts.reduceMotion) return false;
-  if ((opts.degradeLevel ?? 0) >= 2) return false;
   return true;
 }
 

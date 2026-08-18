@@ -1,8 +1,8 @@
 package io.github.qifan777.server.box.draw;
 
-import io.github.qifan777.server.dict.model.QualityType;
-
+import io.github.qifan777.server.box.order.config.RedeemProperties;
 import io.github.qifan777.server.box.pack.model.DrawPackConfigView;
+import io.github.qifan777.server.dict.model.QualityType;
 import io.github.qifan777.server.dict.model.DictConstants;
 import io.github.qifan777.server.infrastructure.money.MoneyRounding;
 import io.github.qifan777.server.payment.config.MarketProperties;
@@ -17,8 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * House-edge gate: expected prize cost (prefer {@code costPrice}, else retail) must stay under
- * effective unit revenue × (1 − minMargin − referralCommission − maxDiscount), including pack discounts,
+ * House-edge gate: expected prize cost must stay under
+ * effective unit revenue × (1 − minMargin − referralCommission − maxDiscount).
+ * Cost is max(COGS, wallet redeem, fragment-exchange cash-out), including pack discounts,
  * worst-case dynamic odds, and amortized pity forceHigh cost.
  */
 @Component
@@ -26,9 +27,17 @@ public class BoxExpectedValueGuard {
     private static final int BASE = DynamicProbabilityAdjuster.PROBABILITY_BASE;
 
     private final MarketProperties marketProperties;
+    private RedeemProperties redeemProperties;
+    private BigDecimal fragmentUnitValue = BigDecimal.ZERO;
 
     public BoxExpectedValueGuard(MarketProperties marketProperties) {
         this.marketProperties = marketProperties;
+    }
+
+    /** Wallet redeem + fragment exchange must be included so config EV cannot go negative vs player exits. */
+    public void setExitValuation(RedeemProperties redeemProperties, BigDecimal fragmentUnitValue) {
+        this.redeemProperties = redeemProperties;
+        this.fragmentUnitValue = fragmentUnitValue == null ? BigDecimal.ZERO : fragmentUnitValue.max(BigDecimal.ZERO);
     }
 
     @Value("${app.draw.min-margin-ratio:0.15}")
@@ -125,6 +134,10 @@ public class BoxExpectedValueGuard {
             BigDecimal ev = expectedPrizeValue(
                     rates.legendaryRate(), rates.hiddenRate(), rates.generalRate(), products);
             ev = ev.add(pityAmortization(ev, products, rates, pityThreshold));
+            if (fragmentUnitValue.compareTo(BigDecimal.ZERO) > 0) {
+                // Doc2 surprise-theme grants +1 fragment per paid open.
+                ev = ev.add(fragmentUnitValue);
+            }
             BigDecimal maxEv = scenario.unitRevenue().multiply(BigDecimal.ONE.subtract(haircut));
             if (ev.compareTo(maxEv) > 0) {
                 String currency = marketProperties.getCurrency();
@@ -261,16 +274,17 @@ public class BoxExpectedValueGuard {
                 .divide(BigDecimal.valueOf(BASE), 8, RoundingMode.HALF_UP);
     }
 
-    /** Prefer costPrice; fall back to retail price. */
+    /** Prefer max(COGS, wallet redeem, fragment exchange) so player exits cannot beat the house. */
     private BigDecimal avgTierCost(List<Product> products, QualityType tier) {
         BigDecimal sum = BigDecimal.ZERO;
         int n = 0;
+        String currency = marketProperties.getCurrency();
         for (Product p : products) {
             if (p == null || p.qualityType() != tier) {
                 continue;
             }
-            BigDecimal cost = p.costPrice() != null ? p.costPrice() : p.price();
-            if (cost == null) {
+            BigDecimal cost = PrizeExitLiability.liability(p, redeemProperties, currency, fragmentUnitValue);
+            if (cost.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
             sum = sum.add(cost);

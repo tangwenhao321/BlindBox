@@ -1,7 +1,7 @@
 import { AppState, type AppStateStatus, Platform } from "react-native";
 import { QueryClient, focusManager, onlineManager } from "@tanstack/react-query";
 import NetInfo, { type NetInfoState } from "@react-native-community/netinfo";
-import { setOffline } from "../utils/connectivity";
+import { isEffectivelyOnline, setOffline } from "../utils/connectivity";
 
 let focusManagerWired = false;
 
@@ -22,12 +22,7 @@ function wireOnlineManager() {
   onlineManagerWired = true;
   onlineManager.setEventListener((setOnline) => {
     return NetInfo.addEventListener((state: NetInfoState) => {
-      const connected = state.isConnected ?? true;
-      const reachable =
-        state.isInternetReachable === null || state.isInternetReachable === undefined
-          ? connected
-          : state.isInternetReachable;
-      const online = connected && reachable;
+      const online = isEffectivelyOnline(state);
       setOnline(online);
       setOffline(!online);
     });

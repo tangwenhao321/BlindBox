@@ -29,6 +29,7 @@ public class BoxProfitabilityService {
     private final DrawPackConfigService drawPackConfigService;
     private final BoxExpectedValueGuard boxExpectedValueGuard;
     private final DynamicProbabilityAdjuster dynamicProbabilityAdjuster;
+    private final PrizeExitValuationService prizeExitValuationService;
 
     public void assertBoxProfitable(String boxId) {
         MysteryBox box = mysteryBoxRepository.findById(boxId, MysteryBoxRepository.COMPLEX_FETCHER_FOR_ADMIN)
@@ -43,6 +44,7 @@ public class BoxProfitabilityService {
         }
         int pity = mysteryBoxUserPityService.resolveThreshold(box);
         List<DrawPackConfigView> packs = drawPackConfigService.listEnabled();
+        prizeExitValuationService.applyToGuard();
         boxExpectedValueGuard.assertProfitable(
                 box.price(),
                 box.legendaryRate(),

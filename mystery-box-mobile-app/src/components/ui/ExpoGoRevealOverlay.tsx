@@ -14,6 +14,8 @@ import {
 import { pickLustreColor, lustreGradientStops, tintLustrePalette } from "../../effects/lustrePalette";
 import { revealLayerZIndex } from "../../effects/revealLayerZIndex";
 import { resolveThemedLustre } from "../../effects/revealTheme";
+import { storyboardBackdrop } from "../../effects/revealStoryboard";
+import { CinematicRevealLayerLite } from "./CinematicRevealLayerLite";
 import { resolveLustreIntensity, shouldReduceLustreMotion } from "../../effects/revealRemote";
 import { getAtmosphereOverrides } from "../../effects/revealAtmosphereRuntime";
 import { resolveRevealEffectPreset } from "../../effects/revealEffectPreset";
@@ -491,6 +493,27 @@ export function ExpoGoRevealOverlay({
       accessibilityLabel={t("revealOverlay.skipOrAccelerateA11y")}
     >
       <Animated.View style={[styles.inner, { opacity: hostOpacity, transform: [{ translateX: shakeX }] }]}>
+        {revealTheme?.storyboard && revealTheme.storyboard !== "classic" ? (
+          <LinearGradient
+            colors={storyboardBackdrop(revealTheme.storyboard)}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+        ) : null}
+        {revealTheme?.storyboard ? (
+          <CinematicRevealLayerLite storyboard={revealTheme.storyboard} reduceMotion={reduceMotion} />
+        ) : null}
+        {revealTheme?.storyboard && revealTheme.storyboard !== "classic" ? (
+          <Text style={styles.storyboardCaption} pointerEvents="none">
+            {revealTheme.storyboard === "cyberpunk"
+              ? t("revealOverlay.storyboardCyberCaption")
+              : revealTheme.storyboard === "asmr"
+                ? t("revealOverlay.storyboardAsmrCaption")
+                : revealTheme.storyboard === "party"
+                  ? t("revealOverlay.storyboardPartyMarquee", { name: prizeName || t("revealOverlay.feedTickerPrize") })
+                  : t("revealOverlay.storyboardAdventureCaption", { name: prizeName || t("revealOverlay.feedTickerPrize") })}
+          </Text>
+        ) : null}
         <RevealLustreLayers
           visible={visible}
           tier={tier}
@@ -599,13 +622,15 @@ export function ExpoGoRevealOverlay({
         ) : null}
 
         <Animated.View
-          style={[
-            styles.cardOuter,
-            {
-              transform: [{ scale: cardScale }],
-            },
-          ]}
-        >
+            style={[
+              styles.cardOuter,
+              {
+                zIndex: 800,
+                elevation: 12,
+                transform: [{ scale: cardScale }],
+              },
+            ]}
+          >
           <LustreCardEdgeShimmer
             width={CARD_W}
             borderRadius={24}
@@ -702,6 +727,18 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
     elevation: revealLayerZIndex.overlay,
   },
   inner: { flex: 1, alignItems: "center", justifyContent: "center" },
+  storyboardCaption: {
+    position: "absolute",
+    top: SCREEN_H * 0.12,
+    left: 24,
+    right: 24,
+    textAlign: "center",
+    color: "rgba(255,255,255,0.88)",
+    fontSize: 13,
+    letterSpacing: 1.4,
+    fontWeight: "700",
+    zIndex: 4,
+  },
   dim: { ...StyleSheet.absoluteFillObject },
   flash: {
     ...StyleSheet.absoluteFillObject,
@@ -714,7 +751,8 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
     top: SCREEN_H * 0.12,
     alignItems: "center",
     justifyContent: "center",
-    opacity: 0.35,
+    opacity: 0.22,
+    zIndex: revealLayerZIndex.rays,
   },
   ray: {
     position: "absolute",
@@ -722,7 +760,7 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
     height: SCREEN_H * 0.42,
     top: SCREEN_H * 0.08,
     borderRadius: 2,
-    opacity: 0.75,
+    opacity: 0.55,
   },
   haloRingWrap: {
     position: "absolute",
@@ -731,6 +769,7 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
     borderRadius: SCREEN_W * 0.36,
     top: SCREEN_H * 0.22,
     overflow: "hidden",
+    zIndex: revealLayerZIndex.particles,
   },
   haloRingGrad: {
     flex: 1,
@@ -779,6 +818,8 @@ function buildExpoGoRevealStyles(colors: ThemeColors) {
   cardOuter: {
     marginTop: SCREEN_H * 0.18,
     alignItems: "center",
+    zIndex: revealLayerZIndex.card,
+    elevation: 16,
   },
   cardBorder: {
     borderRadius: 24,

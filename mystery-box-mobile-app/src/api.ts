@@ -135,7 +135,6 @@ api.interceptors.response.use(
         : undefined) || payload?.traceId;
     const rawMessage = payload?.msg || payload?.message;
     if (!error.response) {
-      setOffline(true);
       const hint = API_BASE_URL
         ? i18n.t("api.cannotConnect", { url: API_BASE_URL })
         : i18n.t("api.apiNotConfigured");

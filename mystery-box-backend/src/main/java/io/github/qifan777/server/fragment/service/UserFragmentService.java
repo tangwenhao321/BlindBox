@@ -160,7 +160,7 @@ public class UserFragmentService {
         }
         int byQuality = switch (quality) {
             case "LEGENDARY", "LEGEND" -> 50;
-            case "EPIC" -> 25;
+            case "HIDDEN", "EPIC" -> 25;
             case "RARE" -> 15;
             default -> 8;
         };

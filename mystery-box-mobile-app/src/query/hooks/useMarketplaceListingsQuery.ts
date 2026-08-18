@@ -23,6 +23,9 @@ export function useMarketplaceListingsQuery(
     queryFn: () => fetchMarketplaceListingsPage(params),
     enabled,
     staleTime: 30_000,
+    // Honor / captive-portal NetInfo can mark LAN as offline; never pause this public list.
+    networkMode: "always",
+    retry: 1,
   });
 }
 
@@ -32,6 +35,8 @@ export function useMyMarketplaceListingsQuery(token: string | undefined, enabled
     queryFn: () => fetchMyMarketplaceListingsQuery(token!),
     enabled: !!token && enabled,
     staleTime: 30_000,
+    networkMode: "always",
+    retry: 1,
   });
 }
 
@@ -41,5 +46,7 @@ export function usePurchasedMarketplaceListingsQuery(token: string | undefined, 
     queryFn: () => fetchPurchasedMarketplaceListingsQuery(token!),
     enabled: !!token && enabled,
     staleTime: 30_000,
+    networkMode: "always",
+    retry: 1,
   });
 }

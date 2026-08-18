@@ -67,7 +67,9 @@ public class MarketplaceService {
                     rs.getString("quality_type"),
                     rs.getBigDecimal("price"),
                     rs.getString("status"),
-                    rs.getTimestamp("created_time").toLocalDateTime(),
+                    rs.getTimestamp("created_time") == null
+                            ? LocalDateTime.now()
+                            : rs.getTimestamp("created_time").toLocalDateTime(),
                     rs.getTimestamp("cooling_until") == null ? null : rs.getTimestamp("cooling_until").toLocalDateTime(),
                     rs.getString("trade_id"),
                     rs.getBigDecimal("seller_credit"),

@@ -34,6 +34,7 @@ class BoxExpectedValueGuardTest {
         ReflectionTestUtils.setField(guard, "maxDiscountRatio", BigDecimal.ZERO);
         adjuster = new DynamicProbabilityAdjuster();
         ReflectionTestUtils.setField(adjuster, "dynamicBoostCapPercent", 25);
+        guard.setExitValuation(null, BigDecimal.ZERO);
     }
 
     @Test
@@ -114,6 +115,37 @@ class BoxExpectedValueGuardTest {
                 2000,
                 0,
                 8000,
+                List.of(legendary, general)
+        ));
+    }
+
+    @Test
+    void rejectsWhenWalletRedeemBeatsLowCogs() {
+        io.github.qifan777.server.box.order.config.RedeemProperties redeem =
+                new io.github.qifan777.server.box.order.config.RedeemProperties();
+        redeem.setBalanceRate(new BigDecimal("0.35"));
+        guard.setExitValuation(redeem, BigDecimal.ZERO);
+        Product legendary = product(QualityType.LEGENDARY, "10000", "20");
+        Product general = product(QualityType.GENERAL, "10", "1");
+        assertThrows(BusinessException.class, () -> guard.assertProfitable(
+                new BigDecimal("100"),
+                2000,
+                0,
+                8000,
+                List.of(legendary, general)
+        ));
+    }
+
+    @Test
+    void rejectsWhenFragmentExchangeBeatsCogs() {
+        guard.setExitValuation(null, new BigDecimal("80"));
+        Product legendary = product(QualityType.LEGENDARY, "100", "1");
+        Product general = product(QualityType.GENERAL, "10", "1");
+        assertThrows(BusinessException.class, () -> guard.assertProfitable(
+                new BigDecimal("100"),
+                100,
+                0,
+                9900,
                 List.of(legendary, general)
         ));
     }

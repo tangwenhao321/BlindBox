@@ -201,6 +201,7 @@ export function useAppBootstrap(params: Params) {
         return;
       }
       uploadAnalyticsEvents(token, batch)
+        .catch(() => uploadGuestAnalyticsEvents(batch))
         .then(() => {
           analyticsRetryMsRef.current = 12000;
           schedule(analyticsRetryMsRef.current);

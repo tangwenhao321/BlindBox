@@ -21,7 +21,7 @@ import {
 import { applyRemoteRevealProfile, getRevealRemoteConfig, type ReduceMotionLevel } from "../effects/revealRemote";
 import { applyRevealTheme, canonicalizeRevealThemeId, resolveRevealTheme } from "../effects/revealTheme";
 import { shouldReplaceFestivalBgm } from "../effects/revealFestivalBundle";
-import { resolveActiveRevealThemeId, resolveActiveStoryboardId, rollSurpriseDocThemeForOrder } from "../effects/revealThemeRotation";
+import { resolveActiveRevealThemeId, resolveActiveStoryboardId, rollSurpriseDocThemeForOrder, loadEquippedThemeId, getCachedEquippedThemeId, isEquippedThemeCacheHydrated } from "../effects/revealThemeRotation";
 import { resolveStoryboardDensity, storyboardChargeMs } from "../effects/revealStoryboard";
 import type { RevealPacing } from "../effects/revealSequence";
 import { cancelScheduledRevealSounds, playRevealSoundArc, playTierSoundSynced, setRuntimeThemeSoundBankFromTheme, warmupTierSounds } from "../effects/sound";
@@ -167,9 +167,18 @@ export function usePrizeRevealReanimated({
     return resolveCeremonyTier(product, drawProducts ?? products);
   }, [products, drawProducts]);
   const surpriseDocTheme = useMemo(() => rollSurpriseDocThemeForOrder(orderId), [orderId]);
+  const [equippedThemeId, setEquippedThemeId] = useState<string | null>(() => getCachedEquippedThemeId());
+  const [equippedReady, setEquippedReady] = useState(() => isEquippedThemeCacheHydrated());
+  useEffect(() => {
+    void loadEquippedThemeId().then((id) => {
+      setEquippedThemeId(id);
+      setEquippedReady(true);
+    });
+  }, []);
   const revealTheme = useMemo(() => {
     const surpriseThemeId = surpriseDocTheme ? canonicalizeRevealThemeId(surpriseDocTheme) : null;
     const storyboardId = resolveActiveStoryboardId({
+      equippedThemeId,
       surpriseDocTheme,
       boxName,
       categoryName: boxCategoryName,
@@ -178,11 +187,12 @@ export function usePrizeRevealReanimated({
       boxName,
       categoryName: boxCategoryName,
       remoteThemeId: resolveActiveRevealThemeId({
+        equippedThemeId,
         surpriseThemeId,
       }),
       storyboardId,
     });
-  }, [boxName, boxCategoryName, surpriseDocTheme]);
+  }, [boxName, boxCategoryName, surpriseDocTheme, equippedThemeId]);
   useEffect(() => {
     const bank = shouldReplaceFestivalBgm() ? "party" : (revealTheme.storyboard ?? revealTheme.id);
     setRuntimeThemeSoundBankFromTheme(bank);
@@ -447,7 +457,7 @@ export function usePrizeRevealReanimated({
         afterBoxTeaser: playBoxTeaser,
         chargeMs: scaleRevealDuration(profile.chargeMs, effectivePacing, timingOpts),
         accelerateTier: accelTierRef.current,
-        themeId: revealTheme.id,
+        themeId: revealTheme.storyboard ?? revealTheme.id,
       });
       if (getRevealRemoteConfig().vibrateFallbackEnabled && getRuntimeRevealHapticEnabled()) {
         try {
@@ -827,8 +837,9 @@ export function usePrizeRevealReanimated({
   );
 
   useEffect(() => {
+    if (!equippedReady) return;
     if (autoReplay) triggerReveal();
-  }, [products.length, tier, autoReplay, triggerReveal]);
+  }, [products.length, tier, autoReplay, triggerReveal, equippedReady]);
 
   useEffect(() => {
     return () => {

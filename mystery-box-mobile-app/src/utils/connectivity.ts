@@ -23,15 +23,23 @@ function emit(offlineNext: boolean) {
   listeners.forEach((listener) => listener(offline));
 }
 
-function resolveNetworkTierFromState(state: NetInfoState): RevealNetworkTier {
-  const connected = state.isConnected ?? true;
-  const reachable =
-    state.isInternetReachable === null || state.isInternetReachable === undefined
-      ? connected
-      : state.isInternetReachable;
-  if (!connected || !reachable) return "offline";
+/**
+ * Many Android builds report Wi‑Fi as "no internet" when captive-portal
+ * probes fail, even though the LAN API is reachable. Treat wifi/ethernet/vpn as online.
+ */
+export function isEffectivelyOnline(state: NetInfoState): boolean {
+  const connected = state.isConnected !== false;
+  if (!connected) return false;
   const type = state.type;
-  if (type === "wifi" || type === "ethernet") return "wifi";
+  if (type === "wifi" || type === "ethernet" || type === "vpn") return true;
+  if (state.isInternetReachable === false) return false;
+  return true;
+}
+
+function resolveNetworkTierFromState(state: NetInfoState): RevealNetworkTier {
+  if (!isEffectivelyOnline(state)) return "offline";
+  const type = state.type;
+  if (type === "wifi" || type === "ethernet" || type === "vpn") return "wifi";
   return "cellular";
 }
 
@@ -54,13 +62,8 @@ function ensureNetInfoSubscription() {
   if (netInfoSubscribed) return;
   netInfoSubscribed = true;
   NetInfo.addEventListener((state: NetInfoState) => {
-    const connected = state.isConnected ?? true;
-    const reachable =
-      state.isInternetReachable === null || state.isInternetReachable === undefined
-        ? connected
-        : state.isInternetReachable;
     setRevealNetworkTier(resolveNetworkTierFromState(state));
-    emit(!(connected && reachable));
+    emit(!isEffectivelyOnline(state));
   });
 }
 

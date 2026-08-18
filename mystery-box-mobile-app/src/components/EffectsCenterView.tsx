@@ -146,8 +146,8 @@ export function EffectsCenterView({ onBack }: Props) {
             );
           })
         )}
-        {previewKey ? <StoryboardPreviewHost themeKey={previewKey} onClose={() => setPreviewKey(null)} /> : null}
       </ScreenScaffold>
+      {previewKey ? <StoryboardPreviewHost themeKey={previewKey} onClose={() => setPreviewKey(null)} /> : null}
     </View>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, StyleSheet, useWindowDimensions, View } from "react-native";
 import LottieView from "lottie-react-native";
 import type { PrizeTier } from "../../effects/config";
 import { normalizeCeremonyTier, type CeremonyTier } from "../../effects/ceremonyTier";
@@ -10,6 +10,8 @@ type Props = {
   visible: boolean;
   reduceMotion?: boolean;
   lustreRim?: readonly string[];
+  loop?: boolean;
+  fullscreen?: boolean;
 };
 
 /**
@@ -33,7 +35,15 @@ function lottiePreset(tier: CeremonyTier) {
   return { source: SOURCES.TREASURE_LEGEND, scale: 1.08, speed: 1.04 };
 }
 
-export function OptionalLottieBurst({ tier, visible, reduceMotion = false, lustreRim }: Props) {
+export function OptionalLottieBurst({
+  tier,
+  visible,
+  reduceMotion = false,
+  lustreRim,
+  loop = false,
+  fullscreen = false,
+}: Props) {
+  const { width, height } = useWindowDimensions();
   const ref = useRef<LottieView>(null);
   const [systemReduceMotion, setSystemReduceMotion] = useState(false);
   const skip = reduceMotion || systemReduceMotion;
@@ -55,7 +65,9 @@ export function OptionalLottieBurst({ tier, visible, reduceMotion = false, lustr
 
   if (!visible || skip) return null;
 
-  const size = 280 * preset.scale;
+  const size = fullscreen
+    ? Math.min(width, height) * (loop ? 1.42 : 1.22)
+    : (loop ? 340 : 280) * preset.scale;
 
   return (
     <View style={styles.host} pointerEvents="none">
@@ -64,7 +76,7 @@ export function OptionalLottieBurst({ tier, visible, reduceMotion = false, lustr
         ref={ref}
         source={preset.source}
         autoPlay
-        loop={false}
+        loop={loop}
         speed={preset.speed}
         style={{ width: size, height: size, zIndex: 7 }}
       />

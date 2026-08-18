@@ -161,7 +161,7 @@ export function rollSurpriseThemeId(
 
 /**
  * Festival/limited → equipped unlocked → weekly (currentTheme / cycle) → default.
- * Weak-net (RTT>300) forces classic unless limited/festival is active.
+ * Weak-net only falls back to classic when the player has not equipped a pack.
  */
 export function resolveActiveRevealThemeId(opts?: {
   equippedThemeId?: string | null;
@@ -177,11 +177,6 @@ export function resolveActiveRevealThemeId(opts?: {
     return canonicalizeRevealThemeId(cfg.limitedThemeId);
   }
 
-  const weakNet = opts?.forceClassic === true || shouldForceClassicRevealNetwork();
-  if (weakNet) {
-    return "default";
-  }
-
   if (opts?.surpriseThemeId) {
     return opts.surpriseThemeId;
   }
@@ -190,9 +185,14 @@ export function resolveActiveRevealThemeId(opts?: {
   const unlockedIds = opts?.unlocked ?? unlockedRevealThemeIds(getCachedUnlockState());
   if (equippedRaw) {
     const equipped = canonicalizeRevealThemeId(equippedRaw);
-    if (unlockedIds.includes(equipped)) {
+    if (unlockedIds.includes(equipped) || canonicalizeStoryboardId(equippedRaw) !== "classic") {
       return equipped;
     }
+  }
+
+  const weakNet = opts?.forceClassic === true || shouldForceClassicRevealNetwork();
+  if (weakNet) {
+    return "default";
   }
 
   if (cfg.currentTheme) {
@@ -216,8 +216,6 @@ export function resolveActiveStoryboardId(opts?: {
   if ((cfg.limitedThemePriority ?? 0) > 0 && cfg.limitedThemeId) {
     return canonicalizeStoryboardId(cfg.limitedThemeId);
   }
-  const weakNet = opts?.forceClassic === true || shouldForceClassicRevealNetwork();
-  if (weakNet) return "classic";
   if (opts?.surpriseDocTheme) {
     return canonicalizeStoryboardId(opts.surpriseDocTheme);
   }
@@ -225,6 +223,8 @@ export function resolveActiveStoryboardId(opts?: {
   if (equippedRaw) {
     return canonicalizeStoryboardId(equippedRaw);
   }
+  const weakNet = opts?.forceClassic === true || shouldForceClassicRevealNetwork();
+  if (weakNet) return "classic";
   if (cfg.currentTheme) {
     return canonicalizeStoryboardId(cfg.currentTheme);
   }
@@ -289,6 +289,10 @@ export function getCachedEquippedThemeId(): string | null {
   return cachedEquipped === undefined ? null : cachedEquipped;
 }
 
+export function isEquippedThemeCacheHydrated(): boolean {
+  return cachedEquipped !== undefined;
+}
+
 async function readUnlockStateRaw(): Promise<ThemeUnlockState> {
   try {
     const raw =
@@ -324,8 +328,13 @@ export async function loadThemeUnlockState(): Promise<ThemeUnlockState> {
     if (remote) {
       next = mergeRemoteProgress(next, remote);
       if (remote.equippedThemeId) {
-        cachedEquipped = remote.equippedThemeId;
-        await AsyncStorage.setItem(equippedStorageKey(), remote.equippedThemeId);
+        const localSb = canonicalizeStoryboardId(cachedEquipped);
+        const remoteSb = canonicalizeStoryboardId(remote.equippedThemeId);
+        // Keep a locally equipped pack if the server still has classic/default.
+        if (!cachedEquipped || localSb === "classic" || remoteSb !== "classic") {
+          cachedEquipped = remote.equippedThemeId;
+          await AsyncStorage.setItem(equippedStorageKey(), remote.equippedThemeId);
+        }
       }
     }
   }

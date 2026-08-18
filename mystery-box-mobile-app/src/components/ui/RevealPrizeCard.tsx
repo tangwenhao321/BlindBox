@@ -122,7 +122,8 @@ export function RevealPrizeCard({
   }));
 
   const storyboardWashStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(cardFlip.value, [0.5, 0.85, 1], [0, 0.55, 0.28]),
+    // Keep tint soft so cinematic theme does not wash out the prize art.
+    opacity: interpolate(cardFlip.value, [0.5, 0.85, 1], [0, 0.22, 0.12]),
   }));
 
   if (!imageUri && !prizeName) return null;
@@ -141,13 +142,13 @@ export function RevealPrizeCard({
   const storyboardWash =
     festivalWash ??
     (storyboard === "adventure"
-      ? "rgba(232,195,106,0.22)"
+      ? "rgba(232,195,106,0.10)"
       : storyboard === "cyberpunk"
-        ? "rgba(0,229,255,0.2)"
+        ? "rgba(0,229,255,0.09)"
         : storyboard === "asmr"
-          ? "rgba(255,186,186,0.22)"
+          ? "rgba(255,186,186,0.10)"
           : storyboard === "party"
-            ? "rgba(255,80,180,0.2)"
+            ? "rgba(255,80,180,0.09)"
             : null);
 
   return (

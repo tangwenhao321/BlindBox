@@ -42,6 +42,7 @@ import { BoxRevealTeaser } from "./BoxRevealTeaser";
 import { RevealCinematicIntro } from "./RevealCinematicIntro";
 import { RevealStoryboardLayer } from "./RevealStoryboardLayer";
 import { FestivalRevealLayer } from "./FestivalRevealLayer";
+import { CinematicRevealLayer } from "./CinematicRevealLayer";
 import { LustreGradientRing, RevealLustreLayers } from "./RevealLustreLayers";
 
 import { RevealPrizeCard } from "./RevealPrizeCard";
@@ -519,6 +520,7 @@ export function OpenBoxRevealOverlay({
         degradeLevel={degradeLevel}
         density={storyboardDensity}
       />
+      <CinematicRevealLayer storyboard={storyboardId} reduceMotion={reduceMotion} />
       {showFestivalOverlay ? (
         <FestivalRevealLayer
           visible={visible}
@@ -564,7 +566,7 @@ export function OpenBoxRevealOverlay({
           colorPalette={confettiPalette}
         />
         {visible && showParticles ? (
-          <OptionalLottieBurst tier={displayTier} visible={visible} reduceMotion={reduceMotion} lustreRim={lustre.rim} />
+          <OptionalLottieBurst tier={displayTier} visible={visible} reduceMotion={reduceMotion} lustreRim={lustre.rim} fullscreen />
         ) : null}
         {particles.map((p) => (
           <BurstParticle key={`burst-${p.id}`} progress={rainProgress} particle={p} colors={lustre.sparkles} />

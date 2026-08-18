@@ -168,7 +168,8 @@ export function applyMonthlyParticleBias(theme: RevealTheme): RevealTheme {
 
 /** 将系列主题色叠加到特效 profile（不改变品质文案） */
 export function applyRevealTheme(profile: EffectProfile, theme: RevealTheme): EffectProfile {
-  if (theme.id === "default") return profile;
+  const storyboard = theme.storyboard ?? "classic";
+  if (theme.id === "default" && storyboard === "classic") return profile;
   const blend = profile.tier === "GENERAL";
   return {
     ...profile,

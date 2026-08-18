@@ -49,11 +49,11 @@ describe("revealStoryboard", () => {
     expect(storyboardFromCatalogKey("cyberpunk")).toBe("cyberpunk");
   });
 
-  it("skips cinematic packs on classic / reduceMotion / high degrade", () => {
+  it("skips cinematic packs on classic / reduceMotion, not on perf degrade", () => {
     expect(shouldPlayStoryboard({ storyboard: "cyberpunk" })).toBe(true);
     expect(shouldPlayStoryboard({ storyboard: "classic" })).toBe(false);
     expect(shouldPlayStoryboard({ storyboard: "asmr", reduceMotion: true })).toBe(false);
-    expect(shouldPlayStoryboard({ storyboard: "party", degradeLevel: 2 })).toBe(false);
+    expect(shouldPlayStoryboard({ storyboard: "party", degradeLevel: 2 })).toBe(true);
   });
 
   it("keeps adventure storyboard when theme id is default", () => {
@@ -69,9 +69,16 @@ describe("revealStoryboard", () => {
     expect(storyboardBackdrop("adventure")[0]).toContain("1a1208");
   });
 
-  it("forces classic on weak network", () => {
+  it("forces classic on weak network when nothing is equipped", () => {
     setRevealRemoteConfig({ currentTheme: "cyberpunk" });
     setRevealNetworkRtt(420);
     expect(resolveActiveStoryboardId()).toBe("classic");
+  });
+
+  it("keeps equipped storyboard on weak network", () => {
+    setRevealNetworkRtt(420);
+    expect(resolveActiveStoryboardId({ equippedThemeId: "party" })).toBe("party");
+    expect(resolveActiveStoryboardId({ equippedThemeId: "cyberpunk" })).toBe("cyberpunk");
+    expect(resolveActiveStoryboardId({ equippedThemeId: "adventure" })).toBe("adventure");
   });
 });

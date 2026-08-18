@@ -65,10 +65,21 @@ describe("revealThemeRotation", () => {
     );
   });
 
-  it("forces classic when RTT > 300ms", () => {
+  it("forces classic when RTT > 300ms and nothing is equipped", () => {
     setRevealRemoteConfig({ currentTheme: "cyberpunk" });
     setRevealNetworkRtt(420);
     expect(resolveActiveRevealThemeId({ unlocked: ["default", "cute", "neon"] })).toBe("default");
+  });
+
+  it("keeps equipped theme on weak network", () => {
+    setRevealRemoteConfig({ currentTheme: "adventure" });
+    setRevealNetworkRtt(420);
+    expect(
+      resolveActiveRevealThemeId({
+        equippedThemeId: "cyberpunk",
+        unlocked: ["default", "cute", "neon"],
+      }),
+    ).toBe("neon");
   });
 
   it("rolls surprise theme at configured rate", () => {

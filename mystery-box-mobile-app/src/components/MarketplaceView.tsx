@@ -219,7 +219,10 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   const mineQuery = useMyMarketplaceListingsQuery(authToken, tab === "mine");
   const purchasedQuery = usePurchasedMarketplaceListingsQuery(authToken, tab === "purchased");
 
+  const [stallTimedOut, setStallTimedOut] = useState(false);
+
   const reload = useCallback(async () => {
+    setStallTimedOut(false);
     setMarketOffset(0);
     setMarketItems([]);
     setMarketHasMore(true);
@@ -231,9 +234,23 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
   }, [authToken, keyword, maxPrice, minPrice, queryClient, sort]);
 
   const activeQuery = tab === "market" ? marketQuery : tab === "mine" ? mineQuery : purchasedQuery;
-  const loadError = activeQuery.error ? parseError(activeQuery.error) : null;
-  const initialLoading = activeQuery.isLoading && marketOffset === 0;
-  const refreshing = activeQuery.isFetching && !activeQuery.isLoading;
+  const queryPending = activeQuery.isPending && !activeQuery.isFetched && marketOffset === 0;
+  const loadError = activeQuery.error
+    ? parseError(activeQuery.error)
+    : stallTimedOut
+      ? t("api.requestRetry")
+      : null;
+  const initialLoading = queryPending && !loadError;
+  const refreshing = activeQuery.isFetching && !activeQuery.isPending;
+
+  useEffect(() => {
+    if (!queryPending) {
+      setStallTimedOut(false);
+      return;
+    }
+    const timer = setTimeout(() => setStallTimedOut(true), 12_000);
+    return () => clearTimeout(timer);
+  }, [queryPending, tab]);
 
   const items =
     tab === "market"
@@ -244,21 +261,28 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
 
   useEffect(() => {
     if (tab !== "market" || marketOffset !== 0) return;
-    if (marketQuery.data) {
+    if (marketQuery.isSuccess && marketQuery.data) {
       setMarketItems(marketQuery.data);
       setMarketHasMore(marketQuery.data.length >= MARKET_PAGE);
     }
-  }, [tab, marketOffset, marketQuery.data]);
+    if (marketQuery.isSuccess && Array.isArray(marketQuery.data) && marketQuery.data.length === 0) {
+      setMarketItems([]);
+      setMarketHasMore(false);
+    }
+  }, [tab, marketOffset, marketQuery.data, marketQuery.isSuccess]);
 
   const loadMoreMarket = useCallback(async () => {
     if (tab !== "market" || refreshing || !marketHasMore) return;
+    if (!marketQuery.isSuccess) return;
     const nextOffset = marketOffset === 0 ? (marketQuery.data?.length ?? 0) : marketItems.length;
+    if (nextOffset <= 0 && (marketQuery.data?.length ?? 0) === 0) return;
     const page = await queryClient.fetchQuery({
       queryKey: [...queryKeys.marketplace.listings(keyword, sort, minPrice, maxPrice), nextOffset] as const,
       queryFn: () =>
         fetchMarketplaceListingsPage({ keyword, sort, minPrice, maxPrice, offset: nextOffset }),
+      networkMode: "always",
     });
-    setMarketItems((prev) => (marketOffset === 0 ? page : [...prev, ...page]));
+    setMarketItems((prev) => (nextOffset === 0 ? page : [...prev, ...page]));
     setMarketOffset(nextOffset);
     setMarketHasMore(page.length >= MARKET_PAGE);
   }, [
@@ -267,6 +291,7 @@ export function MarketplaceView({ onBack, onRequireLogin, onGoWarehouse }: Props
     marketHasMore,
     marketOffset,
     marketQuery.data,
+    marketQuery.isSuccess,
     marketItems.length,
     queryClient,
     keyword,
