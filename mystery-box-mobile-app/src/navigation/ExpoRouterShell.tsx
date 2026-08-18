@@ -26,7 +26,22 @@ const loadingStyles = StyleSheet.create({
     zIndex: 0,
   },
   appLayer: { flex: 1, zIndex: 1 },
+  splashOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });
+
+/** Expo Router layouts must always mount `<Slot />` — never replace the tree with splash-only. */
+function RouterSlotSync() {
+  return (
+    <View pointerEvents="none" style={loadingStyles.routeSyncLayer}>
+      <Slot />
+    </View>
+  );
+}
 
 function LoadedExpoRouterShell({ ctrl }: { ctrl: AppControllerLoadedViewModel }) {
   const mainTabsSlices = useMemo(() => ctrl.mainTabsSlices, [ctrl.mainTabsSlices]);
@@ -42,32 +57,34 @@ function LoadedExpoRouterShell({ ctrl }: { ctrl: AppControllerLoadedViewModel })
         <AppSafeRoot>
           <MainTabsProvider slices={mainTabsSlices}>
             <AppUpdateProvider>
-            <OnboardingAnchorProvider>
-              <SafeAreaView style={loadingStyles.pageFill} edges={["top", "left", "right"]}>
-                <View style={loadingStyles.shell}>
-                  <View pointerEvents="none" style={loadingStyles.routeSyncLayer}>
-                    <Slot />
+              <OnboardingAnchorProvider>
+                <SafeAreaView style={loadingStyles.pageFill} edges={["top", "left", "right"]}>
+                  <View style={loadingStyles.shell}>
+                    <RouterSlotSync />
+                    <View style={loadingStyles.appLayer}>
+                      <AppShellProvider
+                        resetTo={ctrl.resetTo}
+                        showOnboarding={ctrl.showOnboarding}
+                        dismissOnboarding={ctrl.dismissOnboarding}
+                        modalsProps={ctrl.modalsProps}
+                        loginGateProps={ctrl.loginGateProps}
+                      >
+                        <ToastHost elevated={ctrl.loginGateProps.visible} />
+                        <AuthenticatedShell
+                          onboarding={
+                            <OnboardingFlow
+                              mode="intro"
+                              visible={ctrl.showOnboarding}
+                              onDone={ctrl.dismissOnboarding}
+                            />
+                          }
+                        />
+                        <LoginGate {...ctrl.loginGateProps} />
+                      </AppShellProvider>
+                    </View>
                   </View>
-                  <View style={loadingStyles.appLayer}>
-                    <AppShellProvider
-                      resetTo={ctrl.resetTo}
-                      showOnboarding={ctrl.showOnboarding}
-                      dismissOnboarding={ctrl.dismissOnboarding}
-                      modalsProps={ctrl.modalsProps}
-                      loginGateProps={ctrl.loginGateProps}
-                    >
-                      <ToastHost elevated={ctrl.loginGateProps.visible} />
-                      <AuthenticatedShell
-                        onboarding={
-                          <OnboardingFlow mode="intro" visible={ctrl.showOnboarding} onDone={ctrl.dismissOnboarding} />
-                        }
-                      />
-                      <LoginGate {...ctrl.loginGateProps} />
-                    </AppShellProvider>
-                  </View>
-                </View>
-              </SafeAreaView>
-            </OnboardingAnchorProvider>
+                </SafeAreaView>
+              </OnboardingAnchorProvider>
             </AppUpdateProvider>
           </MainTabsProvider>
         </AppSafeRoot>
@@ -84,9 +101,14 @@ export function ExpoRouterShell() {
     return (
       <SafeAreaProvider>
         <AppChrome />
-        <AppSafeRoot style={loadingStyles.center}>
+        <AppSafeRoot style={loadingStyles.pageFill}>
           <SafeAreaView style={loadingStyles.pageFill} edges={["top", "left", "right"]}>
-            <AppLoadingSplash />
+            <View style={loadingStyles.shell}>
+              <RouterSlotSync />
+              <View style={loadingStyles.splashOverlay}>
+                <AppLoadingSplash />
+              </View>
+            </View>
           </SafeAreaView>
         </AppSafeRoot>
       </SafeAreaProvider>

@@ -124,8 +124,20 @@ public class MysteryBoxUserPityService {
     }
 
     public boolean shouldForceHigh(String userId, String mysteryBoxId) {
+        return shouldForceHigh(userId, mysteryBoxId, 1);
+    }
+
+    /**
+     * True when this upcoming batch will reach the pity wall (inclusive).
+     * A 50-draw from streak 0 must force high on the 50th item, not the 51st order.
+     */
+    public boolean shouldForceHigh(String userId, String mysteryBoxId, int upcomingCount) {
         PityProgressView view = progress(userId, mysteryBoxId);
-        return view.remaining() <= 0 && view.threshold() > 0;
+        if (view.threshold() <= 0) {
+            return false;
+        }
+        int count = Math.max(upcomingCount, 1);
+        return view.current() + count >= view.threshold();
     }
 
     public int loseStreak(String userId, String mysteryBoxId) {

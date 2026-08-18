@@ -155,6 +155,11 @@ export function buildBoxViewProps(input: BoxSlice) {
     bannerSubtitle: homeBanner.subtitle,
     showNewcomerBar: showNewcomerPromo,
     onNewcomerPress: () => {
+      if (!token) {
+        openLoginPage();
+        toast.info(i18n.t("auth.loginRequired"));
+        return;
+      }
       openNewcomerOffer?.();
     },
     onOpenAddressFormPage: openAddressFormPage,

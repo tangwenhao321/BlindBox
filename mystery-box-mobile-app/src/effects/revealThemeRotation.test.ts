@@ -8,6 +8,7 @@ import {
   rollSurpriseDocTheme,
   rollSurpriseThemeId,
   weeklyDocTheme,
+  effectiveUnlockedKeys,
 } from "./revealThemeRotation";
 import { setRevealRemoteConfig } from "./revealRemote";
 import { setRevealNetworkRtt, setRevealNetworkTier } from "./revealNetworkTier";
@@ -97,5 +98,18 @@ describe("revealThemeRotation", () => {
     expect(last.state.openCount).toBe(50);
     expect(last.state.unlocked).toContain("cyberpunk");
     expect(last.newlyUnlocked).toContain("cyberpunk");
+  });
+
+  it("keeps earned unlocks distinct from test-pack grants", () => {
+    const earned = applyUnlockProgress(defaultUnlockState(), {});
+    expect(earned.unlocked).toEqual(["classic", "asmr"]);
+    expect(effectiveUnlockedKeys(earned, { grantTestThemes: true })).toEqual([
+      "classic",
+      "asmr",
+      "cyberpunk",
+      "party",
+      "adventure",
+    ]);
+    expect(effectiveUnlockedKeys(earned, { grantTestThemes: false })).toEqual(["classic", "asmr"]);
   });
 });

@@ -41,7 +41,7 @@ type Params = {
   setShowAddressModal: (visible: boolean) => void;
   goBack: () => void;
   navigate: (view: AppView) => void;
-  saveAddressAction: (payload: SaveAddressPayload) => Promise<void>;
+  saveAddressAction: (payload: SaveAddressPayload) => Promise<boolean>;
 };
 
 export function useAppAddressActions(params: Params) {
@@ -106,9 +106,11 @@ export function useAppAddressActions(params: Params) {
     if (!ok) return;
     try {
       await deleteAddresses(token, [id]);
+      const remaining = addresses.filter((item) => item.id !== id);
       await loadAddresses(token);
       if (selectedAddressId === id) {
-        setSelectedAddressId("");
+        const next = remaining.find((item) => item.top) || remaining[0];
+        setSelectedAddressId(next?.id ?? "");
       }
       toast.success(i18n.t("addressActions.deleted"));
     } catch (error) {
@@ -118,7 +120,7 @@ export function useAppAddressActions(params: Params) {
 
   const saveAddress = async () => {
     const returnToManage = view === "addressForm" && !pendingCheckoutResume;
-    await saveAddressAction({
+    const saved = await saveAddressAction({
       id: editingAddressId || undefined,
       realName: formRealName,
       phoneNumber: formPhoneNumber,
@@ -129,6 +131,7 @@ export function useAppAddressActions(params: Params) {
       houseNumber: formHouseNumber,
       isFirstAddress: (addresses.length === 0 && !editingAddressId) || formIsDefault,
     });
+    if (!saved) return;
     setEditingAddressId(null);
     if (pendingCheckoutResume) {
       goBack();

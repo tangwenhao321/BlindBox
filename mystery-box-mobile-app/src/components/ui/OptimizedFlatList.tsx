@@ -57,6 +57,9 @@ function canUseFlashList(opts: {
   if (opts.horizontal) return false;
   if (Platform.OS === "web") return false;
   if (isHarmonyLikeDevice()) return false;
+  // Test / LAN verify APKs: FlashList has thrown "rendered size is not usable" on some OEMs
+  // and surfaces as ErrorBoundary「页面出现问题」. Prefer FlatList until layout is proven stable.
+  if (process.env.EXPO_PUBLIC_APP_VARIANT === "test") return false;
   return true;
 }
 

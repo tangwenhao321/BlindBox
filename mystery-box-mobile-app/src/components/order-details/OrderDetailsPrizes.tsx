@@ -98,7 +98,7 @@ export function OrderDetailsPrizes({
                 product={product}
                 duplicateIndex={prizeDuplicateMeta[index]?.duplicateIndex}
                 duplicateCount={prizeDuplicateMeta[index]?.duplicateCount}
-                onLongPressStory={() => onStory(resolveProductStory(product.id, product.name))}
+                onLongPressStory={() => onStory(resolveProductStory(product.id, product.name, product))}
               />
             </View>
           ))}

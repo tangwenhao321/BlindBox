@@ -58,7 +58,8 @@ public class MysteryBoxOrderDrawService {
             }
             boolean forceHigh = mysteryBoxUserPityService.shouldForceHigh(
                     mysteryBoxOrder.creator().id(),
-                    mysteryBoxOrderItem.mysteryBoxId()
+                    mysteryBoxOrderItem.mysteryBoxId(),
+                    mysteryBoxOrderItem.mysteryBoxCount()
             );
             List<ProductView> generateProducts = prizeStockService.drawAndConsume(
                     mysteryBoxOrder.creator().id(),

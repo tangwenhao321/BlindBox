@@ -50,6 +50,7 @@ export function MainTabsTabContent() {
     showNewcomerBar,
     onNewcomerPress,
     onOpenAddressModal,
+    onOpenAddressManage,
     onSelectAddress,
     onOpenCatalogSearch,
     onOpenPlayGuide,
@@ -70,36 +71,38 @@ export function MainTabsTabContent() {
 
   if (view === "home") {
     return (
-      <BoxListView
-        mode="home"
-        orders={orders}
-        onContinuePendingPayment={(orderId) => {
-          void onOpenOrderDetails(orderId);
-        }}
-        onViewAllPending={() => {
-          setOrderStatusFilter(ORDER_STATUS.TO_BE_PAID);
-          setView("orders");
-        }}
-        boxes={boxes}
-        pageLoading={pageLoading}
-        hasMore={hasMoreBoxes}
-        loadingMore={loadingMoreBoxes}
-        bannerUri={bannerUri}
-        bannerTitle={bannerTitle}
-        bannerSubtitle={bannerSubtitle}
-        onRefresh={onRefreshAll}
-        onLoadMore={onLoadMore}
-        onOpenDetails={onOpenDetails}
-        onContactSupport={() => requireAuth?.(() => featureViewProps.onOpenFeature(FEATURE_KEYS.CONTACT_SUPPORT))}
-        showNewcomerBar={showNewcomerBar}
-        onNewcomerPress={onNewcomerPress}
-        onOpenCatalogSearch={onOpenCatalogSearch}
-        onOpenPlayGuide={onOpenPlayGuide}
-        onOpenProbabilityDisclosure={onOpenProbabilityDisclosure}
-        catalogLoadError={boxesLoadError}
-        onRetryCatalog={onRefreshAll}
-        catalogSideData={homeCatalogSideData}
-      />
+      <ErrorBoundary onReset={() => resetTab("home")}>
+        <BoxListView
+          mode="home"
+          orders={orders}
+          onContinuePendingPayment={(orderId) => {
+            void onOpenOrderDetails(orderId);
+          }}
+          onViewAllPending={() => {
+            setOrderStatusFilter(ORDER_STATUS.TO_BE_PAID);
+            setView("orders");
+          }}
+          boxes={boxes}
+          pageLoading={pageLoading}
+          hasMore={hasMoreBoxes}
+          loadingMore={loadingMoreBoxes}
+          bannerUri={bannerUri}
+          bannerTitle={bannerTitle}
+          bannerSubtitle={bannerSubtitle}
+          onRefresh={onRefreshAll}
+          onLoadMore={onLoadMore}
+          onOpenDetails={onOpenDetails}
+          onContactSupport={() => requireAuth?.(() => featureViewProps.onOpenFeature(FEATURE_KEYS.CONTACT_SUPPORT))}
+          showNewcomerBar={showNewcomerBar}
+          onNewcomerPress={onNewcomerPress}
+          onOpenCatalogSearch={onOpenCatalogSearch}
+          onOpenPlayGuide={onOpenPlayGuide}
+          onOpenProbabilityDisclosure={onOpenProbabilityDisclosure}
+          catalogLoadError={boxesLoadError}
+          onRetryCatalog={onRefreshAll}
+          catalogSideData={homeCatalogSideData}
+        />
+      </ErrorBoundary>
     );
   }
 
@@ -138,7 +141,7 @@ export function MainTabsTabContent() {
           addresses={addresses}
           selectedAddressId={selectedAddressId}
           onSelectAddress={onSelectAddress}
-          onOpenAddressManage={onOpenAddressModal}
+          onOpenAddressManage={onOpenAddressManage}
           onOpenOrder={(orderId) => {
             onOpenOrderDetails(orderId);
           }}

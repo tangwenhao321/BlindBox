@@ -7,7 +7,7 @@ import type { ThemeColors } from "../../styles/themes";
 import type { MysteryBoxInsight } from "../../services/boxInsightService";
 import type { PityProgress } from "../../services/pityService";
 import { needsPityCompensate } from "../../utils/pityCompensate";
-import { pityPercentOf } from "./boxDetailsBenefitUtils";
+import { pityCopyI18nKey, pityPercentOf } from "../../utils/pityCopy";
 import { PityCompensateSheet } from "./PityCompensateSheet";
 
 type Props = {
@@ -39,7 +39,7 @@ export function BoxDetailsBenefitCards({ pityProgress, insight, token, boxId, on
         <View style={styles.pityCard}>
           <Text style={styles.pityTitle}>{t("boxDetails.pityTitle")}</Text>
           <Text style={styles.pityHint}>
-            {t("boxDetails.pityHint", {
+            {t(pityCopyI18nKey(pityProgress), {
               current: pityProgress.current,
               threshold: pityProgress.threshold,
               remaining: pityProgress.remaining,

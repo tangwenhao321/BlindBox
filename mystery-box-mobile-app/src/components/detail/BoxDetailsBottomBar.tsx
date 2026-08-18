@@ -12,6 +12,7 @@ import { radius, spacing, typography } from "../../styles/tokens";
 import type { Product } from "../../types";
 import type { PurchaseLimitStatus } from "../../services/purchaseLimitService";
 import { formatCurrency, formatCurrencyDiscount } from "../../utils/formatCurrency";
+import { pityCopyI18nKey } from "../../utils/pityCopy";
 import { LustrePillButton } from "../ui/LustrePillButton";
 import type { RefObject } from "react";
 
@@ -162,7 +163,7 @@ export function BoxDetailsBottomBar(props: Props) {
         ) : null}
         {pityProgress && pityProgress.threshold > 0 ? (
           <Text style={styles.bottomSave}>
-            {t("boxDetails.pityNearOpen", {
+            {t(pityCopyI18nKey(pityProgress, true), {
               current: pityProgress.current,
               threshold: pityProgress.threshold,
               remaining: pityProgress.remaining,

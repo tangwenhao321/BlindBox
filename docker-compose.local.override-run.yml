@@ -1,0 +1,30 @@
+﻿services:
+  mysql:
+    image: mysql:8
+    container_name: mystery-box-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: localdev
+      MYSQL_DATABASE: mystery_box
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+  redis:
+    image: redis:7
+    container_name: mystery-box-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass localdev
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+volumes:
+  mysql_data:
+  redis_data:

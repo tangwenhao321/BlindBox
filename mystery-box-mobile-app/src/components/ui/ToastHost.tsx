@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { Modal, StyleSheet, Text, View } from "react-native";
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Modal, StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "../../context/ThemeContext";
 import { useThemedStyles } from "../../hooks/useThemedStyles";
 import { layout, radius, shadows, spacing, typography } from "../../styles/tokens";
@@ -12,26 +11,24 @@ type Props = {
   elevated?: boolean;
 };
 
+/** RN Animated only — avoid Reanimated on Honor/Harmony where worklets break first paint. */
 export function ToastHost({ elevated = false }: Props) {
   const { colors } = useAppTheme();
   const styles = useThemedStyles(buildToastHostStyles);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "revealHint" } | null>(null);
-  const opacity = useSharedValue(0);
-
-  const wrapStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(
     () =>
       subscribeToast((next) => {
         if (!next) {
-          opacity.value = withTiming(0, { duration: 180 }, (finished) => {
-            "worklet";
-            if (finished) runOnJS(setToast)(null);
+          Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }).start(({ finished }) => {
+            if (finished) setToast(null);
           });
           return;
         }
         setToast({ message: next.message, type: next.type });
-        opacity.value = withTiming(1, { duration: 180 });
+        Animated.timing(opacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
       }),
     [opacity],
   );
@@ -52,7 +49,7 @@ export function ToastHost({ elevated = false }: Props) {
   const content = (
     <Animated.View
       pointerEvents="none"
-      style={[styles.wrap, elevated ? styles.wrapElevated : null, wrapStyle]}
+      style={[styles.wrap, elevated ? styles.wrapElevated : null, { opacity }]}
       accessibilityLiveRegion="polite"
       accessibilityRole="alert"
       accessibilityLabel={toast.message}

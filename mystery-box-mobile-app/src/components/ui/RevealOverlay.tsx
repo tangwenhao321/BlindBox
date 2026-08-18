@@ -14,6 +14,7 @@ type BaseProps = {
   boxId?: string;
   subtitle?: string;
   prizeName?: string;
+  prizeStoryTagline?: string;
   prizeImageUri?: string;
   prizeQualityType?: string;
   boxCoverUri?: string;

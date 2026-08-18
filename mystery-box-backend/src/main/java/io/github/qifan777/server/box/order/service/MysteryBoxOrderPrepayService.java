@@ -105,7 +105,10 @@ public class MysteryBoxOrderPrepayService {
         assertDrawModeBeforePayment(mysteryBoxOrder);
         // Fail fast before gateway charge when pity forceHigh has no high-tier stock.
         for (var item : mysteryBoxOrder.items()) {
-            assertPityHighStockAvailable(mysteryBoxOrder.creator().id(), item.mysteryBoxId());
+            assertPityHighStockAvailable(
+                    mysteryBoxOrder.creator().id(),
+                    item.mysteryBoxId(),
+                    item.mysteryBoxCount());
         }
         // Second compliance gate. The first runs at order creation, but an unpaid order can sit around
         // for a day, and in the meantime the user may have hit their cap or crossed an age boundary —
@@ -122,7 +125,11 @@ public class MysteryBoxOrderPrepayService {
     }
 
     void assertPityHighStockAvailable(String userId, String mysteryBoxId) {
-        if (!mysteryBoxUserPityService.shouldForceHigh(userId, mysteryBoxId)) {
+        assertPityHighStockAvailable(userId, mysteryBoxId, 1);
+    }
+
+    void assertPityHighStockAvailable(String userId, String mysteryBoxId, int upcomingCount) {
+        if (!mysteryBoxUserPityService.shouldForceHigh(userId, mysteryBoxId, upcomingCount)) {
             return;
         }
         if (prizeStockService.hasHighTierStock(mysteryBoxId)) {

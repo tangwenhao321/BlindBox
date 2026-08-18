@@ -8,6 +8,9 @@ export type SaveAddressVariables = {
   phoneNumber: string;
   details: string;
   houseNumber: string;
+  province?: string;
+  city?: string;
+  district?: string;
   top?: boolean;
 };
 
@@ -20,6 +23,9 @@ export function useSaveAddressMutation(token: string) {
         phoneNumber: payload.phoneNumber,
         details: payload.details,
         houseNumber: payload.houseNumber,
+        province: payload.province,
+        city: payload.city,
+        district: payload.district,
         top: payload.top,
       }),
     onSuccess: () => {

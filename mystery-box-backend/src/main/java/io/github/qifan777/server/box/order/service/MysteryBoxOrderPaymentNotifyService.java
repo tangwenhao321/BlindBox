@@ -235,7 +235,7 @@ public class MysteryBoxOrderPaymentNotifyService {
         // Fail closed before pool/stock mutation when pity cannot be fulfilled.
         for (var item : mysteryBoxOrder.items()) {
             String userId = mysteryBoxOrder.creator().id();
-            if (mysteryBoxUserPityService.shouldForceHigh(userId, item.mysteryBoxId())
+            if (mysteryBoxUserPityService.shouldForceHigh(userId, item.mysteryBoxId(), item.mysteryBoxCount())
                     && !prizeStockService.hasHighTierStock(item.mysteryBoxId())) {
                 mysteryBoxUserPityService.markCompensatePending(userId, item.mysteryBoxId());
                 handlePityStockExhaustedAfterPayment(mysteryBoxOrder, transactionId, eventType);

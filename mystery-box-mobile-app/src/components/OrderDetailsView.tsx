@@ -75,6 +75,7 @@ import { RevealSequenceChrome } from "./ui/RevealSequenceChrome";
 import { RevealStaticFallback } from "./ui/RevealStaticFallback";
 import { ProductStorySheet } from "./ui/ProductStorySheet";
 import type { ProductStory } from "../effects/revealProductStory";
+import { resolveProductStory } from "../effects/revealProductStory";
 import { shouldShowReturnWelcome, markReturnWelcomeShown } from "../effects/revealReturnWelcome";
 import { OrderShareCard } from "./OrderShareCard";
 import { SharePosterModal } from "./SharePosterModal";
@@ -640,6 +641,9 @@ function OrderDetailsViewInner(props: Props) {
           onPressSkip={() => handleSkipPress?.()}
           onLongPressAccelerate={() => accelerateReveal(true)}
           prizeName={topPrize?.name}
+          prizeStoryTagline={
+            topPrize ? resolveProductStory(topPrize.id, topPrize.name, topPrize).tagline : undefined
+          }
           prizeImageUri={topPrizeImage}
           prizeQualityType={topPrize?.qualityType}
           boxCoverUri={boxCoverUri}
@@ -672,6 +676,9 @@ function OrderDetailsViewInner(props: Props) {
           onPressSkip={() => handleSkipPress?.()}
           onLongPressAccelerate={() => accelerateReveal(true)}
           prizeName={topPrize?.name}
+          prizeStoryTagline={
+            topPrize ? resolveProductStory(topPrize.id, topPrize.name, topPrize).tagline : undefined
+          }
           prizeImageUri={topPrizeImage}
           prizeQualityType={topPrize?.qualityType}
           boxCoverUri={boxCoverUri}

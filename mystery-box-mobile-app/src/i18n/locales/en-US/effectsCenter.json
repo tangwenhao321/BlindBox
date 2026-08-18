@@ -21,6 +21,8 @@
     "progressHidden": "Draw a Hidden prize to unlock Party Carnival",
     "progressSeries": "Complete a series to unlock Adventure Narrative",
     "unlockedToast": "New effect unlocked: {{name}}",
-    "theme_festival": "Tết overlay (preview)"
+    "theme_festival": "Tết overlay (preview)",
+    "officialPreview": "Show official unlock rules",
+    "officialPreviewHint": "Test builds start fully unlocked. Turn this on to see locks from opens / Hidden / series complete."
   }
 }

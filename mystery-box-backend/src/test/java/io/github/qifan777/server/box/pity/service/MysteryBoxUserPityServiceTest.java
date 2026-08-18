@@ -220,6 +220,45 @@ class MysteryBoxUserPityServiceTest {
     }
 
     @Test
+    void shouldForceHigh_onTheDrawThatReachesThreshold() {
+        MysteryBox box = stubBox();
+        when(box.pityThreshold()).thenReturn(50);
+        when(jdbcTemplate.queryForList(
+                eq("SELECT draws_since_high FROM mystery_box_user_pity WHERE user_id = ? AND mystery_box_id = ? LIMIT 1"),
+                eq("user-1"),
+                eq("box-1")
+        )).thenReturn(List.of(Map.of("draws_since_high", 49)));
+        when(jdbcTemplate.queryForList(
+                eq("SELECT compensate_status FROM mystery_box_user_pity WHERE user_id = ? AND mystery_box_id = ? LIMIT 1"),
+                eq("user-1"),
+                eq("box-1")
+        )).thenReturn(List.of());
+
+        assertThat(service.shouldForceHigh("user-1", "box-1")).isTrue();
+        assertThat(service.shouldForceHigh("user-1", "box-1", 1)).isTrue();
+    }
+
+    @Test
+    void shouldForceHigh_whenBatchWillCrossThreshold() {
+        MysteryBox box = stubBox();
+        when(box.pityThreshold()).thenReturn(50);
+        when(jdbcTemplate.queryForList(
+                eq("SELECT draws_since_high FROM mystery_box_user_pity WHERE user_id = ? AND mystery_box_id = ? LIMIT 1"),
+                eq("user-1"),
+                eq("box-1")
+        )).thenReturn(List.of(Map.of("draws_since_high", 0)));
+        when(jdbcTemplate.queryForList(
+                eq("SELECT compensate_status FROM mystery_box_user_pity WHERE user_id = ? AND mystery_box_id = ? LIMIT 1"),
+                eq("user-1"),
+                eq("box-1")
+        )).thenReturn(List.of());
+
+        assertThat(service.shouldForceHigh("user-1", "box-1", 50)).isTrue();
+        assertThat(service.shouldForceHigh("user-1", "box-1", 49)).isFalse();
+        assertThat(service.shouldForceHigh("user-1", "box-1")).isFalse();
+    }
+
+    @Test
     void shouldForceHigh_falseWhenBelowThresholdOrZeroThreshold() {
         MysteryBox box = stubBox();
         when(box.pityThreshold()).thenReturn(50);

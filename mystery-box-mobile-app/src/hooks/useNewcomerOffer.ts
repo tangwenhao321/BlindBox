@@ -48,9 +48,9 @@ export function useNewcomerOffer(orders: Order[], authenticated: boolean, orders
   const hide = () => setVisible(false);
 
   const open = () => {
-    if (eligible) {
-      setVisible(true);
-    }
+    // Manual bar tap should open even if auto-popup eligibility was false (e.g. session dismiss).
+    if (hasOpenedBlindBox(orders)) return;
+    setVisible(true);
   };
 
   return {

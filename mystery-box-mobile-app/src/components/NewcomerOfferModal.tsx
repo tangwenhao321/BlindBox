@@ -109,6 +109,15 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
       <View style={styles.mask}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.card}>
+          <Pressable
+            style={styles.closeCorner}
+            onPress={onClose}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t("newcomerOffer.closeA11y")}
+          >
+            <Text style={styles.closeIcon}>✕</Text>
+          </Pressable>
           <View style={styles.tag}>
             <Text style={styles.tagText}>{t("newcomerOffer.tag")}</Text>
           </View>
@@ -203,9 +212,6 @@ export function NewcomerOfferModal({ visible, token, onClose, onBuyNow }: Props)
             </Text>
           </Pressable>
         </View>
-        <Pressable style={styles.closeOuter} onPress={onClose} accessibilityRole="button" accessibilityLabel={t("newcomerOffer.closeA11y")}>
-          <Text style={styles.closeIcon}>✕</Text>
-        </Pressable>
         </ScrollView>
       </View>
     </Modal>
@@ -229,6 +235,19 @@ function buildNewcomerOfferStyles(colors: ThemeColors) {
       borderRadius: radius.xl,
       padding: spacing.lg,
       maxHeight: "82%",
+      position: "relative",
+    },
+    closeCorner: {
+      position: "absolute",
+      top: spacing.sm,
+      right: spacing.sm,
+      zIndex: 2,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.bgSoft,
+      alignItems: "center",
+      justifyContent: "center",
     },
     tag: {
       alignSelf: "flex-start",
@@ -237,6 +256,7 @@ function buildNewcomerOfferStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.sm,
       paddingVertical: 3,
       marginBottom: spacing.sm,
+      marginRight: 44,
     },
     tagText: { color: colors.textOnBrand, fontSize: typography.micro, fontWeight: "800" },
     title: { fontSize: typography.h2, fontWeight: "900", marginBottom: spacing.xs },
@@ -292,16 +312,7 @@ function buildNewcomerOfferStyles(colors: ThemeColors) {
     },
     ctaDisabled: { opacity: 0.6 },
     ctaText: { color: colors.textOnBrand, fontSize: typography.h4, fontWeight: "900" },
-    closeOuter: {
-      marginTop: spacing.lg,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      backgroundColor: colors.bgCard,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    closeIcon: { fontSize: 18, color: colors.textMuted, fontWeight: "700" },
+    closeIcon: { fontSize: 16, color: colors.textMuted, fontWeight: "700" },
     missionsBlock: { marginBottom: spacing.md, gap: spacing.sm },
     missionsTitle: { fontWeight: "800", fontSize: typography.body, color: colors.textPrimary },
     missionRow: {

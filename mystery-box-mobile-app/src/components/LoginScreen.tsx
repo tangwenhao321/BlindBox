@@ -111,10 +111,12 @@ export function LoginScreen(props: Props) {
   const { colors: themeColors, isDark } = useAppTheme();
   const styles = useThemedStyles(buildLoginStyles);
   const screenStyles = useScreenStyles();
-  const { zaloLoginEnabled } = useAppPublicConfig();
+  const { zaloLoginEnabled, loadError: configLoadError } = useAppPublicConfig();
   const showZaloButton = Platform.OS !== "ios" && zaloLoginEnabled === true && typeof onZaloLogin === "function";
   /** Coming-soon teaser only while the feature flag is off (enabled → real button). */
   const showZaloComingSoon = Platform.OS !== "ios" && zaloLoginEnabled !== true;
+  const showDebugEndpoint =
+    __DEV__ || process.env.EXPO_PUBLIC_APP_VARIANT === "test";
   const [mode, setMode] = useState<"login" | "register">("login");
   const [loginMethod, setLoginMethod] = useState<"password" | "sms">("password");
   const [showPassword, setShowPassword] = useState(false);
@@ -324,13 +326,22 @@ export function LoginScreen(props: Props) {
 
             <Text style={styles.syncHint}>{t("auth.loginSyncHint")}</Text>
 
-            {__DEV__ ? <Text style={styles.endpoint}>{t("login.endpoint", { url: apiBaseUrl })}</Text> : null}
-            {__DEV__ ? (
+            {showDebugEndpoint ? (
+              <Text style={styles.endpoint} selectable>
+                {t("login.endpoint", { url: apiBaseUrl || "(empty)" })}
+              </Text>
+            ) : null}
+            {showDebugEndpoint && configLoadError ? (
+              <Text style={styles.endpointWarn} selectable>
+                {configLoadError}
+              </Text>
+            ) : null}
+            {showDebugEndpoint ? (
               <Text style={styles.endpointHint}>
                 {t("login.devAccountHint", { phone: "13800138000", password: "Admin@123456", code: "000000" })}
               </Text>
             ) : null}
-            {__DEV__ && usesLocalhost ? (
+            {showDebugEndpoint && usesLocalhost ? (
               <Text style={styles.endpointWarn}>{t("login.localhostWarn")}</Text>
             ) : null}
 

@@ -203,7 +203,7 @@ module.exports = {
   expo: {
     name: displayName,
     slug: isTestVariant ? "mystery-box-mobile-test" : "mystery-box-mobile",
-    version: "1.1.9",
+    version: "1.1.10",
     icon: "./assets/icon.png",
     orientation: "portrait",
     // Splash / native chrome defaults to night cabinet (#14110F).
@@ -222,7 +222,7 @@ module.exports = {
     ios: iosConfig,
     android: {
       package: isTestVariant ? "com.mysterybox.mobile.test" : "com.mysterybox.mobile",
-      versionCode: 20,
+      versionCode: 21,
       backgroundColor: "#14110F",
       statusBar: {
         backgroundColor: "#14110F",

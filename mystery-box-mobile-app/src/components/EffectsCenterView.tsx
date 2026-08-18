@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { SubPageHeader } from "./ui/SubPageHeader";
 import { ScreenScaffold } from "./ui/ScreenScaffold";
@@ -10,9 +10,13 @@ import { spacing, typography, radius } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 import {
   UNLOCKABLE_THEME_CATALOG,
+  effectiveUnlockedKeys,
+  isTestAppVariant,
   loadEquippedThemeId,
+  loadOfficialRulesPreview,
   loadThemeUnlockState,
   setEquippedThemeId,
+  setOfficialRulesPreview,
   type ThemeUnlockState,
   type UnlockableThemeKey,
 } from "../effects/revealThemeRotation";
@@ -29,24 +33,48 @@ export function EffectsCenterView({ onBack }: Props) {
   const [unlocks, setUnlocks] = useState<ThemeUnlockState | null>(null);
   const [equipped, setEquipped] = useState<string | null>(null);
   const [previewKey, setPreviewKey] = useState<UnlockableThemeKey | null>(null);
+  const [officialPreview, setOfficialPreview] = useState(false);
+  const showOfficialToggle = isTestAppVariant();
 
   const reload = useCallback(async () => {
-    const [state, eq] = await Promise.all([loadThemeUnlockState(), loadEquippedThemeId()]);
+    const [state, eq, preview] = await Promise.all([
+      loadThemeUnlockState(),
+      loadEquippedThemeId(),
+      loadOfficialRulesPreview(),
+    ]);
     setUnlocks(state);
     setEquipped(eq);
+    setOfficialPreview(preview);
   }, []);
 
   useEffect(() => {
     void reload();
   }, [reload]);
 
-  const unlocked = new Set(unlocks?.unlocked ?? ["classic", "asmr"]);
+  const unlocked = new Set(
+    unlocks ? effectiveUnlockedKeys(unlocks, { grantTestThemes: showOfficialToggle && !officialPreview }) : ["classic", "asmr"],
+  );
 
   return (
     <View style={styles.root}>
       <SubPageHeader title={t("effectsCenter.title")} onBack={onBack} />
       <ScreenScaffold>
         <Text style={styles.hint}>{t("effectsCenter.hint")}</Text>
+        {showOfficialToggle ? (
+          <View style={styles.toggleRow}>
+            <View style={styles.toggleText}>
+              <Text style={styles.name}>{t("effectsCenter.officialPreview")}</Text>
+              <Text style={styles.meta}>{t("effectsCenter.officialPreviewHint")}</Text>
+            </View>
+            <Switch
+              value={officialPreview}
+              onValueChange={(next) => {
+                void setOfficialRulesPreview(next).then(() => setOfficialPreview(next));
+              }}
+              accessibilityLabel={t("effectsCenter.officialPreview")}
+            />
+          </View>
+        ) : null}
         {unlocks ? (
           <Text style={styles.progress}>
             {t("effectsCenter.progressOpens", { count: unlocks.openCount })}
@@ -138,6 +166,16 @@ function buildStyles(colors: ThemeColors) {
       lineHeight: 20,
       marginBottom: spacing.md,
     },
+    toggleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      borderRadius: radius.md,
+      backgroundColor: colors.bgCard,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    toggleText: { flex: 1, gap: 4 },
     row: {
       borderRadius: radius.md,
       backgroundColor: colors.bgCard,

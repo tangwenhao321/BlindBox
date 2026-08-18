@@ -201,7 +201,10 @@ public class PrizeStockService {
         String baseRatesJson = ratesJson(baseLegendary, baseHidden, baseGeneral);
         String adjustedRatesJson = ratesJson(legendaryRate, hiddenRate, adjusted.generalRate());
 
-        if (forceHighTier) {
+        int pityStreak = mysteryBoxUserPityService.loseStreak(userId, mysteryBoxId);
+        int pityThreshold = mysteryBoxUserPityService.resolveThreshold(box);
+        boolean willHitPity = pityThreshold > 0 && pityStreak + count >= pityThreshold;
+        if (forceHighTier || willHitPity) {
             boolean hasHigh = hasTierStock(rels, productMap, QualityType.LEGENDARY)
                     || hasTierStock(rels, productMap, QualityType.HIDDEN);
             if (!hasHigh) {
@@ -217,8 +220,9 @@ public class PrizeStockService {
         List<Product> drawn = new ArrayList<>();
         List<QualityType> drawnTiers = new ArrayList<>();
         for (int i = 0; i < count; i++) {
+            boolean pityHit = pityThreshold > 0 && pityStreak + 1 >= pityThreshold;
             Product picked;
-            if (forceHighTier && i == count - 1) {
+            if (pityHit) {
                 picked = pickForceHighProduct(rels, productMap, legendaryRate, hiddenRate);
                 if (picked == null) {
                     mysteryBoxUserPityService.markCompensatePending(userId, mysteryBoxId);
@@ -244,6 +248,12 @@ public class PrizeStockService {
             consumeRelStock(rels, picked.id());
             drawn.add(picked);
             drawnTiers.add(picked.qualityType());
+            QualityType drawnTier = picked.qualityType();
+            if (drawnTier == QualityType.LEGENDARY || drawnTier == QualityType.HIDDEN) {
+                pityStreak = 0;
+            } else {
+                pityStreak++;
+            }
         }
 
         boolean poolEmpty = rels.stream().mapToInt(MysteryBoxProductRel::stockRemaining).sum() == 0;

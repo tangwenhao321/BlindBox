@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 
@@ -154,5 +155,61 @@ class PrizeStockServiceSpringIntegrationTest extends AbstractMysqlRedisSpringBoo
                 BOX_ID
         );
         assertEquals(5, logs);
+    }
+
+    @Test
+    void fiftyDrawPityForcesHighOnThresholdItem() {
+        jdbcTemplate.update("DELETE FROM mystery_box_user_pity WHERE mystery_box_id = ?", BOX_ID);
+        jdbcTemplate.update("DELETE FROM mystery_box_draw_log WHERE mystery_box_id = ?", BOX_ID);
+        jdbcTemplate.update("DELETE FROM mystery_box_product_rel WHERE mystery_box_id = ?", BOX_ID);
+        jdbcTemplate.update("DELETE FROM product WHERE id IN (?,?,?)", PROD_GENERAL, "prod-hid-pity", "prod-leg-pity");
+        jdbcTemplate.update(
+                """
+                        UPDATE mystery_box
+                        SET legendary_rate = 0, hidden_rate = 0, general_rate = 10000, pity_threshold = 5,
+                            pool_total = 40, pool_remaining = 40
+                        WHERE id = ?
+                        """,
+                BOX_ID
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO product (id, name, price, cover, quality_type, created_time, edited_time)
+                        VALUES (?,?,?,?,?,?,?)
+                        """,
+                PROD_GENERAL, "普通赏", java.math.BigDecimal.ONE, "", "GENERAL", java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO product (id, name, price, cover, quality_type, created_time, edited_time)
+                        VALUES (?,?,?,?,?,?,?)
+                        """,
+                "prod-hid-pity", "隐藏赏", java.math.BigDecimal.ONE, "", "HIDDEN", java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO product (id, name, price, cover, quality_type, created_time, edited_time)
+                        VALUES (?,?,?,?,?,?,?)
+                        """,
+                "prod-leg-pity", "传说赏", java.math.BigDecimal.ONE, "", "LEGENDARY", java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
+        );
+        jdbcTemplate.update(
+                """
+                        INSERT INTO mystery_box_product_rel
+                        (id, mystery_box_id, product_id, stock_total, stock_remaining, sort_order, is_last_one, created_time, edited_time)
+                        VALUES (?,?,?,?,?,?,0,?,?),(?,?,?,?,?,?,0,?,?),(?,?,?,?,?,?,0,?,?)
+                        """,
+                "rel-it-1", BOX_ID, PROD_GENERAL, 20, 20, 0, java.time.LocalDateTime.now(), java.time.LocalDateTime.now(),
+                "rel-it-h", BOX_ID, "prod-hid-pity", 10, 10, 1, java.time.LocalDateTime.now(), java.time.LocalDateTime.now(),
+                "rel-it-l", BOX_ID, "prod-leg-pity", 10, 10, 2, java.time.LocalDateTime.now(), java.time.LocalDateTime.now()
+        );
+
+        var drawn = prizeStockService.drawAndConsume(USER_ID, BOX_ID, "order-pity-5", 5, false);
+        assertEquals(5, drawn.size());
+        for (int i = 0; i < 4; i++) {
+            assertEquals("GENERAL", drawn.get(i).getQualityType().name());
+        }
+        String last = drawn.get(4).getQualityType().name();
+        assertTrue(last.equals("HIDDEN") || last.equals("LEGENDARY"), last);
     }
 }

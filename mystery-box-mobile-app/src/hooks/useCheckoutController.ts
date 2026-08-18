@@ -305,6 +305,7 @@ export function useCheckoutController(input: CheckoutControllerInput): CheckoutC
       navigate,
       createOrder: checkout.createOrder,
       openOrderDetailsPage: checkout.openOrderDetailsPage,
+      setPendingCheckoutResume: checkout.setPendingCheckoutResume,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional deps
     [
@@ -339,6 +340,7 @@ export function useCheckoutController(input: CheckoutControllerInput): CheckoutC
       navigate,
       checkout.createOrder,
       checkout.openOrderDetailsPage,
+      checkout.setPendingCheckoutResume,
     ],
   );
 

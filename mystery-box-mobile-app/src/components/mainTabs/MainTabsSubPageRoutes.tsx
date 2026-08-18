@@ -245,8 +245,14 @@ function LevelGiftRoute() {
 }
 
 function InviteCenterRoute() {
-  const { goBack, onOpenLogin } = useMainTabsShellViewState();
-  return <InviteCenterView onBack={goBack} onRequireLogin={onOpenLogin} />;
+  const { goBack, setView, onOpenLogin } = useMainTabsShellViewState();
+  return (
+    <InviteCenterView
+      onBack={goBack}
+      onRequireLogin={onOpenLogin}
+      onOpenTeamLottery={() => setView("teamLottery")}
+    />
+  );
 }
 
 function IpThemeRoute() {

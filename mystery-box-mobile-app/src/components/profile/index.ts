@@ -1,5 +1,6 @@
 export { ProfileHeroSection } from "./ProfileHeroSection";
 export { ProfileWalletSection } from "./ProfileWalletSection";
+export { ProfileQuickAccessSection } from "./ProfileQuickAccessSection";
 export { ProfileHighlightsSection } from "./ProfileHighlightsSection";
 export { ProfilePrimaryToolsSection } from "./ProfilePrimaryToolsSection";
 export { ProfileMoreToolsSection } from "./ProfileMoreToolsSection";

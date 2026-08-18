@@ -19,6 +19,7 @@ type Props = {
   initialTab?: Tab;
   onBack: () => void;
   onRequireLogin?: () => void;
+  onOpenTeamLottery?: () => void;
 };
 
 const TABS: { key: Tab; labelKey: string }[] = [
@@ -27,7 +28,7 @@ const TABS: { key: Tab; labelKey: string }[] = [
   { key: "commission", labelKey: "invite.tabCommission" },
 ];
 
-export function InviteCenterView({ initialTab = "promotion", onBack, onRequireLogin }: Props) {
+export function InviteCenterView({ initialTab = "promotion", onBack, onRequireLogin, onOpenTeamLottery }: Props) {
   const token = useAuthToken();
   const { t } = useTranslation();
   const styles = useThemedStyles(buildInviteCenterViewStyles);
@@ -64,7 +65,13 @@ export function InviteCenterView({ initialTab = "promotion", onBack, onRequireLo
           <PromotionView onBack={onBack} embedded referral={referral} onRequireLogin={onRequireLogin} />
         ) : null}
         {tab === "team" ? (
-          <TeamView onBack={onBack} embedded referral={referral} onRequireLogin={onRequireLogin} />
+          <TeamView
+            onBack={onBack}
+            embedded
+            referral={referral}
+            onRequireLogin={onRequireLogin}
+            onOpenTeamLottery={onOpenTeamLottery}
+          />
         ) : null}
         {tab === "commission" ? (
           <CommissionDetailsView onBack={onBack} embedded onRequireLogin={onRequireLogin} />

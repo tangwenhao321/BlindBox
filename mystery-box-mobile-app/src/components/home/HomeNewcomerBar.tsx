@@ -29,8 +29,8 @@ export function HomeNewcomerBar({
   const styles = useThemedStyles(buildNewcomerBarStyles);
   const priceText = formatCurrency(price);
   const showMissionProgress = missionsTotal > 0;
-  // Clear floating tab bar (layout.tabBarClearance) + safe area so the bar doesn't fight the tab strip
-  const bottomClearance = layout.tabBarClearance + Math.max(insets.bottom, spacing.sm) + spacing.md;
+  // Sit just above the edge-to-edge tab bar (content height + home indicator).
+  const bottomClearance = layout.tabBarClearance + Math.max(insets.bottom, spacing.xs);
   const newcomerBarGradient = [colors.brandDark, colors.brand, colors.newcomerBarGradientEnd] as const;
 
   const subtitle = showMissionProgress

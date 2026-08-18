@@ -308,10 +308,10 @@ export function withAlpha(hex: string, alpha: number): string {
 
 export const layout = {
   screenPaddingX: spacing.lg,
-  /** Clears floating BottomTabBar + typical safe padding (see BottomTabBar outer). */
-  screenPaddingBottom: 120,
+  /** Clears BottomTabBar (icon row + home-indicator padding). */
+  screenPaddingBottom: 108,
   /**
-   * Floating tab bar content height (icon row + label), excluding safe-area inset.
+   * Tab bar content height (icon row + label), excluding safe-area inset.
    * Keep in sync with BottomTabBar / HomeNewcomerBar / WarehouseView ship-bar clearance.
    */
   tabBarClearance: 72,

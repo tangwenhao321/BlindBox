@@ -98,6 +98,7 @@ type Props = {
   boxTeaserOpacity?: SharedValue<number>;
   subtitle?: string;
   prizeName?: string;
+  prizeStoryTagline?: string;
   prizeImageUri?: string;
   prizeQualityType?: string;
   boxCoverUri?: string;
@@ -154,6 +155,7 @@ export function OpenBoxRevealOverlay({
   boxTeaserOpacity,
   subtitle,
   prizeName,
+  prizeStoryTagline,
   prizeImageUri,
   prizeQualityType,
   boxCoverUri,
@@ -511,6 +513,7 @@ export function OpenBoxRevealOverlay({
         cardFlip={cardFlip}
         flashOpacity={flashOpacity}
         prizeName={prizeName}
+        prizeStoryTagline={prizeStoryTagline}
         rarityRings={storyboardRings}
         reduceMotion={reduceMotion}
         degradeLevel={degradeLevel}

@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { AccessibilityInfo, StyleSheet, View, type ViewStyle } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from "react-native-reanimated";
+import { useEffect, useRef, useState } from "react";
+import { AccessibilityInfo, Animated, StyleSheet, View, type ViewStyle } from "react-native";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { layout, radius, shadows, spacing } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
@@ -11,14 +10,24 @@ type Props = {
   variant?: "card" | "row" | "grid";
 };
 
+/** RN Animated shimmer — avoids Reanimated on Honor/Harmony first paint. */
 function Shimmer({ style, staticShimmer }: { style: ViewStyle; staticShimmer: boolean }) {
-  const opacity = useSharedValue(0.45);
+  const opacity = useRef(new Animated.Value(0.45)).current;
   useEffect(() => {
-    if (staticShimmer) return;
-    opacity.value = withRepeat(withTiming(0.95, { duration: 850 }), -1, true);
+    if (staticShimmer) {
+      opacity.setValue(0.7);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.95, duration: 850, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.45, duration: 850, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
   }, [opacity, staticShimmer]);
-  const animatedStyle = useAnimatedStyle(() => ({ opacity: staticShimmer ? 0.7 : opacity.value }));
-  return <Animated.View style={[style, animatedStyle]} />;
+  return <Animated.View style={[style, { opacity: staticShimmer ? 0.7 : opacity }]} />;
 }
 
 export function ListSkeleton(props: Props) {

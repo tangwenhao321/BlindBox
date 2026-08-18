@@ -19,15 +19,22 @@ export async function saveAddressForUser(
     phoneNumber: string;
     details: string;
     houseNumber: string;
+    province?: string;
+    city?: string;
+    district?: string;
     latitude?: number;
     longitude?: number;
     top?: boolean;
   },
 ) {
+  const region = (payload.province ?? "").trim();
   const response = await api.post<ApiResult<string>>(
     "/front/address/save",
     {
       ...payload,
+      province: region,
+      city: (payload.city ?? "").trim() || region,
+      district: (payload.district ?? "").trim(),
       latitude: payload.latitude ?? 0,
       longitude: payload.longitude ?? 0,
       top: payload.top ?? false,

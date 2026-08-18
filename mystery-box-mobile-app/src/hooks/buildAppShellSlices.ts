@@ -56,10 +56,11 @@ export type AppShellModalsParams = {
     drawCountOverride?: number,
   ) => void;
   openOrderDetailsPage: (orderId: string) => void | Promise<void>;
+  setPendingCheckoutResume?: (value: boolean) => void;
 };
 
 export function buildAppShellModalsSlice(params: AppShellModalsParams): AppModalsBuildInput {
-  const { token, newcomer, openDetailsPage, paymentShell, executeMockPayment, requestPayment, payWithPrepay, onPaymentConfirmed, address, activeBox, setActiveBox, navigate, createOrder, openOrderDetailsPage } =
+  const { token, newcomer, openDetailsPage, paymentShell, executeMockPayment, requestPayment, payWithPrepay, onPaymentConfirmed, address, activeBox, setActiveBox, navigate, createOrder, openOrderDetailsPage, setPendingCheckoutResume } =
     params;
   const {
     paymentSession,
@@ -84,6 +85,7 @@ export function buildAppShellModalsSlice(params: AppShellModalsParams): AppModal
     onNewcomerClose: () => void newcomer.dismiss(),
     onNewcomerBuy: (box: MysteryBox) => {
       newcomer.hide();
+      setPendingCheckoutResume?.(true);
       void openDetailsPage(box.id);
     },
     paymentSession,

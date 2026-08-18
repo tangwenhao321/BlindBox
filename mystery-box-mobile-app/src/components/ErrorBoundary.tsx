@@ -7,16 +7,23 @@ import { radius, spacing, typography } from "../styles/tokens";
 import type { ThemeColors } from "../styles/themes";
 
 type Props = { children: ReactNode; onReset?: () => void };
-type State = { error: Error | null };
+type State = { error: Error | null; componentStack: string | null };
+
+const SHOW_STACK =
+  __DEV__ ||
+  process.env.EXPO_PUBLIC_APP_VARIANT === "test" ||
+  process.env.EXPO_PUBLIC_APP_VARIANT === "dev";
 
 function ErrorFallback({
   onReset,
   hasHomeReset,
   errorMessage,
+  componentStack,
 }: {
   onReset: () => void;
   hasHomeReset: boolean;
   errorMessage?: string;
+  componentStack?: string | null;
 }) {
   const { t } = useTranslation();
   const styles = useThemedStyles(buildErrorBoundaryStyles);
@@ -25,9 +32,17 @@ function ErrorFallback({
     <View style={styles.wrap}>
       <Text style={styles.title}>{t("errorBoundary.title")}</Text>
       <Text style={styles.msg}>{t("errorBoundary.description")}</Text>
-      {errorMessage ? (
+      <Text style={styles.detail} selectable>
+        {errorMessage?.trim() || t("errorBoundary.unknown")}
+      </Text>
+      {SHOW_STACK ? (
         <Text style={styles.detail} selectable>
-          {errorMessage}
+          build {process.env.EXPO_PUBLIC_APP_VARIANT || "dev"} / {String(process.env.EXPO_PUBLIC_API_BASE_URL || "").slice(0, 48)}
+        </Text>
+      ) : null}
+      {SHOW_STACK && componentStack ? (
+        <Text style={styles.stack} selectable>
+          {componentStack.trim().slice(0, 900)}
         </Text>
       ) : null}
       <Pressable
@@ -43,7 +58,7 @@ function ErrorFallback({
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null };
+  state: State = { error: null, componentStack: null };
 
   static getDerivedStateFromError(error: Error) {
     return { error };
@@ -53,10 +68,11 @@ export class ErrorBoundary extends Component<Props, State> {
     // eslint-disable-next-line no-console -- intentional diagnostics
     console.error("App render error", error, info.componentStack);
     reportAppError(error, info.componentStack?.slice(0, 120));
+    this.setState({ componentStack: info.componentStack ?? null });
   }
 
   private reset = () => {
-    this.setState({ error: null });
+    this.setState({ error: null, componentStack: null });
     this.props.onReset?.();
   };
 
@@ -69,6 +85,7 @@ export class ErrorBoundary extends Component<Props, State> {
         onReset={this.reset}
         hasHomeReset={!!this.props.onReset}
         errorMessage={this.state.error?.message}
+        componentStack={this.state.componentStack}
       />
     );
   }
@@ -91,6 +108,15 @@ function buildErrorBoundaryStyles(colors: ThemeColors) {
       textAlign: "center",
       marginBottom: spacing.md,
       paddingHorizontal: spacing.sm,
+    },
+    stack: {
+      fontSize: typography.micro,
+      color: colors.textMuted,
+      textAlign: "left",
+      alignSelf: "stretch",
+      marginBottom: spacing.md,
+      paddingHorizontal: spacing.sm,
+      maxHeight: 180,
     },
     btn: {
       backgroundColor: colors.brand,

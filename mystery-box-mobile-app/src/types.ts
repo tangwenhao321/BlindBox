@@ -29,7 +29,18 @@ export type UserBalanceLog = {
 };
 
 /** `price` is optional: warehouse and order-item payloads return prize products without a price. */
-export type Product = { id: string; name: string; price?: number; qualityType?: string; cover?: string };
+export type ProductAttribute = { name?: string; values?: string[] };
+export type Product = {
+  id: string;
+  name: string;
+  price?: number;
+  qualityType?: string;
+  cover?: string;
+  description?: string;
+  brand?: string;
+  tags?: string[];
+  attributes?: ProductAttribute[];
+};
 export type MysteryBoxCategory = {
   id: string;
   name: string;

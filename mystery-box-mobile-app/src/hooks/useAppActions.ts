@@ -28,6 +28,7 @@ import { invokeWechatPay } from "../utils/wechatPay";
 import type { PrepayResult, VNPayPrepayResult, MoMoPrepayResult , MysteryBox, Order } from "../types";
 import { consumePendingPaymentWallet, peekPendingPaymentWallet } from "../payment/paymentWalletPreference";
 import { validateAddressForm } from "../utils/addressValidation";
+import { normalizePhoneInput } from "../utils/loginValidation";
 import { toast } from "../utils/toast";
 import { isIosDigitalGoodsRestricted } from "../utils/iosDigitalGoodsGate";
 import { trackEvent } from "../utils/analytics";
@@ -181,14 +182,17 @@ export function useAppActions(params: Params) {
     details: string;
     houseNumber: string;
     isFirstAddress: boolean;
-  }) => {
+  }): Promise<boolean> => {
     const validationError = validateAddressForm(payload);
     if (validationError) {
       toast.info(validationError);
-      return;
+      return false;
     }
+    const phoneNumber = normalizePhoneInput(payload.phoneNumber);
+    const region = (payload.region ?? "").trim();
+    const district = (payload.district ?? "").trim();
     const addressDetails = mergeAddressForSave({
-      region: payload.region ?? "",
+      region,
       district: payload.district,
       ward: payload.ward,
       details: payload.details,
@@ -199,27 +203,35 @@ export function useAppActions(params: Params) {
       payload: {
         id: payload.id,
         realName: payload.realName,
-        phoneNumber: payload.phoneNumber,
+        phoneNumber,
         details: addressDetails,
         houseNumber: payload.houseNumber,
+        province: region,
+        city: region,
+        district,
         top: payload.isFirstAddress,
       },
     };
+    let saved = false;
     const performSave = async () => {
       setSavingAddress(true);
       try {
         await saveAddressMutation.mutateAsync({
           id: payload.id,
           realName: payload.realName,
-          phoneNumber: payload.phoneNumber,
+          phoneNumber,
           details: addressDetails,
           houseNumber: payload.houseNumber,
+          province: region,
+          city: region,
+          district,
           top: payload.isFirstAddress,
         });
         trackEvent(ANALYTICS_EVENTS.ADDRESS_SAVE, { isEdit: Boolean(payload.id) });
         setShowAddressModal(false);
         await syncAddresses();
         toast.success(i18n.t("actions.addressSaved"));
+        saved = true;
       } catch (error) {
         reportAppError(toAppError(error), "save_address");
         toast.error(parseError(error));
@@ -227,8 +239,9 @@ export function useAppActions(params: Params) {
         setSavingAddress(false);
       }
     };
-    if (queueIfOffline("offline.actionSaveAddress", performSave, persistPayload)) return;
+    if (queueIfOffline("offline.actionSaveAddress", performSave, persistPayload)) return false;
     await performSave();
+    return saved;
   };
 
   const createOrder = async (payload: {

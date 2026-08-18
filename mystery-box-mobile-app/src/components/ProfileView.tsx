@@ -35,6 +35,7 @@ import {
   ProfileHighlightsSection,
   ProfileMoreToolsSection,
   ProfilePrimaryToolsSection,
+  ProfileQuickAccessSection,
   ProfileWalletSection,
   buildProfileStyles,
   resolveAppGridCellWidth,
@@ -96,7 +97,7 @@ export function ProfileView(props: Props) {
   const authToken = useAuthToken();
   const { width: windowWidth } = useWindowDimensions();
   const [appGridWidth, setAppGridWidth] = useState(0);
-  const [moreToolsExpanded, setMoreToolsExpanded] = useState(false);
+  const [moreToolsExpanded, setMoreToolsExpanded] = useState(true);
   const appCellWidth = useMemo(() => {
     const measured = appGridWidth > 0 ? resolveAppGridCellWidth(appGridWidth) : 0;
     if (measured > 0) return measured;
@@ -133,6 +134,7 @@ export function ProfileView(props: Props) {
   }, [recentHighlights.length, t]);
 
   const luckyCoins = referralStats?.luckyCoins ?? userProfile?.luckyCoins ?? 0;
+  const starStones = referralStats?.starStones ?? userProfile?.starStones ?? 0;
   const levelProgress = computeMemberLevelProgress(luckyCoins);
 
   useFocusEffect(
@@ -322,6 +324,7 @@ export function ProfileView(props: Props) {
           loggedIn={loggedIn}
           balanceAmount={balanceAmount}
           luckyCoins={luckyCoins}
+          starStones={starStones}
           couponCount={couponCount}
           refreshingBalance={refreshingBalance}
           balanceUpdatedAtText={balanceUpdatedAtText}
@@ -332,6 +335,8 @@ export function ProfileView(props: Props) {
           onOpenFeature={onOpenFeature}
           styles={styles}
         />
+
+        <ProfileQuickAccessSection guard={guard} onOpenFeature={onOpenFeature} styles={styles} />
 
         {referralError ? <ListErrorBanner message={referralError} onRetry={() => void refreshReferral()} /> : null}
 

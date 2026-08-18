@@ -131,7 +131,8 @@ public class MysteryBoxOrderCreateService {
             newcomerBoxService.assertCanPurchase(userId, item.getMysteryBoxId());
             prizeStockService.assertStockAvailable(item.getMysteryBoxId(), item.getMysteryBoxCount());
             mysteryBoxRepository.assertPoolAvailable(item.getMysteryBoxId(), item.getMysteryBoxCount());
-            prepayService.assertPityHighStockAvailable(userId, item.getMysteryBoxId());
+            prepayService.assertPityHighStockAvailable(
+                    userId, item.getMysteryBoxId(), item.getMysteryBoxCount());
             mysteryBoxDrawQueueService.assertCanDrawInQueue(item.getMysteryBoxId(), mode);
             if ("buyout".equalsIgnoreCase(mode)) {
                 mysteryBoxDrawQueueService.acquireBuyoutLock(item.getMysteryBoxId(), userId);

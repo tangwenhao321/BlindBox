@@ -4,7 +4,7 @@ import { initCrashMonitoring } from "../src/utils/crashMonitoring";
 
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import {
   BeVietnamPro_400Regular,
   BeVietnamPro_500Medium,
@@ -24,22 +24,27 @@ export default function RootLayout() {
     BeVietnamPro_600SemiBold,
   });
 
-  if (!fontsLoaded) {
-    return (
-      <AppProviders>
-        <View style={{ flex: 1, backgroundColor: colors.bgPage }}>
-          <AppLoadingSplash />
-        </View>
-      </AppProviders>
-    );
-  }
-
   return (
     <AppProviders>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(shell)" />
-      </Stack>
+      <View style={{ flex: 1, backgroundColor: colors.bgPage }}>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(shell)" />
+        </Stack>
+        {!fontsLoaded ? (
+          <View
+            pointerEvents="none"
+            style={{
+              ...StyleSheet.absoluteFillObject,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: colors.bgPage,
+            }}
+          >
+            <AppLoadingSplash />
+          </View>
+        ) : null}
+      </View>
     </AppProviders>
   );
 }

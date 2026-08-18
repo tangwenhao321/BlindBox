@@ -5,10 +5,13 @@ import type { AppAuthSession } from "./useAppAuthSession";
 describe("buildAppShellSlices", () => {
   it("buildAppShellModalsSlice wires newcomer and payment session", () => {
     const onNewcomerClose = vi.fn();
+    const hide = vi.fn();
+    const openDetailsPage = vi.fn();
+    const setPendingCheckoutResume = vi.fn();
     const slice = buildAppShellModalsSlice({
       token: "t1",
-      newcomer: { visible: true, dismiss: onNewcomerClose, hide: vi.fn(), open: vi.fn() },
-      openDetailsPage: vi.fn(),
+      newcomer: { visible: true, dismiss: onNewcomerClose, hide, open: vi.fn() },
+      openDetailsPage,
       paymentShell: {
         paymentSession: { orderId: "o1", payAmount: 10 },
         setPaymentSession: vi.fn(),
@@ -61,6 +64,7 @@ describe("buildAppShellSlices", () => {
       navigate: vi.fn(),
       createOrder: vi.fn(),
       openOrderDetailsPage: vi.fn(),
+      setPendingCheckoutResume,
     });
 
     expect(slice.token).toBe("t1");
@@ -68,6 +72,10 @@ describe("buildAppShellSlices", () => {
     expect(slice.paymentSession?.orderId).toBe("o1");
     slice.onNewcomerClose();
     expect(onNewcomerClose).toHaveBeenCalled();
+    slice.onNewcomerBuy({ id: "box-1" } as never);
+    expect(hide).toHaveBeenCalled();
+    expect(setPendingCheckoutResume).toHaveBeenCalledWith(true);
+    expect(openDetailsPage).toHaveBeenCalledWith("box-1");
   });
 
   it("buildAppShellLoginSlice maps auth session fields", () => {

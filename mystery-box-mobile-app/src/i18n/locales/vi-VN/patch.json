@@ -710,7 +710,9 @@
     "progressHidden": "Rút Hidden để mở khóa Tiệc carnival",
     "progressSeries": "Hoàn thành một series để mở khóa Phiêu lưu tự sự",
     "unlockedToast": "Đã mở khóa hiệu ứng: {{name}}",
-    "theme_festival": "Tết (xem trước)"
+    "theme_festival": "Tết (xem trước)",
+    "officialPreview": "Hiện theo luật chính thức",
+    "officialPreviewHint": "Bản test mặc định mở hết. Bật để khóa theo số lần mở / Hidden / hoàn thành series như bản chính thức."
   },
   "actions": {
     "iosRedeemBlocked": "Không thể đổi thưởng thành số dư ví trên iOS. Vui lòng yêu cầu giao hàng vật lý.",

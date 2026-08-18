@@ -174,7 +174,7 @@ export function OrderResultRevealPhase({
   }, [dismissSummary, onTryAgain]);
 
   const story = currentRevealProduct
-    ? resolveProductStory(currentRevealProduct.id, currentRevealProduct.name)
+    ? resolveProductStory(currentRevealProduct.id, currentRevealProduct.name, currentRevealProduct)
     : null;
   const subtitle =
     revealTheme?.storyboard === "adventure" && story?.tagline
@@ -250,6 +250,7 @@ export function OrderResultRevealPhase({
           profile={profile}
           revealTheme={revealTheme}
           prizeName={currentRevealProduct?.name}
+          prizeStoryTagline={story?.tagline}
           prizeImageUri={currentPrizeImage}
           prizeQualityType={currentRevealProduct?.qualityType}
           boxCoverUri={boxCoverUri}
@@ -289,6 +290,7 @@ export function OrderResultRevealPhase({
           cardFlip={reanimatedReveal.cardFlip}
           boxTeaserOpacity={reanimatedReveal.boxTeaserOpacity}
           prizeName={currentRevealProduct?.name}
+          prizeStoryTagline={story?.tagline}
           prizeImageUri={currentPrizeImage}
           prizeQualityType={currentRevealProduct?.qualityType}
           boxCoverUri={boxCoverUri}

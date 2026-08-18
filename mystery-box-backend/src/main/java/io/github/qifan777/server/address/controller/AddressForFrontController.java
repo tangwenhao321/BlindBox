@@ -20,6 +20,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.babyfish.jimmer.client.FetchBy;
 import org.babyfish.jimmer.client.meta.DefaultFetcherOwner;
+import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.springframework.data.domain.Page;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -68,11 +69,12 @@ public class AddressForFrontController {
         if (addressRepository.findUserAll(StpUtil.getLoginIdAsString()).isEmpty()) {
             addressInput.setTop(true);
         }
-        return addressRepository.save(AddressDraft.$.produce(addressInput.toEntity(), draft -> {
+        Address entity = AddressDraft.$.produce(addressInput.toEntity(), draft -> {
             String province = nullableField(addressInput.getProvince());
             String city = nullableField(addressInput.getCity());
             String district = nullableField(addressInput.getDistrict());
-            boolean skipTencentGeocode = "vnpay".equalsIgnoreCase(marketProperties.getPaymentProvider());
+            boolean skipTencentGeocode = "vnpay".equalsIgnoreCase(marketProperties.getPaymentProvider())
+                    || !isUsableMapKey(tenantMapProperty.getKey());
             if (!skipTencentGeocode && (!StringUtils.hasText(province) || !StringUtils.hasText(city))) {
                 String details = addressInput.getDetails();
                 if (StringUtils.hasText(details) && details.length() <= 200) {
@@ -106,7 +108,18 @@ public class AddressForFrontController {
             draft.setProvince(province);
             draft.setCity(city);
             draft.setDistrict(district);
-        })).id();
+        });
+        // Jimmer 0.11+: new entities without @Key / id must use INSERT_ONLY (plain save → 10007).
+        SaveMode mode = StringUtils.hasText(addressInput.getId()) ? SaveMode.UPDATE_ONLY : SaveMode.INSERT_ONLY;
+        return addressRepository.save(entity, mode).id();
+    }
+
+    private static boolean isUsableMapKey(String key) {
+        if (!StringUtils.hasText(key)) {
+            return false;
+        }
+        String trimmed = key.trim();
+        return !"xxx".equalsIgnoreCase(trimmed) && !"your-key".equalsIgnoreCase(trimmed);
     }
 
     @DeleteMapping

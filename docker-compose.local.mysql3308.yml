@@ -1,0 +1,16 @@
+﻿services:
+  mysql:
+    image: mysql:8
+    container_name: mystery-box-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: localdev
+      MYSQL_DATABASE: mystery_box
+      TZ: Asia/Shanghai
+    ports:
+      - "3308:3306"
+    volumes:
+      - mystery_box_mysql_data_v3:/var/lib/mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+volumes:
+  mystery_box_mysql_data_v3:

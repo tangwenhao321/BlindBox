@@ -178,8 +178,11 @@ export function useAppData(sessionToken = "") {
         queryFn: () => fetchAddressesQuery(token),
         staleTime: 60_000,
       });
-      const topAddress = list.find((item) => item.top) || list[0];
-      setSelectedAddressId(topAddress?.id ?? "");
+      setSelectedAddressId((prev) => {
+        if (prev && list.some((item) => item.id === prev)) return prev;
+        const topAddress = list.find((item) => item.top) || list[0];
+        return topAddress?.id ?? "";
+      });
     } catch (error) {
       setAddressesLoadError(parseError(error));
       throw error;

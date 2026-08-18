@@ -78,6 +78,9 @@ export async function executePersistedOfflineMutation(item: PersistedOfflineMuta
         phoneNumber: String(payload.phoneNumber ?? ""),
         details: String(payload.details ?? ""),
         houseNumber: String(payload.houseNumber ?? ""),
+        province: payload.province != null ? String(payload.province) : undefined,
+        city: payload.city != null ? String(payload.city) : undefined,
+        district: payload.district != null ? String(payload.district) : undefined,
         top: Boolean(payload.top),
       });
       invalidateAddressQueries(token);

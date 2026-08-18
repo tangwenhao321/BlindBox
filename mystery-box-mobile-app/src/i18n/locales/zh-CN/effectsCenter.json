@@ -21,6 +21,8 @@
     "progressHidden": "获得隐藏款后解锁派对狂欢",
     "progressSeries": "集齐某一系列后解锁沉浸式叙事",
     "unlockedToast": "新特效已解锁：{{name}}",
-    "theme_festival": "春节限定（预览）"
+    "theme_festival": "春节限定（预览）",
+    "officialPreview": "按正式规则显示",
+    "officialPreviewHint": "测试包默认全开。打开后按开箱次数 / 隐藏款 / 集齐系列锁定，和正式包一致。"
   }
 }

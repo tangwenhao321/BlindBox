@@ -291,14 +291,19 @@ export const BoxListView = memo(function BoxListView(props: Props) {
 
   const bannerSlides = useMemo(() => {
     if (mode === "home" && sideData.homeSummary?.banners?.length) {
-      return sideData.homeSummary.banners.map((banner) => ({
+      return sideData.homeSummary.banners.map((banner, i) => ({
         uri: resolveBoxImageUrl({
           id: banner.id ?? "banner",
           name: banner.content ?? "banner",
           cover: banner.picture,
         }),
         title: banner.content || t("home.bannerActivity"),
-        subtitle: "",
+        subtitle:
+          i === 0
+            ? t("home.bannerPlayGuideSub")
+            : i === 1
+              ? t("home.bannerProbabilitySub")
+              : t("home.bannerMallSub"),
         cta: t("home.bannerCtaBrowse"),
       }));
     }

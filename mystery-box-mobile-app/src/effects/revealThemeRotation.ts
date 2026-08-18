@@ -8,6 +8,14 @@ import {
   inferStoryboardFromText,
   type RevealStoryboardId,
 } from "./revealStoryboard";
+import { getSessionAuthToken } from "../utils/authTokenStore";
+import { revealStorageKey } from "../utils/revealStorageNamespace";
+import {
+  fetchThemeProgress,
+  recordThemeProgressOpen,
+  saveEquippedThemeRemote,
+  type RemoteThemeProgress,
+} from "../services/themeProgressService";
 
 export type DocThemeAlias = "adventure" | "cyberpunk" | "asmr" | "party";
 
@@ -17,6 +25,8 @@ export const DOC_THEME_ROTATION: DocThemeAlias[] = ["cyberpunk", "adventure", "a
 const UNLOCK_STORAGE_KEY = "reveal_theme_unlocks_v1";
 const EQUIPPED_STORAGE_KEY = "reveal_theme_equipped_v1";
 const LAST_SEEN_THEME_KEY = "reveal_theme_last_seen_v1";
+const OFFICIAL_PREVIEW_KEY = "reveal_theme_official_preview_v1";
+const OPENED_ORDERS_KEY = "reveal_theme_unlock_orders_v1";
 
 /** Catalog keys shown in Effects Center (classic + Doc2 packs). */
 export type UnlockableThemeKey = "classic" | DocThemeAlias;
@@ -40,13 +50,16 @@ export type ThemeUnlockState = {
   seriesComplete: boolean;
 };
 
-const STARTER_UNLOCKED: UnlockableThemeKey[] =
-  process.env.EXPO_PUBLIC_APP_VARIANT === "test"
-    ? ["classic", "asmr", "cyberpunk", "party", "adventure"]
-    : ["classic", "asmr"];
+const STARTER_UNLOCKED: UnlockableThemeKey[] = ["classic", "asmr"];
+const ALL_DOC_UNLOCKED: UnlockableThemeKey[] = ["classic", "asmr", "cyberpunk", "party", "adventure"];
 
 let cachedUnlocks: ThemeUnlockState | null = null;
 let cachedEquipped: string | null | undefined = undefined;
+let cachedOfficialPreview: boolean | null = null;
+
+export function isTestAppVariant(): boolean {
+  return process.env.EXPO_PUBLIC_APP_VARIANT === "test";
+}
 
 export function defaultUnlockState(): ThemeUnlockState {
   return {
@@ -57,6 +70,7 @@ export function defaultUnlockState(): ThemeUnlockState {
   };
 }
 
+/** Earned unlocks only (classic + ASMR, then 50 opens / hidden / series). */
 export function applyUnlockProgress(
   state: ThemeUnlockState,
   patch: Partial<Pick<ThemeUnlockState, "openCount" | "hasHidden" | "seriesComplete">>,
@@ -64,30 +78,32 @@ export function applyUnlockProgress(
   const next: ThemeUnlockState = {
     ...state,
     ...patch,
-    unlocked: [...new Set(state.unlocked)],
+    unlocked: [...STARTER_UNLOCKED],
   };
-  if (!next.unlocked.includes("classic")) next.unlocked.push("classic");
-  if (!next.unlocked.includes("asmr")) next.unlocked.push("asmr");
-  if (process.env.EXPO_PUBLIC_APP_VARIANT === "test") {
-    for (const key of ["cyberpunk", "party", "adventure"] as UnlockableThemeKey[]) {
-      if (!next.unlocked.includes(key)) next.unlocked.push(key);
-    }
-  }
-  if (next.openCount >= 50 && !next.unlocked.includes("cyberpunk")) {
-    next.unlocked.push("cyberpunk");
-  }
-  if (next.hasHidden && !next.unlocked.includes("party")) {
-    next.unlocked.push("party");
-  }
-  if (next.seriesComplete && !next.unlocked.includes("adventure")) {
-    next.unlocked.push("adventure");
-  }
+  if (next.openCount >= 50) next.unlocked.push("cyberpunk");
+  if (next.hasHidden) next.unlocked.push("party");
+  if (next.seriesComplete) next.unlocked.push("adventure");
+  next.unlocked = [...new Set(next.unlocked)];
   return next;
+}
+
+function shouldGrantTestThemes(): boolean {
+  return isTestAppVariant() && !getCachedOfficialRulesPreview();
+}
+
+/** Unlocks shown in UI / used for equip + surprise. Test pack can preview official locks. */
+export function effectiveUnlockedKeys(
+  state: ThemeUnlockState = getCachedUnlockState(),
+  opts?: { grantTestThemes?: boolean },
+): UnlockableThemeKey[] {
+  const earned = applyUnlockProgress(state, {}).unlocked;
+  const grant = opts?.grantTestThemes ?? shouldGrantTestThemes();
+  return grant ? [...ALL_DOC_UNLOCKED] : earned;
 }
 
 export function unlockedRevealThemeIds(state: ThemeUnlockState = getCachedUnlockState()): RevealThemeId[] {
   const ids = new Set<RevealThemeId>();
-  for (const key of state.unlocked) {
+  for (const key of effectiveUnlockedKeys(state)) {
     const row = UNLOCKABLE_THEME_CATALOG.find((item) => item.key === key);
     if (row) ids.add(row.themeId);
   }
@@ -115,7 +131,7 @@ export function rollSurpriseDocTheme(
   const cfg = getRevealRemoteConfig();
   const trigger = rate ?? cfg.randomTriggerRate ?? 0.05;
   if (random() >= trigger) return null;
-  const owned = new Set(unlockedKeys ?? getCachedUnlockState().unlocked);
+  const owned = new Set(unlockedKeys ?? effectiveUnlockedKeys());
   const unowned = DOC_THEME_ROTATION.filter((key) => !owned.has(key));
   const pool = unowned.length > 0 ? unowned : DOC_THEME_ROTATION;
   return pool[Math.floor(random() * pool.length)]!;
@@ -219,6 +235,52 @@ export function resolveActiveStoryboardId(opts?: {
   return weeklyDocTheme(opts?.nowMs, cfg.rotationCycle ?? 7);
 }
 
+export function getCachedOfficialRulesPreview(): boolean {
+  if (cachedOfficialPreview != null) return cachedOfficialPreview;
+  return false;
+}
+
+export async function loadOfficialRulesPreview(): Promise<boolean> {
+  if (!isTestAppVariant()) {
+    cachedOfficialPreview = false;
+    return false;
+  }
+  try {
+    const raw = await AsyncStorage.getItem(OFFICIAL_PREVIEW_KEY);
+    cachedOfficialPreview = raw === "1";
+    return cachedOfficialPreview;
+  } catch {
+    cachedOfficialPreview = false;
+    return false;
+  }
+}
+
+export async function setOfficialRulesPreview(enabled: boolean): Promise<boolean> {
+  cachedOfficialPreview = !!enabled;
+  await AsyncStorage.setItem(OFFICIAL_PREVIEW_KEY, cachedOfficialPreview ? "1" : "0");
+  return cachedOfficialPreview;
+}
+
+function unlockStorageKey(): string {
+  return revealStorageKey(UNLOCK_STORAGE_KEY);
+}
+
+function equippedStorageKey(): string {
+  return revealStorageKey(EQUIPPED_STORAGE_KEY);
+}
+
+function openedOrdersStorageKey(): string {
+  return revealStorageKey(OPENED_ORDERS_KEY);
+}
+
+function mergeRemoteProgress(local: ThemeUnlockState, remote: RemoteThemeProgress): ThemeUnlockState {
+  return applyUnlockProgress(local, {
+    openCount: Math.max(local.openCount, remote.openCount),
+    hasHidden: local.hasHidden || remote.hasHidden,
+    seriesComplete: local.seriesComplete || remote.seriesComplete,
+  });
+}
+
 export function getCachedUnlockState(): ThemeUnlockState {
   return cachedUnlocks ?? defaultUnlockState();
 }
@@ -227,15 +289,16 @@ export function getCachedEquippedThemeId(): string | null {
   return cachedEquipped === undefined ? null : cachedEquipped;
 }
 
-export async function loadThemeUnlockState(): Promise<ThemeUnlockState> {
+async function readUnlockStateRaw(): Promise<ThemeUnlockState> {
   try {
-    const raw = await AsyncStorage.getItem(UNLOCK_STORAGE_KEY);
+    const raw =
+      (await AsyncStorage.getItem(unlockStorageKey())) ??
+      (await AsyncStorage.getItem(UNLOCK_STORAGE_KEY));
     if (!raw) {
-      cachedUnlocks = defaultUnlockState();
-      return cachedUnlocks;
+      return defaultUnlockState();
     }
     const parsed = JSON.parse(raw) as Partial<ThemeUnlockState>;
-    cachedUnlocks = applyUnlockProgress(
+    return applyUnlockProgress(
       {
         ...defaultUnlockState(),
         unlocked: Array.isArray(parsed.unlocked)
@@ -247,17 +310,34 @@ export async function loadThemeUnlockState(): Promise<ThemeUnlockState> {
       },
       {},
     );
-    return cachedUnlocks;
   } catch {
-    cachedUnlocks = defaultUnlockState();
-    return cachedUnlocks;
+    return defaultUnlockState();
   }
+}
+
+export async function loadThemeUnlockState(): Promise<ThemeUnlockState> {
+  await loadOfficialRulesPreview();
+  let next = await readUnlockStateRaw();
+  const token = getSessionAuthToken();
+  if (token) {
+    const remote = await fetchThemeProgress(token);
+    if (remote) {
+      next = mergeRemoteProgress(next, remote);
+      if (remote.equippedThemeId) {
+        cachedEquipped = remote.equippedThemeId;
+        await AsyncStorage.setItem(equippedStorageKey(), remote.equippedThemeId);
+      }
+    }
+  }
+  cachedUnlocks = next;
+  await AsyncStorage.setItem(unlockStorageKey(), JSON.stringify(next));
+  return next;
 }
 
 export async function saveThemeUnlockState(state: ThemeUnlockState): Promise<ThemeUnlockState> {
   const next = applyUnlockProgress(state, {});
   cachedUnlocks = next;
-  await AsyncStorage.setItem(UNLOCK_STORAGE_KEY, JSON.stringify(next));
+  await AsyncStorage.setItem(unlockStorageKey(), JSON.stringify(next));
   return next;
 }
 
@@ -268,13 +348,14 @@ export async function recordThemeUnlockProgress(
   return saveThemeUnlockState(applyUnlockProgress(current, patch));
 }
 
-const OPENED_ORDERS_KEY = "reveal_theme_unlock_orders_v1";
 let cachedOpenedOrders: string[] | null = null;
 
 async function loadOpenedOrderIds(): Promise<string[]> {
   if (cachedOpenedOrders) return cachedOpenedOrders;
   try {
-    const raw = await AsyncStorage.getItem(OPENED_ORDERS_KEY);
+    const raw =
+      (await AsyncStorage.getItem(openedOrdersStorageKey())) ??
+      (await AsyncStorage.getItem(OPENED_ORDERS_KEY));
     if (!raw) {
       cachedOpenedOrders = [];
       return cachedOpenedOrders;
@@ -307,7 +388,7 @@ export async function notePaidBoxOpened(opts: {
   const seen = await loadOpenedOrderIds();
   const isNewOpen = !!orderId && !seen.includes(orderId);
   const prevUnlocked = new Set(current.unlocked);
-  const next = await saveThemeUnlockState(
+  let next = await saveThemeUnlockState(
     applyUnlockProgress(current, {
       openCount: isNewOpen ? current.openCount + 1 : current.openCount,
       hasHidden: current.hasHidden || !!opts.hasHidden,
@@ -316,7 +397,17 @@ export async function notePaidBoxOpened(opts: {
   );
   if (isNewOpen) {
     cachedOpenedOrders = [...seen, orderId].slice(-240);
-    await AsyncStorage.setItem(OPENED_ORDERS_KEY, JSON.stringify(cachedOpenedOrders));
+    await AsyncStorage.setItem(openedOrdersStorageKey(), JSON.stringify(cachedOpenedOrders));
+  }
+  const token = getSessionAuthToken();
+  if (token && orderId) {
+    const remote = await recordThemeProgressOpen(token, orderId, {
+      hasHidden: !!opts.hasHidden,
+      seriesComplete: !!opts.seriesComplete,
+    });
+    if (remote) {
+      next = await saveThemeUnlockState(mergeRemoteProgress(next, remote));
+    }
   }
   return {
     state: next,
@@ -327,7 +418,9 @@ export async function notePaidBoxOpened(opts: {
 
 export async function loadEquippedThemeId(): Promise<string | null> {
   try {
-    const raw = await AsyncStorage.getItem(EQUIPPED_STORAGE_KEY);
+    const raw =
+      (await AsyncStorage.getItem(equippedStorageKey())) ??
+      (await AsyncStorage.getItem(EQUIPPED_STORAGE_KEY));
     cachedEquipped = raw?.trim() || null;
     return cachedEquipped;
   } catch {
@@ -339,10 +432,14 @@ export async function loadEquippedThemeId(): Promise<string | null> {
 export async function setEquippedThemeId(id: string | null): Promise<void> {
   cachedEquipped = id?.trim() || null;
   if (!cachedEquipped) {
-    await AsyncStorage.removeItem(EQUIPPED_STORAGE_KEY);
-    return;
+    await AsyncStorage.removeItem(equippedStorageKey());
+  } else {
+    await AsyncStorage.setItem(equippedStorageKey(), cachedEquipped);
   }
-  await AsyncStorage.setItem(EQUIPPED_STORAGE_KEY, cachedEquipped);
+  const token = getSessionAuthToken();
+  if (token) {
+    void saveEquippedThemeRemote(token, cachedEquipped);
+  }
 }
 
 export function resetThemeRotationCacheForTests(): void {
@@ -350,6 +447,7 @@ export function resetThemeRotationCacheForTests(): void {
   cachedEquipped = undefined;
   surpriseByOrder.clear();
   cachedOpenedOrders = null;
+  cachedOfficialPreview = null;
 }
 
 export const themeStorageKeys = {

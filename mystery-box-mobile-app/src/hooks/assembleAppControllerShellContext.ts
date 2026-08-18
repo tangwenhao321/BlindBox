@@ -39,6 +39,7 @@ export type AssembleAppControllerShellInput = {
   navigate: (view: AppView) => void;
   createOrder: AppShellModalsParams["createOrder"];
   openOrderDetailsPage: (orderId: string) => void | Promise<void>;
+  setPendingCheckoutResume?: (value: boolean) => void;
 };
 
 export function assembleAppControllerShellContext(input: AssembleAppControllerShellInput): AppShellModalsParams {
@@ -76,6 +77,7 @@ export function assembleAppControllerShellContext(input: AssembleAppControllerSh
     navigate,
     createOrder,
     openOrderDetailsPage,
+    setPendingCheckoutResume,
   } = input;
 
   return {
@@ -114,5 +116,6 @@ export function assembleAppControllerShellContext(input: AssembleAppControllerSh
     navigate,
     createOrder,
     openOrderDetailsPage,
+    setPendingCheckoutResume,
   };
 }

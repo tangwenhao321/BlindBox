@@ -6,7 +6,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { measureAnchor, useOnboardingAnchors } from "../../context/OnboardingAnchorContext";
 import { useAppTheme } from "../../context/ThemeContext";
 import { LinearGradient } from "expo-linear-gradient";
-import { shadows, spacing, typography } from "../../styles/tokens";
+import { spacing, typography } from "../../styles/tokens";
 
 import { formatTabBadgeCount, resolveBadge, type TabBadges, type TabKey } from "./bottomTabBadge";
 
@@ -94,17 +94,13 @@ export function BottomTabBar({ active, onChange, badges }: Props) {
     () =>
       StyleSheet.create({
         outer: {
-          // Floating bar; content height ≈ layout.tabBarClearance (exclude safe-area / bottom inset).
           position: "absolute",
-          left: spacing.md,
-          right: spacing.md,
-          bottom: spacing.sm,
+          left: 0,
+          right: 0,
+          bottom: 0,
           backgroundColor: colors.tabBarBg,
-          borderRadius: 24,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.border,
-          paddingBottom: spacing.xs,
-          ...shadows.tabBar,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderTopColor: colors.border,
         },
         wrap: {
           flexDirection: "row",
@@ -156,7 +152,7 @@ export function BottomTabBar({ active, onChange, badges }: Props) {
   );
 
   return (
-    <View style={[styles.outer, { bottom: spacing.sm + insets.bottom }]}>
+    <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, spacing.xs) }]}>
       <View style={styles.wrap}>
         {TAB_KEYS.map((key) => {
           const tab = { key, label: t(`tabs.${key}`) };

@@ -13,6 +13,7 @@ import { resolveSmsCode } from "../utils/devMockOtp";
 import { clearSessionAuthToken, setSessionAuthToken } from "../utils/authTokenStore";
 import { initRevealStorageNamespace } from "../utils/revealStorageNamespace";
 import { clearRevealSessionForUser } from "../effects/revealOrchestrator";
+import { loadEquippedThemeId, loadThemeUnlockState } from "../effects/revealThemeRotation";
 import { normalizePhoneInput } from "../utils/loginValidation";
 import { readLastLoginPhone, writeLastLoginPhone } from "../utils/lastLoginPhone";
 
@@ -82,6 +83,8 @@ async function persistSession(nextToken: string, phoneForMemory?: string) {
   }
   await writeToken(nextToken);
   await initRevealStorageNamespace(nextToken.slice(0, 16));
+  void loadThemeUnlockState();
+  void loadEquippedThemeId();
 }
 
 export function useAuth() {
@@ -106,6 +109,8 @@ export function useAuth() {
       setToken(savedToken);
       setSessionAuthToken(savedToken);
       await initRevealStorageNamespace(savedToken.slice(0, 16));
+      void loadThemeUnlockState();
+      void loadEquippedThemeId();
     }
     return savedToken;
   };

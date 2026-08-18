@@ -8,6 +8,7 @@ type Props = {
   loggedIn: boolean;
   balanceAmount: number;
   luckyCoins: number;
+  starStones: number;
   couponCount: number;
   refreshingBalance: boolean;
   balanceUpdatedAtText: string;
@@ -23,6 +24,7 @@ export function ProfileWalletSection({
   loggedIn,
   balanceAmount,
   luckyCoins,
+  starStones,
   couponCount,
   refreshingBalance,
   balanceUpdatedAtText,
@@ -59,6 +61,16 @@ export function ProfileWalletSection({
         <View style={styles.walletDivider} />
         <Pressable
           style={({ pressed }) => [styles.walletCell, pressed ? styles.pressablePressed : null]}
+          onPress={() => guard(() => onOpenFeature(FEATURE_KEYS.STAR_STONES))}
+          accessibilityRole="button"
+          accessibilityLabel={t("profile.starStones")}
+        >
+          <Text style={styles.walletValue}>{starStones}</Text>
+          <Text style={styles.walletLabel}>{t("profile.starStones")}</Text>
+        </Pressable>
+        <View style={styles.walletDivider} />
+        <Pressable
+          style={({ pressed }) => [styles.walletCell, pressed ? styles.pressablePressed : null]}
           onPress={() => guard(() => onOpenFeature(FEATURE_KEYS.COUPONS))}
           accessibilityRole="button"
           accessibilityLabel={t("profile.couponsCount", { count: couponCount })}
@@ -68,15 +80,21 @@ export function ProfileWalletSection({
         </Pressable>
       </View>
       {loggedIn ? (
-        <Text style={styles.balanceMeta}>
-          {refreshingBalance ? t("profile.syncing") : balanceUpdatedAtText}
-          {checkedToday != null
-            ? checkedToday
-              ? ` · ${t("profile.checkInToday")}`
-              : ` · ${t("profile.checkInPending")}`
-            : null}
-          {checkInStreak > 0 ? ` · ${t("profile.checkInStreak", { days: checkInStreak })}` : null}
-        </Text>
+        <Pressable
+          onPress={() => guard(() => onOpenFeature(FEATURE_KEYS.CHECK_IN))}
+          accessibilityRole="button"
+          accessibilityLabel={t("profile.goCheckIn")}
+        >
+          <Text style={styles.balanceMetaLink}>
+            {refreshingBalance ? t("profile.syncing") : balanceUpdatedAtText}
+            {checkedToday != null
+              ? checkedToday
+                ? ` · ${t("profile.checkInToday")}`
+                : ` · ${t("profile.goCheckIn")}`
+              : null}
+            {checkInStreak > 0 ? ` · ${t("profile.checkInStreak", { days: checkInStreak })}` : null}
+          </Text>
+        </Pressable>
       ) : null}
     </AnimatedRevealCard>
   );

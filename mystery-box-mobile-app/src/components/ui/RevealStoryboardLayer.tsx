@@ -31,11 +31,21 @@ type Props = {
   cardFlip?: SharedValue<number>;
   flashOpacity: SharedValue<number>;
   prizeName?: string;
+  prizeStoryTagline?: string;
   rarityRings?: number;
   reduceMotion?: boolean;
   degradeLevel?: number;
   density?: "full" | "lite";
   playStings?: boolean;
+};
+
+type BoardProps = {
+  cardFlip?: SharedValue<number>;
+  flashOpacity: SharedValue<number>;
+  prizeName?: string;
+  prizeStoryTagline?: string;
+  rarityRings?: number;
+  density?: "full" | "lite";
 };
 
 export function RevealStoryboardLayer({
@@ -44,6 +54,7 @@ export function RevealStoryboardLayer({
   cardFlip,
   flashOpacity,
   prizeName,
+  prizeStoryTagline,
   rarityRings = 1,
   reduceMotion = false,
   degradeLevel = 0,
@@ -55,7 +66,13 @@ export function RevealStoryboardLayer({
   }
   const board =
     storyboard === "adventure" ? (
-      <AdventureBoard cardFlip={cardFlip} flashOpacity={flashOpacity} prizeName={prizeName} density={density} />
+      <AdventureBoard
+        cardFlip={cardFlip}
+        flashOpacity={flashOpacity}
+        prizeName={prizeName}
+        prizeStoryTagline={prizeStoryTagline}
+        density={density}
+      />
     ) : storyboard === "cyberpunk" ? (
       <CyberpunkBoard cardFlip={cardFlip} flashOpacity={flashOpacity} rarityRings={rarityRings} density={density} />
     ) : storyboard === "asmr" ? (
@@ -98,15 +115,7 @@ function StoryboardStingSync({
   return null;
 }
 
-type BoardProps = {
-  cardFlip?: SharedValue<number>;
-  flashOpacity: SharedValue<number>;
-  prizeName?: string;
-  rarityRings?: number;
-  density?: "full" | "lite";
-};
-
-function AdventureBoard({ cardFlip, flashOpacity, prizeName, density = "full" }: BoardProps) {
+function AdventureBoard({ cardFlip, flashOpacity, prizeName, prizeStoryTagline, density = "full" }: BoardProps) {
   const needle = useSharedValue(0);
   const candles = useSharedValue(density === "lite" ? 0.55 : 0);
   useEffect(() => {
@@ -184,7 +193,7 @@ function AdventureBoard({ cardFlip, flashOpacity, prizeName, density = "full" }:
         <Text style={styles.treasureX}>✕</Text>
       </Animated.View>
       <Animated.Text style={[styles.caption, captionStyle]}>
-        {resolveProductStory(prizeName ?? "prize", prizeName).tagline}
+        {prizeStoryTagline || resolveProductStory(prizeName ?? "prize", prizeName).tagline}
       </Animated.Text>
     </View>
   );
